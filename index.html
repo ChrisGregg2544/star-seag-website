@@ -1,13 +1,821 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>STAR SEAG Tutor</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>STAR AI Tutor – SEAG Preparation for Northern Ireland</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,400;1,700&family=Lato:wght@300;400;700;900&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            navy:  '#0B1F3A',
+            'navy-light': '#132947',
+            gold:  '#C9A84C',
+            'gold-light': '#E8C97A',
+          },
+          fontFamily: {
+            display: ['"Playfair Display"', 'Georgia', 'serif'],
+            body: ['Lato', 'sans-serif'],
+          },
+        }
+      }
+    }
+  </script>
+  <style>
+    :root {
+      --gold: #C9A84C;
+      --gold-light: #E8C97A;
+      --navy: #0B1F3A;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body { background: var(--navy); color: #fff; font-family: 'Lato', sans-serif; overflow-x: hidden; }
+
+    /* ── Animations ── */
+    @keyframes twinkle { from { opacity: .05; transform: scale(.85); } to { opacity: .28; transform: scale(1.15); } }
+    @keyframes pulseStar { from { opacity: .7; transform: scale(.95); } to { opacity: 1; transform: scale(1.08); } }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes shimmer { 0%,100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+    @keyframes barFill { from { width: 0%; } to { width: var(--bar-w); } }
+
+    .pulse-star { animation: pulseStar 2.2s ease-in-out infinite alternate; }
+
+    /* Hero fade-ups */
+    .hero-el { opacity: 0; }
+    .hero-el.go { animation: fadeUp .7s ease forwards; }
+    .d1 { animation-delay: .1s; }
+    .d2 { animation-delay: .25s; }
+    .d3 { animation-delay: .4s; }
+    .d4 { animation-delay: .55s; }
+    .d5 { animation-delay: .7s; }
+
+    /* Scroll reveal */
+    .reveal { opacity: 0; transform: translateY(28px); transition: opacity .65s ease, transform .65s ease; }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+    .rv-d1 { transition-delay: .05s; }
+    .rv-d2 { transition-delay: .15s; }
+    .rv-d3 { transition-delay: .25s; }
+    .rv-d4 { transition-delay: .35s; }
+    .rv-d5 { transition-delay: .45s; }
+    .rv-d6 { transition-delay: .55s; }
+
+    /* Gold line dividers */
+    .gold-line { height: 1px; background: linear-gradient(90deg, transparent, rgba(201,168,76,.3), transparent); }
+
+    /* Pill badges */
+    .pill {
+      display: inline-block;
+      background: rgba(201,168,76,.1); border: 1px solid rgba(201,168,76,.28);
+      border-radius: 999px; color: var(--gold);
+      font-family: 'Lato', sans-serif; font-size: .7rem; font-weight: 700;
+      letter-spacing: .14em; text-transform: uppercase; padding: 5px 16px;
+    }
+    .pill-blue {
+      display: inline-block;
+      background: rgba(100,160,255,.1); border: 1px solid rgba(100,160,255,.28);
+      border-radius: 999px; color: #8ab4ff;
+      font-family: 'Lato', sans-serif; font-size: .7rem; font-weight: 700;
+      letter-spacing: .13em; text-transform: uppercase; padding: 5px 15px;
+    }
+
+    /* Section divider line */
+    .divc { width: 48px; height: 2px; background: linear-gradient(90deg, transparent, var(--gold), transparent); margin: 16px auto 0; }
+
+    /* CTA Button */
+    .cta-btn {
+      background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 50%, var(--gold) 100%);
+      background-size: 200% auto;
+      color: var(--navy); font-family: 'Lato', sans-serif; font-weight: 900;
+      letter-spacing: .1em; text-transform: uppercase;
+      border: none; cursor: pointer;
+      transition: background-position .4s, transform .2s, box-shadow .2s;
+      box-shadow: 0 4px 24px rgba(201,168,76,.4);
+    }
+    .cta-btn:hover {
+      background-position: right center;
+      transform: translateY(-2px);
+      box-shadow: 0 10px 40px rgba(201,168,76,.65);
+    }
+    .cta-btn:active { transform: translateY(0); }
+
+    /* Cards */
+    .card {
+      background: linear-gradient(155deg, rgba(255,255,255,.055) 0%, rgba(255,255,255,.018) 100%);
+      border: 1px solid rgba(201,168,76,.18); border-radius: 16px;
+      transition: transform .3s, border-color .3s, box-shadow .3s;
+    }
+    .card:hover { transform: translateY(-5px); border-color: rgba(201,168,76,.46); box-shadow: 0 16px 48px rgba(201,168,76,.1); }
+
+    /* Track cards */
+    .tc6 {
+      background: linear-gradient(155deg, rgba(60,120,220,.07) 0%, rgba(255,255,255,.02) 100%);
+      border: 1px solid rgba(100,160,255,.22); border-radius: 20px;
+      transition: transform .3s, border-color .3s, box-shadow .3s;
+    }
+    .tc6:hover { transform: translateY(-6px); border-color: rgba(100,160,255,.5); box-shadow: 0 20px 52px rgba(60,120,220,.12); }
+    .tc7 {
+      background: linear-gradient(155deg, rgba(201,168,76,.08) 0%, rgba(255,255,255,.02) 100%);
+      border: 1px solid rgba(201,168,76,.32); border-radius: 20px;
+      transition: transform .3s, border-color .3s, box-shadow .3s;
+    }
+    .tc7:hover { transform: translateY(-6px); border-color: rgba(201,168,76,.62); box-shadow: 0 20px 52px rgba(201,168,76,.14); }
+
+    /* Feature icon wrappers */
+    .fi6 { width:34px; height:34px; border-radius:8px; flex-shrink:0; display:flex; align-items:center; justify-content:center; background:rgba(100,160,255,.1); border:1px solid rgba(100,160,255,.2); }
+    .fi7 { width:34px; height:34px; border-radius:8px; flex-shrink:0; display:flex; align-items:center; justify-content:center; background:rgba(201,168,76,.1); border:1px solid rgba(201,168,76,.2); }
+
+    /* Dashboard panels */
+    .dash-panel {
+      background: linear-gradient(155deg, rgba(255,255,255,.055) 0%, rgba(255,255,255,.018) 100%);
+      border: 1px solid rgba(201,168,76,.18); border-radius: 15px; padding: 26px;
+    }
+
+    /* Skill bars */
+    .skill-bar-track { background: rgba(255,255,255,.08); border-radius: 99px; height: 6px; overflow: hidden; }
+    .skill-bar-fill { height: 100%; border-radius: 99px; width: 0%; transition: width 1.3s ease .2s; }
+
+    /* Focus chips */
+    .chip-high { display:inline-flex; align-items:center; gap:5px; background:rgba(220,60,60,.13); border:1px solid rgba(220,60,60,.36); border-radius:6px; padding:4px 11px; margin:3px; }
+    .chip-med  { display:inline-flex; align-items:center; gap:5px; background:rgba(201,168,76,.11); border:1px solid rgba(201,168,76,.32); border-radius:6px; padding:4px 11px; margin:3px; }
+    .chip-low  { display:inline-flex; align-items:center; gap:5px; background:rgba(60,180,100,.11); border:1px solid rgba(60,180,100,.32); border-radius:6px; padding:4px 11px; margin:3px; }
+    .dot { width:5px; height:5px; border-radius:50%; flex-shrink:0; }
+
+    /* Nav */
+    nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; padding: 0 32px; transition: all .4s ease; }
+    nav.scrolled { background: rgba(11,31,58,.97); backdrop-filter: blur(14px); border-bottom: 1px solid rgba(201,168,76,.1); }
+    .nav-link { font-family:'Lato',sans-serif; font-size:.8rem; letter-spacing:.1em; text-transform:uppercase; color:rgba(255,255,255,.62); cursor:pointer; transition:color .2s; text-decoration:none; }
+    .nav-link:hover { color: var(--gold); }
+
+    /* Star particles (hero bg) */
+    .star-p { position:absolute; border-radius:50%; background:var(--gold); pointer-events:none; }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      .tracks-grid { grid-template-columns: 1fr !important; }
+      .dash-grid { grid-template-columns: 1fr !important; }
+      .acc-grid { grid-template-columns: 1fr !important; }
+      .stats-grid { grid-template-columns: 1fr 1fr !important; }
+      .test-grid { grid-template-columns: 1fr !important; }
+      .supp-grid { grid-template-columns: 1fr 1fr !important; }
+      .hero-title { font-size: 2.4rem !important; }
+      .sec-title  { font-size: 2rem !important; }
+      .cta-title  { font-size: 2.2rem !important; }
+    }
+    @media (max-width: 600px) {
+      .stats-grid { grid-template-columns: 1fr 1fr !important; }
+      .supp-grid  { grid-template-columns: 1fr !important; }
+      .hero-title { font-size: 2rem !important; }
+      nav { padding: 0 16px; }
+    }
+  </style>
 </head>
 <body>
-    <div id="root"></div>
-    <script type="module" src="./App.js"></script>
+
+<!-- ══════════════════════════════════════════
+     NAV
+══════════════════════════════════════════ -->
+<nav id="main-nav">
+  <div style="max-width:1140px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;height:68px;">
+    <!-- Logo -->
+    <div style="display:flex;align-items:center;gap:9px;">
+      <span class="pulse-star" style="line-height:0;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="#C9A84C" stroke="#C9A84C" stroke-width="1.5"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
+      </span>
+      <span style="font-family:'Playfair Display',serif;font-size:1.32rem;font-weight:700;letter-spacing:.04em;color:#C9A84C;">STAR</span>
+      <span style="font-family:'Lato',sans-serif;font-size:.65rem;color:rgba(255,255,255,.3);letter-spacing:.18em;text-transform:uppercase;margin-left:2px;">AI Tutor</span>
+    </div>
+    <!-- Links -->
+    <div style="display:flex;align-items:center;gap:28px;">
+      <div style="display:flex;gap:26px;">
+        <a class="nav-link" href="#tracks">Tracks</a>
+        <a class="nav-link" href="#dashboard">Dashboard</a>
+        <a class="nav-link" href="#accuracy">Accuracy</a>
+      </div>
+      <button class="cta-btn" style="padding:9px 22px;border-radius:7px;font-size:.7rem;">Start Free Trial</button>
+    </div>
+  </div>
+</nav>
+
+<!-- ══════════════════════════════════════════
+     HERO
+══════════════════════════════════════════ -->
+<section style="position:relative;min-height:100vh;display:flex;align-items:center;overflow:hidden;">
+
+  <!-- Background glow -->
+  <div style="position:absolute;inset:0;pointer-events:none;">
+    <div style="position:absolute;top:40%;left:50%;transform:translate(-50%,-50%);width:680px;height:680px;background:radial-gradient(circle,rgba(201,168,76,.05) 0%,transparent 68%);border-radius:50%;"></div>
+    <!-- Star particles -->
+    <div class="star-p" style="left:9%;top:11%;width:3px;height:3px;animation:twinkle 3.5s ease-in-out infinite alternate;"></div>
+    <div class="star-p" style="left:22%;top:28%;width:2px;height:2px;animation:twinkle 4.1s ease-in-out infinite alternate .8s;"></div>
+    <div class="star-p" style="left:7%;top:62%;width:4px;height:4px;animation:twinkle 3.8s ease-in-out infinite alternate .3s;"></div>
+    <div class="star-p" style="left:14%;top:82%;width:2px;height:2px;animation:twinkle 4.5s ease-in-out infinite alternate 1.4s;"></div>
+    <div class="star-p" style="left:88%;top:15%;width:3px;height:3px;animation:twinkle 3.6s ease-in-out infinite alternate .6s;"></div>
+    <div class="star-p" style="left:92%;top:38%;width:5px;height:5px;animation:twinkle 4.2s ease-in-out infinite alternate 1.1s;"></div>
+    <div class="star-p" style="left:82%;top:70%;width:2px;height:2px;animation:twinkle 3.9s ease-in-out infinite alternate .4s;"></div>
+    <div class="star-p" style="left:90%;top:88%;width:3px;height:3px;animation:twinkle 4.4s ease-in-out infinite alternate 1.6s;"></div>
+    <div class="star-p" style="left:48%;top:22%;width:2px;height:2px;animation:twinkle 3.7s ease-in-out infinite alternate 2s;"></div>
+    <div class="star-p" style="left:55%;top:78%;width:3px;height:3px;animation:twinkle 4.0s ease-in-out infinite alternate .9s;"></div>
+    <!-- Bottom fade -->
+    <div style="position:absolute;bottom:0;left:0;right:0;height:180px;background:linear-gradient(0deg,#0B1F3A 0%,transparent 100%);"></div>
+  </div>
+
+  <div style="max-width:1140px;margin:0 auto;padding:130px 32px 90px;position:relative;z-index:2;width:100%;">
+    <div style="max-width:720px;">
+      <div class="hero-el d1" style="margin-bottom:0;">
+        <span class="pill">Northern Ireland's Premier SEAG Preparation</span>
+      </div>
+      <h1 class="hero-el d2 hero-title" style="font-family:'Playfair Display',serif;font-size:3.7rem;line-height:1.1;font-weight:900;margin-top:28px;margin-bottom:10px;">
+        The AI Tutor That<br>
+        <span style="color:#C9A84C;font-style:italic;">Grows With</span><br>
+        Your Child.
+      </h1>
+      <p class="hero-el d3" style="font-size:1.08rem;line-height:1.82;color:rgba(255,255,255,.6);max-width:560px;margin-top:18px;margin-bottom:42px;">
+        Personalised SEAG Preparation from P6 Foundations to P7 Exam Mastery.
+      </p>
+      <div class="hero-el d4" style="display:flex;align-items:center;gap:20px;flex-wrap:wrap;">
+        <button class="cta-btn" style="padding:17px 44px;border-radius:9px;font-size:.93rem;">Start Free Trial</button>
+        <span style="font-family:'Lato',sans-serif;font-size:.78rem;color:rgba(255,255,255,.36);letter-spacing:.04em;">No card required · Cancel anytime</span>
+      </div>
+      <div class="hero-el d5" style="margin-top:50px;display:flex;gap:7px;align-items:center;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="#C9A84C" stroke="#C9A84C" stroke-width="1.5"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="#C9A84C" stroke="#C9A84C" stroke-width="1.5"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="#C9A84C" stroke="#C9A84C" stroke-width="1.5"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="#C9A84C" stroke="#C9A84C" stroke-width="1.5"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="#C9A84C" stroke="#C9A84C" stroke-width="1.5"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
+        <span style="font-family:'Lato',sans-serif;font-size:.78rem;color:rgba(255,255,255,.4);margin-left:8px;">Trusted by P6 &amp; P7 families across Northern Ireland</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="gold-line"></div>
+
+<!-- ══════════════════════════════════════════
+     STATS BAR
+══════════════════════════════════════════ -->
+<section style="padding:60px 32px;">
+  <div style="max-width:1140px;margin:0 auto;">
+    <div class="stats-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:18px;">
+
+      <div class="card reveal rv-d1" style="padding:24px 20px;text-align:center;">
+        <div style="font-family:'Playfair Display',serif;font-size:2.5rem;font-weight:700;color:#C9A84C;" data-count="56">56</div>
+        <div style="font-family:'Lato',sans-serif;font-size:.86rem;font-weight:700;color:rgba(255,255,255,.88);margin-top:6px;margin-bottom:3px;">Questions per Mock</div>
+        <div style="font-family:'Lato',sans-serif;font-size:.73rem;color:rgba(255,255,255,.36);letter-spacing:.04em;">Full SEAG format</div>
+      </div>
+
+      <div class="card reveal rv-d2" style="padding:24px 20px;text-align:center;">
+        <div style="font-family:'Playfair Display',serif;font-size:2.5rem;font-weight:700;color:#C9A84C;">10</div>
+        <div style="font-family:'Lato',sans-serif;font-size:.86rem;font-weight:700;color:rgba(255,255,255,.88);margin-top:6px;margin-bottom:3px;">Questions per Sprint</div>
+        <div style="font-family:'Lato',sans-serif;font-size:.73rem;color:rgba(255,255,255,.36);letter-spacing:.04em;">P6 Foundation Track</div>
+      </div>
+
+      <div class="card reveal rv-d3" style="padding:24px 20px;text-align:center;">
+        <div style="font-family:'Playfair Display',serif;font-size:2.5rem;font-weight:700;color:#C9A84C;">100%</div>
+        <div style="font-family:'Lato',sans-serif;font-size:.86rem;font-weight:700;color:rgba(255,255,255,.88);margin-top:6px;margin-bottom:3px;">Verified Accuracy</div>
+        <div style="font-family:'Lato',sans-serif;font-size:.73rem;color:rgba(255,255,255,.36);letter-spacing:.04em;">Every sum solved first</div>
+      </div>
+
+      <div class="card reveal rv-d4" style="padding:24px 20px;text-align:center;">
+        <div style="font-family:'Playfair Display',serif;font-size:2.5rem;font-weight:700;color:#C9A84C;">2</div>
+        <div style="font-family:'Lato',sans-serif;font-size:.86rem;font-weight:700;color:rgba(255,255,255,.88);margin-top:6px;margin-bottom:3px;">Adaptive Tracks</div>
+        <div style="font-family:'Lato',sans-serif;font-size:.73rem;color:rgba(255,255,255,.36);letter-spacing:.04em;">The Builder &amp; Executor</div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<div class="gold-line"></div>
+
+<!-- ══════════════════════════════════════════
+     TWO TRACKS
+══════════════════════════════════════════ -->
+<section id="tracks" style="padding:100px 32px;">
+  <div style="max-width:1140px;margin:0 auto;">
+
+    <!-- Heading -->
+    <div class="reveal rv-d1" style="text-align:center;margin-bottom:70px;">
+      <span class="pill">Two Tracks. One Goal.</span>
+      <h2 class="sec-title" style="font-family:'Playfair Display',serif;font-size:2.5rem;font-weight:700;margin-top:22px;margin-bottom:14px;line-height:1.15;">
+        Built for Every Stage<br>of the SEAG Journey
+      </h2>
+      <div class="divc"></div>
+      <p style="font-family:'Lato',sans-serif;color:rgba(255,255,255,.5);font-size:.95rem;margin-top:22px;max-width:510px;margin-left:auto;margin-right:auto;">
+        Whether your child is laying foundations in P6 or executing under pressure in P7, STAR meets them exactly where they are.
+      </p>
+    </div>
+
+    <!-- Track cards -->
+    <div class="tracks-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:28px;">
+
+      <!-- P6 BUILDER -->
+      <div class="tc6 reveal rv-d2" style="padding:46px 42px;position:relative;overflow:hidden;">
+        <div style="position:absolute;top:-50px;right:-50px;width:200px;height:200px;background:radial-gradient(circle,rgba(100,160,255,.06) 0%,transparent 70%);border-radius:50%;pointer-events:none;"></div>
+
+        <!-- Header -->
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
+          <div style="width:48px;height:48px;border-radius:12px;background:rgba(100,160,255,.12);border:1px solid rgba(100,160,255,.24);display:flex;align-items:center;justify-content:center;">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#8ab4ff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="13,2 3,14 12,14 11,22 21,10 12,10"/></svg>
+          </div>
+          <span class="pill-blue">P6 Foundation Track</span>
+        </div>
+
+        <h3 style="font-family:'Playfair Display',serif;font-size:1.7rem;font-weight:700;margin-top:16px;margin-bottom:8px;line-height:1.2;">The Builder</h3>
+        <p style="font-family:'Lato',sans-serif;font-size:.9rem;color:rgba(255,255,255,.52);line-height:1.78;margin-bottom:30px;">
+          Confidence-first learning that closes knowledge gaps before the big year begins — with no overwhelm and no wasted sessions.
+        </p>
+
+        <!-- Feature 1 -->
+        <div style="display:flex;align-items:flex-start;gap:13px;margin-bottom:20px;">
+          <div class="fi6">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8ab4ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg>
+          </div>
+          <div>
+            <div style="font-family:'Lato',sans-serif;font-weight:700;font-size:.9rem;margin-bottom:4px;">10-Question Mini-Sprints</div>
+            <div style="font-family:'Lato',sans-serif;font-size:.82rem;color:rgba(255,255,255,.5);line-height:1.68;">Perfect for building daily habits without the stress of a full paper. Short, focused, and habit-forming.</div>
+          </div>
+        </div>
+
+        <!-- Feature 2 -->
+        <div style="display:flex;align-items:flex-start;gap:13px;margin-bottom:20px;">
+          <div class="fi6">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8ab4ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          </div>
+          <div>
+            <div style="font-family:'Lato',sans-serif;font-weight:700;font-size:.9rem;margin-bottom:4px;">Instant Visual Learning</div>
+            <div style="font-family:'Lato',sans-serif;font-size:.82rem;color:rgba(255,255,255,.5);line-height:1.68;">Every mistake is met with a <span style="color:#8ab4ff;font-style:italic;">"Detective Hint"</span> and a direct video tutorial link from CorbettMaths or BBC Bitesize.</div>
+          </div>
+        </div>
+
+        <!-- Feature 3 -->
+        <div style="display:flex;align-items:flex-start;gap:13px;">
+          <div class="fi6">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8ab4ff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22,4 12,14.01 9,11.01"/></svg>
+          </div>
+          <div>
+            <div style="font-family:'Lato',sans-serif;font-weight:700;font-size:.9rem;margin-bottom:4px;">Confidence First</div>
+            <div style="font-family:'Lato',sans-serif;font-size:.82rem;color:rgba(255,255,255,.5);line-height:1.68;">We focus on the core KS2 NI curriculum to ensure no gaps in knowledge before the big year begins.</div>
+          </div>
+        </div>
+
+        <div style="margin-top:34px;padding-top:26px;border-top:1px solid rgba(100,160,255,.14);">
+          <div style="font-family:'Lato',sans-serif;font-size:.7rem;color:rgba(255,255,255,.3);letter-spacing:.12em;text-transform:uppercase;margin-bottom:5px;">Ideal for</div>
+          <div style="font-family:'Lato',sans-serif;font-size:.86rem;color:#8ab4ff;font-weight:700;">P6 students beginning their SEAG journey</div>
+        </div>
+      </div>
+
+      <!-- P7 EXECUTOR -->
+      <div class="tc7 reveal rv-d3" style="padding:46px 42px;position:relative;overflow:hidden;">
+        <!-- Most popular badge -->
+        <div style="position:absolute;top:22px;right:22px;background:linear-gradient(135deg,#C9A84C,#E8C97A);color:#0B1F3A;font-family:'Lato',sans-serif;font-size:.63rem;font-weight:900;letter-spacing:.1em;text-transform:uppercase;padding:4px 11px;border-radius:5px;">Most Popular</div>
+        <div style="position:absolute;top:-50px;right:-50px;width:220px;height:220px;background:radial-gradient(circle,rgba(201,168,76,.08) 0%,transparent 70%);border-radius:50%;pointer-events:none;"></div>
+
+        <!-- Header -->
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
+          <div style="width:48px;height:48px;border-radius:12px;background:rgba(201,168,76,.13);border:1px solid rgba(201,168,76,.28);display:flex;align-items:center;justify-content:center;">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h2"/><path d="M18 9h2a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-2"/><path d="M4 2h16v7a8 8 0 0 1-16 0V2z"/><line x1="12" y1="17" x2="12" y2="22"/><line x1="8" y1="22" x2="16" y2="22"/></svg>
+          </div>
+          <span class="pill">P7 Exam Track</span>
+        </div>
+
+        <h3 style="font-family:'Playfair Display',serif;font-size:1.7rem;font-weight:700;margin-top:16px;margin-bottom:8px;line-height:1.2;">The Executor</h3>
+        <p style="font-family:'Lato',sans-serif;font-size:.9rem;color:rgba(255,255,255,.52);line-height:1.78;margin-bottom:30px;">
+          Full-scale exam simulation that builds the stamina, composure, and analytical edge needed when the real day arrives.
+        </p>
+
+        <!-- Feature 1 -->
+        <div style="display:flex;align-items:flex-start;gap:13px;margin-bottom:20px;">
+          <div class="fi7">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+          </div>
+          <div>
+            <div style="font-family:'Lato',sans-serif;font-weight:700;font-size:.9rem;margin-bottom:4px;">Full-Length Mocks</div>
+            <div style="font-family:'Lato',sans-serif;font-size:.82rem;color:rgba(255,255,255,.5);line-height:1.68;">Authentic 56-question practice papers that mirror the real SEAG format — no shortcuts, no guesswork.</div>
+          </div>
+        </div>
+
+        <!-- Feature 2 -->
+        <div style="display:flex;align-items:flex-start;gap:13px;margin-bottom:20px;">
+          <div class="fi7">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="22,12 18,12 15,21 9,3 6,12 2,12"/></svg>
+          </div>
+          <div>
+            <div style="font-family:'Lato',sans-serif;font-weight:700;font-size:.9rem;margin-bottom:4px;">Stamina Training</div>
+            <div style="font-family:'Lato',sans-serif;font-size:.82rem;color:rgba(255,255,255,.5);line-height:1.68;">Practice the transition from English Multiple Choice to Maths Free Response — exactly as it happens on exam day.</div>
+          </div>
+        </div>
+
+        <!-- Feature 3 -->
+        <div style="display:flex;align-items:flex-start;gap:13px;">
+          <div class="fi7">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/><line x1="2" y1="20" x2="22" y2="20"/></svg>
+          </div>
+          <div>
+            <div style="font-family:'Lato',sans-serif;font-weight:700;font-size:.9rem;margin-bottom:4px;">Advanced Analytics</div>
+            <div style="font-family:'Lato',sans-serif;font-size:.82rem;color:rgba(255,255,255,.5);line-height:1.68;">Receive a <span style="color:#C9A84C;font-style:italic;">"Results Dashboard"</span> after every mock to identify exactly where to focus your final weeks of revision.</div>
+          </div>
+        </div>
+
+        <div style="margin-top:34px;padding-top:26px;border-top:1px solid rgba(201,168,76,.14);">
+          <div style="font-family:'Lato',sans-serif;font-size:.7rem;color:rgba(255,255,255,.3);letter-spacing:.12em;text-transform:uppercase;margin-bottom:5px;">Ideal for</div>
+          <div style="font-family:'Lato',sans-serif;font-size:.86rem;color:#C9A84C;font-weight:700;">P7 students preparing for the SEAG examination</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<div class="gold-line"></div>
+
+<!-- ══════════════════════════════════════════
+     PARENT DASHBOARD
+══════════════════════════════════════════ -->
+<section id="dashboard" style="padding:100px 32px;position:relative;overflow:hidden;">
+  <div style="position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at 50% 55%,rgba(201,168,76,.04) 0%,transparent 64%);"></div>
+  <div style="max-width:1140px;margin:0 auto;position:relative;">
+
+    <!-- Heading -->
+    <div class="reveal rv-d1" style="text-align:center;margin-bottom:68px;">
+      <span class="pill">For Parents</span>
+      <h2 class="sec-title" style="font-family:'Playfair Display',serif;font-size:2.5rem;font-weight:700;margin-top:22px;margin-bottom:14px;line-height:1.15;">
+        The Parent Dashboard
+      </h2>
+      <div class="divc"></div>
+      <p style="font-family:'Lato',sans-serif;color:rgba(255,255,255,.5);font-size:.95rem;margin-top:22px;max-width:540px;margin-left:auto;margin-right:auto;">
+        You shouldn't have to guess how your child is progressing. STAR gives you a clear, honest picture — at a glance, any time.
+      </p>
+    </div>
+
+    <!-- Two panel grid -->
+    <div class="dash-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:26px;margin-bottom:26px;">
+
+      <!-- Star Skills panel -->
+      <div class="reveal rv-d2">
+        <div class="dash-panel" style="margin-bottom:20px;">
+          <div style="display:flex;align-items:center;gap:9px;margin-bottom:18px;">
+            <span class="pulse-star" style="line-height:0;">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="#C9A84C" stroke="#C9A84C" stroke-width="1.5"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
+            </span>
+            <span style="font-family:'Playfair Display',serif;font-size:1.05rem;font-weight:700;">Star Skills</span>
+            <span style="font-family:'Lato',sans-serif;font-size:.67rem;color:rgba(255,255,255,.32);margin-left:auto;letter-spacing:.1em;text-transform:uppercase;">Week 6</span>
+          </div>
+          <p style="font-family:'Lato',sans-serif;font-size:.82rem;color:rgba(255,255,255,.5);line-height:1.72;margin-bottom:20px;">
+            <span style="color:#C9A84C;font-weight:700;">Star Skills</span> track the topics where your child is genuinely excelling — proven strengths ready to shine on exam day.
+          </p>
+
+          <!-- Skill bars -->
+          <div class="skill-row" style="margin-bottom:13px;">
+            <div style="display:flex;justify-content:space-between;margin-bottom:5px;">
+              <span style="font-family:'Lato',sans-serif;font-size:.8rem;color:rgba(255,255,255,.78);">Data Handling</span>
+              <span style="font-family:'Lato',sans-serif;font-size:.76rem;color:#C9A84C;font-weight:700;">91%</span>
+            </div>
+            <div class="skill-bar-track"><div class="skill-bar-fill" style="--bar-w:91%;background:linear-gradient(90deg,#C9A84C,#E8C97A);"></div></div>
+          </div>
+          <div class="skill-row" style="margin-bottom:13px;">
+            <div style="display:flex;justify-content:space-between;margin-bottom:5px;">
+              <span style="font-family:'Lato',sans-serif;font-size:.8rem;color:rgba(255,255,255,.78);">Fractions &amp; Decimals</span>
+              <span style="font-family:'Lato',sans-serif;font-size:.76rem;color:#C9A84C;font-weight:700;">88%</span>
+            </div>
+            <div class="skill-bar-track"><div class="skill-bar-fill" style="--bar-w:88%;background:linear-gradient(90deg,#C9A84C,#E8C97A);"></div></div>
+          </div>
+          <div class="skill-row" style="margin-bottom:13px;">
+            <div style="display:flex;justify-content:space-between;margin-bottom:5px;">
+              <span style="font-family:'Lato',sans-serif;font-size:.8rem;color:rgba(255,255,255,.78);">Word Problems</span>
+              <span style="font-family:'Lato',sans-serif;font-size:.76rem;color:#C9A84C;font-weight:700;">82%</span>
+            </div>
+            <div class="skill-bar-track"><div class="skill-bar-fill" style="--bar-w:82%;background:linear-gradient(90deg,#C9A84C,#E8C97A);"></div></div>
+          </div>
+          <div class="skill-row" style="margin-bottom:13px;">
+            <div style="display:flex;justify-content:space-between;margin-bottom:5px;">
+              <span style="font-family:'Lato',sans-serif;font-size:.8rem;color:rgba(255,255,255,.78);">Algebra &amp; Patterns</span>
+              <span style="font-family:'Lato',sans-serif;font-size:.76rem;color:#E8C97A;font-weight:700;">74%</span>
+            </div>
+            <div class="skill-bar-track"><div class="skill-bar-fill" style="--bar-w:74%;background:linear-gradient(90deg,#E8C97A,#C9A84C);"></div></div>
+          </div>
+          <div class="skill-row">
+            <div style="display:flex;justify-content:space-between;margin-bottom:5px;">
+              <span style="font-family:'Lato',sans-serif;font-size:.8rem;color:rgba(255,255,255,.78);">Time &amp; Measurement</span>
+              <span style="font-family:'Lato',sans-serif;font-size:.76rem;color:#E8C97A;font-weight:700;">67%</span>
+            </div>
+            <div class="skill-bar-track"><div class="skill-bar-fill" style="--bar-w:67%;background:linear-gradient(90deg,#E8C97A,#C9A84C);"></div></div>
+          </div>
+
+          <div style="margin-top:16px;padding:11px 15px;background:rgba(201,168,76,.07);border-radius:8px;border:1px solid rgba(201,168,76,.15);">
+            <span style="font-family:'Lato',sans-serif;font-size:.78rem;color:rgba(255,255,255,.48);">Overall Star Rating: &nbsp;</span>
+            <span style="font-family:'Lato',sans-serif;font-size:.84rem;font-weight:700;color:#C9A84C;">4.2 / 5.0 ⭐</span>
+          </div>
+        </div>
+
+        <div class="dash-panel" style="display:flex;gap:13px;align-items:flex-start;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:1px;"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          <div>
+            <div style="font-family:'Lato',sans-serif;font-weight:700;font-size:.88rem;margin-bottom:5px;">Full Visibility, Always</div>
+            <div style="font-family:'Lato',sans-serif;font-size:.8rem;color:rgba(255,255,255,.48);line-height:1.72;">STAR automatically compiles session data into a parent-facing summary. No jargon. No digging. Just the information you need to support your child.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Focus Areas panel -->
+      <div class="reveal rv-d3">
+        <div class="dash-panel" style="margin-bottom:20px;">
+          <div style="display:flex;align-items:center;gap:9px;margin-bottom:18px;">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+            <span style="font-family:'Playfair Display',serif;font-size:1.05rem;font-weight:700;">Focus Areas</span>
+            <span style="font-family:'Lato',sans-serif;font-size:.67rem;color:rgba(255,255,255,.32);margin-left:auto;letter-spacing:.1em;text-transform:uppercase;">This Week</span>
+          </div>
+          <p style="font-family:'Lato',sans-serif;font-size:.82rem;color:rgba(255,255,255,.5);line-height:1.72;margin-bottom:20px;">
+            <span style="color:#ff7070;font-weight:700;">Focus Areas</span> are the specific topics STAR has identified as needing attention. Prioritised by urgency so revision time is never wasted.
+          </p>
+
+          <div style="margin-bottom:16px;">
+            <div style="font-family:'Lato',sans-serif;font-size:.68rem;color:rgba(255,255,255,.32);letter-spacing:.12em;text-transform:uppercase;margin-bottom:8px;">High Priority</div>
+            <span class="chip-high"><span class="dot" style="background:#ff7070;"></span><span style="font-family:'Lato',sans-serif;font-size:.75rem;color:#ff9090;font-weight:700;">Long Division</span></span>
+            <span class="chip-high"><span class="dot" style="background:#ff7070;"></span><span style="font-family:'Lato',sans-serif;font-size:.75rem;color:#ff9090;font-weight:700;">Percentage Problems</span></span>
+          </div>
+
+          <div style="margin-bottom:16px;">
+            <div style="font-family:'Lato',sans-serif;font-size:.68rem;color:rgba(255,255,255,.32);letter-spacing:.12em;text-transform:uppercase;margin-bottom:8px;">Needs Attention</div>
+            <span class="chip-med"><span class="dot" style="background:#C9A84C;"></span><span style="font-family:'Lato',sans-serif;font-size:.75rem;color:#E8C97A;font-weight:700;">Area &amp; Perimeter</span></span>
+            <span class="chip-med"><span class="dot" style="background:#C9A84C;"></span><span style="font-family:'Lato',sans-serif;font-size:.75rem;color:#E8C97A;font-weight:700;">Ratio &amp; Proportion</span></span>
+            <span class="chip-med"><span class="dot" style="background:#C9A84C;"></span><span style="font-family:'Lato',sans-serif;font-size:.75rem;color:#E8C97A;font-weight:700;">Volume</span></span>
+          </div>
+
+          <div>
+            <div style="font-family:'Lato',sans-serif;font-size:.68rem;color:rgba(255,255,255,.32);letter-spacing:.12em;text-transform:uppercase;margin-bottom:8px;">On Track</div>
+            <span class="chip-low"><span class="dot" style="background:#6ee098;"></span><span style="font-family:'Lato',sans-serif;font-size:.75rem;color:#6ee098;font-weight:700;">Number Sequences</span></span>
+            <span class="chip-low"><span class="dot" style="background:#6ee098;"></span><span style="font-family:'Lato',sans-serif;font-size:.75rem;color:#6ee098;font-weight:700;">Symmetry</span></span>
+          </div>
+        </div>
+
+        <div class="dash-panel" style="display:flex;gap:13px;align-items:flex-start;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:1px;"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg>
+          <div>
+            <div style="font-family:'Lato',sans-serif;font-weight:700;font-size:.88rem;margin-bottom:5px;">Adaptive Week by Week</div>
+            <div style="font-family:'Lato',sans-serif;font-size:.8rem;color:rgba(255,255,255,.48);line-height:1.72;">Focus Areas update automatically after every session. As your child improves, their priorities shift — ensuring every practice minute is targeted and purposeful.</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- 3 supporting cards -->
+    <div class="supp-grid reveal rv-d4" style="display:grid;grid-template-columns:repeat(3,1fr);gap:18px;">
+      <div class="card" style="padding:24px 22px;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:11px;"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/><line x1="2" y1="20" x2="22" y2="20"/></svg>
+        <div style="font-family:'Lato',sans-serif;font-weight:700;font-size:.87rem;margin-bottom:7px;">Weekly Progress Reports</div>
+        <div style="font-family:'Lato',sans-serif;font-size:.8rem;color:rgba(255,255,255,.46);line-height:1.7;">A clean summary of sessions completed, questions attempted, and accuracy trends — delivered directly to you.</div>
+      </div>
+      <div class="card" style="padding:24px 22px;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:11px;"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9,12 11,14 15,10" stroke-width="2"/></svg>
+        <div style="font-family:'Lato',sans-serif;font-weight:700;font-size:.87rem;margin-bottom:7px;">Accuracy Tracking</div>
+        <div style="font-family:'Lato',sans-serif;font-size:.8rem;color:rgba(255,255,255,.46);line-height:1.7;">See exactly how your child's accuracy is trending topic by topic, so you always know if they're truly ready.</div>
+      </div>
+      <div class="card" style="padding:24px 22px;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:11px;"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg>
+        <div style="font-family:'Lato',sans-serif;font-weight:700;font-size:.87rem;margin-bottom:7px;">Session History</div>
+        <div style="font-family:'Lato',sans-serif;font-size:.8rem;color:rgba(255,255,255,.46);line-height:1.7;">A full log of every sprint and mock completed, with timestamps — so you can see effort, not just scores.</div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<div class="gold-line"></div>
+
+<!-- ══════════════════════════════════════════
+     ACCURACY MANDATE
+══════════════════════════════════════════ -->
+<section id="accuracy" style="padding:100px 32px;position:relative;overflow:hidden;">
+  <div style="position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at 50% 50%,rgba(201,168,76,.04) 0%,transparent 62%);"></div>
+  <div style="max-width:1000px;margin:0 auto;position:relative;">
+
+    <div class="reveal rv-d1" style="text-align:center;margin-bottom:60px;">
+      <span class="pill">The Accuracy Mandate</span>
+      <h2 class="sec-title" style="font-family:'Playfair Display',serif;font-size:2.5rem;font-weight:700;margin-top:22px;margin-bottom:16px;line-height:1.15;">
+        Ironclad Accuracy.<br><span style="color:#C9A84C;font-style:italic;">No Exceptions.</span>
+      </h2>
+      <div class="divc"></div>
+    </div>
+
+    <div class="acc-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:38px;align-items:start;">
+
+      <!-- Left: hero box -->
+      <div class="reveal rv-d2">
+        <div style="border:1px solid rgba(201,168,76,.28);border-radius:18px;padding:40px 36px;background:linear-gradient(160deg,rgba(201,168,76,.06) 0%,transparent 100%);">
+          <div style="font-size:3.2rem;margin-bottom:16px;">🔐</div>
+          <h3 style="font-family:'Playfair Display',serif;font-size:1.42rem;font-weight:700;margin-bottom:15px;color:#C9A84C;line-height:1.25;">
+            We Solve Every Sum Before Your Child Sees It
+          </h3>
+          <p style="font-family:'Lato',sans-serif;color:rgba(255,255,255,.6);line-height:1.82;font-size:.9rem;">
+            Our AI solves every single maths problem and double-checks every grammar rule internally — before the question ever reaches the student. If the answer isn't provably correct, the question doesn't appear.
+          </p>
+        </div>
+      </div>
+
+      <!-- Right: checklist -->
+      <div class="reveal rv-d3">
+
+        <div style="display:flex;align-items:flex-start;gap:13px;padding:18px 0;border-bottom:1px solid rgba(201,168,76,.1);">
+          <div style="width:30px;height:30px;border-radius:7px;flex-shrink:0;background:rgba(201,168,76,.1);border:1px solid rgba(201,168,76,.2);display:flex;align-items:center;justify-content:center;margin-top:2px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20,6 9,17 4,12"/></svg>
+          </div>
+          <div>
+            <div style="font-family:'Lato',sans-serif;font-weight:700;font-size:.9rem;margin-bottom:4px;">Zero-Error Logic</div>
+            <div style="font-family:'Lato',sans-serif;font-size:.82rem;color:rgba(255,255,255,.47);line-height:1.7;">Our AI solves every single maths problem and double-checks every grammar rule internally before the student ever sees it.</div>
+          </div>
+        </div>
+
+        <div style="display:flex;align-items:flex-start;gap:13px;padding:18px 0;border-bottom:1px solid rgba(201,168,76,.1);">
+          <div style="width:30px;height:30px;border-radius:7px;flex-shrink:0;background:rgba(201,168,76,.1);border:1px solid rgba(201,168,76,.2);display:flex;align-items:center;justify-content:center;margin-top:2px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20,6 9,17 4,12"/></svg>
+          </div>
+          <div>
+            <div style="font-family:'Lato',sans-serif;font-weight:700;font-size:.9rem;margin-bottom:4px;">Human-Verified Standards</div>
+            <div style="font-family:'Lato',sans-serif;font-size:.82rem;color:rgba(255,255,255,.47);line-height:1.7;">Every question is original and generated specifically to meet the official SEAG specification — not recycled from generic question banks.</div>
+          </div>
+        </div>
+
+        <div style="display:flex;align-items:flex-start;gap:13px;padding:18px 0;border-bottom:1px solid rgba(201,168,76,.1);">
+          <div style="width:30px;height:30px;border-radius:7px;flex-shrink:0;background:rgba(201,168,76,.1);border:1px solid rgba(201,168,76,.2);display:flex;align-items:center;justify-content:center;margin-top:2px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20,6 9,17 4,12"/></svg>
+          </div>
+          <div>
+            <div style="font-family:'Lato',sans-serif;font-weight:700;font-size:.9rem;margin-bottom:4px;">Explained, Not Just Marked</div>
+            <div style="font-family:'Lato',sans-serif;font-size:.82rem;color:rgba(255,255,255,.47);line-height:1.7;">Students see a clear step-by-step solution for every answer — right or wrong — so real learning happens every session.</div>
+          </div>
+        </div>
+
+        <div style="display:flex;align-items:flex-start;gap:13px;padding:18px 0;">
+          <div style="width:30px;height:30px;border-radius:7px;flex-shrink:0;background:rgba(201,168,76,.1);border:1px solid rgba(201,168,76,.2);display:flex;align-items:center;justify-content:center;margin-top:2px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20,6 9,17 4,12"/></svg>
+          </div>
+          <div>
+            <div style="font-family:'Lato',sans-serif;font-weight:700;font-size:.9rem;margin-bottom:4px;">Zero Tolerance Policy</div>
+            <div style="font-family:'Lato',sans-serif;font-size:.82rem;color:rgba(255,255,255,.47);line-height:1.7;">A wrong answer in a tutor app erodes trust. That's why our accuracy commitment is absolute, not aspirational.</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="gold-line"></div>
+
+<!-- ══════════════════════════════════════════
+     TESTIMONIALS
+══════════════════════════════════════════ -->
+<section style="padding:80px 32px;">
+  <div style="max-width:1140px;margin:0 auto;">
+    <div style="text-align:center;margin-bottom:46px;">
+      <span class="pill">What Parents Are Saying</span>
+    </div>
+    <div class="test-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px;">
+
+      <div class="card reveal rv-d1" style="padding:28px 24px;">
+        <div style="display:flex;gap:3px;margin-bottom:14px;">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="#C9A84C" stroke="#C9A84C" stroke-width="1.5"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="#C9A84C" stroke="#C9A84C" stroke-width="1.5"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="#C9A84C" stroke="#C9A84C" stroke-width="1.5"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="#C9A84C" stroke="#C9A84C" stroke-width="1.5"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="#C9A84C" stroke="#C9A84C" stroke-width="1.5"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
+        </div>
+        <p style="font-family:'Lato',sans-serif;font-size:.86rem;color:rgba(255,255,255,.64);line-height:1.8;margin-bottom:20px;font-style:italic;">"My daughter looks forward to her STAR sessions now. The Detective Hints make mistakes feel like a puzzle, not a failure."</p>
+        <div style="font-family:'Lato',sans-serif;font-weight:700;font-size:.86rem;">Sarah M.</div>
+        <div style="font-family:'Lato',sans-serif;font-size:.74rem;color:rgba(255,255,255,.34);letter-spacing:.05em;">Belfast</div>
+      </div>
+
+      <div class="card reveal rv-d2" style="padding:28px 24px;">
+        <div style="display:flex;gap:3px;margin-bottom:14px;">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="#C9A84C" stroke="#C9A84C" stroke-width="1.5"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="#C9A84C" stroke="#C9A84C" stroke-width="1.5"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="#C9A84C" stroke="#C9A84C" stroke-width="1.5"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="#C9A84C" stroke="#C9A84C" stroke-width="1.5"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="#C9A84C" stroke="#C9A84C" stroke-width="1.5"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
+        </div>
+        <p style="font-family:'Lato',sans-serif;font-size:.86rem;color:rgba(255,255,255,.64);line-height:1.8;margin-bottom:20px;font-style:italic;">"The Parent Dashboard is brilliant. I finally know exactly which topics to focus on, not just a vague sense that 'maths needs work'."</p>
+        <div style="font-family:'Lato',sans-serif;font-weight:700;font-size:.86rem;">Declan O.</div>
+        <div style="font-family:'Lato',sans-serif;font-size:.74rem;color:rgba(255,255,255,.34);letter-spacing:.05em;">Derry / Londonderry</div>
+      </div>
+
+      <div class="card reveal rv-d3" style="padding:28px 24px;">
+        <div style="display:flex;gap:3px;margin-bottom:14px;">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="#C9A84C" stroke="#C9A84C" stroke-width="1.5"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="#C9A84C" stroke="#C9A84C" stroke-width="1.5"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="#C9A84C" stroke="#C9A84C" stroke-width="1.5"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="#C9A84C" stroke="#C9A84C" stroke-width="1.5"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="#C9A84C" stroke="#C9A84C" stroke-width="1.5"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
+        </div>
+        <p style="font-family:'Lato',sans-serif;font-size:.86rem;color:rgba(255,255,255,.64);line-height:1.8;margin-bottom:20px;font-style:italic;">"My son sat the real SEAG feeling properly prepared for the first time. The full-length mocks made all the difference to his stamina."</p>
+        <div style="font-family:'Lato',sans-serif;font-weight:700;font-size:.86rem;">Claire B.</div>
+        <div style="font-family:'Lato',sans-serif;font-size:.74rem;color:rgba(255,255,255,.34);letter-spacing:.05em;">Ballymena</div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<div class="gold-line"></div>
+
+<!-- ══════════════════════════════════════════
+     FINAL CTA
+══════════════════════════════════════════ -->
+<section style="padding:120px 32px;position:relative;overflow:hidden;">
+  <div style="position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at 50% 100%,rgba(201,168,76,.07) 0%,transparent 58%);"></div>
+  <div class="reveal rv-d1" style="max-width:640px;margin:0 auto;text-align:center;position:relative;">
+    <span class="pill">Begin Today</span>
+    <h2 class="cta-title" style="font-family:'Playfair Display',serif;font-size:2.8rem;font-weight:900;margin-top:26px;margin-bottom:22px;line-height:1.12;">
+      Give Your Child the<br><span style="color:#C9A84C;font-style:italic;">Best Possible Start.</span>
+    </h2>
+    <p style="font-family:'Lato',sans-serif;color:rgba(255,255,255,.5);font-size:1rem;line-height:1.8;margin-bottom:50px;">
+      Join families across Northern Ireland who have chosen a smarter, more confident path to SEAG success. Start your free trial today — no commitment required.
+    </p>
+    <button class="cta-btn" style="padding:20px 58px;border-radius:10px;font-size:1rem;">Start Free Trial</button>
+    <div style="font-family:'Lato',sans-serif;margin-top:18px;font-size:.76rem;color:rgba(255,255,255,.26);letter-spacing:.05em;">Free for 7 days · No credit card · Cancel anytime</div>
+    <div style="display:flex;justify-content:center;gap:26px;margin-top:44px;flex-wrap:wrap;">
+      <div style="display:flex;align-items:center;gap:5px;font-family:'Lato',sans-serif;font-size:.76rem;color:rgba(255,255,255,.38);">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20,6 9,17 4,12"/></svg> SEAG Aligned
+      </div>
+      <div style="display:flex;align-items:center;gap:5px;font-family:'Lato',sans-serif;font-size:.76rem;color:rgba(255,255,255,.38);">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20,6 9,17 4,12"/></svg> Parent Dashboard
+      </div>
+      <div style="display:flex;align-items:center;gap:5px;font-family:'Lato',sans-serif;font-size:.76rem;color:rgba(255,255,255,.38);">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20,6 9,17 4,12"/></svg> 100% Verified
+      </div>
+      <div style="display:flex;align-items:center;gap:5px;font-family:'Lato',sans-serif;font-size:.76rem;color:rgba(255,255,255,.38);">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20,6 9,17 4,12"/></svg> Detective Hints
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════
+     FOOTER
+══════════════════════════════════════════ -->
+<footer style="border-top:1px solid rgba(201,168,76,.1);padding:36px 32px;">
+  <div style="max-width:1140px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;">
+    <div style="display:flex;align-items:center;gap:8px;">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="#C9A84C" stroke="#C9A84C" stroke-width="1.5"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
+      <span style="font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:700;color:#C9A84C;">STAR</span>
+      <span style="font-family:'Lato',sans-serif;font-size:.64rem;color:rgba(255,255,255,.26);letter-spacing:.16em;text-transform:uppercase;">AI Tutor</span>
+    </div>
+    <div style="font-family:'Lato',sans-serif;font-size:.73rem;color:rgba(255,255,255,.2);letter-spacing:.04em;">
+      © 2025 STAR AI Tutor · Northern Ireland · SEAG Transfer Preparation
+    </div>
+    <div style="display:flex;gap:20px;">
+      <a href="#" class="nav-link" style="font-size:.74rem;">Privacy</a>
+      <a href="#" class="nav-link" style="font-size:.74rem;">Terms</a>
+      <a href="#" class="nav-link" style="font-size:.74rem;">Contact</a>
+    </div>
+  </div>
+</footer>
+
+<!-- ══════════════════════════════════════════
+     JAVASCRIPT — nav scroll + reveal + hero + skill bars
+══════════════════════════════════════════ -->
+<script>
+  // ── Nav scroll class ──
+  const nav = document.getElementById('main-nav');
+  window.addEventListener('scroll', () => {
+    nav.classList.toggle('scrolled', window.scrollY > 60);
+  });
+
+  // ── Hero fade-up on load ──
+  window.addEventListener('load', () => {
+    document.querySelectorAll('.hero-el').forEach(el => el.classList.add('go'));
+  });
+
+  // ── Scroll reveal ──
+  const revealEls = document.querySelectorAll('.reveal');
+  const revealObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+        revealObserver.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.1 });
+  revealEls.forEach(el => revealObserver.observe(el));
+
+  // ── Skill bar animation ──
+  const bars = document.querySelectorAll('.skill-bar-fill');
+  const barObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const el = entry.target;
+        el.style.width = el.style.getPropertyValue('--bar-w');
+        barObserver.unobserve(el);
+      }
+    });
+  }, { threshold: 0.3 });
+  bars.forEach(b => barObserver.observe(b));
+</script>
+
 </body>
 </html>
