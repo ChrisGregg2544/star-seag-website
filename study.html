@@ -1,0 +1,1252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>STAR – Study Hall</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,400&family=Lato:wght@300;400;700;900&display=swap" rel="stylesheet" />
+  <style>
+    /* ══════════════════════════════════════════
+       TOKENS & RESET
+    ══════════════════════════════════════════ */
+    :root {
+      --gold:          #C9A84C;
+      --gold-light:    #E8C97A;
+      --gold-dim:      rgba(201,168,76,0.14);
+      --navy:          #0B1F3A;
+      --navy-mid:      #0f2747;
+      --card-bg:       rgba(255,255,255,0.96);
+      --card-border:   rgba(201,168,76,0.22);
+      --text-dark:     #0B1F3A;
+      --text-mid:      #3a5070;
+      --text-light:    #6b85a0;
+      --green:         #22c55e;
+      --green-bg:      rgba(34,197,94,0.1);
+      --red:           #ef4444;
+      --red-bg:        rgba(239,68,68,0.1);
+      --blue-hint:     #3b82f6;
+      --blue-hint-bg:  rgba(59,130,246,0.08);
+      --radius-card:   24px;
+      --radius-btn:    14px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { height: 100%; -webkit-text-size-adjust: 100%; }
+
+    body {
+      background: var(--navy);
+      min-height: 100vh;
+      font-family: 'Lato', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 0 16px 40px;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* ══════════════════════════════════════════
+       BACKGROUND ATMOSPHERE
+    ══════════════════════════════════════════ */
+    .bg-atmosphere {
+      position: fixed; inset: 0; pointer-events: none; z-index: 0;
+      overflow: hidden;
+    }
+    .bg-glow {
+      position: absolute; border-radius: 50%; pointer-events: none;
+      background: radial-gradient(circle, rgba(201,168,76,.055) 0%, transparent 68%);
+      width: 700px; height: 700px;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+    }
+    .bg-glow-2 {
+      position: absolute; border-radius: 50%;
+      background: radial-gradient(circle, rgba(59,130,246,.03) 0%, transparent 70%);
+      width: 400px; height: 400px;
+      bottom: -100px; right: -80px;
+    }
+    .star-p {
+      position: absolute; border-radius: 50%;
+      background: var(--gold); opacity: .1;
+      animation: twinkle var(--d,3.8s) ease-in-out infinite alternate;
+      animation-delay: var(--del,0s);
+    }
+    @keyframes twinkle { from {opacity:.04;} to {opacity:.2;} }
+
+    /* ══════════════════════════════════════════
+       TOP NAV / HEADER
+    ══════════════════════════════════════════ */
+    .top-nav {
+      position: relative; z-index: 10;
+      width: 100%; max-width: 780px;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 20px 0 16px;
+    }
+    .nav-logo {
+      display: flex; align-items: center; gap: 8px;
+    }
+    .nav-logo-star {
+      width: 32px; height: 32px;
+      background: linear-gradient(135deg, rgba(201,168,76,.2) 0%, rgba(201,168,76,.06) 100%);
+      border: 1.5px solid rgba(201,168,76,.4);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      animation: avatarPulse 3s ease-in-out infinite;
+    }
+    @keyframes avatarPulse {
+      0%,100% { box-shadow: 0 0 0 4px rgba(201,168,76,.06); }
+      50%      { box-shadow: 0 0 0 7px rgba(201,168,76,.11); }
+    }
+    .nav-logo-text {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.15rem; font-weight: 700;
+      color: var(--gold); letter-spacing: .04em;
+    }
+    .nav-student {
+      font-size: .78rem; color: rgba(255,255,255,.42);
+      letter-spacing: .06em;
+    }
+    .nav-exit {
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 8px;
+      color: rgba(255,255,255,.5);
+      font-family: 'Lato', sans-serif;
+      font-size: .75rem; font-weight: 700;
+      letter-spacing: .08em; text-transform: uppercase;
+      padding: 8px 16px; cursor: pointer;
+      transition: all .2s;
+      text-decoration: none; display: inline-block;
+    }
+    .nav-exit:hover {
+      background: rgba(255,255,255,.1);
+      color: rgba(255,255,255,.8);
+      border-color: rgba(255,255,255,.2);
+    }
+
+    /* ══════════════════════════════════════════
+       PROGRESS BAR
+    ══════════════════════════════════════════ */
+    .progress-section {
+      position: relative; z-index: 10;
+      width: 100%; max-width: 780px;
+      margin-bottom: 20px;
+    }
+    .progress-meta {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 10px;
+    }
+    .progress-label {
+      font-size: .8rem; font-weight: 700;
+      color: rgba(255,255,255,.55); letter-spacing: .08em; text-transform: uppercase;
+    }
+    .progress-label span { color: var(--gold); }
+    .progress-track {
+      height: 6px; background: rgba(255,255,255,.1);
+      border-radius: 99px; overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%; border-radius: 99px;
+      background: linear-gradient(90deg, var(--gold), var(--gold-light));
+      transition: width .6s cubic-bezier(.34,1.56,.64,1);
+      position: relative;
+    }
+    .progress-fill::after {
+      content: '';
+      position: absolute; right: 0; top: 50%; transform: translateY(-50%);
+      width: 10px; height: 10px; border-radius: 50%;
+      background: var(--gold-light);
+      box-shadow: 0 0 8px rgba(232,201,122,.8);
+    }
+    .progress-dots {
+      display: flex; gap: 5px; margin-top: 10px;
+    }
+    .progress-pip {
+      flex: 1; height: 3px; border-radius: 99px;
+      background: rgba(255,255,255,.1);
+      transition: background .3s;
+    }
+    .progress-pip.done    { background: rgba(201,168,76,.5); }
+    .progress-pip.active  { background: var(--gold); }
+    .progress-pip.correct { background: var(--green); }
+    .progress-pip.wrong   { background: var(--red); }
+
+    /* Score chips row */
+    .score-row {
+      display: flex; gap: 12px; margin-top: 10px;
+    }
+    .score-chip {
+      display: flex; align-items: center; gap: 5px;
+      font-family: 'Lato', sans-serif; font-size: .75rem; font-weight: 700;
+      letter-spacing: .04em;
+    }
+    .score-chip .dot { width: 8px; height: 8px; border-radius: 50%; }
+
+    /* ══════════════════════════════════════════
+       MAIN QUESTION CARD
+    ══════════════════════════════════════════ */
+    .question-card {
+      position: relative; z-index: 10;
+      width: 100%; max-width: 780px;
+      background: var(--card-bg);
+      border-radius: var(--radius-card);
+      border: 1px solid var(--card-border);
+      box-shadow:
+        0 4px 6px rgba(0,0,0,.04),
+        0 20px 60px rgba(0,0,0,.3),
+        0 0 0 1px rgba(201,168,76,.05);
+      overflow: hidden;
+      animation: cardIn .45s cubic-bezier(.22,1,.36,1) forwards;
+    }
+    @keyframes cardIn {
+      from { opacity:0; transform:translateY(18px) scale(.98); }
+      to   { opacity:1; transform:translateY(0) scale(1); }
+    }
+    .card-refreshing {
+      animation: cardRefresh .35s cubic-bezier(.22,1,.36,1) forwards !important;
+    }
+    @keyframes cardRefresh {
+      0%   { opacity:1; transform:translateX(0) scale(1); }
+      40%  { opacity:0; transform:translateX(-28px) scale(.97); }
+      41%  { opacity:0; transform:translateX(28px) scale(.97); }
+      100% { opacity:1; transform:translateX(0) scale(1); }
+    }
+
+    /* Card header strip */
+    .card-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 18px 28px 16px;
+      border-bottom: 1px solid rgba(11,31,58,.06);
+    }
+    .card-type-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      border-radius: 999px; padding: 4px 13px;
+      font-size: .68rem; font-weight: 900; letter-spacing: .12em; text-transform: uppercase;
+    }
+    .badge-english {
+      background: rgba(59,130,246,.1);
+      border: 1px solid rgba(59,130,246,.25);
+      color: #3b82f6;
+    }
+    .badge-maths {
+      background: rgba(201,168,76,.12);
+      border: 1px solid rgba(201,168,76,.3);
+      color: #a07820;
+    }
+    .card-topic {
+      font-size: .72rem; color: var(--text-light);
+      font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+    }
+    .card-marks {
+      font-size: .72rem; color: var(--text-light);
+      font-weight: 400;
+    }
+
+    /* Card body */
+    .card-body { padding: 28px 28px 0; }
+
+    .question-number {
+      font-size: .72rem; font-weight: 900; letter-spacing: .12em; text-transform: uppercase;
+      color: var(--text-light); margin-bottom: 12px;
+    }
+    .question-text {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.28rem; line-height: 1.5;
+      color: var(--text-dark); margin-bottom: 10px;
+      min-height: 60px;
+    }
+    .question-context {
+      font-size: .9rem; color: var(--text-mid);
+      line-height: 1.7; margin-bottom: 24px;
+      background: rgba(11,31,58,.04);
+      border-left: 3px solid rgba(201,168,76,.4);
+      padding: 12px 16px; border-radius: 0 8px 8px 0;
+    }
+
+    /* ── Multiple choice ── */
+    .mc-options { display: flex; flex-direction: column; gap: 11px; margin-bottom: 0; }
+    .mc-btn {
+      display: flex; align-items: center; gap: 14px;
+      background: rgba(11,31,58,.03);
+      border: 1.5px solid rgba(11,31,58,.1);
+      border-radius: 12px;
+      padding: 15px 18px;
+      font-family: 'Lato', sans-serif; font-size: .95rem; font-weight: 700;
+      color: var(--text-dark);
+      cursor: pointer; text-align: left;
+      transition: all .2s ease;
+      -webkit-tap-highlight-color: transparent;
+      position: relative; overflow: hidden;
+    }
+    .mc-btn:hover:not(:disabled) {
+      border-color: var(--gold);
+      background: rgba(201,168,76,.05);
+      transform: translateX(3px);
+    }
+    .mc-letter {
+      width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0;
+      background: rgba(11,31,58,.07);
+      display: flex; align-items: center; justify-content: center;
+      font-size: .78rem; font-weight: 900;
+      color: var(--text-mid);
+      transition: all .2s;
+    }
+    .mc-btn:hover:not(:disabled) .mc-letter { background: var(--gold); color: #fff; }
+    .mc-btn.selected { border-color: var(--gold); background: rgba(201,168,76,.07); }
+    .mc-btn.selected .mc-letter { background: var(--gold); color: #fff; }
+    .mc-btn.correct-ans { border-color: var(--green)!important; background: var(--green-bg)!important; }
+    .mc-btn.correct-ans .mc-letter { background: var(--green)!important; color:#fff!important; }
+    .mc-btn.wrong-ans { border-color: var(--red)!important; background: var(--red-bg)!important; }
+    .mc-btn.wrong-ans .mc-letter { background: var(--red)!important; color:#fff!important; }
+    .mc-btn:disabled { cursor: default; }
+
+    /* ── Maths free response ── */
+    .fr-wrap { margin-bottom: 0; }
+    .fr-label {
+      font-size: .75rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+      color: var(--text-light); margin-bottom: 8px;
+    }
+    .fr-input {
+      width: 100%;
+      background: rgba(11,31,58,.04);
+      border: 1.5px solid rgba(11,31,58,.12);
+      border-radius: 12px;
+      padding: 16px 20px;
+      font-family: 'Lato', sans-serif; font-size: 1.15rem; font-weight: 700;
+      color: var(--text-dark);
+      outline: none;
+      transition: border-color .22s, box-shadow .22s;
+      caret-color: var(--gold);
+    }
+    .fr-input::placeholder { color: rgba(11,31,58,.28); font-weight: 400; }
+    .fr-input:focus {
+      border-color: var(--gold);
+      box-shadow: 0 0 0 3px rgba(201,168,76,.12);
+    }
+    .fr-input.correct-inp { border-color: var(--green)!important; background: var(--green-bg)!important; }
+    .fr-input.wrong-inp   { border-color: var(--red)!important;   background: var(--red-bg)!important; }
+
+    /* ══════════════════════════════════════════
+       FEEDBACK PANEL (shown after answer)
+    ══════════════════════════════════════════ */
+    .feedback-panel {
+      display: none;
+      margin: 20px 28px 0;
+      border-radius: 14px;
+      overflow: hidden;
+      animation: feedIn .35s cubic-bezier(.22,1,.36,1) forwards;
+    }
+    @keyframes feedIn { from{opacity:0;transform:translateY(10px);} to{opacity:1;transform:translateY(0);} }
+    .feedback-panel.visible { display: block; }
+
+    .feedback-inner {
+      padding: 18px 20px;
+      display: flex; gap: 14px; align-items: flex-start;
+    }
+    .feedback-icon {
+      width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.1rem;
+    }
+    .feedback-correct { background: var(--green-bg); border: 1px solid rgba(34,197,94,.25); }
+    .feedback-correct .feedback-icon { background: var(--green); }
+    .feedback-wrong   { background: var(--red-bg);   border: 1px solid rgba(239,68,68,.25); }
+    .feedback-wrong   .feedback-icon { background: var(--red); }
+
+    .feedback-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1rem; font-weight: 700; margin-bottom: 5px;
+    }
+    .feedback-correct .feedback-title { color: #166534; }
+    .feedback-wrong   .feedback-title { color: #991b1b; }
+    .feedback-body {
+      font-size: .84rem; line-height: 1.68; color: var(--text-mid);
+    }
+    .feedback-steps {
+      font-size: .84rem; line-height: 1.7; color: var(--text-mid);
+      margin-top: 8px;
+      padding-left: 16px;
+    }
+    .feedback-steps li { margin-bottom: 4px; }
+
+    /* ══════════════════════════════════════════
+       CARD FOOTER — actions
+    ══════════════════════════════════════════ */
+    .card-footer {
+      padding: 20px 28px 26px;
+      display: flex; flex-direction: column; gap: 14px;
+    }
+
+    /* Submit / Next row */
+    .action-row { display: flex; gap: 12px; align-items: center; }
+
+    .btn-submit {
+      flex: 1;
+      background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 50%, var(--gold) 100%);
+      background-size: 200% auto;
+      color: var(--navy);
+      border: none; border-radius: var(--radius-btn);
+      padding: 17px 28px;
+      font-family: 'Lato', sans-serif; font-size: .95rem; font-weight: 900;
+      letter-spacing: .08em; text-transform: uppercase;
+      cursor: pointer;
+      transition: background-position .4s, transform .18s, box-shadow .18s, opacity .2s;
+      box-shadow: 0 5px 22px rgba(201,168,76,.38);
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn-submit:hover:not(:disabled) {
+      background-position: right center;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 32px rgba(201,168,76,.55);
+    }
+    .btn-submit:active:not(:disabled) { transform: translateY(0); }
+    .btn-submit:disabled { opacity: .35; cursor: not-allowed; box-shadow: none; }
+
+    .btn-next {
+      flex: 1;
+      background: var(--navy);
+      color: var(--gold);
+      border: 1.5px solid var(--gold);
+      border-radius: var(--radius-btn);
+      padding: 17px 28px;
+      font-family: 'Lato', sans-serif; font-size: .95rem; font-weight: 900;
+      letter-spacing: .08em; text-transform: uppercase;
+      cursor: pointer;
+      transition: all .2s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn-next:hover {
+      background: var(--gold); color: var(--navy);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 28px rgba(201,168,76,.4);
+    }
+
+    /* ── Hint button ── */
+    .btn-hint {
+      display: flex; align-items: center; gap: 8px; justify-content: center;
+      background: transparent;
+      border: 1.5px solid rgba(11,31,58,.14);
+      border-radius: var(--radius-btn);
+      padding: 13px 20px;
+      font-family: 'Lato', sans-serif; font-size: .82rem; font-weight: 700;
+      color: var(--text-mid); letter-spacing: .06em;
+      cursor: pointer; width: 100%;
+      transition: all .22s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn-hint:hover {
+      border-color: var(--blue-hint);
+      background: var(--blue-hint-bg);
+      color: var(--blue-hint);
+    }
+    .btn-hint.hint-shown {
+      border-color: var(--blue-hint);
+      background: var(--blue-hint-bg);
+      color: var(--blue-hint);
+    }
+    .hint-icon { font-size: 1rem; }
+
+    /* ══════════════════════════════════════════
+       HINT PANEL
+    ══════════════════════════════════════════ */
+    .hint-panel {
+      display: none;
+      background: var(--blue-hint-bg);
+      border: 1px solid rgba(59,130,246,.2);
+      border-radius: 14px;
+      padding: 16px 18px;
+      animation: feedIn .3s ease forwards;
+    }
+    .hint-panel.visible { display: block; }
+    .hint-header {
+      display: flex; align-items: center; gap: 8px;
+      font-size: .72rem; font-weight: 900; letter-spacing: .1em; text-transform: uppercase;
+      color: var(--blue-hint); margin-bottom: 8px;
+    }
+    .hint-text {
+      font-size: .88rem; line-height: 1.7; color: var(--text-mid);
+    }
+
+    /* ══════════════════════════════════════════
+       VIDEO HELP LINK
+    ══════════════════════════════════════════ */
+    .video-link {
+      display: flex; align-items: center; gap: 12px;
+      background: rgba(11,31,58,.03);
+      border: 1.5px dashed rgba(11,31,58,.13);
+      border-radius: 14px;
+      padding: 14px 18px;
+      text-decoration: none;
+      transition: all .22s;
+    }
+    .video-link:hover {
+      border-color: var(--gold);
+      background: rgba(201,168,76,.05);
+    }
+    .video-thumb {
+      width: 42px; height: 42px; border-radius: 10px; flex-shrink: 0;
+      background: rgba(201,168,76,.15);
+      border: 1px solid rgba(201,168,76,.25);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.1rem;
+    }
+    .video-info {}
+    .video-label {
+      font-size: .68rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+      color: var(--text-light); margin-bottom: 2px;
+    }
+    .video-title {
+      font-size: .85rem; font-weight: 700; color: var(--text-dark);
+    }
+    .video-source {
+      font-size: .72rem; color: var(--gold); font-weight: 700;
+    }
+
+    /* ══════════════════════════════════════════
+       SESSION COMPLETE SCREEN
+    ══════════════════════════════════════════ */
+    .complete-screen {
+      display: none;
+      position: relative; z-index: 10;
+      width: 100%; max-width: 560px;
+      text-align: center;
+      animation: cardIn .5s cubic-bezier(.22,1,.36,1) forwards;
+    }
+    .complete-screen.visible { display: block; }
+    .complete-avatar {
+      width: 88px; height: 88px; border-radius: 50%;
+      background: linear-gradient(135deg, rgba(201,168,76,.2), rgba(201,168,76,.06));
+      border: 2px solid rgba(201,168,76,.4);
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 24px; font-size: 2.4rem;
+      animation: avatarPulse 2s ease-in-out infinite;
+    }
+    .complete-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 2.2rem; font-weight: 900; color: #fff;
+      margin-bottom: 10px; line-height: 1.2;
+    }
+    .complete-sub { font-size: 1rem; color: rgba(255,255,255,.55); margin-bottom: 32px; }
+    .results-grid {
+      display: grid; grid-template-columns: 1fr 1fr 1fr;
+      gap: 14px; margin-bottom: 32px;
+    }
+    .result-tile {
+      background: rgba(255,255,255,.055);
+      border: 1px solid rgba(201,168,76,.18);
+      border-radius: 16px; padding: 20px 12px;
+    }
+    .result-number {
+      font-family: 'Playfair Display', serif;
+      font-size: 2rem; font-weight: 700; color: var(--gold);
+      margin-bottom: 4px;
+    }
+    .result-label { font-size: .75rem; color: rgba(255,255,255,.45); letter-spacing: .06em; }
+    .star-rating { display: flex; justify-content: center; gap: 6px; margin-bottom: 28px; }
+    .star-rating svg { animation: starPop .4s cubic-bezier(.34,1.56,.64,1) both; }
+    .star-rating svg:nth-child(1) { animation-delay:.1s; }
+    .star-rating svg:nth-child(2) { animation-delay:.2s; }
+    .star-rating svg:nth-child(3) { animation-delay:.3s; }
+    .star-rating svg:nth-child(4) { animation-delay:.4s; }
+    .star-rating svg:nth-child(5) { animation-delay:.5s; }
+    @keyframes starPop { from{opacity:0;transform:scale(.3) rotate(-20deg);} to{opacity:1;transform:scale(1) rotate(0);} }
+
+    .btn-complete-primary {
+      display: block; width: 100%;
+      background: linear-gradient(135deg, var(--gold), var(--gold-light));
+      color: var(--navy); border: none; border-radius: 16px;
+      padding: 20px; font-family: 'Lato', sans-serif; font-size: 1rem; font-weight: 900;
+      letter-spacing: .1em; text-transform: uppercase;
+      cursor: pointer; margin-bottom: 12px;
+      box-shadow: 0 8px 32px rgba(201,168,76,.4);
+      transition: transform .2s, box-shadow .2s;
+    }
+    .btn-complete-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(201,168,76,.55); }
+    .btn-complete-secondary {
+      display: block; width: 100%;
+      background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.14);
+      border-radius: 14px; padding: 16px;
+      font-family: 'Lato', sans-serif; font-size: .88rem; font-weight: 700;
+      color: rgba(255,255,255,.6); letter-spacing: .06em; text-transform: uppercase;
+      cursor: pointer; transition: all .2s;
+    }
+    .btn-complete-secondary:hover { background: rgba(255,255,255,.1); color: #fff; }
+
+    /* ══════════════════════════════════════════
+       RESPONSIVE
+    ══════════════════════════════════════════ */
+    @media (max-width: 600px) {
+      .card-header { padding: 14px 18px 12px; }
+      .card-body   { padding: 20px 18px 0; }
+      .card-footer { padding: 16px 18px 22px; }
+      .question-text { font-size: 1.12rem; }
+      .results-grid { grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+      .result-number { font-size: 1.6rem; }
+      .complete-title { font-size: 1.75rem; }
+    }
+    @media (min-width: 768px) {
+      /* Comfortable iPad tap targets */
+      .mc-btn  { padding: 18px 20px; }
+      .btn-submit, .btn-next { padding: 20px 28px; font-size: 1rem; }
+      .btn-hint  { padding: 15px 20px; font-size: .85rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Background -->
+<div class="bg-atmosphere">
+  <div class="bg-glow"></div>
+  <div class="bg-glow-2"></div>
+  <div class="star-p" style="left:4%;top:8%;width:3px;height:3px;--d:3.6s;"></div>
+  <div class="star-p" style="left:18%;top:20%;width:2px;height:2px;--d:4.2s;--del:.7s;"></div>
+  <div class="star-p" style="left:88%;top:10%;width:3px;height:3px;--d:3.9s;--del:.3s;"></div>
+  <div class="star-p" style="left:93%;top:45%;width:2px;height:2px;--d:4.5s;--del:1.1s;"></div>
+  <div class="star-p" style="left:8%;top:80%;width:4px;height:4px;--d:3.7s;--del:.5s;"></div>
+  <div class="star-p" style="left:80%;top:82%;width:2px;height:2px;--d:4.1s;--del:1.8s;"></div>
+</div>
+
+<!-- ══════ TOP NAV ══════ -->
+<div class="top-nav">
+  <div class="nav-logo">
+    <div class="nav-logo-star">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="#C9A84C"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
+    </div>
+    <div>
+      <div class="nav-logo-text">STAR</div>
+    </div>
+    <div class="nav-student" id="nav-student-name" style="margin-left:4px;"></div>
+  </div>
+  <a class="nav-exit" href="study.html">✕ Exit</a>
+</div>
+
+<!-- ══════ PROGRESS ══════ -->
+<div class="progress-section" id="progress-section">
+  <div class="progress-meta">
+    <div class="progress-label">Question <span id="q-current">1</span> of <span id="q-total">10</span></div>
+    <div class="progress-label" id="track-badge" style="color:rgba(255,255,255,.38);font-weight:400;"></div>
+  </div>
+  <div class="progress-track">
+    <div class="progress-fill" id="progress-fill" style="width:10%;"></div>
+  </div>
+  <div class="progress-dots" id="progress-dots"></div>
+  <div class="score-row">
+    <div class="score-chip">
+      <div class="dot" style="background:#22c55e;"></div>
+      <span id="score-correct" style="color:rgba(255,255,255,.55);">0 correct</span>
+    </div>
+    <div class="score-chip">
+      <div class="dot" style="background:#ef4444;"></div>
+      <span id="score-wrong" style="color:rgba(255,255,255,.55);">0 wrong</span>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ QUESTION CARD ══════ -->
+<div class="question-card" id="question-card">
+
+  <!-- Card header -->
+  <div class="card-header">
+    <div id="card-type-badge" class="card-type-badge badge-maths">📐 Maths</div>
+    <div class="card-topic" id="card-topic">Fractions</div>
+    <div class="card-marks" id="card-marks">1 mark</div>
+  </div>
+
+  <!-- Card body -->
+  <div class="card-body">
+    <div class="question-number" id="q-number-label">Question 1</div>
+    <div class="question-text" id="q-text">Loading question…</div>
+    <div class="question-context" id="q-context" style="display:none;"></div>
+
+    <!-- Multiple choice options -->
+    <div class="mc-options" id="mc-options" style="display:none;"></div>
+
+    <!-- Free response -->
+    <div class="fr-wrap" id="fr-wrap" style="display:none;">
+      <div class="fr-label">Your Answer</div>
+      <input type="text" class="fr-input" id="fr-input" placeholder="Type your answer here…" autocomplete="off" />
+    </div>
+
+    <!-- Feedback panel -->
+    <div class="feedback-panel" id="feedback-panel">
+      <div class="feedback-inner">
+        <div class="feedback-icon" id="feedback-icon">✓</div>
+        <div>
+          <div class="feedback-title" id="feedback-title">Correct!</div>
+          <div class="feedback-body" id="feedback-body"></div>
+          <ul class="feedback-steps" id="feedback-steps" style="display:none;"></ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Card footer -->
+  <div class="card-footer">
+
+    <!-- Action row -->
+    <div class="action-row">
+      <button class="btn-submit" id="btn-submit" disabled onclick="submitAnswer()">Check Answer</button>
+      <button class="btn-next"   id="btn-next"   style="display:none;" onclick="nextQuestion()">Next →</button>
+    </div>
+
+    <!-- Hint button -->
+    <button class="btn-hint" id="btn-hint" onclick="toggleHint()">
+      <span class="hint-icon">🔍</span>
+      Request Detective Hint from STAR
+    </button>
+
+    <!-- Hint panel -->
+    <div class="hint-panel" id="hint-panel">
+      <div class="hint-header">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        STAR's Detective Hint
+      </div>
+      <div class="hint-text" id="hint-text">Loading hint…</div>
+    </div>
+
+    <!-- Video link -->
+    <a class="video-link" id="video-link" href="#" target="_blank" rel="noopener">
+      <div class="video-thumb">▶️</div>
+      <div class="video-info">
+        <div class="video-label">Stuck? Watch this</div>
+        <div class="video-title" id="video-title">Loading resource…</div>
+        <div class="video-source" id="video-source">CorbettMaths</div>
+      </div>
+    </a>
+
+  </div>
+</div>
+
+<!-- ══════ SESSION COMPLETE ══════ -->
+<div class="complete-screen" id="complete-screen">
+  <div class="complete-avatar" id="complete-avatar">⭐</div>
+  <div class="complete-title" id="complete-title">Sprint Complete!</div>
+  <div class="complete-sub"   id="complete-sub">Here's how you did:</div>
+  <div class="star-rating" id="star-rating"></div>
+  <div class="results-grid">
+    <div class="result-tile">
+      <div class="result-number" id="res-correct">0</div>
+      <div class="result-label">Correct</div>
+    </div>
+    <div class="result-tile">
+      <div class="result-number" id="res-wrong" style="color:#ef4444;">0</div>
+      <div class="result-label">To Review</div>
+    </div>
+    <div class="result-tile">
+      <div class="result-number" id="res-pct">0%</div>
+      <div class="result-label">Score</div>
+    </div>
+  </div>
+  <button class="btn-complete-primary" onclick="restartSession()">🔄 &nbsp;Try Another Sprint</button>
+  <button class="btn-complete-secondary" onclick="goToDashboard()">View My Dashboard</button>
+</div>
+
+<!-- ══════════════════════════════════════════
+     QUESTION BANK
+══════════════════════════════════════════ -->
+<script>
+
+/* ── Question bank (10 mixed SEAG-style questions) ── */
+const QUESTIONS = [
+  {
+    type: 'maths',
+    topic: 'Fractions',
+    text: 'What is ¾ of 48?',
+    context: null,
+    answer: '36',
+    acceptedAnswers: ['36'],
+    explanation: 'To find ¾ of 48, first divide 48 by 4 to get one quarter (12), then multiply by 3.',
+    steps: ['48 ÷ 4 = 12 (one quarter)', '12 × 3 = 36 (three quarters)', 'Answer: 36'],
+    hint: 'Think of it in two steps: first find ONE quarter of 48 by dividing by 4. Then multiply your answer by 3 to get THREE quarters.',
+    videoTitle: 'Fractions of Amounts',
+    videoSource: 'CorbettMaths',
+    videoUrl: 'https://corbettmaths.com/2013/02/05/fractions-of-amounts/',
+    marks: '1 mark',
+  },
+  {
+    type: 'english',
+    topic: 'Comprehension',
+    text: 'Read the passage below. Which word is closest in meaning to the word "ancient" as used in the passage?',
+    context: '"The explorers discovered an ancient temple hidden beneath the jungle floor, its stone carvings worn smooth by centuries of rain."',
+    options: ['A. Modern', 'B. Old', 'C. Broken', 'D. Famous'],
+    answer: 'B',
+    explanation: '"Ancient" means very old. In this context it describes a temple that has existed for centuries, so "Old" is the best match.',
+    hint: 'Look at the clue in the sentence itself — "centuries of rain" tells you how much time has passed. Which option fits something that has been there for hundreds of years?',
+    videoTitle: 'Vocabulary in Context',
+    videoSource: 'BBC Bitesize',
+    videoUrl: 'https://www.bbc.co.uk/bitesize/topics/z4mmn39/articles/zp44fg8',
+    marks: '1 mark',
+  },
+  {
+    type: 'maths',
+    topic: 'Percentages',
+    text: 'A jacket costs £80. It is reduced by 15% in a sale. What is the sale price?',
+    context: null,
+    answer: '68',
+    acceptedAnswers: ['68', '£68', '68.00', '£68.00'],
+    explanation: '15% of £80 = £12. Sale price = £80 − £12 = £68.',
+    steps: ['Find 10% of £80: £80 ÷ 10 = £8', 'Find 5% of £80: £8 ÷ 2 = £4', '10% + 5% = 15% = £8 + £4 = £12', '£80 − £12 = £68'],
+    hint: 'Break 15% into easier parts: find 10% first, then 5%. Add them together to get 15%, then subtract from £80.',
+    videoTitle: 'Percentage Decrease',
+    videoSource: 'CorbettMaths',
+    videoUrl: 'https://corbettmaths.com/2013/02/15/percentage-decrease/',
+    marks: '2 marks',
+  },
+  {
+    type: 'english',
+    topic: 'Grammar',
+    text: 'Which sentence uses a comma correctly?',
+    context: null,
+    options: [
+      'A. She ran quickly, and she won the race.',
+      'B. She ran, quickly and she won the race.',
+      'C. She, ran quickly and she won the race.',
+      'D. She ran quickly and, she won the race.',
+    ],
+    answer: 'A',
+    explanation: 'A comma before a coordinating conjunction (like "and") joining two independent clauses is correct. Only option A does this properly.',
+    hint: 'Read each sentence aloud and ask: does the comma appear at a natural pause that also separates two complete ideas? The conjunction "and" should link two parts that could stand alone as sentences.',
+    videoTitle: 'Using Commas Correctly',
+    videoSource: 'BBC Bitesize',
+    videoUrl: 'https://www.bbc.co.uk/bitesize/topics/zvwwxnb/articles/zp3g87h',
+    marks: '1 mark',
+  },
+  {
+    type: 'maths',
+    topic: 'Area & Perimeter',
+    text: 'A rectangle has a length of 12 cm and a width of 7 cm. What is its area?',
+    context: null,
+    answer: '84',
+    acceptedAnswers: ['84', '84cm²', '84 cm²', '84cm2'],
+    explanation: 'Area of a rectangle = length × width = 12 × 7 = 84 cm².',
+    steps: ['Area = length × width', 'Area = 12 × 7', 'Area = 84 cm²'],
+    hint: 'Remember the formula: Area = length × width. Multiply 12 by 7 — you can split 12 into 10 and 2 to make it easier.',
+    videoTitle: 'Area of a Rectangle',
+    videoSource: 'CorbettMaths',
+    videoUrl: 'https://corbettmaths.com/2013/02/16/area-of-a-rectangle/',
+    marks: '1 mark',
+  },
+  {
+    type: 'english',
+    topic: 'Spelling',
+    text: 'Which of the following words is spelled correctly?',
+    context: null,
+    options: [
+      'A. Recieve',
+      'B. Receive',
+      'C. Receve',
+      'D. Receeve',
+    ],
+    answer: 'B',
+    explanation: '"Receive" follows the rule: "i before e, except after c." After the letter C, the correct spelling is "ei", not "ie".',
+    hint: 'Remember the spelling rule: "i before e, except after c." There is a C in this word — so which vowel pair comes after it?',
+    videoTitle: 'Common Spelling Rules',
+    videoSource: 'BBC Bitesize',
+    videoUrl: 'https://www.bbc.co.uk/bitesize/topics/zt62mnb/articles/zf8bkqt',
+    marks: '1 mark',
+  },
+  {
+    type: 'maths',
+    topic: 'Number & Place Value',
+    text: 'Write the number 2,750,408 in words.',
+    context: null,
+    answer: 'two million seven hundred and fifty thousand four hundred and eight',
+    acceptedAnswers: [
+      'two million seven hundred and fifty thousand four hundred and eight',
+      'two million, seven hundred and fifty thousand, four hundred and eight',
+    ],
+    explanation: '2,750,408 = 2 million + 750 thousand + 408. Written: two million, seven hundred and fifty thousand, four hundred and eight.',
+    steps: ['2,000,000 = two million', '750,000 = seven hundred and fifty thousand', '408 = four hundred and eight', 'Combined: two million, seven hundred and fifty thousand, four hundred and eight'],
+    hint: 'Split the number into groups of three from the right: 2 | 750 | 408. Name each group: millions, thousands, then the last three digits on their own.',
+    videoTitle: 'Place Value & Large Numbers',
+    videoSource: 'CorbettMaths',
+    videoUrl: 'https://corbettmaths.com/2020/09/02/place-value/',
+    marks: '2 marks',
+  },
+  {
+    type: 'english',
+    topic: 'Comprehension',
+    text: 'Which literary technique is used in this sentence: "The wind whispered secrets through the trees"?',
+    context: null,
+    options: [
+      'A. Simile',
+      'B. Alliteration',
+      'C. Personification',
+      'D. Metaphor',
+    ],
+    answer: 'C',
+    explanation: 'Personification gives human qualities to non-human things. Here, the wind is described as "whispering" — a human action — making this personification.',
+    hint: 'Ask yourself: is the wind being compared to something using "like" or "as"? Or is the wind being given a human action? "Whispered" is something a person does — what technique is that?',
+    videoTitle: 'Literary Techniques',
+    videoSource: 'BBC Bitesize',
+    videoUrl: 'https://www.bbc.co.uk/bitesize/topics/z7qqmsg/articles/zp3rcmn',
+    marks: '1 mark',
+  },
+  {
+    type: 'maths',
+    topic: 'Ratio & Proportion',
+    text: 'Share £120 between Alex and Beth in the ratio 3:5. How much does Beth receive?',
+    context: null,
+    answer: '75',
+    acceptedAnswers: ['75', '£75', '75.00', '£75.00'],
+    explanation: 'Total parts = 3 + 5 = 8. One part = £120 ÷ 8 = £15. Beth gets 5 parts: 5 × £15 = £75.',
+    steps: ['Add the ratio parts: 3 + 5 = 8 parts total', 'Find one part: £120 ÷ 8 = £15', 'Beth has 5 parts: 5 × £15 = £75'],
+    hint: 'First add the two ratio numbers to find the total number of parts (3 + 5). Then divide £120 by that total to find what ONE part is worth. Finally, multiply by Beth\'s share (5 parts).',
+    videoTitle: 'Sharing in a Ratio',
+    videoSource: 'CorbettMaths',
+    videoUrl: 'https://corbettmaths.com/2019/08/11/sharing-the-ratio/',
+    marks: '2 marks',
+  },
+  {
+    type: 'english',
+    topic: 'Grammar',
+    text: 'Choose the sentence that is written in the passive voice.',
+    context: null,
+    options: [
+      'A. The dog chased the cat across the garden.',
+      'B. The cat was chased by the dog across the garden.',
+      'C. Across the garden, the dog ran after the cat.',
+      'D. The dog and the cat ran across the garden.',
+    ],
+    answer: 'B',
+    explanation: 'In the passive voice, the subject receives the action rather than performing it. In option B, "the cat" (subject) "was chased" (receives the action) — this is passive voice.',
+    hint: 'In the passive voice, something is done TO the subject. Look for a form of "to be" (was, were, is) followed by a past participle (chased, eaten, built). Which option follows that pattern?',
+    videoTitle: 'Active and Passive Voice',
+    videoSource: 'BBC Bitesize',
+    videoUrl: 'https://www.bbc.co.uk/bitesize/topics/zvwwxnb/articles/zmr7hyc',
+    marks: '1 mark',
+  },
+];
+
+/* ════════════════════════════════════════════════════
+   STATE & INIT
+════════════════════════════════════════════════════ */
+let currentQ = 0;
+let score = { correct: 0, wrong: 0 };
+let answers = new Array(QUESTIONS.length).fill(null); // 'correct'|'wrong'|null
+let hintVisible = false;
+let answered = false;
+let selectedMC = null;
+
+function init() {
+  // Load student name from sessionStorage
+  const name = sessionStorage.getItem('star_name');
+  const year  = sessionStorage.getItem('star_year') || 'P6';
+  if (name) {
+    document.getElementById('nav-student-name').textContent = '· ' + name;
+  }
+  document.getElementById('track-badge').textContent =
+    year === 'P7' ? 'P7 Executor Track 🏆' : 'P6 Builder Track ⚡';
+  document.getElementById('q-total').textContent = QUESTIONS.length;
+
+  buildProgressPips();
+  loadQuestion(0);
+}
+
+function buildProgressPips() {
+  const container = document.getElementById('progress-dots');
+  container.innerHTML = '';
+  QUESTIONS.forEach((_, i) => {
+    const pip = document.createElement('div');
+    pip.className = 'progress-pip' + (i === 0 ? ' active' : '');
+    pip.id = 'pip-' + i;
+    container.appendChild(pip);
+  });
+}
+
+/* ════════════════════════════════════════════════════
+   LOAD QUESTION
+════════════════════════════════════════════════════ */
+function loadQuestion(idx) {
+  answered    = false;
+  hintVisible = false;
+  selectedMC  = null;
+
+  const q = QUESTIONS[idx];
+
+  // Progress
+  document.getElementById('q-current').textContent  = idx + 1;
+  document.getElementById('progress-fill').style.width = ((idx + 1) / QUESTIONS.length * 100) + '%';
+
+  // Update pips
+  for (let i = 0; i < QUESTIONS.length; i++) {
+    const pip = document.getElementById('pip-' + i);
+    pip.className = 'progress-pip';
+    if (answers[i] === 'correct') pip.classList.add('correct');
+    else if (answers[i] === 'wrong') pip.classList.add('wrong');
+    else if (i < idx) pip.classList.add('done');
+    else if (i === idx) pip.classList.add('active');
+  }
+
+  // Badge
+  const badge = document.getElementById('card-type-badge');
+  if (q.type === 'english') {
+    badge.className = 'card-type-badge badge-english';
+    badge.textContent = '📖 English';
+  } else {
+    badge.className = 'card-type-badge badge-maths';
+    badge.textContent = '📐 Maths';
+  }
+
+  document.getElementById('card-topic').textContent    = q.topic;
+  document.getElementById('card-marks').textContent    = q.marks;
+  document.getElementById('q-number-label').textContent = 'Question ' + (idx + 1);
+  document.getElementById('q-text').textContent        = q.text;
+
+  // Context
+  const ctxEl = document.getElementById('q-context');
+  if (q.context) {
+    ctxEl.textContent = q.context;
+    ctxEl.style.display = 'block';
+  } else {
+    ctxEl.style.display = 'none';
+  }
+
+  // MC or FR
+  const mcWrap = document.getElementById('mc-options');
+  const frWrap = document.getElementById('fr-wrap');
+  const frInput = document.getElementById('fr-input');
+
+  if (q.type === 'english' || q.options) {
+    mcWrap.style.display = 'flex';
+    frWrap.style.display = 'none';
+    buildMC(q.options);
+  } else {
+    mcWrap.style.display = 'none';
+    frWrap.style.display = 'block';
+    frInput.value = '';
+    frInput.className = 'fr-input';
+    frInput.disabled = false;
+    frInput.focus();
+    frInput.oninput = () => {
+      document.getElementById('btn-submit').disabled = frInput.value.trim().length === 0;
+    };
+    frInput.onkeydown = (e) => {
+      if (e.key === 'Enter' && !document.getElementById('btn-submit').disabled && !answered) {
+        submitAnswer();
+      }
+    };
+    document.getElementById('btn-submit').disabled = true;
+  }
+
+  // Reset feedback, hint, buttons
+  const fp = document.getElementById('feedback-panel');
+  fp.className = 'feedback-panel';
+  document.getElementById('hint-panel').className = 'hint-panel';
+  document.getElementById('btn-hint').className = 'btn-hint';
+  document.getElementById('hint-text').textContent = q.hint;
+  document.getElementById('btn-submit').style.display = 'inline-block';
+  document.getElementById('btn-submit').textContent = 'Check Answer';
+  document.getElementById('btn-submit').disabled = (q.type !== 'english' && !q.options);
+  document.getElementById('btn-next').style.display = 'none';
+
+  // Video link
+  document.getElementById('video-title').textContent  = q.videoTitle;
+  document.getElementById('video-source').textContent = q.videoSource;
+  document.getElementById('video-link').href          = q.videoUrl;
+}
+
+function buildMC(options) {
+  const wrap = document.getElementById('mc-options');
+  wrap.innerHTML = '';
+  const letters = ['A','B','C','D'];
+  options.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'mc-btn';
+    btn.innerHTML = `<div class="mc-letter">${letters[i]}</div><span>${opt.replace(/^[A-D]\.\s*/,'')}</span>`;
+    btn.onclick = () => selectMC(letters[i], btn);
+    wrap.appendChild(btn);
+  });
+}
+
+function selectMC(letter, btn) {
+  if (answered) return;
+  selectedMC = letter;
+  document.querySelectorAll('.mc-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  document.getElementById('btn-submit').disabled = false;
+}
+
+/* ════════════════════════════════════════════════════
+   SUBMIT ANSWER
+════════════════════════════════════════════════════ */
+function submitAnswer() {
+  if (answered) return;
+  answered = true;
+
+  const q  = QUESTIONS[currentQ];
+  let isCorrect = false;
+
+  if (q.options) {
+    // Multiple choice
+    isCorrect = selectedMC === q.answer;
+    // Highlight options
+    document.querySelectorAll('.mc-btn').forEach((btn, i) => {
+      const letter = ['A','B','C','D'][i];
+      btn.disabled = true;
+      if (letter === q.answer) btn.classList.add('correct-ans');
+      else if (letter === selectedMC && !isCorrect) btn.classList.add('wrong-ans');
+    });
+  } else {
+    // Free response
+    const frInput = document.getElementById('fr-input');
+    const userVal = frInput.value.trim().toLowerCase();
+    const accepted = (q.acceptedAnswers || [q.answer]).map(a => a.toLowerCase());
+    isCorrect = accepted.includes(userVal);
+    frInput.disabled = true;
+    frInput.classList.add(isCorrect ? 'correct-inp' : 'wrong-inp');
+  }
+
+  // Track score
+  answers[currentQ] = isCorrect ? 'correct' : 'wrong';
+  if (isCorrect) score.correct++; else score.wrong++;
+
+  // Update pip
+  const pip = document.getElementById('pip-' + currentQ);
+  pip.className = 'progress-pip ' + (isCorrect ? 'correct' : 'wrong');
+
+  // Update score chips
+  document.getElementById('score-correct').textContent = score.correct + ' correct';
+  document.getElementById('score-wrong').textContent   = score.wrong + ' wrong';
+
+  // Show feedback
+  showFeedback(q, isCorrect);
+
+  // Swap buttons
+  document.getElementById('btn-submit').style.display = 'none';
+  document.getElementById('btn-next').style.display   = 'inline-block';
+  document.getElementById('btn-next').textContent =
+    currentQ < QUESTIONS.length - 1 ? 'Next Question →' : 'See Results 🏁';
+}
+
+function showFeedback(q, isCorrect) {
+  const panel   = document.getElementById('feedback-panel');
+  const icon    = document.getElementById('feedback-icon');
+  const title   = document.getElementById('feedback-title');
+  const body    = document.getElementById('feedback-body');
+  const stepsEl = document.getElementById('feedback-steps');
+
+  panel.className = 'feedback-panel visible ' + (isCorrect ? 'feedback-correct' : 'feedback-wrong');
+  icon.textContent  = isCorrect ? '✓' : '✗';
+  title.textContent = isCorrect ? 'Correct! Well done.' : 'Not quite — here\'s how to solve it:';
+  body.textContent  = q.explanation;
+
+  if (!isCorrect && q.steps && q.steps.length) {
+    stepsEl.style.display = 'block';
+    stepsEl.innerHTML = q.steps.map(s => `<li>${s}</li>`).join('');
+  } else {
+    stepsEl.style.display = 'none';
+  }
+}
+
+/* ════════════════════════════════════════════════════
+   HINT
+════════════════════════════════════════════════════ */
+function toggleHint() {
+  hintVisible = !hintVisible;
+  const panel = document.getElementById('hint-panel');
+  const btn   = document.getElementById('btn-hint');
+  if (hintVisible) {
+    panel.className = 'hint-panel visible';
+    btn.classList.add('hint-shown');
+    btn.innerHTML = `<span class="hint-icon">🔍</span> Hide Detective Hint`;
+  } else {
+    panel.className = 'hint-panel';
+    btn.classList.remove('hint-shown');
+    btn.innerHTML = `<span class="hint-icon">🔍</span> Request Detective Hint from STAR`;
+  }
+}
+
+/* ════════════════════════════════════════════════════
+   NEXT QUESTION / COMPLETE
+════════════════════════════════════════════════════ */
+function nextQuestion() {
+  if (currentQ < QUESTIONS.length - 1) {
+    currentQ++;
+    // Animate card
+    const card = document.getElementById('question-card');
+    card.classList.add('card-refreshing');
+    setTimeout(() => {
+      card.classList.remove('card-refreshing');
+      loadQuestion(currentQ);
+    }, 180);
+  } else {
+    showComplete();
+  }
+}
+
+/* ════════════════════════════════════════════════════
+   SESSION COMPLETE
+════════════════════════════════════════════════════ */
+function showComplete() {
+  document.getElementById('question-card').style.display  = 'none';
+  document.getElementById('progress-section').style.display = 'none';
+  const screen = document.getElementById('complete-screen');
+  screen.classList.add('visible');
+
+  const pct = Math.round(score.correct / QUESTIONS.length * 100);
+  document.getElementById('res-correct').textContent = score.correct;
+  document.getElementById('res-wrong').textContent   = score.wrong;
+  document.getElementById('res-pct').textContent     = pct + '%';
+
+  const name = sessionStorage.getItem('star_name') || '';
+  if (pct >= 80) {
+    document.getElementById('complete-avatar').textContent = '🌟';
+    document.getElementById('complete-title').textContent  = 'Brilliant' + (name ? ', ' + name : '') + '!';
+    document.getElementById('complete-sub').textContent   = 'An outstanding result. You\'re ready to take on more!';
+  } else if (pct >= 50) {
+    document.getElementById('complete-avatar').textContent = '⭐';
+    document.getElementById('complete-title').textContent  = 'Great effort' + (name ? ', ' + name : '') + '!';
+    document.getElementById('complete-sub').textContent   = 'Solid work. Keep reviewing those tricky topics.';
+  } else {
+    document.getElementById('complete-avatar').textContent = '💪';
+    document.getElementById('complete-title').textContent  = 'Keep going' + (name ? ', ' + name : '') + '!';
+    document.getElementById('complete-sub').textContent   = 'Every sprint makes you stronger. Review the hints and try again!';
+  }
+
+  // Star rating (out of 5)
+  const stars = Math.round(pct / 20);
+  const starWrap = document.getElementById('star-rating');
+  starWrap.innerHTML = '';
+  for (let i = 0; i < 5; i++) {
+    const svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
+    svg.setAttribute('width','32'); svg.setAttribute('height','32');
+    svg.setAttribute('viewBox','0 0 24 24');
+    const fill = i < stars ? '#C9A84C' : 'rgba(201,168,76,.2)';
+    svg.setAttribute('fill', fill);
+    svg.setAttribute('stroke', '#C9A84C');
+    svg.setAttribute('stroke-width','1.2');
+    const poly = document.createElementNS('http://www.w3.org/2000/svg','polygon');
+    poly.setAttribute('points','12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26');
+    svg.appendChild(poly);
+    starWrap.appendChild(svg);
+  }
+}
+
+function restartSession() {
+  currentQ = 0;
+  score    = { correct: 0, wrong: 0 };
+  answers  = new Array(QUESTIONS.length).fill(null);
+
+  document.getElementById('complete-screen').classList.remove('visible');
+  document.getElementById('question-card').style.display   = '';
+  document.getElementById('progress-section').style.display = '';
+  document.getElementById('score-correct').textContent = '0 correct';
+  document.getElementById('score-wrong').textContent   = '0 wrong';
+
+  buildProgressPips();
+  loadQuestion(0);
+}
+
+function goToDashboard() {
+  window.location.href = 'index.html';
+}
+
+/* ── Kick off ── */
+window.addEventListener('DOMContentLoaded', init);
+</script>
+
+</body>
+</html>
