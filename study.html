@@ -943,10 +943,10 @@ function init() {
     year === 'P7' ? 'P7 Executor Track 🏆' : 'P6 Builder Track ⚡';
   document.getElementById('q-total').textContent = QUESTIONS.length;
 
-  buildProgressPips();
-  loadQuestion(0);
+  buildProgressPips();   
+    loadQuestion(0);
 }
-
+  
 function buildProgressPips() {
   const container = document.getElementById('progress-dots');
   container.innerHTML = '';
