@@ -1126,7 +1126,18 @@ function init() {
   // ── Filter the master bank to the correct level ──
   // Normalise so 'p7', 'P7 ', etc. all match correctly
   const level = ((year || '').trim().toUpperCase() === 'P7') ? 'P7' : 'P6';
-  QUESTIONS = ALL_QUESTIONS.filter(q => q.level === level);
+  const filteredQuestions = ALL_QUESTIONS.filter(q => q.level === level);
+
+  // ── Fisher-Yates shuffle so every Sprint feels new ──
+  // Works on a copy so ALL_QUESTIONS is never mutated.
+  // Video URLs, hints, and all other properties travel with each
+  // question object, so CorbettMaths / BBC Bitesize links stay intact.
+  for (let i = filteredQuestions.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [filteredQuestions[i], filteredQuestions[j]] = [filteredQuestions[j], filteredQuestions[i]];
+  }
+
+  QUESTIONS = filteredQuestions;
   answers   = new Array(QUESTIONS.length).fill(null);
 
   // ── Update UI labels ──
