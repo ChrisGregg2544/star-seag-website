@@ -1122,7 +1122,9 @@ function init() {
   const year = sessionStorage.getItem('star_year') || 'P6';  // default P6
 
   // ── Filter the master bank to the correct level ──
-  QUESTIONS = ALL_QUESTIONS.filter(q => q.level === year);
+  // Normalise so 'p7', 'P7 ', etc. all match correctly
+  const level = ((year || '').trim().toUpperCase() === 'P7') ? 'P7' : 'P6';
+  QUESTIONS = ALL_QUESTIONS.filter(q => q.level === level);
   answers   = new Array(QUESTIONS.length).fill(null);
 
   // ── Update UI labels ──
@@ -1130,7 +1132,7 @@ function init() {
     document.getElementById('nav-student-name').textContent = '· ' + name;
   }
   document.getElementById('track-badge').textContent =
-    year === 'P7' ? 'P7 Executor Track 🏆' : 'P6 Builder Track ⚡';
+    level === 'P7' ? 'P7 Executor Track 🏆' : 'P6 Builder Track ⚡';
   document.getElementById('q-total').textContent = QUESTIONS.length;
 
   buildProgressPips();
