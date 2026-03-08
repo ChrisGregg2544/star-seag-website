@@ -819,114 +819,94 @@
      'P7'  →  P7 Executor Track (exam-level, SEAG format)
 ════════════════════════════════════════════════════ */
 const ALL_QUESTIONS = [
-
-  // ── P6 MATHS 1 ──
+  // ── P6 MATHS ──
   {
     level: 'P6', type: 'maths', topic: 'Fractions', marks: '1 mark',
-    text: 'What is \u00be of 48?',
-    context: null,
+    text: 'What is ¾ of 48?',
     answer: '36',
     acceptedAnswers: ['36'],
-    explanation: 'To find \u00be of 48, divide 48 by 4 to get one quarter (12), then multiply by 3.',
-    steps: ['48 \u00f7 4 = 12 (one quarter)', '12 \u00d7 3 = 36 (three quarters)', 'Answer: 36'],
-    hint: 'Do it in two steps: find ONE quarter of 48 by dividing by 4, then multiply by 3 to get THREE quarters.',
+    explanation: '48 ÷ 4 = 12. 12 × 3 = 36.',
+    steps: ['48 ÷ 4 = 12 (one quarter)', '12 × 3 = 36 (three quarters)', 'Answer: 36'],
+    hint: 'Find ONE quarter first by dividing by 4, then multiply by 3.',
     videoTitle: 'Fractions of Amounts',
     videoSource: 'CorbettMaths',
-    videoUrl: 'https://corbettmathsprimary.com/2018/07/21/fractions-of-amounts-video/',
+    videoUrl: 'https://corbettmathsprimary.com/2018/07/17/fractions-of-amounts-video/',
   },
-
-  // ── P6 MATHS 2 ──
   {
-    level: 'P6', type: 'maths', topic: 'Area & Perimeter', marks: '1 mark',
+    level: 'P6', type: 'maths', topic: 'Area', marks: '1 mark',
     text: 'A rectangle has a length of 12 cm and a width of 7 cm. What is its area?',
-    context: null,
     answer: '84',
-    acceptedAnswers: ['84', '84cm\u00b2', '84 cm\u00b2', '84cm2', '84 cm2'],
-    explanation: 'Area of a rectangle = length \u00d7 width = 12 \u00d7 7 = 84 cm\u00b2.',
-    steps: ['Formula: Area = length \u00d7 width', '12 \u00d7 7 = 84', 'Answer: 84 cm\u00b2'],
-    hint: 'Use the formula: Area = length \u00d7 width.',
+    acceptedAnswers: ['84', '84cm2', '84 cm2', '84cm²', '84 cm²'],
+    explanation: 'Area = length × width = 12 × 7 = 84 cm².',
+    steps: ['Formula: Area = length × width', '12 × 7 = 84', 'Answer: 84 cm²'],
+    hint: 'Use the formula: Area = length × width.',
     videoTitle: 'Area of a Rectangle',
     videoSource: 'CorbettMaths',
     videoUrl: 'https://corbettmathsprimary.com/2018/05/30/area-of-a-rectangle-video/',
   },
-
-  // ── P6 MATHS 3 ──
   {
     level: 'P6', type: 'maths', topic: 'Multiplication', marks: '1 mark',
     text: 'A box holds 24 chocolates. How many chocolates are in 8 boxes?',
-    context: null,
     answer: '192',
     acceptedAnswers: ['192'],
-    explanation: '24 \u00d7 8 = 192. (20 \u00d7 8) + (4 \u00d7 8) = 160 + 32 = 192.',
-    steps: ['Split 24 into 20 + 4', '20 \u00d7 8 = 160', '4 \u00d7 8 = 32', '160 + 32 = 192'],
+    explanation: '24 × 8 = 192. (20 × 8) + (4 × 8) = 160 + 32 = 192.',
+    steps: ['Split 24 into 20 + 4', '20 × 8 = 160', '4 × 8 = 32', '160 + 32 = 192'],
     hint: 'Multiply 20 by 8, then 4 by 8, and add them together.',
-    videoTitle: 'Short Multiplication',
+    videoTitle: 'Multiplication Video',
     videoSource: 'CorbettMaths',
-    videoUrl: 'https://corbettmathsprimary.com/2018/05/30/multiplication-video/',
+    videoUrl: 'https://corbettmathsprimary.com/2018/07/21/multiplication-video/',
   },
-
-  // ── P6 MATHS 4 ──
   {
     level: 'P6', type: 'maths', topic: 'Place Value', marks: '1 mark',
     text: 'What is the value of the digit 7 in the number 34,715?',
-    context: null,
     options: ['A. 7', 'B. 70', 'C. 700', 'D. 7,000'],
     answer: 'C',
-    explanation: 'The 7 is in the hundreds column, so its value is 700.',
-    hint: 'Write the number in a place-value table: Ten-Thousands | Thousands | Hundreds | Tens | Units. Which column does the 7 land in?',
-    videoTitle: 'Place Value',
+    explanation: 'The 7 sits in the hundreds column, so its value is 700.',
+    hint: 'Write out the columns: Units, Tens, Hundreds, Thousands. Which column does the 7 land in?',
+    videoTitle: 'Place Value Video',
     videoSource: 'CorbettMaths',
     videoUrl: 'https://corbettmathsprimary.com/2018/07/21/place-value-video/',
   },
-
-  // ── P6 MATHS 5 ──
   {
     level: 'P6', type: 'maths', topic: 'Time', marks: '1 mark',
     text: 'A film starts at 14:35 and lasts 1 hour and 50 minutes. At what time does it end?',
-    context: null,
     answer: '16:25',
     acceptedAnswers: ['16:25', '4:25 pm', '4:25pm', '16.25'],
-    explanation: '14:35 + 1 hour = 15:35. Adding 50 minutes takes us to 16:25.',
-    steps: ['Add 1 hour: 14:35 \u2192 15:35', 'Add 25 min: 15:35 \u2192 16:00', 'Add 25 more min: 16:00 \u2192 16:25', 'Answer: 16:25'],
-    hint: 'Add the hour first, then add the 50 minutes in two steps \u2014 25 to reach 16:00, then 25 more.',
-    videoTitle: 'Calculating with Time',
+    explanation: '14:35 + 1 hour = 15:35. 15:35 + 50 minutes = 16:25.',
+    steps: ['Add 1 hour: 14:35 → 15:35', 'Add 25 min: 15:35 → 16:00', 'Add 25 more: 16:00 → 16:25', 'Answer: 16:25'],
+    hint: 'Add the hour first, then add 50 minutes in two steps — 25 to reach 16:00, then 25 more.',
+    videoTitle: 'Time Calculations',
     videoSource: 'CorbettMaths',
-    videoUrl: 'https://corbettmathsprimary.com/2018/05/30/time-video/',
+    videoUrl: 'https://corbettmathsprimary.com/2018/07/31/time-video/',
   },
 
-  // ── P6 ENGLISH 1 ──
+  // ── P6 ENGLISH ──
   {
     level: 'P6', type: 'english', topic: 'Vocabulary', marks: '1 mark',
-    text: 'Which word is closest in meaning to "ancient" as used below?',
+    text: 'Which word is closest in meaning to "ancient"?',
     context: '"The explorers discovered an ancient temple hidden beneath the jungle floor, its stone carvings worn smooth by centuries of rain."',
     options: ['A. Modern', 'B. Old', 'C. Broken', 'D. Famous'],
     answer: 'B',
     explanation: '"Ancient" means very old. The clue "centuries of rain" confirms it has existed for hundreds of years.',
-    hint: 'Look at the clue in the sentence \u2014 "centuries of rain" tells you how long it has been there. Which option fits?',
+    hint: 'Look at the clue in the sentence — "centuries of rain". Which option fits something that old?',
     videoTitle: 'Context Clues',
     videoSource: 'BBC Bitesize',
-    videoUrl: 'https://www.bbc.co.uk/bitesize/topics/zn8tkmn/articles/zsv6xyc',
+    videoUrl: 'https://www.bbc.co.uk/bitesize/topics/zn8tkmn',
   },
-
-  // ── P6 ENGLISH 2 ──
   {
     level: 'P6', type: 'english', topic: 'Spelling', marks: '1 mark',
-    text: 'Which of the following words is spelled correctly?',
-    context: null,
+    text: 'Which word is spelled correctly?',
     options: ['A. Recieve', 'B. Receive', 'C. Receve', 'D. Receeve'],
     answer: 'B',
-    explanation: '"Receive" follows the rule "i before e, except after c."',
-    hint: 'Remember: i before e, except after c. There IS a c in this word \u2014 which vowel pair comes directly after it?',
-    videoTitle: 'Common Spelling Rules',
+    explanation: '"Receive" follows the rule: i before e, except after c.',
+    hint: 'Remember: i before e, except after c. There IS a c in this word — which vowel pair follows it?',
+    videoTitle: 'Spelling Rules',
     videoSource: 'BBC Bitesize',
-    videoUrl: 'https://www.bbc.co.uk/bitesize/topics/zt62mnb/articles/z7skdxs',
+    videoUrl: 'https://www.bbc.co.uk/bitesize/topics/zt62mnb',
   },
-
-  // ── P6 ENGLISH 3 ──
   {
     level: 'P6', type: 'english', topic: 'Grammar', marks: '1 mark',
     text: 'Which sentence uses a comma correctly?',
-    context: null,
     options: [
       'A. She ran quickly, and she won the race.',
       'B. She ran, quickly and she won the race.',
@@ -934,18 +914,15 @@ const ALL_QUESTIONS = [
       'D. She ran quickly and, she won the race.',
     ],
     answer: 'A',
-    explanation: 'A comma before a coordinating conjunction like "and" joining two independent clauses is correct.',
-    hint: 'A comma should sit at a natural pause between two ideas that could each stand alone as a sentence.',
-    videoTitle: 'How to use Commas',
+    explanation: 'A comma before "and" joining two independent clauses is correct.',
+    hint: 'A comma sits at a natural pause between two ideas that could each stand alone as a sentence.',
+    videoTitle: 'Using Commas',
     videoSource: 'BBC Bitesize',
-    videoUrl: 'https://www.bbc.co.uk/bitesize/topics/zvwwxnb/articles/zh4j7nb',
+    videoUrl: 'https://www.bbc.co.uk/bitesize/topics/zvwwxnb',
   },
-
-  // ── P6 ENGLISH 4 ──
   {
     level: 'P6', type: 'english', topic: 'Punctuation', marks: '1 mark',
     text: 'Which sentence is punctuated correctly?',
-    context: null,
     options: [
       'A. Where are you going today.',
       'B. Where are you going today?',
@@ -954,111 +931,95 @@ const ALL_QUESTIONS = [
     ],
     answer: 'B',
     explanation: 'Questions must end with a question mark.',
-    hint: 'The sentence is asking something \u2014 what punctuation mark must always end a question?',
+    hint: 'The sentence is asking something — what punctuation mark must end a question?',
     videoTitle: 'Question Marks',
     videoSource: 'BBC Bitesize',
-    videoUrl: 'https://www.bbc.co.uk/bitesize/topics/zvwwxnb/articles/z8d8ng8',
+    videoUrl: 'https://www.bbc.co.uk/bitesize/topics/zvwwxnb',
   },
-
-  // ── P6 ENGLISH 5 ──
   {
-    level: 'P6', type: 'english', topic: 'Comprehension', marks: '1 mark',
+    level: 'P6', type: 'english', topic: 'Vocabulary', marks: '1 mark',
     text: 'Which word is an antonym (opposite) of "brave"?',
-    context: null,
     options: ['A. Bold', 'B. Heroic', 'C. Timid', 'D. Daring'],
     answer: 'C',
-    explanation: '"Timid" means shy or lacking courage \u2014 the opposite of brave.',
+    explanation: '"Timid" means lacking courage — the opposite of brave.',
     hint: 'An antonym is the OPPOSITE. Brave means courageous. Which option means lacking courage?',
     videoTitle: 'Synonyms and Antonyms',
     videoSource: 'BBC Bitesize',
-    videoUrl: 'https://www.bbc.co.uk/bitesize/topics/zn8tkmn/articles/ztv996f',
+    videoUrl: 'https://www.bbc.co.uk/bitesize/topics/zn8tkmn',
   },
 
-  // ── P7 MATHS 1 ──
+  // ── P7 MATHS ──
   {
     level: 'P7', type: 'maths', topic: 'Percentages', marks: '2 marks',
-    text: 'A jacket costs \u00a380. It is reduced by 15% in a sale. What is the sale price?',
-    context: null,
+    text: 'A jacket costs £80. It is reduced by 15% in a sale. What is the sale price?',
     answer: '68',
-    acceptedAnswers: ['68', '\u00a368', '68.00', '\u00a368.00'],
-    explanation: '10% is \u00a38, 5% is \u00a34. Total reduction = \u00a312. \u00a380 \u2212 \u00a312 = \u00a368.',
-    steps: ['Find 10%: \u00a380 \u00f7 10 = \u00a38', 'Find 5%: \u00a38 \u00f7 2 = \u00a34', '15% = \u00a38 + \u00a34 = \u00a312', '\u00a380 \u2212 \u00a312 = \u00a368'],
-    hint: 'Break 15% into 10% and 5%. Find each part separately, add them, then subtract from \u00a380.',
-    videoTitle: 'Percentage of an Amount',
+    acceptedAnswers: ['68', '£68', '68.00', '£68.00'],
+    explanation: '10% = £8, 5% = £4. Total reduction = £12. £80 − £12 = £68.',
+    steps: ['10% of £80 = £8', '5% of £80 = £4', '15% = £8 + £4 = £12', '£80 − £12 = £68'],
+    hint: 'Break 15% into 10% and 5%. Find each part, add them, then subtract from £80.',
+    videoTitle: 'Percentage of Amounts',
     videoSource: 'CorbettMaths',
-    videoUrl: 'https://corbettmathsprimary.com/2018/07/21/percentage-of-amounts-video/',
+    videoUrl: 'https://corbettmathsprimary.com/2018/07/18/percentages-of-amounts-video/',
   },
-
-  // ── P7 MATHS 2 ──
   {
     level: 'P7', type: 'maths', topic: 'Ratio', marks: '2 marks',
-    text: 'Share \u00a3120 in the ratio 3:5. How much is the larger share?',
-    context: null,
+    text: 'Share £120 in the ratio 3:5. How much is the larger share?',
     answer: '75',
-    acceptedAnswers: ['75', '\u00a375', '75.00', '\u00a375.00'],
-    explanation: '8 parts total. \u00a3120 \u00f7 8 = \u00a315 per part. 5 parts = \u00a375.',
-    steps: ['Add ratio parts: 3 + 5 = 8', '\u00a3120 \u00f7 8 = \u00a315 per part', '5 \u00d7 \u00a315 = \u00a375'],
-    hint: 'Add the ratio numbers to find total parts. Divide \u00a3120 by that total, then multiply by 5.',
-    videoTitle: 'Ratio and Proportion',
+    acceptedAnswers: ['75', '£75', '75.00', '£75.00'],
+    explanation: '8 parts total. £120 ÷ 8 = £15 per part. 5 × £15 = £75.',
+    steps: ['3 + 5 = 8 total parts', '£120 ÷ 8 = £15 per part', '5 × £15 = £75'],
+    hint: 'Add the ratio numbers to find total parts. Divide £120 by that total, then multiply by 5.',
+    videoTitle: 'Ratio Video',
     videoSource: 'CorbettMaths',
     videoUrl: 'https://corbettmathsprimary.com/2018/07/21/ratio-video/',
   },
-
-  // ── P7 MATHS 3 ──
   {
     level: 'P7', type: 'maths', topic: 'Algebra', marks: '2 marks',
     text: 'If 3n + 7 = 25, what is n?',
-    context: null,
     answer: '6',
     acceptedAnswers: ['6', 'n=6', 'n = 6'],
     explanation: '3n = 18, so n = 6.',
-    steps: ['3n + 7 = 25', '3n = 25 \u2212 7 = 18', 'n = 18 \u00f7 3 = 6', 'Check: (3 \u00d7 6) + 7 = 25 \u2713'],
-    hint: 'Subtract 7 from both sides first. That leaves 3n on its own. Then divide both sides by 3.',
-    videoTitle: 'Algebra \u2014 Equations',
+    steps: ['3n + 7 = 25', '3n = 25 − 7 = 18', 'n = 18 ÷ 3 = 6', 'Check: (3 × 6) + 7 = 25 ✓'],
+    hint: 'Subtract 7 from both sides first, then divide both sides by 3.',
+    videoTitle: 'Solving Equations',
     videoSource: 'CorbettMaths',
-    videoUrl: 'https://corbettmathsprimary.com/2023/12/28/equations-video/',
+    videoUrl: 'https://corbettmathsprimary.com/2018/07/16/equations-video/',
   },
-
-  // ── P7 MATHS 4 ──
   {
-    level: 'P7', type: 'maths', topic: 'Place Value', marks: '2 marks',
+    level: 'P7', type: 'maths', topic: 'Numbers', marks: '2 marks',
     text: 'Write 2,750,408 in words.',
-    context: null,
     answer: 'two million seven hundred and fifty thousand four hundred and eight',
     acceptedAnswers: [
       'two million seven hundred and fifty thousand four hundred and eight',
       'two million, seven hundred and fifty thousand, four hundred and eight',
     ],
     explanation: '2,750,408 = 2 million + 750 thousand + 408.',
-    steps: ['2,000,000 \u2192 two million', '750,000 \u2192 seven hundred and fifty thousand', '408 \u2192 four hundred and eight'],
-    hint: 'Split into groups of three from the right: 2 | 750 | 408. Name each group separately.',
-    videoTitle: 'Large Numbers',
+    steps: ['2,000,000 → two million', '750,000 → seven hundred and fifty thousand', '408 → four hundred and eight'],
+    hint: 'Split into groups of three from the right: 2 | 750 | 408. Name each group.',
+    videoTitle: 'Place Value',
     videoSource: 'CorbettMaths',
     videoUrl: 'https://corbettmathsprimary.com/2018/07/21/place-value-video/',
   },
-
-  // ── P7 MATHS 5 ──
   {
-    level: 'P7', type: 'maths', topic: 'Comparing FDP', marks: '2 marks',
-    text: 'Order from smallest to largest: 0.6, \u215d, 63%',
-    context: null,
+    level: 'P7', type: 'maths', topic: 'Comparing', marks: '2 marks',
+    text: 'Order smallest to largest: 0.6, ⅝, 63%',
     options: [
-      'A. 0.6, \u215d, 63%',
-      'B. \u215d, 63%, 0.6',
-      'C. 63%, \u215d, 0.6',
-      'D. \u215d, 0.6, 63%',
+      'A. 0.6, ⅝, 63%',
+      'B. ⅝, 63%, 0.6',
+      'C. 63%, ⅝, 0.6',
+      'D. ⅝, 0.6, 63%',
     ],
     answer: 'A',
-    explanation: '0.6 = 0.600, \u215d = 0.625, 63% = 0.630. Order: 0.600 < 0.625 < 0.630.',
-    hint: 'Convert everything to decimals first. \u215d = 5 \u00f7 8. 63% = 63 \u00f7 100. Then compare.',
-    videoTitle: 'Fractions, Decimals, Percentages',
+    explanation: '0.6 = 0.600, ⅝ = 0.625, 63% = 0.630. Order: 0.600 < 0.625 < 0.630.',
+    hint: 'Convert everything to decimals. ⅝ = 5 ÷ 8. 63% = 63 ÷ 100. Then compare.',
+    videoTitle: 'FDP Comparison',
     videoSource: 'CorbettMaths',
     videoUrl: 'https://corbettmathsprimary.com/2018/07/24/fractions-decimals-and-percentages-video/',
   },
 
-  // ── P7 ENGLISH 1 ──
+  // ── P7 ENGLISH ──
   {
-    level: 'P7', type: 'english', topic: 'Comprehension', marks: '2 marks',
+    level: 'P7', type: 'english', topic: 'Structure', marks: '2 marks',
     text: 'Why does the author most likely use short sentences in this passage?',
     context: '"Maya crept forward. Her heart pounded. The door was open. She had seconds to decide."',
     options: [
@@ -1069,17 +1030,14 @@ const ALL_QUESTIONS = [
     ],
     answer: 'B',
     explanation: 'Short sentences create pace and urgency, mirroring the tension of the moment.',
-    hint: 'Think about the effect short sentences have on the reader. Do they slow things down or speed things up?',
-    videoTitle: 'Sentence Structures',
+    hint: 'Think about the effect short sentences have on a reader. Do they slow things down or speed things up?',
+    videoTitle: 'Sentence Types',
     videoSource: 'BBC Bitesize',
-    videoUrl: 'https://www.bbc.co.uk/bitesize/topics/zmhp34j/articles/z6vfxbk',
+    videoUrl: 'https://www.bbc.co.uk/bitesize/topics/zmhp34j',
   },
-
-  // ── P7 ENGLISH 2 ──
   {
-    level: 'P7', type: 'english', topic: 'Passive Voice', marks: '1 mark',
+    level: 'P7', type: 'english', topic: 'Grammar', marks: '1 mark',
     text: 'Which sentence is written in the passive voice?',
-    context: null,
     options: [
       'A. The dog chased the cat across the garden.',
       'B. The cat was chased by the dog across the garden.',
@@ -1087,18 +1045,15 @@ const ALL_QUESTIONS = [
       'D. The dog and the cat ran across the garden.',
     ],
     answer: 'B',
-    explanation: 'In the passive voice the subject receives the action. "The cat was chased" \u2014 the cat receives the action.',
-    hint: 'In passive voice, something is done TO the subject. Look for "was/were + past participle".',
+    explanation: 'In passive voice the subject receives the action. "The cat was chased" — the cat receives the action.',
+    hint: 'In passive voice something is done TO the subject. Look for "was/were + past participle".',
     videoTitle: 'Active and Passive Voice',
     videoSource: 'BBC Bitesize',
-    videoUrl: 'https://www.bbc.co.uk/bitesize/topics/zwwp8mn/articles/zs8tfrd',
+    videoUrl: 'https://www.bbc.co.uk/bitesize/topics/zwwp8mn',
   },
-
-  // ── P7 ENGLISH 3 ──
   {
-    level: 'P7', type: 'english', topic: 'Literary Techniques', marks: '1 mark',
+    level: 'P7', type: 'english', topic: 'Techniques', marks: '1 mark',
     text: 'Which literary technique is used: "The wind whispered secrets through the trees"?',
-    context: null,
     options: [
       'A. Simile',
       'B. Alliteration',
@@ -1106,18 +1061,15 @@ const ALL_QUESTIONS = [
       'D. Metaphor',
     ],
     answer: 'C',
-    explanation: 'Personification gives human qualities to non-human things. The wind "whispers" \u2014 a human action.',
-    hint: 'Is the wind being compared using "like" or "as"? No. Is it given a human action? Yes \u2014 "whispered". What technique is that?',
-    videoTitle: 'Personification',
+    explanation: 'Personification gives human qualities to non-human things. The wind "whispers" — a human action.',
+    hint: 'Is the wind given a human action? Yes — "whispered". What technique gives human traits to non-human things?',
+    videoTitle: 'Similes, Metaphors, Personification',
     videoSource: 'BBC Bitesize',
-    videoUrl: 'https://www.bbc.co.uk/bitesize/topics/zfkk7ty/articles/zw9p8mn',
+    videoUrl: 'https://www.bbc.co.uk/bitesize/topics/zfkk7ty',
   },
-
-  // ── P7 ENGLISH 4 ──
   {
     level: 'P7', type: 'english', topic: 'Nouns', marks: '1 mark',
-    text: 'Which word correctly completes the sentence: "The scientist made a remarkable _______ about the origins of the universe."',
-    context: null,
+    text: 'Which word correctly completes the sentence: "The scientist made a remarkable _______ about the universe."',
     options: [
       'A. discovery',
       'B. discoverie',
@@ -1126,31 +1078,27 @@ const ALL_QUESTIONS = [
     ],
     answer: 'A',
     explanation: '"Discovery" is the correct noun form of "discover". The other options are not real words.',
-    hint: 'Say each option aloud \u2014 does it sound like a real word? Think about the noun form of the verb "to discover".',
-    videoTitle: 'What are Nouns?',
+    hint: 'Think about the noun form of the verb "to discover". Say each option aloud — only one is a real word.',
+    videoTitle: 'Nouns and Suffixes',
     videoSource: 'BBC Bitesize',
-    videoUrl: 'https://www.bbc.co.uk/bitesize/topics/zrwwxnb/articles/zpd8ng8',
+    videoUrl: 'https://www.bbc.co.uk/bitesize/topics/zrwwxnb',
   },
-
-  // ── P7 ENGLISH 5 ──
   {
     level: 'P7', type: 'english', topic: 'Clauses', marks: '2 marks',
-    text: 'Identify the subordinate clause: "Although it was raining heavily, the match continued."',
-    context: null,
+    text: 'Identify the subordinate clause: "Although it was raining, the match continued."',
     options: [
       'A. the match continued',
-      'B. Although it was raining heavily',
-      'C. it was raining heavily',
+      'B. Although it was raining',
+      'C. it was raining',
       'D. Although it was',
     ],
     answer: 'B',
-    explanation: 'A subordinate clause cannot stand alone. "Although it was raining heavily" depends on the main clause.',
-    hint: 'A subordinate clause cannot stand alone as a sentence. Which part could NOT stand alone? Look for words like "although", "because", "while".',
-    videoTitle: 'Main and Subordinate Clauses',
+    explanation: 'A subordinate clause cannot stand alone. "Although it was raining" depends on the main clause.',
+    hint: 'A subordinate clause cannot stand alone as a sentence. Look for words like "although", "because", "while".',
+    videoTitle: 'Phrases and Clauses',
     videoSource: 'BBC Bitesize',
-    videoUrl: 'https://www.bbc.co.uk/bitesize/topics/zwwp8mn/articles/zgsgxfr',
+    videoUrl: 'https://www.bbc.co.uk/bitesize/topics/zwwp8mn',
   },
-
 ];
 
 /* ════════════════════════════════════════════════════
