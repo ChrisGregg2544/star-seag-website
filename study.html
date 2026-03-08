@@ -593,6 +593,71 @@
       .btn-hint  { padding: 15px 20px; font-size: .85rem; }
     }
   </style>
+
+  <style>
+    .star-footer {
+      position: relative; z-index: 10;
+      width: 100%; max-width: 1000px;
+      margin: 56px auto 0;
+      padding-top: 32px;
+      border-top: 1px solid rgba(201,168,76,0.15);
+    }
+    .star-footer-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 32px;
+      padding-bottom: 28px;
+    }
+    .star-footer-col-label {
+      font-size: .68rem; font-weight: 900; letter-spacing: .13em; text-transform: uppercase;
+      color: rgba(201,168,76,0.7); margin-bottom: 11px;
+      display: flex; align-items: center; gap: 7px;
+    }
+    .star-footer-col-label::before {
+      content: ''; display: inline-block;
+      width: 14px; height: 1.5px;
+      background: rgba(201,168,76,0.5); border-radius: 99px;
+    }
+    .star-footer-text {
+      font-size: .78rem; line-height: 1.75;
+      color: rgba(255,255,255,0.36);
+    }
+    .star-footer-text a {
+      color: rgba(201,168,76,0.7);
+      text-decoration: none;
+      transition: color .18s;
+    }
+    .star-footer-text a:hover { color: #C9A84C; }
+    .star-footer-logo {
+      display: flex; align-items: center; gap: 7px; margin-bottom: 11px;
+    }
+    .star-footer-logo-text {
+      font-family: 'Playfair Display', serif;
+      font-size: .88rem; font-weight: 700;
+      color: #C9A84C; letter-spacing: .06em;
+    }
+    .star-footer-bottom {
+      padding: 16px 0;
+      border-top: 1px solid rgba(255,255,255,0.05);
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 10px;
+    }
+    .star-footer-bottom-text {
+      font-size: .72rem; color: rgba(255,255,255,0.22);
+    }
+    .star-footer-bottom-links {
+      display: flex; gap: 18px;
+    }
+    .star-footer-bottom-links a {
+      font-size: .72rem; color: rgba(255,255,255,0.22);
+      text-decoration: none; transition: color .18s;
+    }
+    .star-footer-bottom-links a:hover { color: rgba(255,255,255,0.5); }
+    @media(max-width: 620px) {
+      .star-footer-grid { grid-template-columns: 1fr; gap: 24px; }
+      .star-footer-bottom { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
 </head>
 <body>
 
@@ -1480,6 +1545,57 @@ function goToDashboard() {
 /* ── Kick off ── */
 window.addEventListener('DOMContentLoaded', init);
 </script>
+
+
+  <!-- ══ STAR FOOTER ══ -->
+  <footer class="star-footer">
+    <div class="star-footer-grid">
+
+      <!-- Col 1: About -->
+      <div>
+        <div class="star-footer-logo">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="#C9A84C">
+            <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/>
+          </svg>
+          <span class="star-footer-logo-text">STAR AI Tutor</span>
+        </div>
+        <p class="star-footer-text">
+          Empowering P6 &amp; P7 students for SEAG success.<br>
+          Smart, personalised practice — built for Northern Ireland.
+        </p>
+      </div>
+
+      <!-- Col 2: Educational Partners -->
+      <div>
+        <div class="star-footer-col-label">Educational Partners</div>
+        <p class="star-footer-text">
+          Visual tutorials powered by
+          <a href="https://corbettmaths.com" target="_blank" rel="noopener">CorbettMaths</a>
+          and
+          <a href="https://www.bbc.co.uk/bitesize" target="_blank" rel="noopener">BBC Bitesize</a>.<br>
+          Used with deep respect for their incredible free resources.
+        </p>
+      </div>
+
+      <!-- Col 3: Legal -->
+      <div>
+        <div class="star-footer-col-label">Legal</div>
+        <p class="star-footer-text">
+          &copy; 2026 STAR AI Tutor. All rights reserved.<br>
+          Not affiliated with the SEAG board or the BBC.
+        </p>
+      </div>
+
+    </div>
+    <div class="star-footer-bottom">
+      <span class="star-footer-bottom-text">&copy; 2026 STAR AI Tutor</span>
+      <div class="star-footer-bottom-links">
+        <a href="#">Privacy Policy</a>
+        <a href="#">Terms of Service</a>
+        <a href="#">Contact</a>
+      </div>
+    </div>
+  </footer>
 
 </body>
 </html>
