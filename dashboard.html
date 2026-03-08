@@ -3,919 +3,616 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>STAR – My Dashboard</title>
+  <title>STAR – My Memory Bank</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,400&family=Lato:wght@300;400;700;900&display=swap" rel="stylesheet" />
   <style>
-    /* ══════════════════════════════════════════
-       TOKENS
-    ══════════════════════════════════════════ */
     :root {
       --gold:        #C9A84C;
       --gold-light:  #E8C97A;
       --gold-dim:    rgba(201,168,76,0.14);
       --navy:        #0B1F3A;
       --navy-mid:    #0f2747;
-      --navy-light:  #162d50;
-      --glass:       rgba(255,255,255,0.045);
-      --glass-b:     rgba(201,168,76,0.18);
-      --white:       #ffffff;
-      --soft:        rgba(255,255,255,0.58);
-      --dim:         rgba(255,255,255,0.32);
+      --navy-card:   #112240;
+      --card-bg:     rgba(255,255,255,0.97);
+      --card-border: rgba(201,168,76,0.22);
+      --text-dark:   #0B1F3A;
+      --text-mid:    #3a5070;
+      --text-light:  #6b85a0;
       --green:       #22c55e;
-      --green-bg:    rgba(34,197,94,0.1);
-      --blue:        #3b82f6;
-      --blue-bg:     rgba(59,130,246,0.08);
+      --green-bg:    rgba(34,197,94,0.08);
       --red:         #ef4444;
-      --r:           18px;
+      --blue:        #3b82f6;
+      --radius-card: 20px;
+      --radius-btn:  12px;
     }
-
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html { scroll-behavior: smooth; }
-
+    html { height: 100%; scroll-behavior: smooth; }
     body {
       background: var(--navy);
       min-height: 100vh;
       font-family: 'Lato', sans-serif;
-      color: var(--white);
-      padding: 0 16px 80px;
       display: flex; flex-direction: column; align-items: center;
-      overflow-x: hidden;
-      position: relative;
+      padding: 0 16px 60px;
+      overflow-x: hidden; position: relative;
     }
 
-    /* ── Atmosphere ── */
-    .bg { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
-    .bg-g1 {
+    /* ── Background ── */
+    .bg-atmosphere { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+    .bg-glow {
       position: absolute; border-radius: 50%;
-      width: 800px; height: 800px;
-      top: -200px; left: 50%; transform: translateX(-50%);
-      background: radial-gradient(circle, rgba(201,168,76,.065) 0%, transparent 65%);
+      background: radial-gradient(circle, rgba(201,168,76,.05) 0%, transparent 65%);
+      width: 800px; height: 800px; top: 10%; left: 50%; transform: translateX(-50%);
     }
-    .bg-g2 {
+    .bg-glow-2 {
       position: absolute; border-radius: 50%;
-      width: 500px; height: 500px;
-      bottom: -100px; right: -120px;
-      background: radial-gradient(circle, rgba(59,130,246,.04) 0%, transparent 68%);
+      background: radial-gradient(circle, rgba(59,130,246,.03) 0%, transparent 70%);
+      width: 500px; height: 500px; bottom: -80px; right: -100px;
     }
-    .sp {
-      position: absolute; border-radius: 50%;
-      background: var(--gold);
-      animation: twinkle var(--d,4s) ease-in-out infinite alternate;
-      animation-delay: var(--dl,0s);
+    .star-p {
+      position: absolute; border-radius: 50%; background: var(--gold); opacity: .08;
+      animation: twinkle var(--d,3.8s) ease-in-out infinite alternate;
+      animation-delay: var(--del,0s);
     }
-    @keyframes twinkle { from{opacity:.03} to{opacity:.16} }
+    @keyframes twinkle { from {opacity:.03;} to {opacity:.16;} }
 
-    /* ══════════════════════════════════════════
-       NAV
-    ══════════════════════════════════════════ */
-    nav {
+    /* ── Nav ── */
+    .top-nav {
       position: relative; z-index: 10;
-      width: 100%; max-width: 1000px;
+      width: 100%; max-width: 860px;
       display: flex; align-items: center; justify-content: space-between;
-      padding: 20px 0 18px;
+      padding: 22px 0 18px;
     }
-    .logo {
-      display: flex; align-items: center; gap: 9px; text-decoration: none;
-    }
-    .logo-orb {
-      width: 34px; height: 34px; border-radius: 50%;
-      background: linear-gradient(135deg,rgba(201,168,76,.22),rgba(201,168,76,.06));
-      border: 1.5px solid rgba(201,168,76,.42);
+    .nav-logo { display: flex; align-items: center; gap: 9px; }
+    .nav-logo-star {
+      width: 34px; height: 34px;
+      background: linear-gradient(135deg, rgba(201,168,76,.2) 0%, rgba(201,168,76,.06) 100%);
+      border: 1.5px solid rgba(201,168,76,.4); border-radius: 50%;
       display: flex; align-items: center; justify-content: center;
-      animation: pulse 3s ease-in-out infinite;
+      animation: avatarPulse 3s ease-in-out infinite;
     }
-    @keyframes pulse {
-      0%,100%{ box-shadow:0 0 0 4px rgba(201,168,76,.06); }
-      50%    { box-shadow:0 0 0 9px rgba(201,168,76,.12); }
+    @keyframes avatarPulse {
+      0%,100% { box-shadow: 0 0 0 4px rgba(201,168,76,.06); }
+      50%      { box-shadow: 0 0 0 8px rgba(201,168,76,.10); }
     }
-    .logo-text {
+    .nav-logo-text {
       font-family: 'Playfair Display', serif;
-      font-size: 1.15rem; font-weight: 700; color: var(--gold); letter-spacing: .05em;
+      font-size: 1.15rem; font-weight: 700; color: var(--gold); letter-spacing: .04em;
     }
-    .nav-right { display: flex; align-items: center; gap: 12px; }
-    .nav-pill {
-      font-size: .72rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
-      color: var(--dim); border: 1px solid rgba(255,255,255,.1);
-      border-radius: 8px; padding: 8px 16px; text-decoration: none;
-      transition: all .2s;
-    }
-    .nav-pill:hover { color: var(--soft); border-color: rgba(255,255,255,.22); }
-    .nav-pill.gold {
-      background: linear-gradient(135deg,var(--gold),var(--gold-light));
-      color: var(--navy); border-color: transparent;
-      box-shadow: 0 4px 16px rgba(201,168,76,.35);
-    }
-    .nav-pill.gold:hover { transform: translateY(-1px); box-shadow: 0 6px 22px rgba(201,168,76,.5); }
-
-    /* ══════════════════════════════════════════
-       PAGE WRAPPER
-    ══════════════════════════════════════════ */
-    .page { position: relative; z-index: 10; width: 100%; max-width: 1000px; }
-
-    /* ── Section label ── */
-    .section-label {
-      font-size: .68rem; font-weight: 900; letter-spacing: .16em; text-transform: uppercase;
-      color: var(--gold); margin-bottom: 14px;
-      display: flex; align-items: center; gap: 8px;
-    }
-    .section-label::before {
-      content: ''; display: inline-block;
-      width: 20px; height: 2px; background: var(--gold); border-radius: 99px;
+    .nav-page-label {
+      font-size: .72rem; font-weight: 700; letter-spacing: .1em;
+      text-transform: uppercase; color: rgba(255,255,255,.35);
     }
 
-    /* ── Reveal animation ── */
-    .reveal {
-      opacity: 0; transform: translateY(20px);
-      animation: revealUp .5s cubic-bezier(.22,1,.36,1) forwards;
+    /* ── Hero ── */
+    .hero {
+      position: relative; z-index: 10;
+      width: 100%; max-width: 860px;
+      display: grid; grid-template-columns: 1fr auto;
+      align-items: center; gap: 28px;
+      background: linear-gradient(135deg, var(--navy-card) 0%, #0d1e38 100%);
+      border: 1px solid rgba(201,168,76,.18); border-radius: 24px;
+      padding: 36px 40px; margin-bottom: 28px; overflow: hidden;
+      animation: fadeUp .5s cubic-bezier(.22,1,.36,1) both;
     }
-    @keyframes revealUp {
-      to { opacity:1; transform:translateY(0); }
+    .hero::before {
+      content: ''; position: absolute; top: -60px; right: -60px;
+      width: 220px; height: 220px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(201,168,76,.08) 0%, transparent 70%);
+      pointer-events: none;
     }
-
-    /* ══════════════════════════════════════════
-       HERO HEADER ROW
-    ══════════════════════════════════════════ */
-    .hero-row {
-      display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 24px; align-items: center;
-      margin-bottom: 32px;
+    @keyframes fadeUp {
+      from { opacity:0; transform: translateY(20px); }
+      to   { opacity:1; transform: translateY(0); }
     }
     .hero-greeting {
       font-family: 'Playfair Display', serif;
-      font-size: 2.4rem; font-weight: 900; line-height: 1.15;
-      animation-delay: .05s;
+      font-size: 1rem; font-weight: 400; font-style: italic;
+      color: rgba(255,255,255,.45); margin-bottom: 4px;
     }
-    .hero-greeting em { font-style: italic; color: var(--gold); }
-    .hero-sub {
-      font-size: .95rem; color: var(--soft); margin-top: 10px; line-height: 1.65;
-      animation-delay: .1s;
+    .hero-name {
+      font-family: 'Playfair Display', serif;
+      font-size: 2rem; font-weight: 900; color: #fff;
+      line-height: 1.15; margin-bottom: 12px;
+    }
+    .hero-track-badge {
+      display: inline-flex; align-items: center; gap: 7px;
+      background: var(--gold-dim); border: 1px solid rgba(201,168,76,.3);
+      border-radius: 20px; padding: 5px 13px;
+      font-size: .75rem; font-weight: 700; letter-spacing: .07em;
+      text-transform: uppercase; color: var(--gold);
     }
 
     /* Score ring */
-    .score-ring-wrap {
-      display: flex; flex-direction: column; align-items: center; gap: 8px;
-      animation-delay: .08s;
-    }
-    .score-ring {
-      position: relative; width: 110px; height: 110px;
-    }
+    .score-ring-wrap { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+    .score-ring { position: relative; width: 110px; height: 110px; flex-shrink: 0; }
     .score-ring svg { transform: rotate(-90deg); }
-    .sr-bg   { fill:none; stroke:rgba(201,168,76,.15); stroke-width:7; }
-    .sr-fill {
-      fill:none; stroke:var(--gold); stroke-width:7; stroke-linecap:round;
-      stroke-dasharray: 283;
-      stroke-dashoffset: 283;
-      transition: stroke-dashoffset 1.4s cubic-bezier(.4,0,.2,1);
+    .score-ring-bg   { fill: none; stroke: rgba(255,255,255,.08); stroke-width: 8; }
+    .score-ring-fill {
+      fill: none; stroke: var(--gold); stroke-width: 8; stroke-linecap: round;
+      stroke-dasharray: 283; stroke-dashoffset: 283;
+      transition: stroke-dashoffset 1.2s cubic-bezier(.34,1.56,.64,1);
     }
-    .sr-fill.green  { stroke: var(--green); }
-    .sr-fill.orange { stroke: #f97316; }
-    .score-num {
-      position:absolute; inset:0;
-      display:flex; flex-direction:column; align-items:center; justify-content:center;
+    .score-ring-fill.green  { stroke: var(--green); }
+    .score-ring-fill.amber  { stroke: #f59e0b; }
+    .score-ring-inner {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
     }
-    .score-num-big {
+    .score-ring-number {
       font-family: 'Playfair Display', serif;
-      font-size: 1.7rem; font-weight: 700; color: var(--gold); line-height: 1;
+      font-size: 1.55rem; font-weight: 900; color: #fff; line-height: 1;
     }
-    .score-num-label {
-      font-size: .6rem; font-weight: 700; letter-spacing: .1em;
-      text-transform: uppercase; color: var(--dim); margin-top: 3px;
+    .score-ring-label {
+      font-size: .62rem; font-weight: 700; letter-spacing: .08em;
+      text-transform: uppercase; color: rgba(255,255,255,.4); margin-top: 2px;
     }
-    .score-ring-tag {
-      font-size: .7rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
-      color: var(--dim);
-    }
+    .score-ring-sub { font-size: .72rem; font-weight: 700; color: rgba(255,255,255,.35); text-align: center; }
 
-    @media(max-width:620px) {
-      .hero-row { grid-template-columns: 1fr; }
-      .score-ring-wrap { flex-direction: row; align-items: center; gap: 16px; }
-      .hero-greeting { font-size: 1.75rem; }
-    }
-
-    /* ══════════════════════════════════════════
-       STAT STRIP
-    ══════════════════════════════════════════ */
+    /* ── Stat strip ── */
     .stat-strip {
+      position: relative; z-index: 10;
+      width: 100%; max-width: 860px;
       display: grid; grid-template-columns: repeat(3,1fr);
-      gap: 14px; margin-bottom: 36px;
+      gap: 14px; margin-bottom: 28px;
+      animation: fadeUp .55s .08s cubic-bezier(.22,1,.36,1) both;
     }
     .stat-tile {
-      background: var(--glass);
-      border: 1px solid var(--glass-b);
-      border-radius: var(--r);
-      backdrop-filter: blur(16px);
-      padding: 20px 18px;
-      animation-delay: var(--dl, .12s);
-    }
-    .stat-icon { font-size: 1.4rem; margin-bottom: 8px; }
-    .stat-val {
-      font-family: 'Playfair Display', serif;
-      font-size: 1.8rem; font-weight: 700; color: var(--gold); line-height: 1;
-      margin-bottom: 4px;
-    }
-    .stat-lbl { font-size: .72rem; font-weight: 700; letter-spacing: .08em; color: var(--dim); text-transform: uppercase; }
-
-    @media(max-width:480px) {
-      .stat-strip { grid-template-columns: 1fr 1fr; }
-      .stat-tile:last-child { grid-column: span 2; }
-    }
-
-    /* ══════════════════════════════════════════
-       TWO-COL LAYOUT
-    ══════════════════════════════════════════ */
-    .two-col {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 24px;
-      margin-bottom: 24px;
-    }
-    @media(max-width:700px) { .two-col { grid-template-columns: 1fr; } }
-
-    /* ══════════════════════════════════════════
-       GLASS CARD BASE
-    ══════════════════════════════════════════ */
-    .card {
-      background: var(--glass);
-      border: 1px solid var(--glass-b);
-      border-radius: var(--r);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      overflow: hidden;
-    }
-    .card-head {
-      padding: 20px 22px 16px;
-      border-bottom: 1px solid rgba(255,255,255,.06);
-      display: flex; align-items: center; justify-content: space-between;
-    }
-    .card-title {
-      font-family: 'Playfair Display', serif;
-      font-size: 1.05rem; font-weight: 700; color: var(--white);
-    }
-    .card-badge {
-      font-size: .65rem; font-weight: 900; letter-spacing: .1em; text-transform: uppercase;
-      padding: 4px 10px; border-radius: 99px;
-    }
-    .badge-gold  { background:rgba(201,168,76,.15); border:1px solid rgba(201,168,76,.3); color:var(--gold); }
-    .badge-green { background:var(--green-bg); border:1px solid rgba(34,197,94,.25); color:var(--green); }
-    .badge-blue  { background:var(--blue-bg); border:1px solid rgba(59,130,246,.25); color:var(--blue); }
-    .card-body { padding: 20px 22px; }
-
-    /* ══════════════════════════════════════════
-       LEARNING PATH CARDS
-    ══════════════════════════════════════════ */
-    .learning-path { margin-bottom: 24px; }
-
-    .lp-empty {
-      text-align: center; padding: 48px 24px;
-    }
-    .lp-empty-icon { font-size: 3rem; margin-bottom: 14px; }
-    .lp-empty-title {
-      font-family: 'Playfair Display', serif;
-      font-size: 1.3rem; font-weight: 700; color: var(--white); margin-bottom: 8px;
-    }
-    .lp-empty-sub { font-size: .88rem; color: var(--soft); line-height: 1.6; }
-
-    .lp-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 16px;
-    }
-
-    .lp-card {
       background: rgba(255,255,255,.04);
-      border: 1px solid rgba(255,255,255,.08);
-      border-radius: 16px;
-      padding: 20px;
-      display: flex; flex-direction: column; gap: 14px;
-      transition: border-color .22s, transform .22s, box-shadow .22s;
-      animation: revealUp .45s cubic-bezier(.22,1,.36,1) both;
-      animation-delay: var(--dl, 0s);
+      border: 1px solid rgba(255,255,255,.08); border-radius: 16px;
+      padding: 18px 20px; display: flex; align-items: center; gap: 14px;
     }
-    .lp-card:hover {
-      border-color: rgba(201,168,76,.35);
-      transform: translateY(-3px);
-      box-shadow: 0 12px 36px rgba(0,0,0,.28);
+    .stat-icon {
+      width: 40px; height: 40px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.2rem; flex-shrink: 0;
     }
-
-    .lp-card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
-    .lp-topic-wrap {}
-    .lp-source {
-      font-size: .65rem; font-weight: 900; letter-spacing: .12em; text-transform: uppercase;
-      margin-bottom: 5px;
-    }
-    .source-corbett { color: #f97316; }
-    .source-bbc     { color: var(--blue); }
-    .lp-topic {
+    .stat-icon.gold  { background: var(--gold-dim); }
+    .stat-icon.green { background: var(--green-bg); }
+    .stat-icon.blue  { background: rgba(59,130,246,.1); }
+    .stat-num {
       font-family: 'Playfair Display', serif;
-      font-size: 1.05rem; font-weight: 700; color: var(--white); line-height: 1.25;
+      font-size: 1.5rem; font-weight: 900; color: #fff; line-height: 1;
     }
-    .lp-icon {
-      width: 38px; height: 38px; border-radius: 10px; flex-shrink: 0;
-      display: flex; align-items: center; justify-content: center; font-size: 1.1rem;
-      background: rgba(201,168,76,.1); border: 1px solid rgba(201,168,76,.2);
-    }
-
-    .lp-question {
-      font-size: .8rem; color: var(--soft); line-height: 1.55;
-      background: rgba(255,255,255,.03);
-      border-left: 2px solid rgba(201,168,76,.3);
-      padding: 8px 12px; border-radius: 0 8px 8px 0;
-      font-style: italic;
+    .stat-label {
+      font-size: .72rem; font-weight: 700; letter-spacing: .06em;
+      text-transform: uppercase; color: rgba(255,255,255,.38); margin-top: 3px;
     }
 
-    .lp-btn {
-      display: flex; align-items: center; justify-content: center; gap: 8px;
-      background: rgba(201,168,76,.1);
-      border: 1.5px solid rgba(201,168,76,.28);
-      border-radius: 10px; padding: 12px 16px;
+    /* ── Section chrome ── */
+    .section {
+      position: relative; z-index: 10;
+      width: 100%; max-width: 860px; margin-bottom: 28px;
+      animation: fadeUp .6s .12s cubic-bezier(.22,1,.36,1) both;
+    }
+    .section-header {
+      display: flex; align-items: baseline; justify-content: space-between;
+      margin-bottom: 16px;
+    }
+    .section-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.22rem; font-weight: 900; color: #fff;
+    }
+    .section-count {
+      font-size: .75rem; font-weight: 700; letter-spacing: .06em;
+      text-transform: uppercase; color: rgba(255,255,255,.3);
+    }
+
+    /* ── Topic cards ── */
+    .topic-grid { display: flex; flex-direction: column; gap: 12px; }
+    .topic-card {
+      background: var(--card-bg); border: 1px solid var(--card-border);
+      border-radius: var(--radius-card); padding: 20px 22px;
+      display: grid; grid-template-columns: 1fr auto;
+      align-items: center; gap: 16px;
+      transition: transform .2s, box-shadow .2s;
+      animation: cardSlide .4s cubic-bezier(.22,1,.36,1) both;
+      animation-delay: var(--delay, 0s);
+    }
+    .topic-card:hover { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(0,0,0,.18); }
+    @keyframes cardSlide {
+      from { opacity:0; transform: translateX(-16px); }
+      to   { opacity:1; transform: translateX(0); }
+    }
+    .topic-left { min-width: 0; }
+    .topic-meta { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; }
+    .topic-type-badge {
+      font-size: .65rem; font-weight: 900; letter-spacing: .08em;
+      text-transform: uppercase; padding: 2px 8px; border-radius: 20px;
+    }
+    .badge-maths   { background: rgba(59,130,246,.1); color: var(--blue); border: 1px solid rgba(59,130,246,.2); }
+    .badge-english { background: rgba(168,85,247,.1); color: #a855f7;   border: 1px solid rgba(168,85,247,.2); }
+    .topic-source-tag {
+      font-size: .65rem; font-weight: 700; letter-spacing: .06em;
+      text-transform: uppercase; color: var(--text-light);
+    }
+    .topic-name {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.05rem; font-weight: 700; color: var(--text-dark); margin-bottom: 4px;
+    }
+    .topic-question-preview {
+      font-size: .82rem; color: var(--text-mid); line-height: 1.4;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 500px;
+    }
+    .btn-tutorial {
+      flex-shrink: 0; display: inline-flex; align-items: center; gap: 7px;
+      padding: 10px 18px; border-radius: var(--radius-btn);
       font-family: 'Lato', sans-serif; font-size: .8rem; font-weight: 900;
-      letter-spacing: .07em; text-transform: uppercase;
-      color: var(--gold); text-decoration: none; cursor: pointer;
+      letter-spacing: .05em; text-transform: uppercase;
+      text-decoration: none; cursor: pointer; border: none;
       transition: all .22s;
     }
-    .lp-btn:hover {
-      background: rgba(201,168,76,.22);
-      border-color: var(--gold);
-      transform: translateY(-1px);
-      box-shadow: 0 4px 16px rgba(201,168,76,.22);
-    }
-    .lp-btn svg { flex-shrink: 0; }
+    .btn-corbett  { background: linear-gradient(135deg,#ff6b35,#e85d04); color:#fff; box-shadow:0 4px 16px rgba(232,93,4,.3); }
+    .btn-corbett:hover  { transform:translateY(-2px); box-shadow:0 8px 24px rgba(232,93,4,.45); }
+    .btn-bitesize { background: linear-gradient(135deg,#0f73c8,#0a5fa8); color:#fff; box-shadow:0 4px 16px rgba(15,115,200,.3); }
+    .btn-bitesize:hover { transform:translateY(-2px); box-shadow:0 8px 24px rgba(15,115,200,.45); }
 
-    /* ══════════════════════════════════════════
-       PROGRESS BARS — skills panel
-    ══════════════════════════════════════════ */
-    .skill-row { margin-bottom: 14px; }
-    .skill-row:last-child { margin-bottom: 0; }
-    .skill-meta {
-      display: flex; justify-content: space-between; align-items: center;
-      margin-bottom: 6px;
+    /* Empty / no-data states */
+    .empty-topics {
+      text-align: center; background: var(--green-bg);
+      border: 1px solid rgba(34,197,94,.2); border-radius: var(--radius-card); padding: 40px 28px;
     }
-    .skill-name { font-size: .82rem; font-weight: 700; color: var(--soft); }
-    .skill-pct  { font-size: .78rem; font-weight: 700; color: var(--gold); }
-    .skill-track {
-      height: 5px; background: rgba(255,255,255,.08); border-radius: 99px; overflow: hidden;
+    .empty-topics .ace { font-size: 2.8rem; margin-bottom: 12px; }
+    .empty-topics h3 { font-family:'Playfair Display',serif; font-size:1.2rem; font-weight:900; color:#16a34a; margin-bottom:6px; }
+    .empty-topics p { font-size:.88rem; color:#15803d; }
+    .no-data-state {
+      text-align: center; background: rgba(255,255,255,.04);
+      border: 1px solid rgba(255,255,255,.08); border-radius: var(--radius-card); padding: 52px 28px;
     }
-    .skill-fill {
-      height: 100%; border-radius: 99px;
-      background: linear-gradient(90deg, var(--gold), var(--gold-light));
-      width: 0;
-      transition: width 1.2s cubic-bezier(.4,0,.2,1);
-    }
-    .skill-fill.low    { background: linear-gradient(90deg,#ef4444,#f97316); }
-    .skill-fill.medium { background: linear-gradient(90deg,var(--gold),var(--gold-light)); }
-    .skill-fill.high   { background: linear-gradient(90deg,#22c55e,#16a34a); }
+    .no-data-state .nd-icon { font-size:2.8rem; margin-bottom:16px; }
+    .no-data-state h3 { font-family:'Playfair Display',serif; font-size:1.3rem; font-weight:900; color:#fff; margin-bottom:8px; }
+    .no-data-state p { font-size:.88rem; color:rgba(255,255,255,.4); margin-bottom:28px; max-width:340px; margin-left:auto; margin-right:auto; }
 
-    /* ══════════════════════════════════════════
-       ACTIVITY FEED
-    ══════════════════════════════════════════ */
-    .activity-item {
-      display: flex; align-items: flex-start; gap: 12px;
-      padding: 12px 0;
-      border-bottom: 1px solid rgba(255,255,255,.05);
-    }
-    .activity-item:last-child { border-bottom: none; padding-bottom: 0; }
-    .activity-dot {
-      width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
-      display: flex; align-items: center; justify-content: center; font-size: .9rem;
-      margin-top: 1px;
-    }
-    .dot-gold  { background: rgba(201,168,76,.15); border:1px solid rgba(201,168,76,.3); }
-    .dot-green { background: var(--green-bg); border:1px solid rgba(34,197,94,.25); }
-    .dot-blue  { background: var(--blue-bg);  border:1px solid rgba(59,130,246,.25); }
-    .activity-text { font-size: .84rem; color: var(--soft); line-height: 1.55; }
-    .activity-text strong { color: var(--white); font-weight: 700; }
-    .activity-time { font-size: .72rem; color: var(--dim); margin-top: 2px; }
-
-    /* ══════════════════════════════════════════
-       NEXT SPRINT CTA
-    ══════════════════════════════════════════ */
-    .cta-banner {
-      background: linear-gradient(135deg, rgba(201,168,76,.12) 0%, rgba(201,168,76,.05) 100%);
-      border: 1px solid rgba(201,168,76,.25);
-      border-radius: var(--r);
-      padding: 32px 36px;
-      display: flex; align-items: center; justify-content: space-between; gap: 24px;
-      flex-wrap: wrap;
-      animation-delay: .3s;
-    }
-    .cta-banner-text {}
-    .cta-banner-title {
-      font-family: 'Playfair Display', serif;
-      font-size: 1.5rem; font-weight: 700; color: var(--white); margin-bottom: 6px;
-    }
-    .cta-banner-sub { font-size: .88rem; color: var(--soft); line-height: 1.6; }
-    .btn-sprint {
-      background: linear-gradient(135deg,var(--gold) 0%,var(--gold-light) 50%,var(--gold) 100%);
-      background-size: 200% auto;
-      color: var(--navy); border: none; border-radius: 12px;
-      padding: 16px 36px;
-      font-family: 'Lato', sans-serif; font-size: .95rem; font-weight: 900;
-      letter-spacing: .1em; text-transform: uppercase;
-      cursor: pointer; text-decoration: none; display: inline-block;
-      white-space: nowrap;
-      box-shadow: 0 6px 24px rgba(201,168,76,.38);
-      transition: background-position .4s, transform .18s, box-shadow .18s;
-    }
-    .btn-sprint:hover {
-      background-position: right center;
-      transform: translateY(-2px);
-      box-shadow: 0 10px 36px rgba(201,168,76,.55);
-    }
-
-    /* ══════════════════════════════════════════
-       NO DATA STATE
-    ══════════════════════════════════════════ */
-    .no-data-screen {
-      text-align: center; padding: 80px 24px;
-      animation: revealUp .5s ease forwards;
-    }
-    .no-data-orb {
-      width: 90px; height: 90px; border-radius: 50%; margin: 0 auto 24px;
-      background: linear-gradient(135deg,rgba(201,168,76,.18),rgba(201,168,76,.06));
-      border: 2px solid rgba(201,168,76,.35);
-      display: flex; align-items: center; justify-content: center; font-size: 2.4rem;
-      animation: pulse 2.5s ease-in-out infinite;
-    }
-    .no-data-title {
-      font-family: 'Playfair Display', serif;
-      font-size: 2rem; font-weight: 700; color: var(--white); margin-bottom: 12px;
-    }
-    .no-data-sub { font-size: .95rem; color: var(--soft); line-height: 1.7; margin-bottom: 32px; }
-  </style>
-
-  <style>
-    .star-footer {
+    /* ── CTA ── */
+    .cta-section {
       position: relative; z-index: 10;
-      width: 100%; max-width: 1000px;
-      margin: 56px auto 0;
-      padding-top: 32px;
-      border-top: 1px solid rgba(201,168,76,0.15);
+      width: 100%; max-width: 860px; margin-bottom: 28px;
+      animation: fadeUp .65s .18s cubic-bezier(.22,1,.36,1) both;
     }
-    .star-footer-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 32px;
-      padding-bottom: 28px;
+    .cta-card {
+      background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 50%, #d4a843 100%);
+      border-radius: 24px; padding: 36px 40px;
+      display: flex; align-items: center; justify-content: space-between; gap: 24px;
+      overflow: hidden; position: relative; cursor: pointer; text-decoration: none;
+      transition: transform .22s, box-shadow .22s;
+      box-shadow: 0 8px 40px rgba(201,168,76,.4);
     }
+    .cta-card::before {
+      content:''; position:absolute; top:-40px; right:-40px;
+      width:180px; height:180px; border-radius:50%;
+      background:rgba(255,255,255,.12); pointer-events:none;
+    }
+    .cta-card::after {
+      content:''; position:absolute; bottom:-60px; left:20%;
+      width:240px; height:240px; border-radius:50%;
+      background:rgba(255,255,255,.06); pointer-events:none;
+    }
+    .cta-card:hover { transform:translateY(-3px); box-shadow:0 16px 56px rgba(201,168,76,.55); }
+    .cta-text { position:relative; z-index:1; }
+    .cta-eyebrow { font-size:.72rem; font-weight:900; letter-spacing:.12em; text-transform:uppercase; color:rgba(11,31,58,.55); margin-bottom:4px; }
+    .cta-title { font-family:'Playfair Display',serif; font-size:1.6rem; font-weight:900; color:var(--navy); line-height:1.2; }
+    .cta-sub { font-size:.85rem; color:rgba(11,31,58,.6); margin-top:5px; }
+    .cta-arrow {
+      position:relative; z-index:1; flex-shrink:0;
+      width:56px; height:56px; border-radius:50%;
+      background:rgba(11,31,58,.12);
+      display:flex; align-items:center; justify-content:center;
+      font-size:1.4rem; transition:transform .22s;
+    }
+    .cta-card:hover .cta-arrow { transform:translateX(5px); }
+
+    /* ── Footer ── */
+    .star-footer {
+      position:relative; z-index:10; width:100%; max-width:860px;
+      margin:40px auto 0; padding-top:32px; border-top:1px solid rgba(201,168,76,.15);
+    }
+    .star-footer-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:32px; padding-bottom:28px; }
     .star-footer-col-label {
-      font-size: .68rem; font-weight: 900; letter-spacing: .13em; text-transform: uppercase;
-      color: rgba(201,168,76,0.7); margin-bottom: 11px;
-      display: flex; align-items: center; gap: 7px;
+      font-size:.68rem; font-weight:900; letter-spacing:.13em; text-transform:uppercase;
+      color:rgba(201,168,76,.7); margin-bottom:11px;
+      display:flex; align-items:center; gap:7px;
     }
     .star-footer-col-label::before {
-      content: ''; display: inline-block;
-      width: 14px; height: 1.5px;
-      background: rgba(201,168,76,0.5); border-radius: 99px;
+      content:''; display:inline-block; width:14px; height:1.5px;
+      background:rgba(201,168,76,.5); border-radius:99px;
     }
-    .star-footer-text {
-      font-size: .78rem; line-height: 1.75;
-      color: rgba(255,255,255,0.36);
-    }
-    .star-footer-text a {
-      color: rgba(201,168,76,0.7);
-      text-decoration: none;
-      transition: color .18s;
-    }
-    .star-footer-text a:hover { color: #C9A84C; }
-    .star-footer-logo {
-      display: flex; align-items: center; gap: 7px; margin-bottom: 11px;
-    }
-    .star-footer-logo-text {
-      font-family: 'Playfair Display', serif;
-      font-size: .88rem; font-weight: 700;
-      color: #C9A84C; letter-spacing: .06em;
-    }
+    .star-footer-text { font-size:.78rem; line-height:1.75; color:rgba(255,255,255,.36); }
+    .star-footer-text a { color:rgba(201,168,76,.7); text-decoration:none; transition:color .18s; }
+    .star-footer-text a:hover { color:#C9A84C; }
+    .star-footer-logo { display:flex; align-items:center; gap:7px; margin-bottom:11px; }
+    .star-footer-logo-text { font-family:'Playfair Display',serif; font-size:.88rem; font-weight:700; color:#C9A84C; letter-spacing:.06em; }
     .star-footer-bottom {
-      padding: 16px 0;
-      border-top: 1px solid rgba(255,255,255,0.05);
-      display: flex; align-items: center; justify-content: space-between;
-      flex-wrap: wrap; gap: 10px;
+      padding:16px 0; border-top:1px solid rgba(255,255,255,.05);
+      display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;
     }
-    .star-footer-bottom-text {
-      font-size: .72rem; color: rgba(255,255,255,0.22);
-    }
-    .star-footer-bottom-links {
-      display: flex; gap: 18px;
-    }
-    .star-footer-bottom-links a {
-      font-size: .72rem; color: rgba(255,255,255,0.22);
-      text-decoration: none; transition: color .18s;
-    }
-    .star-footer-bottom-links a:hover { color: rgba(255,255,255,0.5); }
-    @media(max-width: 620px) {
-      .star-footer-grid { grid-template-columns: 1fr; gap: 24px; }
-      .star-footer-bottom { flex-direction: column; align-items: flex-start; }
+    .star-footer-bottom-text { font-size:.72rem; color:rgba(255,255,255,.22); }
+    .star-footer-bottom-links { display:flex; gap:18px; }
+    .star-footer-bottom-links a { font-size:.72rem; color:rgba(255,255,255,.22); text-decoration:none; transition:color .18s; }
+    .star-footer-bottom-links a:hover { color:rgba(255,255,255,.5); }
+
+    /* ── Responsive ── */
+    @media (max-width:680px) {
+      .hero { grid-template-columns:1fr; padding:28px 24px; }
+      .score-ring-wrap { flex-direction:row; gap:16px; }
+      .stat-strip { grid-template-columns:1fr 1fr; }
+      .stat-strip .stat-tile:last-child { grid-column:span 2; }
+      .topic-card { grid-template-columns:1fr; }
+      .btn-tutorial { width:100%; justify-content:center; }
+      .cta-card { flex-direction:column; padding:28px 24px; text-align:center; }
+      .cta-arrow { display:none; }
+      .star-footer-grid { grid-template-columns:1fr; gap:24px; }
+      .star-footer-bottom { flex-direction:column; align-items:flex-start; }
+      .topic-question-preview { max-width:100%; white-space:normal; }
     }
   </style>
 </head>
 <body>
 
-<!-- Atmosphere -->
-<div class="bg">
-  <div class="bg-g1"></div>
-  <div class="bg-g2"></div>
-  <div class="sp" style="left:4%;top:6%;width:3px;height:3px;--d:3.6s;"></div>
-  <div class="sp" style="left:19%;top:14%;width:2px;height:2px;--d:4.3s;--dl:.9s;"></div>
-  <div class="sp" style="left:88%;top:8%;width:3px;height:3px;--d:3.9s;--dl:.3s;"></div>
-  <div class="sp" style="left:93%;top:52%;width:2px;height:2px;--d:4.6s;--dl:1.3s;"></div>
-  <div class="sp" style="left:6%;top:75%;width:4px;height:4px;--d:3.7s;--dl:.6s;"></div>
-  <div class="sp" style="left:78%;top:85%;width:2px;height:2px;--d:4.1s;--dl:2s;"></div>
+<div class="bg-atmosphere">
+  <div class="bg-glow"></div>
+  <div class="bg-glow-2"></div>
+  <div class="star-p" style="width:6px;height:6px;top:12%;left:8%;  --d:4.1s;--del:.3s"></div>
+  <div class="star-p" style="width:4px;height:4px;top:28%;left:92%; --d:3.5s;--del:1.2s"></div>
+  <div class="star-p" style="width:5px;height:5px;top:62%;left:5%;  --d:5.2s;--del:.7s"></div>
+  <div class="star-p" style="width:3px;height:3px;top:80%;left:88%; --d:3.9s;--del:2.1s"></div>
+  <div class="star-p" style="width:4px;height:4px;top:44%;left:50%; --d:4.7s;--del:.5s"></div>
 </div>
 
-<!-- Nav -->
-<nav>
-  <a href="index.html" class="logo">
-    <div class="logo-orb">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="#C9A84C">
+<nav class="top-nav">
+  <div class="nav-logo">
+    <div class="nav-logo-star">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="#C9A84C">
         <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/>
       </svg>
     </div>
-    <span class="logo-text">STAR</span>
-  </a>
-  <div class="nav-right">
-    <a href="study.html" class="nav-pill">Study Hall</a>
-    <a href="study.html" class="nav-pill gold">▶ Start Sprint</a>
+    <span class="nav-logo-text">STAR AI Tutor</span>
   </div>
+  <span class="nav-page-label">Memory Bank</span>
 </nav>
 
-<!-- ══════════════════════════════════════════
-     MAIN PAGE
-══════════════════════════════════════════ -->
-<div class="page" id="main-page" style="display:none;">
-
-  <!-- Hero row -->
-  <div class="hero-row">
-    <div>
-      <div class="section-label reveal" style="animation-delay:.02s;">Your Progress</div>
-      <h1 class="hero-greeting reveal" style="animation-delay:.06s;">
-        Welcome back,<br><em id="hero-name">Champion</em>!
-      </h1>
-      <p class="hero-sub reveal" style="animation-delay:.1s;" id="hero-sub">
-        Here's a full picture of your SEAG journey so far.
-      </p>
+<!-- HERO -->
+<div class="hero">
+  <div>
+    <div class="hero-greeting">Welcome back,</div>
+    <div class="hero-name" id="hero-name">Student</div>
+    <div class="hero-track-badge">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="#C9A84C">
+        <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/>
+      </svg>
+      <span id="track-label">P6 Builder Track ⚡</span>
     </div>
-    <div class="score-ring-wrap reveal" style="animation-delay:.08s;">
-      <div class="score-ring">
-        <svg width="110" height="110" viewBox="0 0 110 110">
-          <circle class="sr-bg" cx="55" cy="55" r="45"/>
-          <circle class="sr-fill" id="sr-fill" cx="55" cy="55" r="45"/>
-        </svg>
-        <div class="score-num">
-          <div class="score-num-big" id="score-big">—</div>
-          <div class="score-num-label">Last Score</div>
-        </div>
+  </div>
+  <div class="score-ring-wrap">
+    <div class="score-ring">
+      <svg width="110" height="110" viewBox="0 0 110 110">
+        <circle class="score-ring-bg"   cx="55" cy="55" r="45"/>
+        <circle class="score-ring-fill" id="ring-fill" cx="55" cy="55" r="45"/>
+      </svg>
+      <div class="score-ring-inner">
+        <div class="score-ring-number" id="ring-number">—</div>
+        <div class="score-ring-label">Last Score</div>
       </div>
-      <div class="score-ring-tag" id="score-track">P6 Builder Track ⚡</div>
     </div>
+    <div class="score-ring-sub" id="ring-sub">No sprint yet</div>
   </div>
-
-  <!-- Stat strip -->
-  <div class="stat-strip">
-    <div class="stat-tile reveal card" style="--dl:.12s;">
-      <div class="stat-icon">✅</div>
-      <div class="stat-val" id="stat-correct">—</div>
-      <div class="stat-lbl">Questions Correct</div>
-    </div>
-    <div class="stat-tile reveal card" style="--dl:.16s;">
-      <div class="stat-icon">🔁</div>
-      <div class="stat-val" id="stat-review">—</div>
-      <div class="stat-lbl">Topics to Review</div>
-    </div>
-    <div class="stat-tile reveal card" style="--dl:.2s;">
-      <div class="stat-icon">🏅</div>
-      <div class="stat-val" id="stat-badge">—</div>
-      <div class="stat-lbl">Badge Earned</div>
-    </div>
-  </div>
-
-  <!-- Learning Path (full width) -->
-  <div class="learning-path reveal card" style="animation-delay:.18s;">
-    <div class="card-head">
-      <span class="card-title">📚 Your Personal Learning Path</span>
-      <span class="card-badge badge-gold" id="lp-count-badge">0 topics</span>
-    </div>
-    <div class="card-body">
-      <div id="lp-content"></div>
-    </div>
-  </div>
-
-  <!-- Two-col: skills + activity -->
-  <div class="two-col">
-
-    <!-- Skills breakdown -->
-    <div class="card reveal" style="animation-delay:.22s;">
-      <div class="card-head">
-        <span class="card-title">📊 Topic Breakdown</span>
-        <span class="card-badge badge-blue">This Sprint</span>
-      </div>
-      <div class="card-body" id="skills-body"></div>
-    </div>
-
-    <!-- Recent activity -->
-    <div class="card reveal" style="animation-delay:.26s;">
-      <div class="card-head">
-        <span class="card-title">⚡ Session Summary</span>
-        <span class="card-badge badge-green">Latest</span>
-      </div>
-      <div class="card-body" id="activity-body"></div>
-    </div>
-
-  </div>
-
-  <!-- CTA banner -->
-  <div class="cta-banner reveal" style="animation-delay:.3s;">
-    <div class="cta-banner-text">
-      <div class="cta-banner-title" id="cta-title">Ready for your next sprint?</div>
-      <p class="cta-banner-sub" id="cta-sub">
-        Pick up where you left off — every question makes you sharper.
-      </p>
-    </div>
-    <a href="study.html" class="btn-sprint">▶ &nbsp;Start Next Sprint</a>
-  </div>
-
-</div><!-- /main-page -->
-
-<!-- No-data state (shown if localStorage is empty) -->
-<div class="no-data-screen" id="no-data-screen" style="display:none;">
-  <div class="no-data-orb">⭐</div>
-  <div class="no-data-title">No results yet!</div>
-  <p class="no-data-sub">
-    Complete your first sprint in the Study Hall<br>
-    and your personalised dashboard will appear here.
-  </p>
-  <a href="study.html" class="btn-sprint">▶ &nbsp;Go to Study Hall</a>
 </div>
 
-<!-- ══════════════════════════════════════════
-     JAVASCRIPT
-══════════════════════════════════════════ -->
+<!-- STAT STRIP -->
+<div class="stat-strip">
+  <div class="stat-tile">
+    <div class="stat-icon gold">⭐</div>
+    <div>
+      <div class="stat-num" id="stat-score">—</div>
+      <div class="stat-label">Last Score</div>
+    </div>
+  </div>
+  <div class="stat-tile">
+    <div class="stat-icon blue">📚</div>
+    <div>
+      <div class="stat-num" id="stat-topics">—</div>
+      <div class="stat-label">Topics to Review</div>
+    </div>
+  </div>
+  <div class="stat-tile">
+    <div class="stat-icon green">🏅</div>
+    <div>
+      <div class="stat-num" id="stat-badge">—</div>
+      <div class="stat-label">Badge Earned</div>
+    </div>
+  </div>
+</div>
+
+<!-- TOPICS TO MASTER -->
+<div class="section">
+  <div class="section-header">
+    <h2 class="section-title">Topics to Master</h2>
+    <span class="section-count" id="topics-count"></span>
+  </div>
+  <div class="topic-grid" id="topic-grid"></div>
+</div>
+
+<!-- CTA -->
+<div class="cta-section">
+  <a class="cta-card" href="study.html" id="cta-link">
+    <div class="cta-text">
+      <div class="cta-eyebrow">Ready to level up?</div>
+      <div class="cta-title">Start New Sprint</div>
+      <div class="cta-sub" id="cta-sub">10 fresh questions — shuffled just for you.</div>
+    </div>
+    <div class="cta-arrow">→</div>
+  </a>
+</div>
+
+<!-- FOOTER -->
+<footer class="star-footer">
+  <div class="star-footer-grid">
+    <div>
+      <div class="star-footer-logo">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="#C9A84C">
+          <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/>
+        </svg>
+        <span class="star-footer-logo-text">STAR AI Tutor</span>
+      </div>
+      <p class="star-footer-text">
+        Empowering P6 &amp; P7 students for SEAG success.<br>
+        Smart, personalised practice — built for Northern Ireland.
+      </p>
+    </div>
+    <div>
+      <div class="star-footer-col-label">Educational Partners</div>
+      <p class="star-footer-text">
+        Visual tutorials powered by
+        <a href="https://corbettmathsprimary.com" target="_blank" rel="noopener">CorbettMaths Primary</a>
+        and
+        <a href="https://www.bbc.co.uk/bitesize" target="_blank" rel="noopener">BBC Bitesize</a>.
+      </p>
+    </div>
+    <div>
+      <div class="star-footer-col-label">Legal</div>
+      <p class="star-footer-text">
+        &copy; 2026 STAR AI Tutor. All rights reserved.<br>
+        Not affiliated with the SEAG board or the BBC.
+      </p>
+    </div>
+  </div>
+  <div class="star-footer-bottom">
+    <span class="star-footer-bottom-text">&copy; 2026 STAR AI Tutor</span>
+    <div class="star-footer-bottom-links">
+      <a href="#">Privacy Policy</a>
+      <a href="#">Terms of Service</a>
+      <a href="#">Contact</a>
+    </div>
+  </div>
+</footer>
+
 <script>
-window.addEventListener('DOMContentLoaded', () => {
+/* ════════════════════════════════════════════════════
+   STAR DASHBOARD — Memory Bank
+   All data read from localStorage written by study.html
+════════════════════════════════════════════════════ */
+function init() {
+  const toReview  = JSON.parse(localStorage.getItem('star_toReview'))  || [];
+  const lastScore = parseInt(localStorage.getItem('star_last_score'),  10);
+  const lastTrack = localStorage.getItem('star_last_track') || 'P6';
+  const lastName  = localStorage.getItem('star_last_name')  || '';
+  const hasData   = !isNaN(lastScore);
 
-  /* ── 1. Read all data from localStorage ── */
-  const toReview   = JSON.parse(localStorage.getItem('star_toReview'))  || [];
-  const lastScore  = parseInt(localStorage.getItem('star_last_score'),  10);
-  const lastTrack  = localStorage.getItem('star_last_track')  || sessionStorage.getItem('star_year') || 'P6';
-  const lastName   = localStorage.getItem('star_last_name')   || sessionStorage.getItem('star_name') || '';
-
-  /* ── 2. If no session data at all, show empty state ── */
-  if (isNaN(lastScore)) {
-    document.getElementById('no-data-screen').style.display = 'block';
-    return;
-  }
-  document.getElementById('main-page').style.display = 'block';
-
-  /* ── 3. Hero heading ── */
-  if (lastName) document.getElementById('hero-name').textContent = lastName;
-
-  const pct = Math.min(100, Math.max(0, lastScore));
-
-  /* ── 4. Score ring ── */
-  const circumference = 2 * Math.PI * 45; // ≈ 282.7
-  const offset = circumference - (pct / 100) * circumference;
-  const ringEl = document.getElementById('sr-fill');
-  ringEl.style.strokeDasharray  = circumference;
-  ringEl.style.strokeDashoffset = circumference; // start at 0
-  // Animate after paint
-  requestAnimationFrame(() => requestAnimationFrame(() => {
-    ringEl.style.strokeDashoffset = offset;
-    if (pct >= 80) ringEl.classList.add('green');
-    else if (pct < 50) ringEl.classList.add('orange');
-  }));
-
-  document.getElementById('score-big').textContent   = pct + '%';
-  document.getElementById('score-track').textContent =
+  // ── Personalise hero ──
+  document.getElementById('hero-name').innerHTML = lastName
+    ? lastName + '<span style="color:var(--gold)">!</span>'
+    : 'Your Memory Bank';
+  document.getElementById('track-label').textContent =
     lastTrack === 'P7' ? 'P7 Executor Track 🏆' : 'P6 Builder Track ⚡';
 
-  /* ── 5. Hero sub text ── */
-  const msg = pct >= 80 ? 'Outstanding result — you\'re nearly exam-ready. Keep pushing!'
-            : pct >= 60 ? 'Solid effort. Review your learning path below to close the gaps.'
-            : 'Great start. Work through your learning path and try again — you\'ve got this!';
-  document.getElementById('hero-sub').textContent = msg;
+  // ── Score ring ──
+  if (hasData) {
+    const pct  = lastScore;
+    const circ = 2 * Math.PI * 45;           // r=45 → 282.74
+    const off  = circ - (pct / 100) * circ;
+    const fill = document.getElementById('ring-fill');
 
-  /* ── 6. Stat strip ── */
-  // We know score% and number of review topics; derive correct count from toReview
-  const totalQ    = Math.round(toReview.length / (1 - pct / 100)) || 10; // estimate
-  const correct   = Math.round(pct / 100 * totalQ);
-  document.getElementById('stat-correct').textContent = correct;
-  document.getElementById('stat-review').textContent  = toReview.length;
-  document.getElementById('stat-badge').textContent   =
-    pct >= 80 ? '🌟 Gold' : pct >= 60 ? '⭐ Silver' : '💪 Bronze';
+    document.getElementById('ring-number').textContent = pct + '%';
+    document.getElementById('ring-sub').textContent    =
+      pct >= 80 ? 'Outstanding! 🌟' : pct >= 50 ? 'Solid effort ⭐' : 'Keep going! 💪';
 
-  /* ── 7. CTA personalisation ── */
-  if (toReview.length === 0) {
-    document.getElementById('cta-title').textContent = 'Perfect score — go again!';
-    document.getElementById('cta-sub').textContent   = 'You got every question right. Try a fresh sprint to keep that streak going.';
+    if (pct >= 80)      fill.classList.add('green');
+    else if (pct < 50)  fill.classList.add('amber');
+
+    requestAnimationFrame(() => setTimeout(() => { fill.style.strokeDashoffset = off; }, 80));
+
+    // Stat strip
+    document.getElementById('stat-score').textContent  = pct + '%';
+    document.getElementById('stat-topics').textContent = toReview.length;
+    document.getElementById('stat-badge').textContent  =
+      pct >= 80 ? '🥇 Gold' : pct >= 60 ? '🥈 Silver' : '🥉 Bronze';
   } else {
-    document.getElementById('cta-title').textContent = 'Ready to tackle those missed topics?';
-    document.getElementById('cta-sub').textContent   =
-      `You have ${toReview.length} topic${toReview.length > 1 ? 's' : ''} to review. Watch the videos below, then jump back in.`;
+    ['stat-score','stat-topics','stat-badge'].forEach(id =>
+      document.getElementById(id).textContent = '—');
   }
 
-  /* ── 8. Learning Path cards ── */
-  const lpContent  = document.getElementById('lp-content');
-  const lpBadge    = document.getElementById('lp-count-badge');
+  // ── Topics to Master ──
+  buildTopicGrid(toReview, hasData);
+
+  // ── CTA — pass track through URL, update sub-label ──
+  document.getElementById('cta-link').href = 'study.html?track=' + lastTrack;
+  if (hasData && toReview.length > 0) {
+    document.getElementById('cta-sub').textContent =
+      'You have ' + toReview.length + ' topic' + (toReview.length > 1 ? 's' : '') +
+      ' to work on — a fresh sprint is the fastest way to improve.';
+  }
+}
+
+function buildTopicGrid(toReview, hasData) {
+  const grid  = document.getElementById('topic-grid');
+  const count = document.getElementById('topics-count');
+  grid.innerHTML = '';
+
+  if (!hasData) {
+    count.textContent = '';
+    grid.innerHTML = `
+      <div class="no-data-state">
+        <div class="nd-icon">🚀</div>
+        <h3>No sprints completed yet</h3>
+        <p>Complete your first 10-question sprint and your missed topics will appear here, ready for review.</p>
+      </div>`;
+    return;
+  }
 
   if (toReview.length === 0) {
-    lpBadge.textContent = 'All correct!';
-    lpBadge.className   = 'card-badge badge-green';
-    lpContent.innerHTML = `
-      <div class="lp-empty">
-        <div class="lp-empty-icon">🎉</div>
-        <div class="lp-empty-title">Clean sweep!</div>
-        <p class="lp-empty-sub">You answered every question correctly this sprint.<br>Nothing to review — go celebrate, then try a harder sprint!</p>
+    count.textContent = '0 to review';
+    grid.innerHTML = `
+      <div class="empty-topics">
+        <div class="ace">🎉</div>
+        <h3>Clean Sweep!</h3>
+        <p>You got every question right in your last sprint. Start a new one to keep the momentum going.</p>
       </div>`;
-  } else {
-    lpBadge.textContent = toReview.length + ' topic' + (toReview.length > 1 ? 's' : '');
+    return;
+  }
 
-    // Topic → emoji map
-    const topicIcon = t => {
-      const map = {
-        'fractions':'🍕','percentages':'%','area':'📐','perimeter':'📐',
-        'area & perimeter':'📐','multiplication':'✖️','place value':'🔢',
-        'number & place value':'🔢','time':'⏰','ratio':'⚖️','ratio & proportion':'⚖️',
-        'algebra':'🔣','grammar':'✏️','spelling':'🔤','spelling & vocabulary':'🔤',
-        'comprehension':'📖','vocabulary':'📖','punctuation':'❗',
-        'literary techniques':'🎭','fractions, decimals & percentages':'🔢',
-      };
-      return map[t.toLowerCase()] || '📝';
-    };
+  count.textContent = toReview.length + ' topic' + (toReview.length > 1 ? 's' : '');
 
-    const grid = document.createElement('div');
-    grid.className = 'lp-grid';
+  toReview.forEach((item, i) => {
+    const isCorbett  = (item.videoSource || '').toLowerCase().includes('corbett');
+    const btnClass   = isCorbett ? 'btn-corbett' : 'btn-bitesize';
+    const sourceLabel = isCorbett ? 'CorbettMaths' : 'BBC Bitesize';
+    const type       = guessType(item.topic, item.videoSource);
+    const badgeClass = type === 'maths' ? 'badge-maths' : 'badge-english';
+    const badgeLabel = type === 'maths' ? '📐 Maths'   : '📖 English';
 
-    toReview.forEach((item, i) => {
-      const isCorbett = (item.videoSource || '').toLowerCase().includes('corbett');
-      const sourceClass = isCorbett ? 'source-corbett' : 'source-bbc';
-      const sourceLabel = item.videoSource || (isCorbett ? 'CorbettMaths' : 'BBC Bitesize');
-
-      const card = document.createElement('div');
-      card.className = 'lp-card';
-      card.style.setProperty('--dl', (i * 0.07) + 's');
-      card.innerHTML = `
-        <div class="lp-card-top">
-          <div class="lp-topic-wrap">
-            <div class="lp-source ${sourceClass}">${sourceLabel}</div>
-            <div class="lp-topic">${item.topic}</div>
-          </div>
-          <div class="lp-icon">${topicIcon(item.topic)}</div>
+    const card = document.createElement('div');
+    card.className = 'topic-card';
+    card.style.setProperty('--delay', (i * 0.07) + 's');
+    card.innerHTML = `
+      <div class="topic-left">
+        <div class="topic-meta">
+          <span class="topic-type-badge ${badgeClass}">${badgeLabel}</span>
+          <span class="topic-source-tag">${sourceLabel}</span>
         </div>
+        <div class="topic-name">${item.topic}</div>
         ${item.questionText
-          ? `<div class="lp-question">"${item.questionText}"</div>`
+          ? '<div class="topic-question-preview">' + item.questionText + '</div>'
           : ''}
-        <a class="lp-btn" href="${item.videoUrl}" target="_blank" rel="noopener">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <polygon points="5,3 19,12 5,21"/>
-          </svg>
-          Watch: ${item.videoTitle || 'Revision Video'}
-        </a>`;
-      grid.appendChild(card);
-    });
-    lpContent.appendChild(grid);
-  }
-
-  /* ── 9. Skills breakdown bars ── */
-  const skillsBody = document.getElementById('skills-body');
-
-  // Build skill scores: correct topics get high %, review topics get low %
-  // We use toReview to know which topics were missed
-  const missedTopics = new Set(toReview.map(r => r.topic.toLowerCase()));
-
-  // Collect all topics from toReview + mark them
-  const allTopics = toReview.map(r => ({ name: r.topic, pct: Math.floor(Math.random() * 30) + 10 }));
-
-  // Add some "good" topics as placeholders to make the chart useful
-  const goodExamples = lastTrack === 'P7'
-    ? ['Ratio & Proportion','Grammar','Literary Techniques','Number & Place Value']
-    : ['Fractions','Spelling','Punctuation','Multiplication'];
-
-  goodExamples.forEach(t => {
-    if (!missedTopics.has(t.toLowerCase())) {
-      allTopics.push({ name: t, pct: Math.floor(Math.random() * 25) + 70 });
-    }
+      </div>
+      <a class="btn-tutorial ${btnClass}"
+         href="${item.videoUrl}"
+         target="_blank"
+         rel="noopener noreferrer">
+        ▶ Watch Tutorial
+      </a>`;
+    grid.appendChild(card);
   });
+}
 
-  if (allTopics.length === 0) {
-    skillsBody.innerHTML = '<p style="font-size:.85rem;color:var(--soft);line-height:1.6;">Complete a sprint to see your topic breakdown here.</p>';
-  } else {
-    allTopics.slice(0, 6).forEach(skill => {
-      const cls = skill.pct >= 70 ? 'high' : skill.pct >= 40 ? 'medium' : 'low';
-      const row = document.createElement('div');
-      row.className = 'skill-row';
-      row.innerHTML = `
-        <div class="skill-meta">
-          <span class="skill-name">${skill.name}</span>
-          <span class="skill-pct">${skill.pct}%</span>
-        </div>
-        <div class="skill-track">
-          <div class="skill-fill ${cls}" data-w="${skill.pct}"></div>
-        </div>`;
-      skillsBody.appendChild(row);
-    });
+function guessType(topic, source) {
+  if ((source || '').toLowerCase().includes('corbett'))  return 'maths';
+  if ((source || '').toLowerCase().includes('bitesize')) return 'english';
+  const mathKeys = ['fraction','area','perimeter','multiplication','division','algebra',
+    'percentage','ratio','number','place value','time','decimal','equation','geometry','comparing'];
+  return mathKeys.some(k => (topic || '').toLowerCase().includes(k)) ? 'maths' : 'english';
+}
 
-    // Animate bars after paint
-    requestAnimationFrame(() => requestAnimationFrame(() => {
-      document.querySelectorAll('.skill-fill').forEach(el => {
-        el.style.width = el.dataset.w + '%';
-      });
-    }));
-  }
-
-  /* ── 10. Activity feed ── */
-  const activityBody = document.getElementById('activity-body');
-  const now = new Date();
-  const timeStr = now.toLocaleTimeString('en-GB', { hour:'2-digit', minute:'2-digit' });
-  const dateStr = now.toLocaleDateString('en-GB', { weekday:'short', day:'numeric', month:'short' });
-
-  const activities = [
-    {
-      dot: 'dot-gold', icon: '⭐',
-      text: `<strong>Sprint completed</strong> — scored ${pct}% on ${lastTrack} track`,
-      time: `Today at ${timeStr}`,
-    },
-    {
-      dot: toReview.length === 0 ? 'dot-green' : 'dot-blue',
-      icon: toReview.length === 0 ? '🎉' : '📚',
-      text: toReview.length === 0
-        ? '<strong>Perfect score!</strong> — all questions answered correctly'
-        : `<strong>${toReview.length} topic${toReview.length > 1 ? 's' : ''} flagged</strong> for review in your learning path`,
-      time: `${dateStr}`,
-    },
-    {
-      dot: 'dot-gold', icon: '🏅',
-      text: `<strong>Badge earned:</strong> ${pct >= 80 ? '🌟 Gold — Excellent work!' : pct >= 60 ? '⭐ Silver — Keep it up!' : '💪 Bronze — Every sprint counts!'}`,
-      time: `${dateStr}`,
-    },
-  ];
-
-  activities.forEach(a => {
-    const el = document.createElement('div');
-    el.className = 'activity-item';
-    el.innerHTML = `
-      <div class="activity-dot ${a.dot}">${a.icon}</div>
-      <div>
-        <div class="activity-text">${a.text}</div>
-        <div class="activity-time">${a.time}</div>
-      </div>`;
-    activityBody.appendChild(el);
-  });
-
-});
+window.addEventListener('DOMContentLoaded', init);
 </script>
-
-
-  <!-- ══ STAR FOOTER ══ -->
-  <footer class="star-footer">
-    <div class="star-footer-grid">
-
-      <!-- Col 1: About -->
-      <div>
-        <div class="star-footer-logo">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="#C9A84C">
-            <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/>
-          </svg>
-          <span class="star-footer-logo-text">STAR AI Tutor</span>
-        </div>
-        <p class="star-footer-text">
-          Empowering P6 &amp; P7 students for SEAG success.<br>
-          Smart, personalised practice — built for Northern Ireland.
-        </p>
-      </div>
-
-      <!-- Col 2: Educational Partners -->
-      <div>
-        <div class="star-footer-col-label">Educational Partners</div>
-        <p class="star-footer-text">
-          Visual tutorials powered by
-          <a href="https://corbettmaths.com" target="_blank" rel="noopener">CorbettMaths</a>
-          and
-          <a href="https://www.bbc.co.uk/bitesize" target="_blank" rel="noopener">BBC Bitesize</a>.<br>
-          Used with deep respect for their incredible free resources.
-        </p>
-      </div>
-
-      <!-- Col 3: Legal -->
-      <div>
-        <div class="star-footer-col-label">Legal</div>
-        <p class="star-footer-text">
-          &copy; 2026 STAR AI Tutor. All rights reserved.<br>
-          Not affiliated with the SEAG board or the BBC.
-        </p>
-      </div>
-
-    </div>
-    <div class="star-footer-bottom">
-      <span class="star-footer-bottom-text">&copy; 2026 STAR AI Tutor</span>
-      <div class="star-footer-bottom-links">
-        <a href="#">Privacy Policy</a>
-        <a href="#">Terms of Service</a>
-        <a href="#">Contact</a>
-      </div>
-    </div>
-  </footer>
-
 </body>
 </html>
