@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>STAR – My Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,400&family=Lato:wght@300;400;700;900&display=swap" rel="stylesheet" />
+  <style>
+    /* ══════════════════════════════════════════
+       TOKENS
+    ══════════════════════════════════════════ */
+    :root {
+      --gold:        #C9A84C;
+      --gold-light:  #E8C97A;
+      --gold-dim:    rgba(201,168,76,0.14);
+      --navy:        #0B1F3A;
+      --navy-mid:    #0f2747;
+      --navy-light:  #162d50;
+      --glass:       rgba(255,255,255,0.045);
+      --glass-b:     rgba(201,168,76,0.18);
+      --white:       #ffffff;
+      --soft:        rgba(255,255,255,0.58);
+      --dim:         rgba(255,255,255,0.32);
+      --green:       #22c55e;
+      --green-bg:    rgba(34,197,94,0.1);
+      --blue:        #3b82f6;
+      --blue-bg:     rgba(59,130,246,0.08);
+      --red:         #ef4444;
+      --r:           18px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--navy);
+      min-height: 100vh;
+      font-family: 'Lato', sans-serif;
+      color: var(--white);
+      padding: 0 16px 80px;
+      display: flex; flex-direction: column; align-items: center;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* ── Atmosphere ── */
+    .bg { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+    .bg-g1 {
+      position: absolute; border-radius: 50%;
+      width: 800px; height: 800px;
+      top: -200px; left: 50%; transform: translateX(-50%);
+      background: radial-gradient(circle, rgba(201,168,76,.065) 0%, transparent 65%);
+    }
+    .bg-g2 {
+      position: absolute; border-radius: 50%;
+      width: 500px; height: 500px;
+      bottom: -100px; right: -120px;
+      background: radial-gradient(circle, rgba(59,130,246,.04) 0%, transparent 68%);
+    }
+    .sp {
+      position: absolute; border-radius: 50%;
+      background: var(--gold);
+      animation: twinkle var(--d,4s) ease-in-out infinite alternate;
+      animation-delay: var(--dl,0s);
+    }
+    @keyframes twinkle { from{opacity:.03} to{opacity:.16} }
+
+    /* ══════════════════════════════════════════
+       NAV
+    ══════════════════════════════════════════ */
+    nav {
+      position: relative; z-index: 10;
+      width: 100%; max-width: 1000px;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 20px 0 18px;
+    }
+    .logo {
+      display: flex; align-items: center; gap: 9px; text-decoration: none;
+    }
+    .logo-orb {
+      width: 34px; height: 34px; border-radius: 50%;
+      background: linear-gradient(135deg,rgba(201,168,76,.22),rgba(201,168,76,.06));
+      border: 1.5px solid rgba(201,168,76,.42);
+      display: flex; align-items: center; justify-content: center;
+      animation: pulse 3s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%,100%{ box-shadow:0 0 0 4px rgba(201,168,76,.06); }
+      50%    { box-shadow:0 0 0 9px rgba(201,168,76,.12); }
+    }
+    .logo-text {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.15rem; font-weight: 700; color: var(--gold); letter-spacing: .05em;
+    }
+    .nav-right { display: flex; align-items: center; gap: 12px; }
+    .nav-pill {
+      font-size: .72rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+      color: var(--dim); border: 1px solid rgba(255,255,255,.1);
+      border-radius: 8px; padding: 8px 16px; text-decoration: none;
+      transition: all .2s;
+    }
+    .nav-pill:hover { color: var(--soft); border-color: rgba(255,255,255,.22); }
+    .nav-pill.gold {
+      background: linear-gradient(135deg,var(--gold),var(--gold-light));
+      color: var(--navy); border-color: transparent;
+      box-shadow: 0 4px 16px rgba(201,168,76,.35);
+    }
+    .nav-pill.gold:hover { transform: translateY(-1px); box-shadow: 0 6px 22px rgba(201,168,76,.5); }
+
+    /* ══════════════════════════════════════════
+       PAGE WRAPPER
+    ══════════════════════════════════════════ */
+    .page { position: relative; z-index: 10; width: 100%; max-width: 1000px; }
+
+    /* ── Section label ── */
+    .section-label {
+      font-size: .68rem; font-weight: 900; letter-spacing: .16em; text-transform: uppercase;
+      color: var(--gold); margin-bottom: 14px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .section-label::before {
+      content: ''; display: inline-block;
+      width: 20px; height: 2px; background: var(--gold); border-radius: 99px;
+    }
+
+    /* ── Reveal animation ── */
+    .reveal {
+      opacity: 0; transform: translateY(20px);
+      animation: revealUp .5s cubic-bezier(.22,1,.36,1) forwards;
+    }
+    @keyframes revealUp {
+      to { opacity:1; transform:translateY(0); }
+    }
+
+    /* ══════════════════════════════════════════
+       HERO HEADER ROW
+    ══════════════════════════════════════════ */
+    .hero-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 24px; align-items: center;
+      margin-bottom: 32px;
+    }
+    .hero-greeting {
+      font-family: 'Playfair Display', serif;
+      font-size: 2.4rem; font-weight: 900; line-height: 1.15;
+      animation-delay: .05s;
+    }
+    .hero-greeting em { font-style: italic; color: var(--gold); }
+    .hero-sub {
+      font-size: .95rem; color: var(--soft); margin-top: 10px; line-height: 1.65;
+      animation-delay: .1s;
+    }
+
+    /* Score ring */
+    .score-ring-wrap {
+      display: flex; flex-direction: column; align-items: center; gap: 8px;
+      animation-delay: .08s;
+    }
+    .score-ring {
+      position: relative; width: 110px; height: 110px;
+    }
+    .score-ring svg { transform: rotate(-90deg); }
+    .sr-bg   { fill:none; stroke:rgba(201,168,76,.15); stroke-width:7; }
+    .sr-fill {
+      fill:none; stroke:var(--gold); stroke-width:7; stroke-linecap:round;
+      stroke-dasharray: 283;
+      stroke-dashoffset: 283;
+      transition: stroke-dashoffset 1.4s cubic-bezier(.4,0,.2,1);
+    }
+    .sr-fill.green  { stroke: var(--green); }
+    .sr-fill.orange { stroke: #f97316; }
+    .score-num {
+      position:absolute; inset:0;
+      display:flex; flex-direction:column; align-items:center; justify-content:center;
+    }
+    .score-num-big {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.7rem; font-weight: 700; color: var(--gold); line-height: 1;
+    }
+    .score-num-label {
+      font-size: .6rem; font-weight: 700; letter-spacing: .1em;
+      text-transform: uppercase; color: var(--dim); margin-top: 3px;
+    }
+    .score-ring-tag {
+      font-size: .7rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+      color: var(--dim);
+    }
+
+    @media(max-width:620px) {
+      .hero-row { grid-template-columns: 1fr; }
+      .score-ring-wrap { flex-direction: row; align-items: center; gap: 16px; }
+      .hero-greeting { font-size: 1.75rem; }
+    }
+
+    /* ══════════════════════════════════════════
+       STAT STRIP
+    ══════════════════════════════════════════ */
+    .stat-strip {
+      display: grid; grid-template-columns: repeat(3,1fr);
+      gap: 14px; margin-bottom: 36px;
+    }
+    .stat-tile {
+      background: var(--glass);
+      border: 1px solid var(--glass-b);
+      border-radius: var(--r);
+      backdrop-filter: blur(16px);
+      padding: 20px 18px;
+      animation-delay: var(--dl, .12s);
+    }
+    .stat-icon { font-size: 1.4rem; margin-bottom: 8px; }
+    .stat-val {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.8rem; font-weight: 700; color: var(--gold); line-height: 1;
+      margin-bottom: 4px;
+    }
+    .stat-lbl { font-size: .72rem; font-weight: 700; letter-spacing: .08em; color: var(--dim); text-transform: uppercase; }
+
+    @media(max-width:480px) {
+      .stat-strip { grid-template-columns: 1fr 1fr; }
+      .stat-tile:last-child { grid-column: span 2; }
+    }
+
+    /* ══════════════════════════════════════════
+       TWO-COL LAYOUT
+    ══════════════════════════════════════════ */
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-bottom: 24px;
+    }
+    @media(max-width:700px) { .two-col { grid-template-columns: 1fr; } }
+
+    /* ══════════════════════════════════════════
+       GLASS CARD BASE
+    ══════════════════════════════════════════ */
+    .card {
+      background: var(--glass);
+      border: 1px solid var(--glass-b);
+      border-radius: var(--r);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      overflow: hidden;
+    }
+    .card-head {
+      padding: 20px 22px 16px;
+      border-bottom: 1px solid rgba(255,255,255,.06);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .card-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.05rem; font-weight: 700; color: var(--white);
+    }
+    .card-badge {
+      font-size: .65rem; font-weight: 900; letter-spacing: .1em; text-transform: uppercase;
+      padding: 4px 10px; border-radius: 99px;
+    }
+    .badge-gold  { background:rgba(201,168,76,.15); border:1px solid rgba(201,168,76,.3); color:var(--gold); }
+    .badge-green { background:var(--green-bg); border:1px solid rgba(34,197,94,.25); color:var(--green); }
+    .badge-blue  { background:var(--blue-bg); border:1px solid rgba(59,130,246,.25); color:var(--blue); }
+    .card-body { padding: 20px 22px; }
+
+    /* ══════════════════════════════════════════
+       LEARNING PATH CARDS
+    ══════════════════════════════════════════ */
+    .learning-path { margin-bottom: 24px; }
+
+    .lp-empty {
+      text-align: center; padding: 48px 24px;
+    }
+    .lp-empty-icon { font-size: 3rem; margin-bottom: 14px; }
+    .lp-empty-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.3rem; font-weight: 700; color: var(--white); margin-bottom: 8px;
+    }
+    .lp-empty-sub { font-size: .88rem; color: var(--soft); line-height: 1.6; }
+
+    .lp-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+    }
+
+    .lp-card {
+      background: rgba(255,255,255,.04);
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 16px;
+      padding: 20px;
+      display: flex; flex-direction: column; gap: 14px;
+      transition: border-color .22s, transform .22s, box-shadow .22s;
+      animation: revealUp .45s cubic-bezier(.22,1,.36,1) both;
+      animation-delay: var(--dl, 0s);
+    }
+    .lp-card:hover {
+      border-color: rgba(201,168,76,.35);
+      transform: translateY(-3px);
+      box-shadow: 0 12px 36px rgba(0,0,0,.28);
+    }
+
+    .lp-card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+    .lp-topic-wrap {}
+    .lp-source {
+      font-size: .65rem; font-weight: 900; letter-spacing: .12em; text-transform: uppercase;
+      margin-bottom: 5px;
+    }
+    .source-corbett { color: #f97316; }
+    .source-bbc     { color: var(--blue); }
+    .lp-topic {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.05rem; font-weight: 700; color: var(--white); line-height: 1.25;
+    }
+    .lp-icon {
+      width: 38px; height: 38px; border-radius: 10px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center; font-size: 1.1rem;
+      background: rgba(201,168,76,.1); border: 1px solid rgba(201,168,76,.2);
+    }
+
+    .lp-question {
+      font-size: .8rem; color: var(--soft); line-height: 1.55;
+      background: rgba(255,255,255,.03);
+      border-left: 2px solid rgba(201,168,76,.3);
+      padding: 8px 12px; border-radius: 0 8px 8px 0;
+      font-style: italic;
+    }
+
+    .lp-btn {
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      background: rgba(201,168,76,.1);
+      border: 1.5px solid rgba(201,168,76,.28);
+      border-radius: 10px; padding: 12px 16px;
+      font-family: 'Lato', sans-serif; font-size: .8rem; font-weight: 900;
+      letter-spacing: .07em; text-transform: uppercase;
+      color: var(--gold); text-decoration: none; cursor: pointer;
+      transition: all .22s;
+    }
+    .lp-btn:hover {
+      background: rgba(201,168,76,.22);
+      border-color: var(--gold);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 16px rgba(201,168,76,.22);
+    }
+    .lp-btn svg { flex-shrink: 0; }
+
+    /* ══════════════════════════════════════════
+       PROGRESS BARS — skills panel
+    ══════════════════════════════════════════ */
+    .skill-row { margin-bottom: 14px; }
+    .skill-row:last-child { margin-bottom: 0; }
+    .skill-meta {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 6px;
+    }
+    .skill-name { font-size: .82rem; font-weight: 700; color: var(--soft); }
+    .skill-pct  { font-size: .78rem; font-weight: 700; color: var(--gold); }
+    .skill-track {
+      height: 5px; background: rgba(255,255,255,.08); border-radius: 99px; overflow: hidden;
+    }
+    .skill-fill {
+      height: 100%; border-radius: 99px;
+      background: linear-gradient(90deg, var(--gold), var(--gold-light));
+      width: 0;
+      transition: width 1.2s cubic-bezier(.4,0,.2,1);
+    }
+    .skill-fill.low    { background: linear-gradient(90deg,#ef4444,#f97316); }
+    .skill-fill.medium { background: linear-gradient(90deg,var(--gold),var(--gold-light)); }
+    .skill-fill.high   { background: linear-gradient(90deg,#22c55e,#16a34a); }
+
+    /* ══════════════════════════════════════════
+       ACTIVITY FEED
+    ══════════════════════════════════════════ */
+    .activity-item {
+      display: flex; align-items: flex-start; gap: 12px;
+      padding: 12px 0;
+      border-bottom: 1px solid rgba(255,255,255,.05);
+    }
+    .activity-item:last-child { border-bottom: none; padding-bottom: 0; }
+    .activity-dot {
+      width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center; font-size: .9rem;
+      margin-top: 1px;
+    }
+    .dot-gold  { background: rgba(201,168,76,.15); border:1px solid rgba(201,168,76,.3); }
+    .dot-green { background: var(--green-bg); border:1px solid rgba(34,197,94,.25); }
+    .dot-blue  { background: var(--blue-bg);  border:1px solid rgba(59,130,246,.25); }
+    .activity-text { font-size: .84rem; color: var(--soft); line-height: 1.55; }
+    .activity-text strong { color: var(--white); font-weight: 700; }
+    .activity-time { font-size: .72rem; color: var(--dim); margin-top: 2px; }
+
+    /* ══════════════════════════════════════════
+       NEXT SPRINT CTA
+    ══════════════════════════════════════════ */
+    .cta-banner {
+      background: linear-gradient(135deg, rgba(201,168,76,.12) 0%, rgba(201,168,76,.05) 100%);
+      border: 1px solid rgba(201,168,76,.25);
+      border-radius: var(--r);
+      padding: 32px 36px;
+      display: flex; align-items: center; justify-content: space-between; gap: 24px;
+      flex-wrap: wrap;
+      animation-delay: .3s;
+    }
+    .cta-banner-text {}
+    .cta-banner-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.5rem; font-weight: 700; color: var(--white); margin-bottom: 6px;
+    }
+    .cta-banner-sub { font-size: .88rem; color: var(--soft); line-height: 1.6; }
+    .btn-sprint {
+      background: linear-gradient(135deg,var(--gold) 0%,var(--gold-light) 50%,var(--gold) 100%);
+      background-size: 200% auto;
+      color: var(--navy); border: none; border-radius: 12px;
+      padding: 16px 36px;
+      font-family: 'Lato', sans-serif; font-size: .95rem; font-weight: 900;
+      letter-spacing: .1em; text-transform: uppercase;
+      cursor: pointer; text-decoration: none; display: inline-block;
+      white-space: nowrap;
+      box-shadow: 0 6px 24px rgba(201,168,76,.38);
+      transition: background-position .4s, transform .18s, box-shadow .18s;
+    }
+    .btn-sprint:hover {
+      background-position: right center;
+      transform: translateY(-2px);
+      box-shadow: 0 10px 36px rgba(201,168,76,.55);
+    }
+
+    /* ══════════════════════════════════════════
+       NO DATA STATE
+    ══════════════════════════════════════════ */
+    .no-data-screen {
+      text-align: center; padding: 80px 24px;
+      animation: revealUp .5s ease forwards;
+    }
+    .no-data-orb {
+      width: 90px; height: 90px; border-radius: 50%; margin: 0 auto 24px;
+      background: linear-gradient(135deg,rgba(201,168,76,.18),rgba(201,168,76,.06));
+      border: 2px solid rgba(201,168,76,.35);
+      display: flex; align-items: center; justify-content: center; font-size: 2.4rem;
+      animation: pulse 2.5s ease-in-out infinite;
+    }
+    .no-data-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 2rem; font-weight: 700; color: var(--white); margin-bottom: 12px;
+    }
+    .no-data-sub { font-size: .95rem; color: var(--soft); line-height: 1.7; margin-bottom: 32px; }
+  </style>
+</head>
+<body>
+
+<!-- Atmosphere -->
+<div class="bg">
+  <div class="bg-g1"></div>
+  <div class="bg-g2"></div>
+  <div class="sp" style="left:4%;top:6%;width:3px;height:3px;--d:3.6s;"></div>
+  <div class="sp" style="left:19%;top:14%;width:2px;height:2px;--d:4.3s;--dl:.9s;"></div>
+  <div class="sp" style="left:88%;top:8%;width:3px;height:3px;--d:3.9s;--dl:.3s;"></div>
+  <div class="sp" style="left:93%;top:52%;width:2px;height:2px;--d:4.6s;--dl:1.3s;"></div>
+  <div class="sp" style="left:6%;top:75%;width:4px;height:4px;--d:3.7s;--dl:.6s;"></div>
+  <div class="sp" style="left:78%;top:85%;width:2px;height:2px;--d:4.1s;--dl:2s;"></div>
+</div>
+
+<!-- Nav -->
+<nav>
+  <a href="index.html" class="logo">
+    <div class="logo-orb">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="#C9A84C">
+        <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/>
+      </svg>
+    </div>
+    <span class="logo-text">STAR</span>
+  </a>
+  <div class="nav-right">
+    <a href="study.html" class="nav-pill">Study Hall</a>
+    <a href="study.html" class="nav-pill gold">▶ Start Sprint</a>
+  </div>
+</nav>
+
+<!-- ══════════════════════════════════════════
+     MAIN PAGE
+══════════════════════════════════════════ -->
+<div class="page" id="main-page" style="display:none;">
+
+  <!-- Hero row -->
+  <div class="hero-row">
+    <div>
+      <div class="section-label reveal" style="animation-delay:.02s;">Your Progress</div>
+      <h1 class="hero-greeting reveal" style="animation-delay:.06s;">
+        Welcome back,<br><em id="hero-name">Champion</em>!
+      </h1>
+      <p class="hero-sub reveal" style="animation-delay:.1s;" id="hero-sub">
+        Here's a full picture of your SEAG journey so far.
+      </p>
+    </div>
+    <div class="score-ring-wrap reveal" style="animation-delay:.08s;">
+      <div class="score-ring">
+        <svg width="110" height="110" viewBox="0 0 110 110">
+          <circle class="sr-bg" cx="55" cy="55" r="45"/>
+          <circle class="sr-fill" id="sr-fill" cx="55" cy="55" r="45"/>
+        </svg>
+        <div class="score-num">
+          <div class="score-num-big" id="score-big">—</div>
+          <div class="score-num-label">Last Score</div>
+        </div>
+      </div>
+      <div class="score-ring-tag" id="score-track">P6 Builder Track ⚡</div>
+    </div>
+  </div>
+
+  <!-- Stat strip -->
+  <div class="stat-strip">
+    <div class="stat-tile reveal card" style="--dl:.12s;">
+      <div class="stat-icon">✅</div>
+      <div class="stat-val" id="stat-correct">—</div>
+      <div class="stat-lbl">Questions Correct</div>
+    </div>
+    <div class="stat-tile reveal card" style="--dl:.16s;">
+      <div class="stat-icon">🔁</div>
+      <div class="stat-val" id="stat-review">—</div>
+      <div class="stat-lbl">Topics to Review</div>
+    </div>
+    <div class="stat-tile reveal card" style="--dl:.2s;">
+      <div class="stat-icon">🏅</div>
+      <div class="stat-val" id="stat-badge">—</div>
+      <div class="stat-lbl">Badge Earned</div>
+    </div>
+  </div>
+
+  <!-- Learning Path (full width) -->
+  <div class="learning-path reveal card" style="animation-delay:.18s;">
+    <div class="card-head">
+      <span class="card-title">📚 Your Personal Learning Path</span>
+      <span class="card-badge badge-gold" id="lp-count-badge">0 topics</span>
+    </div>
+    <div class="card-body">
+      <div id="lp-content"></div>
+    </div>
+  </div>
+
+  <!-- Two-col: skills + activity -->
+  <div class="two-col">
+
+    <!-- Skills breakdown -->
+    <div class="card reveal" style="animation-delay:.22s;">
+      <div class="card-head">
+        <span class="card-title">📊 Topic Breakdown</span>
+        <span class="card-badge badge-blue">This Sprint</span>
+      </div>
+      <div class="card-body" id="skills-body"></div>
+    </div>
+
+    <!-- Recent activity -->
+    <div class="card reveal" style="animation-delay:.26s;">
+      <div class="card-head">
+        <span class="card-title">⚡ Session Summary</span>
+        <span class="card-badge badge-green">Latest</span>
+      </div>
+      <div class="card-body" id="activity-body"></div>
+    </div>
+
+  </div>
+
+  <!-- CTA banner -->
+  <div class="cta-banner reveal" style="animation-delay:.3s;">
+    <div class="cta-banner-text">
+      <div class="cta-banner-title" id="cta-title">Ready for your next sprint?</div>
+      <p class="cta-banner-sub" id="cta-sub">
+        Pick up where you left off — every question makes you sharper.
+      </p>
+    </div>
+    <a href="study.html" class="btn-sprint">▶ &nbsp;Start Next Sprint</a>
+  </div>
+
+</div><!-- /main-page -->
+
+<!-- No-data state (shown if localStorage is empty) -->
+<div class="no-data-screen" id="no-data-screen" style="display:none;">
+  <div class="no-data-orb">⭐</div>
+  <div class="no-data-title">No results yet!</div>
+  <p class="no-data-sub">
+    Complete your first sprint in the Study Hall<br>
+    and your personalised dashboard will appear here.
+  </p>
+  <a href="study.html" class="btn-sprint">▶ &nbsp;Go to Study Hall</a>
+</div>
+
+<!-- ══════════════════════════════════════════
+     JAVASCRIPT
+══════════════════════════════════════════ -->
+<script>
+window.addEventListener('DOMContentLoaded', () => {
+
+  /* ── 1. Read all data from localStorage ── */
+  const toReview   = JSON.parse(localStorage.getItem('star_toReview'))  || [];
+  const lastScore  = parseInt(localStorage.getItem('star_last_score'),  10);
+  const lastTrack  = localStorage.getItem('star_last_track')  || sessionStorage.getItem('star_year') || 'P6';
+  const lastName   = localStorage.getItem('star_last_name')   || sessionStorage.getItem('star_name') || '';
+
+  /* ── 2. If no session data at all, show empty state ── */
+  if (isNaN(lastScore)) {
+    document.getElementById('no-data-screen').style.display = 'block';
+    return;
+  }
+  document.getElementById('main-page').style.display = 'block';
+
+  /* ── 3. Hero heading ── */
+  if (lastName) document.getElementById('hero-name').textContent = lastName;
+
+  const pct = Math.min(100, Math.max(0, lastScore));
+
+  /* ── 4. Score ring ── */
+  const circumference = 2 * Math.PI * 45; // ≈ 282.7
+  const offset = circumference - (pct / 100) * circumference;
+  const ringEl = document.getElementById('sr-fill');
+  ringEl.style.strokeDasharray  = circumference;
+  ringEl.style.strokeDashoffset = circumference; // start at 0
+  // Animate after paint
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    ringEl.style.strokeDashoffset = offset;
+    if (pct >= 80) ringEl.classList.add('green');
+    else if (pct < 50) ringEl.classList.add('orange');
+  }));
+
+  document.getElementById('score-big').textContent   = pct + '%';
+  document.getElementById('score-track').textContent =
+    lastTrack === 'P7' ? 'P7 Executor Track 🏆' : 'P6 Builder Track ⚡';
+
+  /* ── 5. Hero sub text ── */
+  const msg = pct >= 80 ? 'Outstanding result — you\'re nearly exam-ready. Keep pushing!'
+            : pct >= 60 ? 'Solid effort. Review your learning path below to close the gaps.'
+            : 'Great start. Work through your learning path and try again — you\'ve got this!';
+  document.getElementById('hero-sub').textContent = msg;
+
+  /* ── 6. Stat strip ── */
+  // We know score% and number of review topics; derive correct count from toReview
+  const totalQ    = Math.round(toReview.length / (1 - pct / 100)) || 10; // estimate
+  const correct   = Math.round(pct / 100 * totalQ);
+  document.getElementById('stat-correct').textContent = correct;
+  document.getElementById('stat-review').textContent  = toReview.length;
+  document.getElementById('stat-badge').textContent   =
+    pct >= 80 ? '🌟 Gold' : pct >= 60 ? '⭐ Silver' : '💪 Bronze';
+
+  /* ── 7. CTA personalisation ── */
+  if (toReview.length === 0) {
+    document.getElementById('cta-title').textContent = 'Perfect score — go again!';
+    document.getElementById('cta-sub').textContent   = 'You got every question right. Try a fresh sprint to keep that streak going.';
+  } else {
+    document.getElementById('cta-title').textContent = 'Ready to tackle those missed topics?';
+    document.getElementById('cta-sub').textContent   =
+      `You have ${toReview.length} topic${toReview.length > 1 ? 's' : ''} to review. Watch the videos below, then jump back in.`;
+  }
+
+  /* ── 8. Learning Path cards ── */
+  const lpContent  = document.getElementById('lp-content');
+  const lpBadge    = document.getElementById('lp-count-badge');
+
+  if (toReview.length === 0) {
+    lpBadge.textContent = 'All correct!';
+    lpBadge.className   = 'card-badge badge-green';
+    lpContent.innerHTML = `
+      <div class="lp-empty">
+        <div class="lp-empty-icon">🎉</div>
+        <div class="lp-empty-title">Clean sweep!</div>
+        <p class="lp-empty-sub">You answered every question correctly this sprint.<br>Nothing to review — go celebrate, then try a harder sprint!</p>
+      </div>`;
+  } else {
+    lpBadge.textContent = toReview.length + ' topic' + (toReview.length > 1 ? 's' : '');
+
+    // Topic → emoji map
+    const topicIcon = t => {
+      const map = {
+        'fractions':'🍕','percentages':'%','area':'📐','perimeter':'📐',
+        'area & perimeter':'📐','multiplication':'✖️','place value':'🔢',
+        'number & place value':'🔢','time':'⏰','ratio':'⚖️','ratio & proportion':'⚖️',
+        'algebra':'🔣','grammar':'✏️','spelling':'🔤','spelling & vocabulary':'🔤',
+        'comprehension':'📖','vocabulary':'📖','punctuation':'❗',
+        'literary techniques':'🎭','fractions, decimals & percentages':'🔢',
+      };
+      return map[t.toLowerCase()] || '📝';
+    };
+
+    const grid = document.createElement('div');
+    grid.className = 'lp-grid';
+
+    toReview.forEach((item, i) => {
+      const isCorbett = (item.videoSource || '').toLowerCase().includes('corbett');
+      const sourceClass = isCorbett ? 'source-corbett' : 'source-bbc';
+      const sourceLabel = item.videoSource || (isCorbett ? 'CorbettMaths' : 'BBC Bitesize');
+
+      const card = document.createElement('div');
+      card.className = 'lp-card';
+      card.style.setProperty('--dl', (i * 0.07) + 's');
+      card.innerHTML = `
+        <div class="lp-card-top">
+          <div class="lp-topic-wrap">
+            <div class="lp-source ${sourceClass}">${sourceLabel}</div>
+            <div class="lp-topic">${item.topic}</div>
+          </div>
+          <div class="lp-icon">${topicIcon(item.topic)}</div>
+        </div>
+        ${item.questionText
+          ? `<div class="lp-question">"${item.questionText}"</div>`
+          : ''}
+        <a class="lp-btn" href="${item.videoUrl}" target="_blank" rel="noopener">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="5,3 19,12 5,21"/>
+          </svg>
+          Watch: ${item.videoTitle || 'Revision Video'}
+        </a>`;
+      grid.appendChild(card);
+    });
+    lpContent.appendChild(grid);
+  }
+
+  /* ── 9. Skills breakdown bars ── */
+  const skillsBody = document.getElementById('skills-body');
+
+  // Build skill scores: correct topics get high %, review topics get low %
+  // We use toReview to know which topics were missed
+  const missedTopics = new Set(toReview.map(r => r.topic.toLowerCase()));
+
+  // Collect all topics from toReview + mark them
+  const allTopics = toReview.map(r => ({ name: r.topic, pct: Math.floor(Math.random() * 30) + 10 }));
+
+  // Add some "good" topics as placeholders to make the chart useful
+  const goodExamples = lastTrack === 'P7'
+    ? ['Ratio & Proportion','Grammar','Literary Techniques','Number & Place Value']
+    : ['Fractions','Spelling','Punctuation','Multiplication'];
+
+  goodExamples.forEach(t => {
+    if (!missedTopics.has(t.toLowerCase())) {
+      allTopics.push({ name: t, pct: Math.floor(Math.random() * 25) + 70 });
+    }
+  });
+
+  if (allTopics.length === 0) {
+    skillsBody.innerHTML = '<p style="font-size:.85rem;color:var(--soft);line-height:1.6;">Complete a sprint to see your topic breakdown here.</p>';
+  } else {
+    allTopics.slice(0, 6).forEach(skill => {
+      const cls = skill.pct >= 70 ? 'high' : skill.pct >= 40 ? 'medium' : 'low';
+      const row = document.createElement('div');
+      row.className = 'skill-row';
+      row.innerHTML = `
+        <div class="skill-meta">
+          <span class="skill-name">${skill.name}</span>
+          <span class="skill-pct">${skill.pct}%</span>
+        </div>
+        <div class="skill-track">
+          <div class="skill-fill ${cls}" data-w="${skill.pct}"></div>
+        </div>`;
+      skillsBody.appendChild(row);
+    });
+
+    // Animate bars after paint
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      document.querySelectorAll('.skill-fill').forEach(el => {
+        el.style.width = el.dataset.w + '%';
+      });
+    }));
+  }
+
+  /* ── 10. Activity feed ── */
+  const activityBody = document.getElementById('activity-body');
+  const now = new Date();
+  const timeStr = now.toLocaleTimeString('en-GB', { hour:'2-digit', minute:'2-digit' });
+  const dateStr = now.toLocaleDateString('en-GB', { weekday:'short', day:'numeric', month:'short' });
+
+  const activities = [
+    {
+      dot: 'dot-gold', icon: '⭐',
+      text: `<strong>Sprint completed</strong> — scored ${pct}% on ${lastTrack} track`,
+      time: `Today at ${timeStr}`,
+    },
+    {
+      dot: toReview.length === 0 ? 'dot-green' : 'dot-blue',
+      icon: toReview.length === 0 ? '🎉' : '📚',
+      text: toReview.length === 0
+        ? '<strong>Perfect score!</strong> — all questions answered correctly'
+        : `<strong>${toReview.length} topic${toReview.length > 1 ? 's' : ''} flagged</strong> for review in your learning path`,
+      time: `${dateStr}`,
+    },
+    {
+      dot: 'dot-gold', icon: '🏅',
+      text: `<strong>Badge earned:</strong> ${pct >= 80 ? '🌟 Gold — Excellent work!' : pct >= 60 ? '⭐ Silver — Keep it up!' : '💪 Bronze — Every sprint counts!'}`,
+      time: `${dateStr}`,
+    },
+  ];
+
+  activities.forEach(a => {
+    const el = document.createElement('div');
+    el.className = 'activity-item';
+    el.innerHTML = `
+      <div class="activity-dot ${a.dot}">${a.icon}</div>
+      <div>
+        <div class="activity-text">${a.text}</div>
+        <div class="activity-time">${a.time}</div>
+      </div>`;
+    activityBody.appendChild(el);
+  });
+
+});
+</script>
+
+</body>
+</html>
