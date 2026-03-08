@@ -796,7 +796,7 @@ const ALL_QUESTIONS = [
     text: 'A rectangle has a length of 12 cm and a width of 7 cm. What is its area?',
     context: null,
     answer: '84',
-    acceptedAnswers: ['84', '84cm²', '84 cm²', '84cm2'],
+    acceptedAnswers: ['84', '84cm²', '84 cm²', '84cm2', '84 cm2', '84cm^2', '84 cm^2'],
     explanation: 'Area of a rectangle = length × width = 12 × 7 = 84 cm².',
     steps: ['Formula: Area = length × width', '12 × 7 = 84', 'Answer: 84 cm²'],
     hint: 'Remember the formula: Area = length × width. To work out 12 × 7, try splitting 12 into 10 and 2: (10 × 7) + (2 × 7) = 70 + 14 = 84.',
@@ -1284,8 +1284,10 @@ function submitAnswer() {
   } else {
     // Free response
     const frInput = document.getElementById('fr-input');
-    const userVal = frInput.value.trim().toLowerCase();
-    const accepted = (q.acceptedAnswers || [q.answer]).map(a => a.toLowerCase());
+    const normalise = s => s.trim().toLowerCase()
+      .replace(/²/g, '2').replace(/\^2/g, '2').replace(/\s+/g, ' ').trim();
+    const userVal = normalise(frInput.value);
+    const accepted = (q.acceptedAnswers || [q.answer]).map(normalise);
     isCorrect = accepted.includes(userVal);
     frInput.disabled = true;
     frInput.classList.add(isCorrect ? 'correct-inp' : 'wrong-inp');
