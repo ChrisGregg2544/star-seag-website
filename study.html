@@ -748,53 +748,96 @@
 ══════════════════════════════════════════ -->
 <script>
 
-/* ── Question bank (10 mixed SEAG-style questions) ── */
-const QUESTIONS = [
-  {
-        type: 'maths',
-        topic: 'Money & Decimals',
-        text: 'A notebook costs £3.45 and a pen costs 85p. How much change will Sarah get from a £10 note if she buys two notebooks and one pen?',
-        answer: '2.25',
-        acceptedAnswers: ['2.25', '£2.25'],
-        explanation: 'Two notebooks cost £6.90. Add the pen (85p) to get £7.75. Subtract £7.75 from £10.00 to get £2.25 change.',
-        hint: 'First find the total cost of 2 notebooks and 1 pen, then subtract that from £10.',
-        videoTitle: 'Money and Decimals',
-        videoSource: 'CorbettMaths',
-        videoUrl: 'https://corbettmaths.com/2013/12/21/money-maths-video-400/',
-        marks: '1 mark'
-    },
-  
-      {
-        type: 'english',
-        topic: 'Punctuation: Apostrophes',
-        text: 'Identify the sentence that uses the apostrophe correctly for **possession**.',
-        context: 'A) The boys coat was left on the bus.\nB) The teachers desk is always tidy.\nC) The children\'s playground is newly painted.\nD) It\'s a very sunny day today.',
-        options: ['A', 'B', 'C', 'D'],
-        answer: 'C',
-        explanation: 'Option C is correct because "children" is a plural noun that does not end in "s", so we add "\'s" to show possession. Option D is a contraction (It is), not possession.',
-        hint: 'Look for the word that shows something belongs to someone. If the word is already plural like "children", where does the \'s go?',
-        videoTitle: 'Using Apostrophes',
-        videoSource: 'BBC Bitesize',
-        videoUrl: 'https://www.bbc.co.uk/bitesize/articles/zdpxxyc',
-        marks: '1 mark'
-    },
+/* ════════════════════════════════════════════════════
+   ALL QUESTIONS — each has a `level` property:
+     'P6'  →  P6 Builder Track  (foundation, KS2 NI core)
+     'P7'  →  P7 Executor Track (exam-level, SEAG format)
+════════════════════════════════════════════════════ */
+const ALL_QUESTIONS = [
 
+  /* ─────────────────────────────────────────
+     P6 BUILDER — 10 questions
+  ───────────────────────────────────────── */
   {
+    level: 'P6',
     type: 'maths',
-    topic: 'Percentages',
-    text: 'A jacket costs £80. It is reduced by 15% in a sale. What is the sale price?',
+    topic: 'Fractions',
+    text: 'What is ¾ of 48?',
     context: null,
-    answer: '68',
-    acceptedAnswers: ['68', '£68', '68.00', '£68.00'],
-    explanation: '15% of £80 = £12. Sale price = £80 − £12 = £68.',
-    steps: ['Find 10% of £80: £80 ÷ 10 = £8', 'Find 5% of £80: £8 ÷ 2 = £4', '10% + 5% = 15% = £8 + £4 = £12', '£80 − £12 = £68'],
-    hint: 'Break 15% into easier parts: find 10% first, then 5%. Add them together to get 15%, then subtract from £80.',
-    videoTitle: 'Percentage Decrease',
+    answer: '36',
+    acceptedAnswers: ['36'],
+    explanation: 'To find ¾ of 48, first divide 48 by 4 to get one quarter (12), then multiply by 3 to get three quarters.',
+    steps: ['48 ÷ 4 = 12  (one quarter)', '12 × 3 = 36  (three quarters)', 'Answer: 36'],
+    hint: 'Think of it in two steps: first find ONE quarter of 48 by dividing by 4. Then multiply your answer by 3 to get THREE quarters.',
+    videoTitle: 'Fractions of Amounts',
     videoSource: 'CorbettMaths',
-    videoUrl: 'https://corbettmaths.com/2013/02/15/percentage-decrease/',
-    marks: '2 marks',
+    videoUrl: 'https://corbettmaths.com/2013/02/05/fractions-of-amounts/',
+    marks: '1 mark',
   },
   {
+    level: 'P6',
+    type: 'english',
+    topic: 'Vocabulary',
+    text: 'Read the passage. Which word is closest in meaning to "ancient" as used below?',
+    context: '"The explorers discovered an ancient temple hidden beneath the jungle floor, its stone carvings worn smooth by centuries of rain."',
+    options: ['A. Modern', 'B. Old', 'C. Broken', 'D. Famous'],
+    answer: 'B',
+    explanation: '"Ancient" means very old. The clue "centuries of rain" confirms the temple has existed for a very long time, making "Old" the best match.',
+    hint: 'Look at the clue inside the sentence itself — "centuries of rain" tells you how much time has passed. Which option best fits something that has existed for hundreds of years?',
+    videoTitle: 'Vocabulary in Context',
+    videoSource: 'BBC Bitesize',
+    videoUrl: 'https://www.bbc.co.uk/bitesize/topics/z4mmn39/articles/zp44fg8',
+    marks: '1 mark',
+  },
+  {
+    level: 'P6',
+    type: 'maths',
+    topic: 'Area & Perimeter',
+    text: 'A rectangle has a length of 12 cm and a width of 7 cm. What is its area?',
+    context: null,
+    answer: '84',
+    acceptedAnswers: ['84', '84cm²', '84 cm²', '84cm2'],
+    explanation: 'Area of a rectangle = length × width = 12 × 7 = 84 cm².',
+    steps: ['Formula: Area = length × width', '12 × 7 = 84', 'Answer: 84 cm²'],
+    hint: 'Remember the formula: Area = length × width. To work out 12 × 7, try splitting 12 into 10 and 2: (10 × 7) + (2 × 7) = 70 + 14 = 84.',
+    videoTitle: 'Area of a Rectangle',
+    videoSource: 'CorbettMaths',
+    videoUrl: 'https://corbettmaths.com/2013/02/16/area-of-a-rectangle/',
+    marks: '1 mark',
+  },
+  {
+    level: 'P6',
+    type: 'english',
+    topic: 'Spelling',
+    text: 'Which of the following words is spelled correctly?',
+    context: null,
+    options: ['A. Recieve', 'B. Receive', 'C. Receve', 'D. Receeve'],
+    answer: 'B',
+    explanation: '"Receive" follows the rule "i before e, except after c." After the letter C the correct order is "ei", not "ie".',
+    hint: 'Remember the spelling rule: "i before e, except after c." There IS a C in this word — so which vowel pair should come directly after it?',
+    videoTitle: 'Common Spelling Rules',
+    videoSource: 'BBC Bitesize',
+    videoUrl: 'https://www.bbc.co.uk/bitesize/topics/zt62mnb/articles/zf8bkqt',
+    marks: '1 mark',
+  },
+  {
+    level: 'P6',
+    type: 'maths',
+    topic: 'Multiplication',
+    text: 'A box holds 24 chocolates. How many chocolates are in 8 boxes?',
+    context: null,
+    answer: '192',
+    acceptedAnswers: ['192'],
+    explanation: '24 × 8 = 192. Split 24 into 20 and 4: (20 × 8) + (4 × 8) = 160 + 32 = 192.',
+    steps: ['Split: 24 = 20 + 4', '20 × 8 = 160', '4 × 8 = 32', '160 + 32 = 192'],
+    hint: 'Split 24 into 20 and 4 to make the multiplication easier. Multiply each part by 8 separately, then add the two results together.',
+    videoTitle: 'Multiplication — Grid Method',
+    videoSource: 'CorbettMaths',
+    videoUrl: 'https://corbettmaths.com/2013/02/16/grid-method/',
+    marks: '1 mark',
+  },
+  {
+    level: 'P6',
     type: 'english',
     topic: 'Grammar',
     text: 'Which sentence uses a comma correctly?',
@@ -806,85 +849,116 @@ const QUESTIONS = [
       'D. She ran quickly and, she won the race.',
     ],
     answer: 'A',
-    explanation: 'A comma before a coordinating conjunction (like "and") joining two independent clauses is correct. Only option A does this properly.',
-    hint: 'Read each sentence aloud and ask: does the comma appear at a natural pause that also separates two complete ideas? The conjunction "and" should link two parts that could stand alone as sentences.',
+    explanation: 'A comma before a coordinating conjunction (like "and") joining two independent clauses is correct. Only option A places the comma correctly.',
+    hint: 'Read each option aloud. A comma should appear at a natural pause between two ideas that could each stand alone as a sentence. The word "and" should link those two separate ideas.',
     videoTitle: 'Using Commas Correctly',
     videoSource: 'BBC Bitesize',
     videoUrl: 'https://www.bbc.co.uk/bitesize/topics/zvwwxnb/articles/zp3g87h',
     marks: '1 mark',
   },
   {
+    level: 'P6',
     type: 'maths',
-    topic: 'Area & Perimeter',
-    text: 'A rectangle has a length of 12 cm and a width of 7 cm. What is its area?',
+    topic: 'Place Value',
+    text: 'What is the value of the digit 7 in the number 34,715?',
     context: null,
-    answer: '84',
-    acceptedAnswers: ['84', '84cm²', '84 cm²', '84cm2'],
-    explanation: 'Area of a rectangle = length × width = 12 × 7 = 84 cm².',
-    steps: ['Area = length × width', 'Area = 12 × 7', 'Area = 84 cm²'],
-    hint: 'Remember the formula: Area = length × width. Multiply 12 by 7 — you can split 12 into 10 and 2 to make it easier.',
-    videoTitle: 'Area of a Rectangle',
-    videoSource: 'CorbettMaths',
-    videoUrl: 'https://corbettmaths.com/2013/02/16/area-of-a-rectangle/',
-    marks: '1 mark',
-  },
-  {
-    type: 'english',
-    topic: 'Spelling',
-    text: 'Which of the following words is spelled correctly?',
-    context: null,
-    options: [
-      'A. Recieve',
-      'B. Receive',
-      'C. Receve',
-      'D. Receeve',
-    ],
-    answer: 'B',
-    explanation: '"Receive" follows the rule: "i before e, except after c." After the letter C, the correct spelling is "ei", not "ie".',
-    hint: 'Remember the spelling rule: "i before e, except after c." There is a C in this word — so which vowel pair comes after it?',
-    videoTitle: 'Common Spelling Rules',
-    videoSource: 'BBC Bitesize',
-    videoUrl: 'https://www.bbc.co.uk/bitesize/topics/zt62mnb/articles/zf8bkqt',
-    marks: '1 mark',
-  },
-  {
-    type: 'maths',
-    topic: 'Number & Place Value',
-    text: 'Write the number 2,750,408 in words.',
-    context: null,
-    answer: 'two million seven hundred and fifty thousand four hundred and eight',
-    acceptedAnswers: [
-      'two million seven hundred and fifty thousand four hundred and eight',
-      'two million, seven hundred and fifty thousand, four hundred and eight',
-    ],
-    explanation: '2,750,408 = 2 million + 750 thousand + 408. Written: two million, seven hundred and fifty thousand, four hundred and eight.',
-    steps: ['2,000,000 = two million', '750,000 = seven hundred and fifty thousand', '408 = four hundred and eight', 'Combined: two million, seven hundred and fifty thousand, four hundred and eight'],
-    hint: 'Split the number into groups of three from the right: 2 | 750 | 408. Name each group: millions, thousands, then the last three digits on their own.',
-    videoTitle: 'Place Value & Large Numbers',
+    options: ['A. 7', 'B. 70', 'C. 700', 'D. 7,000'],
+    answer: 'C',
+    explanation: 'In 34,715 the digit 7 is in the hundreds column, so its value is 700.',
+    hint: 'Write out the number in a place-value table: Ten-thousands | Thousands | Hundreds | Tens | Units. Which column does the 7 land in?',
+    videoTitle: 'Place Value',
     videoSource: 'CorbettMaths',
     videoUrl: 'https://corbettmaths.com/2020/09/02/place-value/',
+    marks: '1 mark',
+  },
+  {
+    level: 'P6',
+    type: 'english',
+    topic: 'Punctuation',
+    text: 'Which sentence is punctuated correctly?',
+    context: null,
+    options: [
+      "A. Where are you going today.",
+      "B. Where are you going today?",
+      "C. Where are you going today!",
+      "D. Where, are you going today?",
+    ],
+    answer: 'B',
+    explanation: 'A question must end with a question mark. Option B is the only one that correctly ends the question with a "?".',
+    hint: 'The sentence is asking something — it is a question. What punctuation mark must always go at the end of a question?',
+    videoTitle: 'Punctuation — Question Marks',
+    videoSource: 'BBC Bitesize',
+    videoUrl: 'https://www.bbc.co.uk/bitesize/topics/zvwwxnb/articles/zp3g87h',
+    marks: '1 mark',
+  },
+  {
+    level: 'P6',
+    type: 'maths',
+    topic: 'Time',
+    text: 'A film starts at 14:35 and lasts 1 hour and 50 minutes. At what time does it end?',
+    context: null,
+    answer: '16:25',
+    acceptedAnswers: ['16:25', '4:25 pm', '4:25pm', '16.25'],
+    explanation: '14:35 + 1 hour = 15:35. 15:35 + 50 minutes = 16:25.',
+    steps: ['Add 1 hour: 14:35 → 15:35', 'Add 50 minutes: 15:35 + 25 min = 16:00, then + 25 min = 16:25', 'Answer: 16:25'],
+    hint: 'Add the hour first to get to 15:35. Then add the 50 minutes in two steps — add 25 minutes to reach 16:00, then add the remaining 25 minutes.',
+    videoTitle: 'Calculating with Time',
+    videoSource: 'CorbettMaths',
+    videoUrl: 'https://corbettmaths.com/2013/05/18/time-calculations/',
+    marks: '1 mark',
+  },
+  {
+    level: 'P6',
+    type: 'english',
+    topic: 'Comprehension',
+    text: 'Which word from the list below is an antonym (opposite) of "brave"?',
+    context: null,
+    options: ['A. Bold', 'B. Heroic', 'C. Timid', 'D. Daring'],
+    answer: 'C',
+    explanation: '"Timid" means lacking courage — the opposite of "brave". Bold, heroic, and daring all have similar meanings to brave.',
+    hint: 'An antonym is the OPPOSITE of the word. Which option has the opposite meaning to "brave"? Think about which word describes someone who is NOT brave.',
+    videoTitle: 'Synonyms and Antonyms',
+    videoSource: 'BBC Bitesize',
+    videoUrl: 'https://www.bbc.co.uk/bitesize/topics/z4mmn39/articles/zp44fg8',
+    marks: '1 mark',
+  },
+
+  /* ─────────────────────────────────────────
+     P7 EXECUTOR — 10 questions
+  ───────────────────────────────────────── */
+  {
+    level: 'P7',
+    type: 'maths',
+    topic: 'Percentages',
+    text: 'A jacket costs £80. It is reduced by 15% in a sale. What is the sale price?',
+    context: null,
+    answer: '68',
+    acceptedAnswers: ['68', '£68', '68.00', '£68.00'],
+    explanation: '15% of £80 = £12. Sale price = £80 − £12 = £68.',
+    steps: ['Find 10% of £80: £80 ÷ 10 = £8', 'Find 5% of £80: £8 ÷ 2 = £4', '10% + 5% = 15% → £8 + £4 = £12', '£80 − £12 = £68'],
+    hint: 'Break 15% into two easier parts: find 10% first (divide by 10), then find 5% (half of 10%). Add them together to get 15%, then subtract from £80.',
+    videoTitle: 'Percentage Decrease',
+    videoSource: 'CorbettMaths',
+    videoUrl: 'https://corbettmaths.com/2013/02/15/percentage-decrease/',
     marks: '2 marks',
   },
   {
+    level: 'P7',
     type: 'english',
-    topic: 'Comprehension',
+    topic: 'Literary Techniques',
     text: 'Which literary technique is used in this sentence: "The wind whispered secrets through the trees"?',
     context: null,
-    options: [
-      'A. Simile',
-      'B. Alliteration',
-      'C. Personification',
-      'D. Metaphor',
-    ],
+    options: ['A. Simile', 'B. Alliteration', 'C. Personification', 'D. Metaphor'],
     answer: 'C',
-    explanation: 'Personification gives human qualities to non-human things. Here, the wind is described as "whispering" — a human action — making this personification.',
-    hint: 'Ask yourself: is the wind being compared to something using "like" or "as"? Or is the wind being given a human action? "Whispered" is something a person does — what technique is that?',
+    explanation: 'Personification gives human qualities or actions to non-human things. Here, the wind "whispers" — a human action — making this personification.',
+    hint: 'Ask yourself: is the wind being compared to something using "like" or "as"? No. Is it being given a human action? Yes — "whispered" is something people do. What technique gives human traits to non-human things?',
     videoTitle: 'Literary Techniques',
     videoSource: 'BBC Bitesize',
     videoUrl: 'https://www.bbc.co.uk/bitesize/topics/z7qqmsg/articles/zp3rcmn',
     marks: '1 mark',
   },
   {
+    level: 'P7',
     type: 'maths',
     topic: 'Ratio & Proportion',
     text: 'Share £120 between Alex and Beth in the ratio 3:5. How much does Beth receive?',
@@ -892,14 +966,15 @@ const QUESTIONS = [
     answer: '75',
     acceptedAnswers: ['75', '£75', '75.00', '£75.00'],
     explanation: 'Total parts = 3 + 5 = 8. One part = £120 ÷ 8 = £15. Beth gets 5 parts: 5 × £15 = £75.',
-    steps: ['Add the ratio parts: 3 + 5 = 8 parts total', 'Find one part: £120 ÷ 8 = £15', 'Beth has 5 parts: 5 × £15 = £75'],
-    hint: 'First add the two ratio numbers to find the total number of parts (3 + 5). Then divide £120 by that total to find what ONE part is worth. Finally, multiply by Beth\'s share (5 parts).',
+    steps: ['Add ratio parts: 3 + 5 = 8 total parts', 'One part = £120 ÷ 8 = £15', 'Beth has 5 parts: 5 × £15 = £75'],
+    hint: 'First add the two ratio numbers to find the total parts (3 + 5). Divide £120 by that total to find ONE part. Then multiply by Beth\'s share (5 parts).',
     videoTitle: 'Sharing in a Ratio',
     videoSource: 'CorbettMaths',
     videoUrl: 'https://corbettmaths.com/2019/08/11/sharing-the-ratio/',
     marks: '2 marks',
   },
   {
+    level: 'P7',
     type: 'english',
     topic: 'Grammar',
     text: 'Choose the sentence that is written in the passive voice.',
@@ -912,28 +987,145 @@ const QUESTIONS = [
     ],
     answer: 'B',
     explanation: 'In the passive voice, the subject receives the action rather than performing it. In option B, "the cat" (subject) "was chased" (receives the action) — this is passive voice.',
-    hint: 'In the passive voice, something is done TO the subject. Look for a form of "to be" (was, were, is) followed by a past participle (chased, eaten, built). Which option follows that pattern?',
+    hint: 'In the passive voice, something is done TO the subject. Look for a form of "to be" (was, were, is) followed by a past participle (chased, eaten, built). Which option uses that pattern?',
     videoTitle: 'Active and Passive Voice',
     videoSource: 'BBC Bitesize',
     videoUrl: 'https://www.bbc.co.uk/bitesize/topics/zvwwxnb/articles/zmr7hyc',
     marks: '1 mark',
   },
+  {
+    level: 'P7',
+    type: 'maths',
+    topic: 'Number & Place Value',
+    text: 'Write the number 2,750,408 in words.',
+    context: null,
+    answer: 'two million seven hundred and fifty thousand four hundred and eight',
+    acceptedAnswers: [
+      'two million seven hundred and fifty thousand four hundred and eight',
+      'two million, seven hundred and fifty thousand, four hundred and eight',
+    ],
+    explanation: '2,750,408 = 2 millions + 750 thousands + 408. Written: two million, seven hundred and fifty thousand, four hundred and eight.',
+    steps: ['2,000,000 → two million', '750,000 → seven hundred and fifty thousand', '408 → four hundred and eight', 'Together: two million, seven hundred and fifty thousand, four hundred and eight'],
+    hint: 'Split the number into groups of three from the right: 2 | 750 | 408. Name each group separately — millions first, then thousands, then the final three digits.',
+    videoTitle: 'Place Value & Large Numbers',
+    videoSource: 'CorbettMaths',
+    videoUrl: 'https://corbettmaths.com/2020/09/02/place-value/',
+    marks: '2 marks',
+  },
+  {
+    level: 'P7',
+    type: 'english',
+    topic: 'Comprehension',
+    text: 'Read the passage. Why does the author most likely use short sentences in the final paragraph?',
+    context: '"Maya crept forward. Her heart pounded. The door was open. She had seconds to decide."',
+    options: [
+      'A. To show that Maya is tired',
+      'B. To create a sense of speed and tension',
+      'C. To explain the setting in detail',
+      'D. To introduce a new character',
+    ],
+    answer: 'B',
+    explanation: 'Short, sharp sentences create pace and urgency. They mirror the rapid heartbeat and limited time Maya has, building tension in the reader.',
+    hint: 'Think about what effect short sentences have on a reader. Do they slow things down or speed them up? Does this passage feel calm or tense? What is the writer trying to make you feel?',
+    videoTitle: 'Effect of Sentence Structure',
+    videoSource: 'BBC Bitesize',
+    videoUrl: 'https://www.bbc.co.uk/bitesize/topics/z7qqmsg/articles/zp3rcmn',
+    marks: '2 marks',
+  },
+  {
+    level: 'P7',
+    type: 'maths',
+    topic: 'Algebra',
+    text: 'If 3n + 7 = 25, what is the value of n?',
+    context: null,
+    answer: '6',
+    acceptedAnswers: ['6', 'n=6', 'n = 6'],
+    explanation: 'Subtract 7 from both sides: 3n = 18. Divide both sides by 3: n = 6.',
+    steps: ['3n + 7 = 25', '3n = 25 − 7 = 18', 'n = 18 ÷ 3 = 6', 'Check: 3 × 6 + 7 = 25 ✓'],
+    hint: 'Work backwards: first get rid of the +7 by subtracting 7 from both sides of the equation. That leaves 3n on its own. Then divide both sides by 3 to find n.',
+    videoTitle: 'Solving Simple Equations',
+    videoSource: 'CorbettMaths',
+    videoUrl: 'https://corbettmaths.com/2013/03/13/solving-equations/',
+    marks: '2 marks',
+  },
+  {
+    level: 'P7',
+    type: 'english',
+    topic: 'Spelling & Vocabulary',
+    text: 'Which word correctly completes the sentence: "The scientist made a remarkable _______ about the origins of the universe."',
+    context: null,
+    options: ['A. discovery', 'B. discoverie', 'C. discoverment', 'D. discoveration'],
+    answer: 'A',
+    explanation: '"Discovery" is the correct noun form. "Discoverie" is a misspelling, and "discoverment" and "discoveration" are not real English words.',
+    hint: 'Say each option aloud. Does it sound like a real word you have heard before? Three of the options are invented words — only one is genuine. Think about the correct noun form of the verb "to discover".',
+    videoTitle: 'Word Families & Nouns',
+    videoSource: 'BBC Bitesize',
+    videoUrl: 'https://www.bbc.co.uk/bitesize/topics/zt62mnb/articles/zf8bkqt',
+    marks: '1 mark',
+  },
+  {
+    level: 'P7',
+    type: 'maths',
+    topic: 'Fractions, Decimals & Percentages',
+    text: 'Place these values in order from smallest to largest: 0.6,  ⅝,  63%',
+    context: null,
+    options: [
+      'A. 0.6,  ⅝,  63%',
+      'B. ⅝,  63%,  0.6',
+      'C. 63%,  ⅝,  0.6',
+      'D. ⅝,  0.6,  63%',
+    ],
+    answer: 'A',
+    explanation: 'Convert all to decimals first: 0.6 = 0.600, ⅝ = 5 ÷ 8 = 0.625, 63% = 0.630. Ordering these: 0.600 < 0.625 < 0.630 — so the correct order is 0.6, ⅝, 63%.',
+    hint: 'Convert everything to decimals so they are easy to compare. For ⅝ divide 5 by 8 on a number line. For 63% simply divide by 100. Then line up your three decimals and sort them.',
+    videoTitle: 'Comparing Fractions, Decimals & Percentages',
+    videoSource: 'CorbettMaths',
+    videoUrl: 'https://corbettmaths.com/2013/02/16/converting-between-fractions-decimals-and-percentages/',
+    marks: '2 marks',
+  },
+  {
+    level: 'P7',
+    type: 'english',
+    topic: 'Grammar',
+    text: 'Identify the subordinate clause in the following sentence: "Although it was raining heavily, the match continued."',
+    context: null,
+    options: [
+      'A. the match continued',
+      'B. Although it was raining heavily',
+      'C. it was raining heavily',
+      'D. Although it was',
+    ],
+    answer: 'B',
+    explanation: 'A subordinate clause cannot stand alone as a sentence and depends on the main clause for meaning. "Although it was raining heavily" begins with a subordinating conjunction ("although") and depends on "the match continued" to make full sense.',
+    hint: 'A subordinate clause relies on another clause to make sense — it cannot stand on its own as a complete sentence. Which part of the sentence could NOT stand alone? Look for the word that introduces a dependent idea (a word like "although", "because", "while").',
+    videoTitle: 'Main and Subordinate Clauses',
+    videoSource: 'BBC Bitesize',
+    videoUrl: 'https://www.bbc.co.uk/bitesize/topics/zvwwxnb/articles/zmr7hyc',
+    marks: '2 marks',
+  },
 ];
 
 /* ════════════════════════════════════════════════════
-   STATE & INIT
+   STATE  (QUESTIONS is set by init() after filtering)
 ════════════════════════════════════════════════════ */
-let currentQ = 0;
-let score = { correct: 0, wrong: 0 };
-let answers = new Array(QUESTIONS.length).fill(null); // 'correct'|'wrong'|null
+let QUESTIONS   = [];   // active question set for this session
+let currentQ    = 0;
+let score       = { correct: 0, wrong: 0 };
+let answers     = [];   // 'correct' | 'wrong' | null per question
 let hintVisible = false;
-let answered = false;
-let selectedMC = null;
+let answered    = false;
+let selectedMC  = null;
 
 function init() {
-  // Load student name from sessionStorage
+  // ── Read student profile from sessionStorage ──
   const name = sessionStorage.getItem('star_name');
-  const year  = sessionStorage.getItem('star_year') || 'P6';
+  const year = sessionStorage.getItem('star_year') || 'P6';  // default P6
+
+  // ── Filter the master bank to the correct level ──
+  QUESTIONS = ALL_QUESTIONS.filter(q => q.level === year);
+  answers   = new Array(QUESTIONS.length).fill(null);
+
+  // ── Update UI labels ──
   if (name) {
     document.getElementById('nav-student-name').textContent = '· ' + name;
   }
@@ -941,10 +1133,10 @@ function init() {
     year === 'P7' ? 'P7 Executor Track 🏆' : 'P6 Builder Track ⚡';
   document.getElementById('q-total').textContent = QUESTIONS.length;
 
-  buildProgressPips();   
-    loadQuestion(0);
+  buildProgressPips();
+  loadQuestion(0);
 }
-  
+
 function buildProgressPips() {
   const container = document.getElementById('progress-dots');
   container.innerHTML = '';
