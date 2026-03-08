@@ -433,9 +433,9 @@
       </div>
     </div>
 
-    <a href="study.html" class="next-btn start-btn" style="text-decoration:none; display:flex; align-items:center; justify-content:center;">🚀 &nbsp Let's Start Training!</a>
+    <button class="next-btn start-btn" onclick="startTraining()">
       🚀 &nbsp;Let's Start Training!
-    </a>
+    </button>
     <button class="back-link" onclick="goBack(3)">← Change answers</button>
   </div>
 
@@ -559,7 +559,7 @@
     btn.textContent = 'Loading your session…';
     btn.disabled = true;
 
-    // Replace with: window.location.href = state.year === 'P6' ? '/sprint.html' : '/mock.html';
+    window.location.href = 'study.html?track=' + state.year;
     setTimeout(() => {
       btn.textContent = '✅ Session ready! (connect to your training page)';
       btn.style.opacity = '0.7';
