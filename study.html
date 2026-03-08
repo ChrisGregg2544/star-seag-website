@@ -1690,6 +1690,39 @@ function showResults() {
   localStorage.setItem('star_last_score', pct);
   localStorage.setItem('star_last_track', sessionStorage.getItem('star_year') || 'P6');
   localStorage.setItem('star_last_name',  sessionStorage.getItem('star_name') || '');
+
+  // ── Cumulative mastery stats (read by parent portal) ──
+  // star_mastery: { [topic]: { correct: N, wrong: N } }
+  // star_video_log: [ { videoTitle, videoUrl, videoSource, topic, date }, ... ]
+  const mastery   = JSON.parse(localStorage.getItem('star_mastery'))   || {};
+  const videoLog  = JSON.parse(localStorage.getItem('star_video_log')) || [];
+  const sessions  = JSON.parse(localStorage.getItem('star_sessions'))  || [];
+  const now       = new Date().toISOString();
+
+  QUESTIONS.forEach((q, i) => {
+    const t = q.topic;
+    if (!mastery[t]) mastery[t] = { correct: 0, wrong: 0, type: q.type, videoTitle: q.videoTitle, videoUrl: q.videoUrl, videoSource: q.videoSource };
+    if (answers[i] === 'correct') mastery[t].correct++;
+    else if (answers[i] === 'wrong') {
+      mastery[t].wrong++;
+      // Add to video log only if not already logged today for this topic
+      const alreadyToday = videoLog.some(v => v.topic === t && v.date && v.date.slice(0,10) === now.slice(0,10));
+      if (!alreadyToday) {
+        videoLog.unshift({ topic: t, videoTitle: q.videoTitle, videoUrl: q.videoUrl, videoSource: q.videoSource, date: now });
+      }
+    }
+  });
+
+  // Keep video log to last 50 entries
+  if (videoLog.length > 50) videoLog.length = 50;
+
+  // Append session summary
+  sessions.unshift({ date: now, score: pct, track: sessionStorage.getItem('star_year') || 'P6', correct: score.correct, total: QUESTIONS.length });
+  if (sessions.length > 20) sessions.length = 20;
+
+  localStorage.setItem('star_mastery',   JSON.stringify(mastery));
+  localStorage.setItem('star_video_log', JSON.stringify(videoLog));
+  localStorage.setItem('star_sessions',  JSON.stringify(sessions));
 }
 
 function restartSession() {
