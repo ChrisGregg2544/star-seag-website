@@ -1389,6 +1389,25 @@ function showComplete() {
   document.getElementById('res-wrong').textContent   = score.wrong;
   document.getElementById('res-pct').textContent     = pct + '%';
 
+  // ── Build toReview: every question the student got wrong ──
+  const toReview = QUESTIONS
+    .filter((q, i) => answers[i] === 'wrong')
+    .map(q => ({
+      topic:      q.topic,
+      videoTitle: q.videoTitle,
+      videoUrl:   q.videoUrl,
+      videoSource: q.videoSource,
+      questionText: q.text,
+    }))
+    // Deduplicate by topic so the same topic doesn't appear twice
+    .filter((item, idx, arr) => arr.findIndex(x => x.topic === item.topic) === idx);
+
+  // ── Persist to localStorage so the Dashboard can read it ──
+  localStorage.setItem('star_toReview',    JSON.stringify(toReview));
+  localStorage.setItem('star_last_score',  pct);
+  localStorage.setItem('star_last_track',  sessionStorage.getItem('star_year') || 'P6');
+  localStorage.setItem('star_last_name',   sessionStorage.getItem('star_name') || '');
+
   const name = sessionStorage.getItem('star_name') || '';
   if (pct >= 80) {
     document.getElementById('complete-avatar').textContent = '🌟';
@@ -1439,10 +1458,12 @@ function restartSession() {
 }
 
 function goToDashboard() {
-  // Save the final score so signup.html can display it
+  // star_toReview, star_last_score etc. already saved in showComplete()
+  // Also mirror score to sessionStorage for signup.html
   const pct = Math.round(score.correct / QUESTIONS.length * 100);
   sessionStorage.setItem('star_last_score', pct);
-  window.location.href = 'signup.html';
+  // Pass score in URL as a fallback for any page that can't read localStorage
+  window.location.href = 'signup.html?score=' + pct;
 }
 
 /* ── Kick off ── */
