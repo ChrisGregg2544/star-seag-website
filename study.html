@@ -592,7 +592,20 @@
       .btn-submit, .btn-next { padding: 20px 28px; font-size: 1rem; }
       .btn-hint  { padding: 15px 20px; font-size: .85rem; }
     }
-  </style>
+    /* ── Tutorial Glow (wrong answer) ── */
+  @keyframes pulse-gold {
+    0%   { box-shadow: 0 0 0 0   rgba(255,191,0,0.7); }
+    70%  { box-shadow: 0 0 0 15px rgba(255,191,0,0);   }
+    100% { box-shadow: 0 0 0 0   rgba(255,191,0,0);    }
+  }
+  .tutorial-glow {
+    animation: pulse-gold 2s infinite;
+    border: 2px solid #ffbf00 !important;
+    transform: scale(1.05);
+    transition: all 0.3s ease;
+  }
+
+</style>
 
   <style>
     .star-footer {
@@ -1234,7 +1247,8 @@ function loadQuestion(idx) {
     document.getElementById('btn-submit').disabled = true;
   }
 
-  // Reset feedback, hint, buttons
+  // Reset feedback, hint, buttons — and clear any previous glow
+  document.getElementById('video-link').classList.remove('tutorial-glow');
   const fp = document.getElementById('feedback-panel');
   fp.className = 'feedback-panel';
   document.getElementById('hint-panel').className = 'hint-panel';
@@ -1310,6 +1324,14 @@ function submitAnswer() {
   // Track score
   answers[currentQ] = isCorrect ? 'correct' : 'wrong';
   if (isCorrect) score.correct++; else score.wrong++;
+
+  // Glow the video link when wrong, remove glow when correct
+  const videoLinkEl = document.getElementById('video-link');
+  if (isCorrect) {
+    videoLinkEl.classList.remove('tutorial-glow');
+  } else {
+    videoLinkEl.classList.add('tutorial-glow');
+  }
 
   // Update pip
   const pip = document.getElementById('pip-' + currentQ);
