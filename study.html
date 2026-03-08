@@ -1286,38 +1286,43 @@ let hintVisible = false;
 let answered    = false;
 let selectedMC  = null;
 
+const SPRINT_SIZE = 10; // questions per sprint — increase bank freely, always picks 10
+
 function init() {
-  // ── Read student profile from sessionStorage ──
-  const name = sessionStorage.getItem('star_name');
-  // Read track from URL param first (?track=P7), then sessionStorage, then default P6
+  // ── Reset ALL session state first — critical for restartSession() ──
+  currentQ    = 0;
+  score       = { correct: 0, wrong: 0 };
+  answered    = false;
+  hintVisible = false;
+  selectedMC  = null;
+
+  // ── Read student profile ──
+  const name     = sessionStorage.getItem('star_name');
   const urlTrack = new URLSearchParams(window.location.search).get('track');
-  const year = urlTrack || sessionStorage.getItem('star_year') || 'P6';
+  const year     = urlTrack || sessionStorage.getItem('star_year') || 'P6';
+  const level    = ((year || '').trim().toUpperCase() === 'P7') ? 'P7' : 'P6';
 
-  // ── Filter the master bank to the correct level ──
-  // Normalise so 'p7', 'P7 ', etc. all match correctly
-  const level = ((year || '').trim().toUpperCase() === 'P7') ? 'P7' : 'P6';
-  const filteredQuestions = ALL_QUESTIONS.filter(q => q.level === level);
-
-  // ── Fisher-Yates shuffle so every Sprint feels new ──
-  // Works on a copy so ALL_QUESTIONS is never mutated.
-  // Video URLs, hints, and all other properties travel with each
-  // question object, so CorbettMaths / BBC Bitesize links stay intact.
-  for (let i = filteredQuestions.length - 1; i > 0; i--) {
+  // ── Filter to correct level, Fisher-Yates shuffle on a copy ──
+  const pool = ALL_QUESTIONS.filter(q => q.level === level);
+  for (let i = pool.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
-    [filteredQuestions[i], filteredQuestions[j]] = [filteredQuestions[j], filteredQuestions[i]];
+    [pool[i], pool[j]] = [pool[j], pool[i]];
   }
 
-  QUESTIONS   = filteredQuestions;
+  // ── Slice to SPRINT_SIZE so adding more questions never breaks the session ──
+  QUESTIONS   = pool.slice(0, SPRINT_SIZE);
   answers     = new Array(QUESTIONS.length).fill(null);
   userAnswers = new Array(QUESTIONS.length).fill(null);
 
   // ── Update UI labels ──
-  if (name) {
-    document.getElementById('nav-student-name').textContent = '· ' + name;
-  }
+  if (name) document.getElementById('nav-student-name').textContent = '· ' + name;
   document.getElementById('track-badge').textContent =
     level === 'P7' ? 'P7 Executor Track 🏆' : 'P6 Builder Track ⚡';
   document.getElementById('q-total').textContent = QUESTIONS.length;
+
+  // ── Reset score chips ──
+  document.getElementById('score-correct').textContent = '0 correct';
+  document.getElementById('score-wrong').textContent   = '0 wrong';
 
   buildProgressPips();
   loadQuestion(0);
@@ -1688,13 +1693,14 @@ function showResults() {
 }
 
 function restartSession() {
-  // Re-run init() so Fisher-Yates re-shuffles the bank for a truly fresh sprint
+  // ── Show quiz UI, hide results screens ──
   document.getElementById('results-panel').classList.remove('visible');
   document.getElementById('complete-screen').classList.remove('visible');
   document.getElementById('question-card').style.display    = '';
   document.getElementById('progress-section').style.display = '';
-  document.getElementById('score-correct').textContent = '0 correct';
-  document.getElementById('score-wrong').textContent   = '0 wrong';
+
+  // ── init() resets ALL state (currentQ, score, answers, userAnswers)
+  //    AND re-shuffles + re-slices the bank for a genuinely fresh sprint ──
   init();
 }
 
