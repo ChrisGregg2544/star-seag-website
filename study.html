@@ -592,7 +592,128 @@
       .btn-submit, .btn-next { padding: 20px 28px; font-size: 1rem; }
       .btn-hint  { padding: 15px 20px; font-size: .85rem; }
     }
-    /* ── Tutorial Glow (wrong answer) ── */
+    /* ── Results Panel ── */
+  .results-panel {
+    display: none;
+    position: relative; z-index: 10;
+    width: 100%; max-width: 780px;
+    background: var(--card-bg);
+    border-radius: var(--radius-card);
+    border: 1px solid var(--card-border);
+    box-shadow: 0 20px 60px rgba(0,0,0,.3);
+    padding: 40px 36px 36px;
+    animation: cardIn .45s cubic-bezier(.22,1,.36,1) forwards;
+  }
+  .results-panel.visible { display: block; }
+
+  .results-header {
+    text-align: center;
+    margin-bottom: 32px;
+  }
+  .results-emoji {
+    font-size: 3rem;
+    margin-bottom: 12px;
+    display: block;
+  }
+  .results-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.8rem; font-weight: 900;
+    color: var(--text-dark);
+    margin-bottom: 6px;
+  }
+  .results-sub {
+    font-size: .95rem; color: var(--text-mid);
+  }
+  .results-score-bar {
+    display: flex; align-items: center; justify-content: center; gap: 24px;
+    background: var(--navy);
+    border-radius: 16px;
+    padding: 20px 28px;
+    margin-bottom: 32px;
+  }
+  .results-score-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.8rem; font-weight: 900;
+    color: var(--gold);
+    line-height: 1;
+  }
+  .results-score-label {
+    font-size: .8rem; font-weight: 700; letter-spacing: .08em;
+    text-transform: uppercase; color: rgba(255,255,255,.5);
+    margin-top: 4px;
+  }
+  .results-score-divider {
+    width: 1px; height: 48px;
+    background: rgba(255,255,255,.12);
+  }
+  .results-section-title {
+    font-size: .72rem; font-weight: 900; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--text-light);
+    margin-bottom: 14px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(201,168,76,.15);
+  }
+  .missed-list {
+    display: flex; flex-direction: column; gap: 14px;
+    margin-bottom: 32px;
+  }
+  .missed-card {
+    background: #fff8f8;
+    border: 1px solid rgba(239,68,68,.15);
+    border-left: 4px solid var(--red);
+    border-radius: 12px;
+    padding: 14px 16px;
+  }
+  .missed-q-text {
+    font-size: .9rem; font-weight: 700;
+    color: var(--text-dark);
+    margin-bottom: 10px;
+    line-height: 1.4;
+  }
+  .missed-answers {
+    display: flex; gap: 12px; flex-wrap: wrap;
+  }
+  .missed-chip {
+    font-size: .78rem; font-weight: 700;
+    padding: 4px 10px; border-radius: 6px;
+    display: flex; align-items: center; gap: 5px;
+  }
+  .missed-chip.yours {
+    background: rgba(239,68,68,.1); color: var(--red);
+    border: 1px solid rgba(239,68,68,.25);
+  }
+  .missed-chip.correct {
+    background: rgba(34,197,94,.1); color: #16a34a;
+    border: 1px solid rgba(34,197,94,.25);
+  }
+  .missed-topic-tag {
+    font-size: .7rem; font-weight: 700; letter-spacing: .05em;
+    text-transform: uppercase;
+    color: var(--text-light);
+    margin-bottom: 6px;
+  }
+  .missed-video-link {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: .78rem; font-weight: 700;
+    color: var(--blue-hint);
+    text-decoration: none;
+    margin-top: 8px;
+  }
+  .missed-video-link:hover { text-decoration: underline; }
+  .all-correct-msg {
+    text-align: center; padding: 28px;
+    background: var(--green-bg);
+    border: 1px solid rgba(34,197,94,.2);
+    border-radius: 12px;
+    margin-bottom: 32px;
+  }
+  .all-correct-msg .ace { font-size: 2rem; margin-bottom: 8px; }
+  .all-correct-msg p { color: #16a34a; font-weight: 700; font-size: .95rem; }
+  .results-actions {
+    display: flex; flex-direction: column; gap: 12px;
+  }
+
+  /* ── Tutorial Glow (wrong answer) ── */
   @keyframes pulse-gold {
     0%   { box-shadow: 0 0 0 0   rgba(255,191,0,0.7); }
     70%  { box-shadow: 0 0 0 15px rgba(255,191,0,0);   }
@@ -819,6 +940,45 @@
   </div>
   <button class="btn-complete-primary" onclick="restartSession()">🔄 &nbsp;Try Another Sprint</button>
   <button class="btn-complete-secondary" onclick="goToDashboard()">View My Dashboard</button>
+</div>
+
+<!-- ══════ RESULTS PANEL ══════ -->
+<div class="results-panel" id="results-panel">
+
+  <!-- Header -->
+  <div class="results-header">
+    <span class="results-emoji" id="res-emoji">⭐</span>
+    <div class="results-title" id="res-title">Sprint Complete!</div>
+    <div class="results-sub"   id="res-sub">Here's how you did this session.</div>
+  </div>
+
+  <!-- Score bar -->
+  <div class="results-score-bar">
+    <div style="text-align:center">
+      <div class="results-score-num" id="res-fraction">0/10</div>
+      <div class="results-score-label">Score</div>
+    </div>
+    <div class="results-score-divider"></div>
+    <div style="text-align:center">
+      <div class="results-score-num" id="res-pct2">0%</div>
+      <div class="results-score-label">Accuracy</div>
+    </div>
+    <div class="results-score-divider"></div>
+    <div style="text-align:center" id="res-star-wrap"></div>
+  </div>
+
+  <!-- Missed questions -->
+  <div id="missed-section">
+    <div class="results-section-title" id="missed-heading">Questions to Review</div>
+    <div class="missed-list" id="missed-list"></div>
+  </div>
+
+  <!-- Actions -->
+  <div class="results-actions">
+    <button class="btn-complete-primary" onclick="restartSession()">🔄 &nbsp;Try Another Sprint</button>
+    <button class="btn-complete-secondary" onclick="goToDashboard()">View My Dashboard →</button>
+  </div>
+
 </div>
 
 <!-- ══════════════════════════════════════════
@@ -1117,10 +1277,11 @@ const ALL_QUESTIONS = [
 /* ════════════════════════════════════════════════════
    STATE  (QUESTIONS is set by init() after filtering)
 ════════════════════════════════════════════════════ */
-let QUESTIONS   = [];   // active question set for this session
-let currentQ    = 0;
-let score       = { correct: 0, wrong: 0 };
-let answers     = [];   // 'correct' | 'wrong' | null per question
+let QUESTIONS    = [];   // active question set for this session
+let currentQ     = 0;
+let score        = { correct: 0, wrong: 0 };
+let answers      = [];   // 'correct' | 'wrong' | null per question
+let userAnswers  = [];   // what the student actually typed/selected
 let hintVisible = false;
 let answered    = false;
 let selectedMC  = null;
@@ -1146,8 +1307,9 @@ function init() {
     [filteredQuestions[i], filteredQuestions[j]] = [filteredQuestions[j], filteredQuestions[i]];
   }
 
-  QUESTIONS = filteredQuestions;
-  answers   = new Array(QUESTIONS.length).fill(null);
+  QUESTIONS   = filteredQuestions;
+  answers     = new Array(QUESTIONS.length).fill(null);
+  userAnswers = new Array(QUESTIONS.length).fill(null);
 
   // ── Update UI labels ──
   if (name) {
@@ -1325,6 +1487,16 @@ function submitAnswer() {
   answers[currentQ] = isCorrect ? 'correct' : 'wrong';
   if (isCorrect) score.correct++; else score.wrong++;
 
+  // Store what the student actually answered (for results panel)
+  if (q.options) {
+    // Multiple choice — store the full option text
+    const selIdx = ['A','B','C','D'].indexOf(selectedMC);
+    userAnswers[currentQ] = selIdx >= 0 ? q.options[selIdx] : selectedMC;
+  } else {
+    // Free response — store what they typed
+    userAnswers[currentQ] = document.getElementById('fr-input').value.trim();
+  }
+
   // Glow the video link when wrong, remove glow when correct
   const videoLinkEl = document.getElementById('video-link');
   if (isCorrect) {
@@ -1403,90 +1575,127 @@ function nextQuestion() {
       loadQuestion(currentQ);
     }, 180);
   } else {
-    showComplete();
+    showResults();
   }
 }
 
 /* ════════════════════════════════════════════════════
    SESSION COMPLETE
 ════════════════════════════════════════════════════ */
-function showComplete() {
-  document.getElementById('question-card').style.display  = 'none';
+function showResults() {
+  // ── Hide question UI, show results panel ──
+  document.getElementById('question-card').style.display    = 'none';
   document.getElementById('progress-section').style.display = 'none';
-  const screen = document.getElementById('complete-screen');
-  screen.classList.add('visible');
+  document.getElementById('complete-screen').classList.remove('visible'); // legacy safety
+  document.getElementById('results-panel').classList.add('visible');
 
-  const pct = Math.round(score.correct / QUESTIONS.length * 100);
-  document.getElementById('res-correct').textContent = score.correct;
-  document.getElementById('res-wrong').textContent   = score.wrong;
-  document.getElementById('res-pct').textContent     = pct + '%';
-
-  // ── Build toReview: every question the student got wrong ──
-  const toReview = QUESTIONS
-    .filter((q, i) => answers[i] === 'wrong')
-    .map(q => ({
-      topic:      q.topic,
-      videoTitle: q.videoTitle,
-      videoUrl:   q.videoUrl,
-      videoSource: q.videoSource,
-      questionText: q.text,
-    }))
-    // Deduplicate by topic so the same topic doesn't appear twice
-    .filter((item, idx, arr) => arr.findIndex(x => x.topic === item.topic) === idx);
-
-  // ── Persist to localStorage so the Dashboard can read it ──
-  localStorage.setItem('star_toReview',    JSON.stringify(toReview));
-  localStorage.setItem('star_last_score',  pct);
-  localStorage.setItem('star_last_track',  sessionStorage.getItem('star_year') || 'P6');
-  localStorage.setItem('star_last_name',   sessionStorage.getItem('star_name') || '');
-
+  const pct  = Math.round(score.correct / QUESTIONS.length * 100);
   const name = sessionStorage.getItem('star_name') || '';
-  if (pct >= 80) {
-    document.getElementById('complete-avatar').textContent = '🌟';
-    document.getElementById('complete-title').textContent  = 'Brilliant' + (name ? ', ' + name : '') + '!';
-    document.getElementById('complete-sub').textContent   = 'An outstanding result. You\'re ready to take on more!';
+
+  // ── Header emoji + message ──
+  if (pct === 100) {
+    document.getElementById('res-emoji').textContent = '🏆';
+    document.getElementById('res-title').textContent = 'Perfect Score' + (name ? ', ' + name : '') + '!';
+    document.getElementById('res-sub').textContent   = 'Flawless — a clean sweep on every question!';
+  } else if (pct >= 80) {
+    document.getElementById('res-emoji').textContent = '🌟';
+    document.getElementById('res-title').textContent = 'Brilliant' + (name ? ', ' + name : '') + '!';
+    document.getElementById('res-sub').textContent   = 'Outstanding result. Review the ones below to make it perfect next time.';
   } else if (pct >= 50) {
-    document.getElementById('complete-avatar').textContent = '⭐';
-    document.getElementById('complete-title').textContent  = 'Great effort' + (name ? ', ' + name : '') + '!';
-    document.getElementById('complete-sub').textContent   = 'Solid work. Keep reviewing those tricky topics.';
+    document.getElementById('res-emoji').textContent = '⭐';
+    document.getElementById('res-title').textContent = 'Great effort' + (name ? ', ' + name : '') + '!';
+    document.getElementById('res-sub').textContent   = 'Solid work. Study the missed questions and go again.';
   } else {
-    document.getElementById('complete-avatar').textContent = '💪';
-    document.getElementById('complete-title').textContent  = 'Keep going' + (name ? ', ' + name : '') + '!';
-    document.getElementById('complete-sub').textContent   = 'Every sprint makes you stronger. Review the hints and try again!';
+    document.getElementById('res-emoji').textContent = '💪';
+    document.getElementById('res-title').textContent = 'Keep going' + (name ? ', ' + name : '') + '!';
+    document.getElementById('res-sub').textContent   = 'Every sprint builds strength. Review below, then try again!';
   }
 
-  // Star rating (out of 5)
-  const stars = Math.round(pct / 20);
-  const starWrap = document.getElementById('star-rating');
+  // ── Score bar ──
+  document.getElementById('res-fraction').textContent = score.correct + '/' + QUESTIONS.length;
+  document.getElementById('res-pct2').textContent     = pct + '%';
+
+  // Star rating in score bar (out of 5)
+  const stars   = Math.round(pct / 20);
+  const starWrap = document.getElementById('res-star-wrap');
   starWrap.innerHTML = '';
   for (let i = 0; i < 5; i++) {
     const svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
-    svg.setAttribute('width','32'); svg.setAttribute('height','32');
+    svg.setAttribute('width','24'); svg.setAttribute('height','24');
     svg.setAttribute('viewBox','0 0 24 24');
-    const fill = i < stars ? '#C9A84C' : 'rgba(201,168,76,.2)';
-    svg.setAttribute('fill', fill);
-    svg.setAttribute('stroke', '#C9A84C');
-    svg.setAttribute('stroke-width','1.2');
+    svg.setAttribute('fill',   i < stars ? '#C9A84C' : 'rgba(201,168,76,.2)');
+    svg.setAttribute('stroke', '#C9A84C'); svg.setAttribute('stroke-width','1.2');
     const poly = document.createElementNS('http://www.w3.org/2000/svg','polygon');
     poly.setAttribute('points','12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26');
-    svg.appendChild(poly);
-    starWrap.appendChild(svg);
+    svg.appendChild(poly); starWrap.appendChild(svg);
   }
+  const starsLabel = document.createElement('div');
+  starsLabel.className = 'results-score-label';
+  starsLabel.style.marginTop = '4px';
+  starsLabel.textContent = 'Rating';
+  starWrap.appendChild(starsLabel);
+
+  // ── Missed questions list ──
+  const missedList    = document.getElementById('missed-list');
+  const missedSection = document.getElementById('missed-section');
+  missedList.innerHTML = '';
+
+  const missedQuestions = QUESTIONS.filter((q, i) => answers[i] === 'wrong');
+
+  if (missedQuestions.length === 0) {
+    missedSection.innerHTML = `
+      <div class="all-correct-msg">
+        <div class="ace">🎉</div>
+        <p>You got every question right — nothing to review!</p>
+      </div>`;
+  } else {
+    document.getElementById('missed-heading').textContent =
+      missedQuestions.length + ' Question' + (missedQuestions.length > 1 ? 's' : '') + ' to Review';
+
+    missedQuestions.forEach(q => {
+      const qIdx       = QUESTIONS.indexOf(q);
+      const studentAns = userAnswers[qIdx] || '(no answer)';
+      // For MC, correct answer is the full option text; for FR it's the canonical answer
+      const correctAns = q.options
+        ? (q.options.find(o => o.startsWith(q.answer + '.')) || q.answer)
+        : q.answer;
+
+      const card = document.createElement('div');
+      card.className = 'missed-card';
+      card.innerHTML = `
+        <div class="missed-topic-tag">${q.type === 'maths' ? '📐' : '📖'} ${q.topic}</div>
+        <div class="missed-q-text">${q.text}</div>
+        <div class="missed-answers">
+          <span class="missed-chip yours">✗ Your answer: ${studentAns}</span>
+          <span class="missed-chip correct">✓ Correct: ${correctAns}</span>
+        </div>
+        <a class="missed-video-link" href="${q.videoUrl}" target="_blank" rel="noopener">
+          ▶ Watch: ${q.videoTitle} (${q.videoSource})
+        </a>`;
+      missedList.appendChild(card);
+    });
+  }
+
+  // ── Persist to localStorage so Dashboard can read it ──
+  const toReview = missedQuestions
+    .map(q => ({ topic: q.topic, videoTitle: q.videoTitle, videoUrl: q.videoUrl, videoSource: q.videoSource, questionText: q.text }))
+    .filter((item, idx, arr) => arr.findIndex(x => x.topic === item.topic) === idx);
+
+  localStorage.setItem('star_toReview',   JSON.stringify(toReview));
+  localStorage.setItem('star_last_score', pct);
+  localStorage.setItem('star_last_track', sessionStorage.getItem('star_year') || 'P6');
+  localStorage.setItem('star_last_name',  sessionStorage.getItem('star_name') || '');
 }
 
 function restartSession() {
-  currentQ = 0;
-  score    = { correct: 0, wrong: 0 };
-  answers  = new Array(QUESTIONS.length).fill(null);
-
+  // Re-run init() so Fisher-Yates re-shuffles the bank for a truly fresh sprint
+  document.getElementById('results-panel').classList.remove('visible');
   document.getElementById('complete-screen').classList.remove('visible');
-  document.getElementById('question-card').style.display   = '';
+  document.getElementById('question-card').style.display    = '';
   document.getElementById('progress-section').style.display = '';
   document.getElementById('score-correct').textContent = '0 correct';
   document.getElementById('score-wrong').textContent   = '0 wrong';
-
-  buildProgressPips();
-  loadQuestion(0);
+  init();
 }
 
 function goToDashboard() {
