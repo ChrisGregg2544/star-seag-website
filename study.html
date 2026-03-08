@@ -1439,7 +1439,10 @@ function restartSession() {
 }
 
 function goToDashboard() {
-  window.location.href = 'index.html';
+  // Save the final score so signup.html can display it
+  const pct = Math.round(score.correct / QUESTIONS.length * 100);
+  sessionStorage.setItem('star_last_score', pct);
+  window.location.href = 'signup.html';
 }
 
 /* ── Kick off ── */
