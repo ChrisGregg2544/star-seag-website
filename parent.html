@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>STAR – Parent Portal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,400&family=Lato:wght@300;400;700;900&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --gold:       #C9A84C;
+      --gold-light: #E8C97A;
+      --gold-dim:   rgba(201,168,76,0.14);
+      --navy:       #0B1F3A;
+      --navy-mid:   #0f2747;
+      --navy-card:  #112240;
+      --card-bg:    rgba(255,255,255,0.97);
+      --card-border:rgba(201,168,76,0.22);
+      --text-dark:  #0B1F3A;
+      --text-mid:   #3a5070;
+      --text-light: #6b85a0;
+      --green:      #22c55e;
+      --green-bg:   rgba(34,197,94,0.08);
+      --red:        #ef4444;
+      --red-bg:     rgba(239,68,68,0.07);
+      --blue:       #3b82f6;
+      --radius:     20px;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    html{height:100%;scroll-behavior:smooth;}
+    body{
+      background:var(--navy); min-height:100vh;
+      font-family:'Lato',sans-serif;
+      display:flex; flex-direction:column; align-items:center;
+      padding:0 16px 60px; overflow-x:hidden; position:relative;
+    }
+
+    /* ── Background ── */
+    .bg-atmosphere{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden;}
+    .bg-glow{position:absolute;border-radius:50%;background:radial-gradient(circle,rgba(201,168,76,.05) 0%,transparent 65%);width:800px;height:800px;top:10%;left:50%;transform:translateX(-50%);}
+    .bg-glow-2{position:absolute;border-radius:50%;background:radial-gradient(circle,rgba(59,130,246,.03) 0%,transparent 70%);width:500px;height:500px;bottom:-80px;right:-100px;}
+    .star-p{position:absolute;border-radius:50%;background:var(--gold);opacity:.07;animation:twinkle var(--d,3.8s) ease-in-out infinite alternate;animation-delay:var(--del,0s);}
+    @keyframes twinkle{from{opacity:.03;}to{opacity:.16;}}
+
+    /* ── PIN overlay ── */
+    .pin-overlay{
+      position:fixed;inset:0;z-index:999;
+      background:rgba(11,31,58,0.96);
+      backdrop-filter:blur(8px);
+      display:flex;align-items:center;justify-content:center;
+    }
+    .pin-overlay.hidden{display:none;}
+    .pin-card{
+      background:var(--navy-card);
+      border:1px solid rgba(201,168,76,.25);
+      border-radius:28px;
+      padding:48px 40px 40px;
+      text-align:center;
+      max-width:380px; width:100%;
+      box-shadow:0 24px 80px rgba(0,0,0,.55);
+      animation:pinIn .4s cubic-bezier(.22,1,.36,1) both;
+    }
+    @keyframes pinIn{from{opacity:0;transform:scale(.92);}to{opacity:1;transform:scale(1);}}
+    .pin-icon{font-size:2.8rem;margin-bottom:16px;}
+    .pin-title{
+      font-family:'Playfair Display',serif;
+      font-size:1.5rem;font-weight:900;color:#fff;margin-bottom:6px;
+    }
+    .pin-sub{font-size:.88rem;color:rgba(255,255,255,.45);margin-bottom:28px;}
+    .pin-dots{
+      display:flex;justify-content:center;gap:12px;margin-bottom:24px;
+    }
+    .pin-dot{
+      width:14px;height:14px;border-radius:50%;
+      background:rgba(255,255,255,.15);
+      border:2px solid rgba(255,255,255,.2);
+      transition:all .2s;
+    }
+    .pin-dot.filled{background:var(--gold);border-color:var(--gold);box-shadow:0 0 8px rgba(201,168,76,.5);}
+    .pin-dot.error{background:var(--red);border-color:var(--red);}
+    .pin-keypad{
+      display:grid;grid-template-columns:repeat(3,1fr);
+      gap:10px;margin-bottom:16px;
+    }
+    .pin-key{
+      background:rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.1);
+      border-radius:14px;padding:16px 0;
+      font-size:1.2rem;font-weight:700;color:#fff;
+      cursor:pointer;transition:all .15s;
+      font-family:'Lato',sans-serif;
+    }
+    .pin-key:hover{background:rgba(255,255,255,.12);border-color:rgba(201,168,76,.3);}
+    .pin-key:active{transform:scale(.95);}
+    .pin-key.zero{grid-column:2;}
+    .pin-key.backspace{
+      background:rgba(239,68,68,.1);
+      border-color:rgba(239,68,68,.2);
+      color:rgba(239,68,68,.7);
+      font-size:1rem;
+    }
+    .pin-key.backspace:hover{background:rgba(239,68,68,.18);}
+    .pin-error-msg{
+      font-size:.8rem;color:var(--red);min-height:1.2em;
+      font-weight:700;letter-spacing:.04em;
+    }
+    .pin-back-link{
+      margin-top:20px;
+      font-size:.78rem;color:rgba(255,255,255,.3);
+      text-decoration:none;display:inline-block;
+      transition:color .18s;
+    }
+    .pin-back-link:hover{color:rgba(255,255,255,.6);}
+
+    /* ── Nav ── */
+    .top-nav{
+      position:relative;z-index:10;
+      width:100%;max-width:900px;
+      display:flex;align-items:center;justify-content:space-between;
+      padding:22px 0 18px;
+    }
+    .nav-logo{display:flex;align-items:center;gap:9px;}
+    .nav-logo-star{
+      width:34px;height:34px;
+      background:linear-gradient(135deg,rgba(201,168,76,.2) 0%,rgba(201,168,76,.06) 100%);
+      border:1.5px solid rgba(201,168,76,.4);border-radius:50%;
+      display:flex;align-items:center;justify-content:center;
+      animation:avatarPulse 3s ease-in-out infinite;
+    }
+    @keyframes avatarPulse{
+      0%,100%{box-shadow:0 0 0 4px rgba(201,168,76,.06);}
+      50%{box-shadow:0 0 0 8px rgba(201,168,76,.10);}
+    }
+    .nav-logo-text{font-family:'Playfair Display',serif;font-size:1.15rem;font-weight:700;color:var(--gold);letter-spacing:.04em;}
+    .nav-page-label{font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.35);}
+
+    /* ── Page header ── */
+    .page-header{
+      position:relative;z-index:10;
+      width:100%;max-width:900px;
+      background:linear-gradient(135deg,var(--navy-card) 0%,#0d1e38 100%);
+      border:1px solid rgba(201,168,76,.18);border-radius:24px;
+      padding:36px 40px;margin-bottom:28px;overflow:hidden;
+      animation:fadeUp .5s cubic-bezier(.22,1,.36,1) both;
+    }
+    .page-header::before{content:'';position:absolute;top:-60px;right:-60px;width:220px;height:220px;border-radius:50%;background:radial-gradient(circle,rgba(201,168,76,.08) 0%,transparent 70%);pointer-events:none;}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
+    .ph-eyebrow{font-size:.72rem;font-weight:900;letter-spacing:.12em;text-transform:uppercase;color:rgba(201,168,76,.6);margin-bottom:6px;}
+    .ph-title{font-family:'Playfair Display',serif;font-size:1.9rem;font-weight:900;color:#fff;line-height:1.2;margin-bottom:6px;}
+    .ph-title span{color:var(--gold);}
+    .ph-sub{font-size:.9rem;color:rgba(255,255,255,.42);max-width:520px;line-height:1.6;}
+
+    /* ── Summary strip ── */
+    .summary-strip{
+      position:relative;z-index:10;
+      width:100%;max-width:900px;
+      display:grid;grid-template-columns:repeat(4,1fr);
+      gap:14px;margin-bottom:28px;
+      animation:fadeUp .55s .06s cubic-bezier(.22,1,.36,1) both;
+    }
+    .sum-tile{
+      background:rgba(255,255,255,.04);
+      border:1px solid rgba(255,255,255,.08);border-radius:16px;
+      padding:18px 20px;
+    }
+    .sum-num{font-family:'Playfair Display',serif;font-size:1.7rem;font-weight:900;color:#fff;line-height:1;}
+    .sum-label{font-size:.7rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:rgba(255,255,255,.35);margin-top:4px;}
+    .sum-num.gold{color:var(--gold);}
+    .sum-num.green{color:var(--green);}
+    .sum-num.red{color:var(--red);}
+
+    /* ── Section ── */
+    .section{
+      position:relative;z-index:10;
+      width:100%;max-width:900px;margin-bottom:32px;
+      animation:fadeUp .6s .1s cubic-bezier(.22,1,.36,1) both;
+    }
+    .section-header{
+      display:flex;align-items:center;justify-content:space-between;
+      margin-bottom:16px;padding-bottom:12px;
+      border-bottom:1px solid rgba(201,168,76,.12);
+    }
+    .section-title{font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:900;color:#fff;}
+    .section-badge{
+      font-size:.7rem;font-weight:900;letter-spacing:.08em;text-transform:uppercase;
+      padding:4px 12px;border-radius:20px;
+    }
+    .badge-mastery{background:var(--gold-dim);color:var(--gold);border:1px solid rgba(201,168,76,.3);}
+    .badge-video{background:rgba(59,130,246,.1);color:var(--blue);border:1px solid rgba(59,130,246,.2);}
+    .badge-history{background:rgba(34,197,94,.08);color:var(--green);border:1px solid rgba(34,197,94,.2);}
+
+    /* ── Mastery table ── */
+    .mastery-table{
+      background:var(--card-bg);
+      border:1px solid var(--card-border);
+      border-radius:var(--radius);
+      overflow:hidden;
+    }
+    .mt-row{
+      display:grid;
+      grid-template-columns:2fr 1.2fr 1.2fr 2fr;
+      align-items:center;
+      padding:14px 22px;
+      border-bottom:1px solid rgba(11,31,58,.07);
+      transition:background .15s;
+    }
+    .mt-row:last-child{border-bottom:none;}
+    .mt-row:hover{background:rgba(201,168,76,.03);}
+    .mt-row.header{
+      background:rgba(11,31,58,.05);
+      padding:12px 22px;border-bottom:2px solid rgba(201,168,76,.12);
+    }
+    .mt-row.header span{
+      font-size:.68rem;font-weight:900;letter-spacing:.1em;
+      text-transform:uppercase;color:var(--text-light);
+    }
+    .mt-topic{
+      display:flex;align-items:center;gap:10px;
+    }
+    .mt-type-dot{
+      width:8px;height:8px;border-radius:50%;flex-shrink:0;
+    }
+    .dot-maths{background:var(--blue);}
+    .dot-english{background:#a855f7;}
+    .mt-topic-name{font-size:.9rem;font-weight:700;color:var(--text-dark);}
+    .mt-correct{font-size:.9rem;font-weight:700;color:#16a34a;}
+    .mt-wrong{font-size:.9rem;font-weight:700;color:var(--red);}
+    .mt-bar-wrap{
+      display:flex;align-items:center;gap:8px;
+    }
+    .mt-bar-track{
+      flex:1;height:6px;background:rgba(11,31,58,.1);
+      border-radius:99px;overflow:hidden;
+    }
+    .mt-bar-fill{
+      height:100%;border-radius:99px;
+      transition:width .8s cubic-bezier(.34,1.56,.64,1);
+    }
+    .fill-great{background:var(--green);}
+    .fill-ok{background:var(--gold);}
+    .fill-poor{background:var(--red);}
+    .mt-pct{font-size:.75rem;font-weight:700;color:var(--text-light);white-space:nowrap;min-width:36px;text-align:right;}
+
+    /* ── Video log ── */
+    .video-log{display:flex;flex-direction:column;gap:10px;}
+    .vl-card{
+      background:var(--card-bg);
+      border:1px solid var(--card-border);
+      border-radius:14px;
+      padding:14px 18px;
+      display:flex;align-items:center;gap:16px;
+    }
+    .vl-source-badge{
+      flex-shrink:0;padding:5px 11px;border-radius:8px;
+      font-size:.68rem;font-weight:900;letter-spacing:.06em;text-transform:uppercase;
+      white-space:nowrap;
+    }
+    .src-corbett{background:linear-gradient(135deg,#ff6b35,#e85d04);color:#fff;}
+    .src-bitesize{background:linear-gradient(135deg,#0f73c8,#0a5fa8);color:#fff;}
+    .vl-info{flex:1;min-width:0;}
+    .vl-topic{font-size:.72rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text-light);margin-bottom:2px;}
+    .vl-title{font-size:.9rem;font-weight:700;color:var(--text-dark);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .vl-date{font-size:.72rem;color:var(--text-light);white-space:nowrap;flex-shrink:0;}
+    .vl-btn{
+      flex-shrink:0;
+      display:inline-flex;align-items:center;gap:5px;
+      padding:8px 14px;border-radius:8px;
+      font-size:.75rem;font-weight:900;letter-spacing:.04em;text-transform:uppercase;
+      text-decoration:none;transition:all .2s;
+    }
+    .vl-btn-corbett{background:rgba(232,93,4,.1);color:#e85d04;border:1px solid rgba(232,93,4,.2);}
+    .vl-btn-corbett:hover{background:rgba(232,93,4,.18);}
+    .vl-btn-bitesize{background:rgba(15,115,200,.1);color:#0f73c8;border:1px solid rgba(15,115,200,.2);}
+    .vl-btn-bitesize:hover{background:rgba(15,115,200,.18);}
+    .vl-empty{
+      text-align:center;padding:36px;
+      background:rgba(255,255,255,.04);
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:var(--radius);
+    }
+    .vl-empty p{color:rgba(255,255,255,.35);font-size:.88rem;}
+
+    /* ── Session history ── */
+    .history-list{display:flex;flex-direction:column;gap:8px;}
+    .hist-row{
+      background:var(--card-bg);
+      border:1px solid var(--card-border);
+      border-radius:12px;
+      padding:12px 20px;
+      display:flex;align-items:center;gap:16px;
+    }
+    .hist-score-circle{
+      width:44px;height:44px;border-radius:50%;flex-shrink:0;
+      display:flex;align-items:center;justify-content:center;
+      font-family:'Playfair Display',serif;font-size:.9rem;font-weight:900;
+    }
+    .hsc-gold{background:linear-gradient(135deg,var(--gold),var(--gold-light));color:var(--navy);}
+    .hsc-silver{background:rgba(156,163,175,.2);color:#6b7280;border:2px solid #9ca3af;}
+    .hsc-bronze{background:rgba(180,83,9,.15);color:#b45309;border:2px solid #d97706;}
+    .hist-info{flex:1;}
+    .hist-track{font-size:.7rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--text-light);}
+    .hist-score{font-size:.88rem;font-weight:700;color:var(--text-dark);}
+    .hist-date{font-size:.75rem;color:var(--text-light);white-space:nowrap;}
+
+    /* ── Reset section ── */
+    .reset-section{
+      position:relative;z-index:10;
+      width:100%;max-width:900px;margin-bottom:28px;
+      animation:fadeUp .65s .16s cubic-bezier(.22,1,.36,1) both;
+    }
+    .reset-card{
+      background:rgba(239,68,68,.06);
+      border:1px solid rgba(239,68,68,.18);
+      border-radius:var(--radius);padding:24px 28px;
+      display:flex;align-items:center;justify-content:space-between;gap:20px;
+    }
+    .reset-text h3{font-family:'Playfair Display',serif;font-size:1rem;font-weight:900;color:#fff;margin-bottom:4px;}
+    .reset-text p{font-size:.82rem;color:rgba(255,255,255,.38);}
+    .btn-reset{
+      flex-shrink:0;padding:10px 20px;border-radius:10px;
+      background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.3);
+      color:var(--red);font-family:'Lato',sans-serif;
+      font-size:.8rem;font-weight:900;letter-spacing:.06em;text-transform:uppercase;
+      cursor:pointer;transition:all .2s;
+    }
+    .btn-reset:hover{background:rgba(239,68,68,.22);border-color:var(--red);}
+
+    /* ── Nav back ── */
+    .nav-back{
+      position:relative;z-index:10;
+      width:100%;max-width:900px;margin-bottom:28px;
+      display:flex;gap:12px;
+    }
+    .btn-nav{
+      display:inline-flex;align-items:center;gap:7px;
+      padding:10px 20px;border-radius:10px;
+      font-family:'Lato',sans-serif;font-size:.8rem;font-weight:900;
+      letter-spacing:.05em;text-transform:uppercase;
+      text-decoration:none;cursor:pointer;border:none;transition:all .22s;
+    }
+    .btn-dashboard{background:linear-gradient(135deg,var(--gold),var(--gold-light));color:var(--navy);box-shadow:0 4px 16px rgba(201,168,76,.3);}
+    .btn-dashboard:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(201,168,76,.45);}
+    .btn-study{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.6);}
+    .btn-study:hover{background:rgba(255,255,255,.1);color:#fff;}
+
+    /* ── Footer ── */
+    .star-footer{position:relative;z-index:10;width:100%;max-width:900px;margin:40px auto 0;padding-top:32px;border-top:1px solid rgba(201,168,76,.15);}
+    .star-footer-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:32px;padding-bottom:28px;}
+    .star-footer-col-label{font-size:.68rem;font-weight:900;letter-spacing:.13em;text-transform:uppercase;color:rgba(201,168,76,.7);margin-bottom:11px;display:flex;align-items:center;gap:7px;}
+    .star-footer-col-label::before{content:'';display:inline-block;width:14px;height:1.5px;background:rgba(201,168,76,.5);border-radius:99px;}
+    .star-footer-text{font-size:.78rem;line-height:1.75;color:rgba(255,255,255,.36);}
+    .star-footer-text a{color:rgba(201,168,76,.7);text-decoration:none;transition:color .18s;}
+    .star-footer-text a:hover{color:#C9A84C;}
+    .star-footer-logo{display:flex;align-items:center;gap:7px;margin-bottom:11px;}
+    .star-footer-logo-text{font-family:'Playfair Display',serif;font-size:.88rem;font-weight:700;color:#C9A84C;letter-spacing:.06em;}
+    .star-footer-bottom{padding:16px 0;border-top:1px solid rgba(255,255,255,.05);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;}
+    .star-footer-bottom-text{font-size:.72rem;color:rgba(255,255,255,.22);}
+    .star-footer-bottom-links{display:flex;gap:18px;}
+    .star-footer-bottom-links a{font-size:.72rem;color:rgba(255,255,255,.22);text-decoration:none;transition:color .18s;}
+    .star-footer-bottom-links a:hover{color:rgba(255,255,255,.5);}
+
+    /* ── Responsive ── */
+    @media(max-width:680px){
+      .summary-strip{grid-template-columns:1fr 1fr;}
+      .mt-row{grid-template-columns:1fr 1fr;row-gap:6px;}
+      .mt-row.header .mt-bar-wrap,.mt-row .mt-bar-wrap{grid-column:span 2;}
+      .vl-card{flex-wrap:wrap;}
+      .star-footer-grid{grid-template-columns:1fr;gap:24px;}
+      .star-footer-bottom{flex-direction:column;align-items:flex-start;}
+      .page-header{padding:28px 24px;}
+      .reset-card{flex-direction:column;align-items:flex-start;}
+    }
+  </style>
+</head>
+<body>
+
+<!-- Background -->
+<div class="bg-atmosphere">
+  <div class="bg-glow"></div>
+  <div class="bg-glow-2"></div>
+  <div class="star-p" style="width:6px;height:6px;top:10%;left:7%;  --d:4.1s;--del:.3s"></div>
+  <div class="star-p" style="width:4px;height:4px;top:30%;left:93%; --d:3.5s;--del:1.1s"></div>
+  <div class="star-p" style="width:5px;height:5px;top:60%;left:4%;  --d:5.2s;--del:.7s"></div>
+  <div class="star-p" style="width:3px;height:3px;top:78%;left:89%; --d:3.9s;--del:2s"></div>
+</div>
+
+<!-- ══════ PIN OVERLAY ══════ -->
+<div class="pin-overlay" id="pin-overlay">
+  <div class="pin-card">
+    <div class="pin-icon">🔐</div>
+    <div class="pin-title">Parent Portal</div>
+    <div class="pin-sub">Enter your 4-digit PIN to continue</div>
+    <div class="pin-dots" id="pin-dots">
+      <div class="pin-dot" id="dot-0"></div>
+      <div class="pin-dot" id="dot-1"></div>
+      <div class="pin-dot" id="dot-2"></div>
+      <div class="pin-dot" id="dot-3"></div>
+    </div>
+    <div class="pin-keypad" id="pin-keypad">
+      <button class="pin-key" onclick="pinPress('1')">1</button>
+      <button class="pin-key" onclick="pinPress('2')">2</button>
+      <button class="pin-key" onclick="pinPress('3')">3</button>
+      <button class="pin-key" onclick="pinPress('4')">4</button>
+      <button class="pin-key" onclick="pinPress('5')">5</button>
+      <button class="pin-key" onclick="pinPress('6')">6</button>
+      <button class="pin-key" onclick="pinPress('7')">7</button>
+      <button class="pin-key" onclick="pinPress('8')">8</button>
+      <button class="pin-key" onclick="pinPress('9')">9</button>
+      <button class="pin-key zero" onclick="pinPress('0')">0</button>
+      <button class="pin-key backspace" onclick="pinBackspace()">⌫</button>
+    </div>
+    <div class="pin-error-msg" id="pin-error"></div>
+    <a href="dashboard.html" class="pin-back-link">← Back to student dashboard</a>
+  </div>
+</div>
+
+<!-- Nav -->
+<nav class="top-nav">
+  <div class="nav-logo">
+    <div class="nav-logo-star">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="#C9A84C">
+        <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/>
+      </svg>
+    </div>
+    <span class="nav-logo-text">STAR AI Tutor</span>
+  </div>
+  <span class="nav-page-label">Parent Portal</span>
+</nav>
+
+<!-- Page header -->
+<div class="page-header">
+  <div class="ph-eyebrow">Confidential — Parents &amp; Guardians</div>
+  <div class="ph-title">Progress <span>Overview</span></div>
+  <div class="ph-sub" id="ph-sub">Loading your child's data…</div>
+</div>
+
+<!-- Summary strip -->
+<div class="summary-strip">
+  <div class="sum-tile">
+    <div class="sum-num gold" id="sum-sprints">—</div>
+    <div class="sum-label">Sprints Completed</div>
+  </div>
+  <div class="sum-tile">
+    <div class="sum-num" id="sum-avg">—</div>
+    <div class="sum-label">Average Score</div>
+  </div>
+  <div class="sum-tile">
+    <div class="sum-num green" id="sum-mastered">—</div>
+    <div class="sum-label">Topics Mastered</div>
+  </div>
+  <div class="sum-tile">
+    <div class="sum-num red" id="sum-review">—</div>
+    <div class="sum-label">Topics to Review</div>
+  </div>
+</div>
+
+<!-- Mastery table -->
+<div class="section" id="sec-mastery">
+  <div class="section-header">
+    <h2 class="section-title">Mastery Table</h2>
+    <span class="section-badge badge-mastery">Per-topic breakdown</span>
+  </div>
+  <div class="mastery-table" id="mastery-table"></div>
+</div>
+
+<!-- Video log -->
+<div class="section" id="sec-videos">
+  <div class="section-header">
+    <h2 class="section-title">Tutorial Video Log</h2>
+    <span class="section-badge badge-video">Prompted after errors</span>
+  </div>
+  <div class="video-log" id="video-log"></div>
+</div>
+
+<!-- Session history -->
+<div class="section" id="sec-history">
+  <div class="section-header">
+    <h2 class="section-title">Sprint History</h2>
+    <span class="section-badge badge-history" id="history-count"></span>
+  </div>
+  <div class="history-list" id="history-list"></div>
+</div>
+
+<!-- Reset data -->
+<div class="reset-section">
+  <div class="reset-card">
+    <div class="reset-text">
+      <h3>Reset All Progress Data</h3>
+      <p>Clears mastery stats, video log and sprint history. Student results remain until next sprint.</p>
+    </div>
+    <button class="btn-reset" onclick="confirmReset()">🗑 Reset Data</button>
+  </div>
+</div>
+
+<!-- Navigation -->
+<div class="nav-back">
+  <a class="btn-nav btn-dashboard" href="dashboard.html">⭐ Student Dashboard</a>
+  <a class="btn-nav btn-study"     href="study.html">📐 Study Hall</a>
+</div>
+
+<!-- Footer -->
+<footer class="star-footer">
+  <div class="star-footer-grid">
+    <div>
+      <div class="star-footer-logo">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="#C9A84C">
+          <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/>
+        </svg>
+        <span class="star-footer-logo-text">STAR AI Tutor</span>
+      </div>
+      <p class="star-footer-text">Empowering P6 &amp; P7 students for SEAG success.<br>Smart, personalised practice — built for Northern Ireland.</p>
+    </div>
+    <div>
+      <div class="star-footer-col-label">Educational Partners</div>
+      <p class="star-footer-text">
+        Tutorials by <a href="https://corbettmathsprimary.com" target="_blank" rel="noopener">CorbettMaths Primary</a>
+        and <a href="https://www.bbc.co.uk/bitesize" target="_blank" rel="noopener">BBC Bitesize</a>.
+      </p>
+    </div>
+    <div>
+      <div class="star-footer-col-label">Legal</div>
+      <p class="star-footer-text">&copy; 2026 STAR AI Tutor. All rights reserved.<br>Not affiliated with the SEAG board or the BBC.</p>
+    </div>
+  </div>
+  <div class="star-footer-bottom">
+    <span class="star-footer-bottom-text">&copy; 2026 STAR AI Tutor</span>
+    <div class="star-footer-bottom-links">
+      <a href="#">Privacy Policy</a>
+      <a href="#">Terms of Service</a>
+      <a href="#">Contact</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+/* ════════════════════════════════════════════════════
+   PARENT PORTAL
+════════════════════════════════════════════════════ */
+
+const CORRECT_PIN = '1234'; // ← change this to your preferred PIN
+let pinEntry = '';
+
+/* ── PIN logic ── */
+function pinPress(digit) {
+  if (pinEntry.length >= 4) return;
+  pinEntry += digit;
+  updateDots();
+  if (pinEntry.length === 4) setTimeout(checkPin, 180);
+}
+
+function pinBackspace() {
+  pinEntry = pinEntry.slice(0, -1);
+  document.getElementById('pin-error').textContent = '';
+  updateDots(false);
+}
+
+function updateDots(shake) {
+  for (let i = 0; i < 4; i++) {
+    const dot = document.getElementById('dot-' + i);
+    dot.classList.toggle('filled', i < pinEntry.length);
+    dot.classList.remove('error');
+  }
+}
+
+function checkPin() {
+  if (pinEntry === CORRECT_PIN) {
+    document.getElementById('pin-overlay').classList.add('hidden');
+    buildDashboard();
+  } else {
+    // Flash dots red, shake
+    for (let i = 0; i < 4; i++) {
+      const dot = document.getElementById('dot-' + i);
+      dot.classList.remove('filled');
+      dot.classList.add('error');
+    }
+    document.getElementById('pin-error').textContent = 'Incorrect PIN — please try again';
+    setTimeout(() => {
+      pinEntry = '';
+      updateDots();
+      document.getElementById('pin-error').textContent = '';
+    }, 900);
+  }
+}
+
+// Also support keyboard entry
+document.addEventListener('keydown', e => {
+  if (!document.getElementById('pin-overlay').classList.contains('hidden')) {
+    if (e.key >= '0' && e.key <= '9') pinPress(e.key);
+    if (e.key === 'Backspace') pinBackspace();
+  }
+});
+
+/* ── Main build ── */
+function buildDashboard() {
+  const mastery   = JSON.parse(localStorage.getItem('star_mastery'))   || {};
+  const videoLog  = JSON.parse(localStorage.getItem('star_video_log')) || [];
+  const sessions  = JSON.parse(localStorage.getItem('star_sessions'))  || [];
+  const lastName  = localStorage.getItem('star_last_name')  || 'your child';
+  const lastTrack = localStorage.getItem('star_last_track') || 'P6';
+
+  // Page header personalisation
+  document.getElementById('ph-sub').textContent =
+    'Viewing progress for ' + lastName + ' · ' +
+    (lastTrack === 'P7' ? 'P7 Executor Track' : 'P6 Builder Track') +
+    ' · Data from ' + sessions.length + ' sprint' + (sessions.length !== 1 ? 's' : '');
+
+  buildSummary(mastery, sessions);
+  buildMasteryTable(mastery);
+  buildVideoLog(videoLog);
+  buildHistory(sessions);
+}
+
+/* ── Summary strip ── */
+function buildSummary(mastery, sessions) {
+  document.getElementById('sum-sprints').textContent = sessions.length || '—';
+
+  if (sessions.length) {
+    const avg = Math.round(sessions.reduce((s, x) => s + x.score, 0) / sessions.length);
+    document.getElementById('sum-avg').textContent = avg + '%';
+  }
+
+  const topics    = Object.values(mastery);
+  const mastered  = topics.filter(t => t.correct > 0 && t.wrong === 0).length;
+  const toReview  = topics.filter(t => t.wrong > 0).length;
+  document.getElementById('sum-mastered').textContent = mastered || '—';
+  document.getElementById('sum-review').textContent   = toReview || '—';
+}
+
+/* ── Mastery table ── */
+function buildMasteryTable(mastery) {
+  const table  = document.getElementById('mastery-table');
+  const topics = Object.entries(mastery);
+
+  if (topics.length === 0) {
+    table.innerHTML = '<div style="padding:28px;text-align:center;color:var(--text-light);font-size:.88rem;">No data yet — complete a sprint to see topic breakdown.</div>';
+    return;
+  }
+
+  // Header row
+  table.innerHTML = `
+    <div class="mt-row header">
+      <span>Topic</span>
+      <span>Correct</span>
+      <span>To Review</span>
+      <span>Accuracy</span>
+    </div>`;
+
+  // Sort: most attempted first
+  topics.sort((a, b) => (b[1].correct + b[1].wrong) - (a[1].correct + a[1].wrong));
+
+  topics.forEach(([topic, data]) => {
+    const total   = data.correct + data.wrong;
+    const pct     = total ? Math.round(data.correct / total * 100) : 0;
+    const fillCls = pct >= 75 ? 'fill-great' : pct >= 40 ? 'fill-ok' : 'fill-poor';
+    const dotCls  = data.type === 'maths' ? 'dot-maths' : 'dot-english';
+
+    const row = document.createElement('div');
+    row.className = 'mt-row';
+    row.innerHTML = `
+      <div class="mt-topic">
+        <div class="mt-type-dot ${dotCls}"></div>
+        <span class="mt-topic-name">${topic}</span>
+      </div>
+      <div class="mt-correct">${data.correct}</div>
+      <div class="mt-wrong">${data.wrong}</div>
+      <div class="mt-bar-wrap">
+        <div class="mt-bar-track">
+          <div class="mt-bar-fill ${fillCls}" style="width:0%" data-w="${pct}%"></div>
+        </div>
+        <span class="mt-pct">${pct}%</span>
+      </div>`;
+    table.appendChild(row);
+  });
+
+  // Animate bars after paint
+  requestAnimationFrame(() => setTimeout(() => {
+    table.querySelectorAll('.mt-bar-fill').forEach(el => {
+      el.style.width = el.dataset.w;
+    });
+  }, 100));
+}
+
+/* ── Video log ── */
+function buildVideoLog(videoLog) {
+  const container = document.getElementById('video-log');
+  if (videoLog.length === 0) {
+    container.innerHTML = '<div class="vl-empty"><p>No videos prompted yet — errors during a sprint will appear here.</p></div>';
+    return;
+  }
+
+  videoLog.forEach(item => {
+    const isCorbett = (item.videoSource || '').toLowerCase().includes('corbett');
+    const srcCls    = isCorbett ? 'src-corbett'   : 'src-bitesize';
+    const btnCls    = isCorbett ? 'vl-btn-corbett' : 'vl-btn-bitesize';
+    const srcLabel  = isCorbett ? 'CorbettMaths'   : 'BBC Bitesize';
+    const dateStr   = item.date ? formatDate(item.date) : '';
+
+    const card = document.createElement('div');
+    card.className = 'vl-card';
+    card.innerHTML = `
+      <span class="vl-source-badge ${srcCls}">${srcLabel}</span>
+      <div class="vl-info">
+        <div class="vl-topic">${item.topic}</div>
+        <div class="vl-title">${item.videoTitle}</div>
+      </div>
+      <div class="vl-date">${dateStr}</div>
+      <a class="vl-btn ${btnCls}" href="${item.videoUrl}" target="_blank" rel="noopener">▶ Watch</a>`;
+    container.appendChild(card);
+  });
+}
+
+/* ── Session history ── */
+function buildHistory(sessions) {
+  const list  = document.getElementById('history-list');
+  const count = document.getElementById('history-count');
+  count.textContent = sessions.length + ' sprint' + (sessions.length !== 1 ? 's' : '');
+
+  if (sessions.length === 0) {
+    list.innerHTML = '<div class="vl-empty"><p style="color:rgba(255,255,255,.35)">No sprints completed yet.</p></div>';
+    return;
+  }
+
+  sessions.forEach(s => {
+    const circleCls = s.score >= 80 ? 'hsc-gold' : s.score >= 60 ? 'hsc-silver' : 'hsc-bronze';
+    const track     = s.track === 'P7' ? 'P7 Executor' : 'P6 Builder';
+    const row = document.createElement('div');
+    row.className = 'hist-row';
+    row.innerHTML = `
+      <div class="hist-score-circle ${circleCls}">${s.score}%</div>
+      <div class="hist-info">
+        <div class="hist-track">${track} Track</div>
+        <div class="hist-score">${s.correct}/${s.total} correct</div>
+      </div>
+      <div class="hist-date">${s.date ? formatDate(s.date) : ''}</div>`;
+    list.appendChild(row);
+  });
+}
+
+/* ── Reset ── */
+function confirmReset() {
+  if (!confirm('Are you sure? This will permanently clear all mastery data, video logs and sprint history.')) return;
+  ['star_mastery','star_video_log','star_sessions'].forEach(k => localStorage.removeItem(k));
+  alert('Progress data cleared. The page will now reload.');
+  location.reload();
+}
+
+/* ── Helpers ── */
+function formatDate(iso) {
+  try {
+    return new Date(iso).toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' });
+  } catch { return ''; }
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  // Show PIN overlay; buildDashboard() called on success
+});
+</script>
+</body>
+</html>
