@@ -1119,7 +1119,9 @@ let selectedMC  = null;
 function init() {
   // ── Read student profile from sessionStorage ──
   const name = sessionStorage.getItem('star_name');
-  const year = sessionStorage.getItem('star_year') || 'P6';  // default P6
+  // Read track from URL param first (?track=P7), then sessionStorage, then default P6
+  const urlTrack = new URLSearchParams(window.location.search).get('track');
+  const year = urlTrack || sessionStorage.getItem('star_year') || 'P6';
 
   // ── Filter the master bank to the correct level ──
   // Normalise so 'p7', 'P7 ', etc. all match correctly
