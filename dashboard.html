@@ -331,19 +331,56 @@
     .star-footer-bottom-links a { font-size:.72rem; color:rgba(255,255,255,.22); text-decoration:none; transition:color .18s; }
     .star-footer-bottom-links a:hover { color:rgba(255,255,255,.5); }
 
+    /* ── Reset Progress button ── */
+    .reset-wrap {
+      position: relative; z-index: 10;
+      width: 100%; max-width: 860px;
+      margin-bottom: 28px;
+      animation: fadeUp .7s .22s cubic-bezier(.22,1,.36,1) both;
+    }
+    .reset-card {
+      background: rgba(239,68,68,.06);
+      border: 1px solid rgba(239,68,68,.18);
+      border-radius: 16px; padding: 20px 24px;
+      display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    }
+    .reset-card-text h3 {
+      font-family: 'Playfair Display', serif;
+      font-size: .95rem; font-weight: 900; color: #fff; margin-bottom: 3px;
+    }
+    .reset-card-text p { font-size: .78rem; color: rgba(255,255,255,.35); }
+    .btn-reset-progress {
+      flex-shrink: 0; padding: 10px 18px; border-radius: 10px;
+      background: rgba(239,68,68,.12); border: 1px solid rgba(239,68,68,.3);
+      color: #ef4444; font-family: 'Lato', sans-serif;
+      font-size: .78rem; font-weight: 900; letter-spacing: .06em; text-transform: uppercase;
+      cursor: pointer; transition: all .2s;
+    }
+    .btn-reset-progress:hover { background: rgba(239,68,68,.22); border-color: #ef4444; }
+
+    /* ── Mobile table scroll ── */
+    .topic-table-scroll {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      border-radius: var(--radius-card);
+    }
+    .topic-table-scroll .topic-card {
+      min-width: 480px;
+    }
+
     /* ── Responsive ── */
     @media (max-width:680px) {
       .hero { grid-template-columns:1fr; padding:28px 24px; }
       .score-ring-wrap { flex-direction:row; gap:16px; }
       .stat-strip { grid-template-columns:1fr 1fr; }
       .stat-strip .stat-tile:last-child { grid-column:span 2; }
-      .topic-card { grid-template-columns:1fr; }
-      .btn-tutorial { width:100%; justify-content:center; }
       .cta-card { flex-direction:column; padding:28px 24px; text-align:center; }
       .cta-arrow { display:none; }
       .star-footer-grid { grid-template-columns:1fr; gap:24px; }
       .star-footer-bottom { flex-direction:column; align-items:flex-start; }
       .topic-question-preview { max-width:100%; white-space:normal; }
+      .reset-card { flex-direction:column; align-items:flex-start; }
+      .btn-reset-progress { width:100%; text-align:center; justify-content:center; }
     }
   </style>
 </head>
@@ -429,7 +466,9 @@
     <h2 class="section-title">Topics to Master</h2>
     <span class="section-count" id="topics-count"></span>
   </div>
-  <div class="topic-grid" id="topic-grid"></div>
+  <div class="topic-table-scroll">
+    <div class="topic-grid" id="topic-grid"></div>
+  </div>
 </div>
 
 <!-- CTA -->
@@ -442,6 +481,17 @@
     </div>
     <div class="cta-arrow">→</div>
   </a>
+</div>
+
+<!-- RESET PROGRESS -->
+<div class="reset-wrap">
+  <div class="reset-card">
+    <div class="reset-card-text">
+      <h3>🗑 Reset All Progress</h3>
+      <p>Clears your score, topics to review, and Memory Bank. Cannot be undone.</p>
+    </div>
+    <button class="btn-reset-progress" onclick="resetAllProgress()">Reset Progress</button>
+  </div>
 </div>
 
 <!-- FOOTER -->
@@ -610,6 +660,14 @@ function guessType(topic, source) {
   const mathKeys = ['fraction','area','perimeter','multiplication','division','algebra',
     'percentage','ratio','number','place value','time','decimal','equation','geometry','comparing'];
   return mathKeys.some(k => (topic || '').toLowerCase().includes(k)) ? 'maths' : 'english';
+}
+
+function resetAllProgress() {
+  if (!confirm('Are you sure? This will permanently clear all scores, topics and Memory Bank data.')) return;
+  ['star_toReview','star_last_score','star_last_track','star_last_name',
+   'star_mastery','star_video_log','star_sessions'].forEach(k => localStorage.removeItem(k));
+  alert('Progress cleared! The page will now reload.');
+  location.reload();
 }
 
 window.addEventListener('DOMContentLoaded', init);
