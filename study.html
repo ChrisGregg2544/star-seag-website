@@ -818,7 +818,7 @@
     </div>
     <div class="nav-student" id="nav-student-name" style="margin-left:4px;"></div>
   </div>
-  <a class="nav-exit" href="study.html">✕ Exit</a>
+  <a class="nav-exit" href="dashboard.html">✕ Exit</a>
 </div>
 
 <!-- ══════ PROGRESS ══════ -->
@@ -1504,6 +1504,46 @@ function submitAnswer() {
   document.getElementById('btn-next').style.display   = 'inline-block';
   document.getElementById('btn-next').textContent =
     currentQ < QUESTIONS.length - 1 ? 'Next Question →' : 'See Results 🏁';
+
+  // Persist progress after every answer so resuming from dashboard is accurate
+  saveProgress();
+}
+
+/* ════════════════════════════════════════════════════
+   SAVE PROGRESS
+   Called after every answer. Writes a lightweight
+   snapshot to localStorage so the dashboard always
+   reflects the latest state even if the student exits
+   mid-sprint via the ✕ Exit button.
+════════════════════════════════════════════════════ */
+function saveProgress() {
+  const track = sessionStorage.getItem('star_year') || 'P6';
+  const name  = sessionStorage.getItem('star_name')  || '';
+  const pct   = QUESTIONS.length
+    ? Math.round(score.correct / QUESTIONS.length * 100)
+    : 0;
+
+  localStorage.setItem('star_last_score', pct);
+  localStorage.setItem('star_last_track', track);
+  localStorage.setItem('star_last_name',  name);
+
+  // Snapshot of answered questions for the Memory Bank
+  const answered = QUESTIONS
+    .map((q, i) => ({ q, result: answers[i] }))
+    .filter(x => x.result !== null);
+
+  const toReview = answered
+    .filter(x => x.result === 'wrong')
+    .map(x => ({
+      topic:        x.q.topic,
+      videoTitle:   x.q.videoTitle,
+      videoUrl:     x.q.videoUrl,
+      videoSource:  x.q.videoSource,
+      questionText: x.q.text,
+    }))
+    .filter((item, idx, arr) => arr.findIndex(x => x.topic === item.topic) === idx);
+
+  localStorage.setItem('star_toReview', JSON.stringify(toReview));
 }
 
 function showFeedback(q, isCorrect) {
