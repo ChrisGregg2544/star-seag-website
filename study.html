@@ -8,9 +8,6 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,400&family=Lato:wght@300;400;700;900&display=swap" rel="stylesheet" />
   <style>
-    /* ══════════════════════════════════════════
-       TOKENS & RESET
-    ══════════════════════════════════════════ */
     :root {
       --gold:          #C9A84C;
       --gold-light:    #E8C97A;
@@ -47,25 +44,19 @@
       overflow-x: hidden;
     }
 
-    /* ══════════════════════════════════════════
-       BACKGROUND ATMOSPHERE
-    ══════════════════════════════════════════ */
     .bg-atmosphere {
-      position: fixed; inset: 0; pointer-events: none; z-index: 0;
-      overflow: hidden;
+      position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden;
     }
     .bg-glow {
       position: absolute; border-radius: 50%; pointer-events: none;
       background: radial-gradient(circle, rgba(201,168,76,.055) 0%, transparent 68%);
       width: 700px; height: 700px;
-      top: 50%; left: 50%;
-      transform: translate(-50%, -50%);
+      top: 50%; left: 50%; transform: translate(-50%, -50%);
     }
     .bg-glow-2 {
       position: absolute; border-radius: 50%;
       background: radial-gradient(circle, rgba(59,130,246,.03) 0%, transparent 70%);
-      width: 400px; height: 400px;
-      bottom: -100px; right: -80px;
+      width: 400px; height: 400px; bottom: -100px; right: -80px;
     }
     .star-p {
       position: absolute; border-radius: 50%;
@@ -75,23 +66,17 @@
     }
     @keyframes twinkle { from {opacity:.04;} to {opacity:.2;} }
 
-    /* ══════════════════════════════════════════
-       TOP NAV / HEADER
-    ══════════════════════════════════════════ */
     .top-nav {
       position: relative; z-index: 10;
       width: 100%; max-width: 780px;
       display: flex; align-items: center; justify-content: space-between;
       padding: 20px 0 16px;
     }
-    .nav-logo {
-      display: flex; align-items: center; gap: 8px;
-    }
+    .nav-logo { display: flex; align-items: center; gap: 8px; }
     .nav-logo-star {
       width: 32px; height: 32px;
       background: linear-gradient(135deg, rgba(201,168,76,.2) 0%, rgba(201,168,76,.06) 100%);
-      border: 1.5px solid rgba(201,168,76,.4);
-      border-radius: 50%;
+      border: 1.5px solid rgba(201,168,76,.4); border-radius: 50%;
       display: flex; align-items: center; justify-content: center;
       animation: avatarPulse 3s ease-in-out infinite;
     }
@@ -101,102 +86,64 @@
     }
     .nav-logo-text {
       font-family: 'Playfair Display', serif;
-      font-size: 1.15rem; font-weight: 700;
-      color: var(--gold); letter-spacing: .04em;
+      font-size: 1.15rem; font-weight: 700; color: var(--gold); letter-spacing: .04em;
     }
-    .nav-student {
-      font-size: .78rem; color: rgba(255,255,255,.42);
-      letter-spacing: .06em;
-    }
+    .nav-student { font-size: .78rem; color: rgba(255,255,255,.42); letter-spacing: .06em; }
     .nav-exit {
-      background: rgba(255,255,255,.06);
-      border: 1px solid rgba(255,255,255,.12);
-      border-radius: 8px;
-      color: rgba(255,255,255,.5);
-      font-family: 'Lato', sans-serif;
-      font-size: .75rem; font-weight: 700;
+      background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.12);
+      border-radius: 8px; color: rgba(255,255,255,.5);
+      font-family: 'Lato', sans-serif; font-size: .75rem; font-weight: 700;
       letter-spacing: .08em; text-transform: uppercase;
-      padding: 8px 16px; cursor: pointer;
-      transition: all .2s;
+      padding: 8px 16px; cursor: pointer; transition: all .2s;
       text-decoration: none; display: inline-block;
     }
-    .nav-exit:hover {
-      background: rgba(255,255,255,.1);
-      color: rgba(255,255,255,.8);
-      border-color: rgba(255,255,255,.2);
-    }
+    .nav-exit:hover { background: rgba(255,255,255,.1); color: rgba(255,255,255,.8); border-color: rgba(255,255,255,.2); }
 
-    /* ══════════════════════════════════════════
-       PROGRESS BAR
-    ══════════════════════════════════════════ */
     .progress-section {
       position: relative; z-index: 10;
-      width: 100%; max-width: 780px;
-      margin-bottom: 20px;
+      width: 100%; max-width: 780px; margin-bottom: 20px;
     }
     .progress-meta {
-      display: flex; justify-content: space-between; align-items: center;
-      margin-bottom: 10px;
+      display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;
     }
     .progress-label {
       font-size: .8rem; font-weight: 700;
       color: rgba(255,255,255,.55); letter-spacing: .08em; text-transform: uppercase;
     }
     .progress-label span { color: var(--gold); }
-    .progress-track {
-      height: 6px; background: rgba(255,255,255,.1);
-      border-radius: 99px; overflow: hidden;
-    }
+    .progress-track { height: 6px; background: rgba(255,255,255,.1); border-radius: 99px; overflow: hidden; }
     .progress-fill {
       height: 100%; border-radius: 99px;
       background: linear-gradient(90deg, var(--gold), var(--gold-light));
-      transition: width .6s cubic-bezier(.34,1.56,.64,1);
-      position: relative;
+      transition: width .6s cubic-bezier(.34,1.56,.64,1); position: relative;
     }
     .progress-fill::after {
-      content: '';
-      position: absolute; right: 0; top: 50%; transform: translateY(-50%);
-      width: 10px; height: 10px; border-radius: 50%;
-      background: var(--gold-light);
+      content: ''; position: absolute; right: 0; top: 50%; transform: translateY(-50%);
+      width: 10px; height: 10px; border-radius: 50%; background: var(--gold-light);
       box-shadow: 0 0 8px rgba(232,201,122,.8);
     }
-    .progress-dots {
-      display: flex; gap: 5px; margin-top: 10px;
-    }
+    .progress-dots { display: flex; gap: 5px; margin-top: 10px; }
     .progress-pip {
       flex: 1; height: 3px; border-radius: 99px;
-      background: rgba(255,255,255,.1);
-      transition: background .3s;
+      background: rgba(255,255,255,.1); transition: background .3s;
     }
     .progress-pip.done    { background: rgba(201,168,76,.5); }
     .progress-pip.active  { background: var(--gold); }
     .progress-pip.correct { background: var(--green); }
     .progress-pip.wrong   { background: var(--red); }
-
-    /* Score chips row */
-    .score-row {
-      display: flex; gap: 12px; margin-top: 10px;
-    }
+    .score-row { display: flex; gap: 12px; margin-top: 10px; }
     .score-chip {
       display: flex; align-items: center; gap: 5px;
-      font-family: 'Lato', sans-serif; font-size: .75rem; font-weight: 700;
-      letter-spacing: .04em;
+      font-family: 'Lato', sans-serif; font-size: .75rem; font-weight: 700; letter-spacing: .04em;
     }
     .score-chip .dot { width: 8px; height: 8px; border-radius: 50%; }
 
-    /* ══════════════════════════════════════════
-       MAIN QUESTION CARD
-    ══════════════════════════════════════════ */
     .question-card {
       position: relative; z-index: 10;
       width: 100%; max-width: 780px;
-      background: var(--card-bg);
-      border-radius: var(--radius-card);
+      background: var(--card-bg); border-radius: var(--radius-card);
       border: 1px solid var(--card-border);
-      box-shadow:
-        0 4px 6px rgba(0,0,0,.04),
-        0 20px 60px rgba(0,0,0,.3),
-        0 0 0 1px rgba(201,168,76,.05);
+      box-shadow: 0 4px 6px rgba(0,0,0,.04), 0 20px 60px rgba(0,0,0,.3), 0 0 0 1px rgba(201,168,76,.05);
       overflow: hidden;
       animation: cardIn .45s cubic-bezier(.22,1,.36,1) forwards;
     }
@@ -214,84 +161,66 @@
       100% { opacity:1; transform:translateX(0) scale(1); }
     }
 
-    /* Card header strip */
     .card-header {
       display: flex; align-items: center; justify-content: space-between;
-      padding: 18px 28px 16px;
-      border-bottom: 1px solid rgba(11,31,58,.06);
+      padding: 18px 28px 16px; border-bottom: 1px solid rgba(11,31,58,.06);
     }
     .card-type-badge {
       display: inline-flex; align-items: center; gap: 6px;
       border-radius: 999px; padding: 4px 13px;
       font-size: .68rem; font-weight: 900; letter-spacing: .12em; text-transform: uppercase;
     }
-    .badge-english {
-      background: rgba(59,130,246,.1);
-      border: 1px solid rgba(59,130,246,.25);
-      color: #3b82f6;
-    }
-    .badge-maths {
-      background: rgba(201,168,76,.12);
-      border: 1px solid rgba(201,168,76,.3);
-      color: #a07820;
-    }
-    .card-topic {
-      font-size: .72rem; color: var(--text-light);
-      font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
-    }
-    .card-marks {
-      font-size: .72rem; color: var(--text-light);
-      font-weight: 400;
-    }
+    .badge-english { background: rgba(59,130,246,.1); border: 1px solid rgba(59,130,246,.25); color: #3b82f6; }
+    .badge-maths   { background: rgba(201,168,76,.12); border: 1px solid rgba(201,168,76,.3); color: #a07820; }
+    .card-topic  { font-size: .72rem; color: var(--text-light); font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+    .card-marks  { font-size: .72rem; color: var(--text-light); font-weight: 400; }
 
-    /* Card body */
     .card-body { padding: 28px 28px 0; }
-
-    .question-number {
-      font-size: .72rem; font-weight: 900; letter-spacing: .12em; text-transform: uppercase;
-      color: var(--text-light); margin-bottom: 12px;
-    }
+    .question-number { font-size: .72rem; font-weight: 900; letter-spacing: .12em; text-transform: uppercase; color: var(--text-light); margin-bottom: 12px; }
     .question-text {
       font-family: 'Playfair Display', serif;
-      font-size: 1.28rem; line-height: 1.5;
-      color: var(--text-dark); margin-bottom: 10px;
-      min-height: 60px;
+      font-size: 1.28rem; line-height: 1.5; color: var(--text-dark); margin-bottom: 10px; min-height: 60px;
     }
     .question-context {
-      font-size: .9rem; color: var(--text-mid);
-      line-height: 1.7; margin-bottom: 24px;
-      background: rgba(11,31,58,.04);
-      border-left: 3px solid rgba(201,168,76,.4);
+      font-size: .9rem; color: var(--text-mid); line-height: 1.7; margin-bottom: 24px;
+      background: rgba(11,31,58,.04); border-left: 3px solid rgba(201,168,76,.4);
       padding: 12px 16px; border-radius: 0 8px 8px 0;
     }
 
-    /* ── Multiple choice ── */
+    /* Punctuation/Spelling segment display */
+    .segments-row {
+      display: flex; flex-wrap: wrap; gap: 8px;
+      margin-bottom: 20px; align-items: flex-end;
+    }
+    .segment-block {
+      display: flex; flex-direction: column; align-items: center; gap: 4px;
+    }
+    .segment-text {
+      background: rgba(11,31,58,.06); border: 1.5px solid rgba(11,31,58,.12);
+      border-radius: 8px; padding: 10px 14px;
+      font-size: .92rem; font-weight: 700; color: var(--text-dark);
+      white-space: nowrap;
+    }
+    .segment-label {
+      font-size: .72rem; font-weight: 900; color: var(--text-light);
+      letter-spacing: .1em; text-transform: uppercase;
+    }
+
     .mc-options { display: flex; flex-direction: column; gap: 11px; margin-bottom: 0; }
     .mc-btn {
       display: flex; align-items: center; gap: 14px;
-      background: rgba(11,31,58,.03);
-      border: 1.5px solid rgba(11,31,58,.1);
-      border-radius: 12px;
-      padding: 15px 18px;
+      background: rgba(11,31,58,.03); border: 1.5px solid rgba(11,31,58,.1);
+      border-radius: 12px; padding: 15px 18px;
       font-family: 'Lato', sans-serif; font-size: .95rem; font-weight: 700;
-      color: var(--text-dark);
-      cursor: pointer; text-align: left;
-      transition: all .2s ease;
-      -webkit-tap-highlight-color: transparent;
+      color: var(--text-dark); cursor: pointer; text-align: left;
+      transition: all .2s ease; -webkit-tap-highlight-color: transparent;
       position: relative; overflow: hidden;
     }
-    .mc-btn:hover:not(:disabled) {
-      border-color: var(--gold);
-      background: rgba(201,168,76,.05);
-      transform: translateX(3px);
-    }
+    .mc-btn:hover:not(:disabled) { border-color: var(--gold); background: rgba(201,168,76,.05); transform: translateX(3px); }
     .mc-letter {
       width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0;
-      background: rgba(11,31,58,.07);
-      display: flex; align-items: center; justify-content: center;
-      font-size: .78rem; font-weight: 900;
-      color: var(--text-mid);
-      transition: all .2s;
+      background: rgba(11,31,58,.07); display: flex; align-items: center; justify-content: center;
+      font-size: .78rem; font-weight: 900; color: var(--text-mid); transition: all .2s;
     }
     .mc-btn:hover:not(:disabled) .mc-letter { background: var(--gold); color: #fff; }
     .mc-btn.selected { border-color: var(--gold); background: rgba(201,168,76,.07); }
@@ -302,162 +231,82 @@
     .mc-btn.wrong-ans .mc-letter { background: var(--red)!important; color:#fff!important; }
     .mc-btn:disabled { cursor: default; }
 
-    /* ── Maths free response ── */
     .fr-wrap { margin-bottom: 0; }
-    .fr-label {
-      font-size: .75rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
-      color: var(--text-light); margin-bottom: 8px;
-    }
+    .fr-label { font-size: .75rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--text-light); margin-bottom: 8px; }
     .fr-input {
-      width: 100%;
-      background: rgba(11,31,58,.04);
-      border: 1.5px solid rgba(11,31,58,.12);
-      border-radius: 12px;
-      padding: 16px 20px;
-      font-family: 'Lato', sans-serif; font-size: 1.15rem; font-weight: 700;
-      color: var(--text-dark);
-      outline: none;
-      transition: border-color .22s, box-shadow .22s;
-      caret-color: var(--gold);
+      width: 100%; background: rgba(11,31,58,.04); border: 1.5px solid rgba(11,31,58,.12);
+      border-radius: 12px; padding: 16px 20px;
+      font-family: 'Lato', sans-serif; font-size: 1.15rem; font-weight: 700; color: var(--text-dark);
+      outline: none; transition: border-color .22s, box-shadow .22s; caret-color: var(--gold);
     }
     .fr-input::placeholder { color: rgba(11,31,58,.28); font-weight: 400; }
-    .fr-input:focus {
-      border-color: var(--gold);
-      box-shadow: 0 0 0 3px rgba(201,168,76,.12);
-    }
+    .fr-input:focus { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(201,168,76,.12); }
     .fr-input.correct-inp { border-color: var(--green)!important; background: var(--green-bg)!important; }
     .fr-input.wrong-inp   { border-color: var(--red)!important;   background: var(--red-bg)!important; }
 
-    /* ══════════════════════════════════════════
-       FEEDBACK PANEL (shown after answer)
-    ══════════════════════════════════════════ */
     .feedback-panel {
-      display: none;
-      margin: 20px 28px 0;
-      border-radius: 14px;
-      overflow: hidden;
+      display: none; margin: 20px 28px 0; border-radius: 14px; overflow: hidden;
       animation: feedIn .35s cubic-bezier(.22,1,.36,1) forwards;
     }
     @keyframes feedIn { from{opacity:0;transform:translateY(10px);} to{opacity:1;transform:translateY(0);} }
     .feedback-panel.visible { display: block; }
-
-    .feedback-inner {
-      padding: 18px 20px;
-      display: flex; gap: 14px; align-items: flex-start;
-    }
+    .feedback-inner { padding: 18px 20px; display: flex; gap: 14px; align-items: flex-start; }
     .feedback-icon {
       width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 1.1rem;
+      display: flex; align-items: center; justify-content: center; font-size: 1.1rem;
     }
     .feedback-correct { background: var(--green-bg); border: 1px solid rgba(34,197,94,.25); }
     .feedback-correct .feedback-icon { background: var(--green); }
     .feedback-wrong   { background: var(--red-bg);   border: 1px solid rgba(239,68,68,.25); }
     .feedback-wrong   .feedback-icon { background: var(--red); }
-
-    .feedback-title {
-      font-family: 'Playfair Display', serif;
-      font-size: 1rem; font-weight: 700; margin-bottom: 5px;
-    }
+    .feedback-title { font-family: 'Playfair Display', serif; font-size: 1rem; font-weight: 700; margin-bottom: 5px; }
     .feedback-correct .feedback-title { color: #166534; }
     .feedback-wrong   .feedback-title { color: #991b1b; }
-    .feedback-body {
-      font-size: .84rem; line-height: 1.68; color: var(--text-mid);
-    }
-    .feedback-steps {
-      font-size: .84rem; line-height: 1.7; color: var(--text-mid);
-      margin-top: 8px;
-      padding-left: 16px;
-    }
+    .feedback-body  { font-size: .84rem; line-height: 1.68; color: var(--text-mid); }
+    .feedback-steps { font-size: .84rem; line-height: 1.7; color: var(--text-mid); margin-top: 8px; padding-left: 16px; }
     .feedback-steps li { margin-bottom: 4px; }
 
-    /* ══════════════════════════════════════════
-       CARD FOOTER — actions
-    ══════════════════════════════════════════ */
-    .card-footer {
-      padding: 20px 28px 26px;
-      display: flex; flex-direction: column; gap: 14px;
-    }
-
-    /* Submit / Next row */
+    .card-footer { padding: 20px 28px 26px; display: flex; flex-direction: column; gap: 14px; }
     .action-row { display: flex; gap: 12px; align-items: center; }
 
     .btn-submit {
       flex: 1;
       background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 50%, var(--gold) 100%);
-      background-size: 200% auto;
-      color: var(--navy);
-      border: none; border-radius: var(--radius-btn);
-      padding: 17px 28px;
+      background-size: 200% auto; color: var(--navy);
+      border: none; border-radius: var(--radius-btn); padding: 17px 28px;
       font-family: 'Lato', sans-serif; font-size: .95rem; font-weight: 900;
-      letter-spacing: .08em; text-transform: uppercase;
-      cursor: pointer;
+      letter-spacing: .08em; text-transform: uppercase; cursor: pointer;
       transition: background-position .4s, transform .18s, box-shadow .18s, opacity .2s;
-      box-shadow: 0 5px 22px rgba(201,168,76,.38);
-      -webkit-tap-highlight-color: transparent;
+      box-shadow: 0 5px 22px rgba(201,168,76,.38); -webkit-tap-highlight-color: transparent;
     }
-    .btn-submit:hover:not(:disabled) {
-      background-position: right center;
-      transform: translateY(-2px);
-      box-shadow: 0 8px 32px rgba(201,168,76,.55);
-    }
+    .btn-submit:hover:not(:disabled) { background-position: right center; transform: translateY(-2px); box-shadow: 0 8px 32px rgba(201,168,76,.55); }
     .btn-submit:active:not(:disabled) { transform: translateY(0); }
     .btn-submit:disabled { opacity: .35; cursor: not-allowed; box-shadow: none; }
 
     .btn-next {
-      flex: 1;
-      background: var(--navy);
-      color: var(--gold);
-      border: 1.5px solid var(--gold);
-      border-radius: var(--radius-btn);
-      padding: 17px 28px;
+      flex: 1; background: var(--navy); color: var(--gold);
+      border: 1.5px solid var(--gold); border-radius: var(--radius-btn); padding: 17px 28px;
       font-family: 'Lato', sans-serif; font-size: .95rem; font-weight: 900;
-      letter-spacing: .08em; text-transform: uppercase;
-      cursor: pointer;
-      transition: all .2s;
+      letter-spacing: .08em; text-transform: uppercase; cursor: pointer; transition: all .2s;
       -webkit-tap-highlight-color: transparent;
     }
-    .btn-next:hover {
-      background: var(--gold); color: var(--navy);
-      transform: translateY(-2px);
-      box-shadow: 0 8px 28px rgba(201,168,76,.4);
-    }
+    .btn-next:hover { background: var(--gold); color: var(--navy); transform: translateY(-2px); box-shadow: 0 8px 28px rgba(201,168,76,.4); }
 
-    /* ── Hint button ── */
     .btn-hint {
       display: flex; align-items: center; gap: 8px; justify-content: center;
-      background: transparent;
-      border: 1.5px solid rgba(11,31,58,.14);
-      border-radius: var(--radius-btn);
-      padding: 13px 20px;
+      background: transparent; border: 1.5px solid rgba(11,31,58,.14);
+      border-radius: var(--radius-btn); padding: 13px 20px;
       font-family: 'Lato', sans-serif; font-size: .82rem; font-weight: 700;
-      color: var(--text-mid); letter-spacing: .06em;
-      cursor: pointer; width: 100%;
-      transition: all .22s;
-      -webkit-tap-highlight-color: transparent;
+      color: var(--text-mid); letter-spacing: .06em; cursor: pointer; width: 100%;
+      transition: all .22s; -webkit-tap-highlight-color: transparent;
     }
-    .btn-hint:hover {
-      border-color: var(--blue-hint);
-      background: var(--blue-hint-bg);
-      color: var(--blue-hint);
-    }
-    .btn-hint.hint-shown {
-      border-color: var(--blue-hint);
-      background: var(--blue-hint-bg);
-      color: var(--blue-hint);
-    }
+    .btn-hint:hover { border-color: var(--blue-hint); background: var(--blue-hint-bg); color: var(--blue-hint); }
+    .btn-hint.hint-shown { border-color: var(--blue-hint); background: var(--blue-hint-bg); color: var(--blue-hint); }
     .hint-icon { font-size: 1rem; }
 
-    /* ══════════════════════════════════════════
-       HINT PANEL
-    ══════════════════════════════════════════ */
     .hint-panel {
-      display: none;
-      background: var(--blue-hint-bg);
-      border: 1px solid rgba(59,130,246,.2);
-      border-radius: 14px;
-      padding: 16px 18px;
-      animation: feedIn .3s ease forwards;
+      display: none; background: var(--blue-hint-bg); border: 1px solid rgba(59,130,246,.2);
+      border-radius: 14px; padding: 16px 18px; animation: feedIn .3s ease forwards;
     }
     .hint-panel.visible { display: block; }
     .hint-header {
@@ -465,103 +314,91 @@
       font-size: .72rem; font-weight: 900; letter-spacing: .1em; text-transform: uppercase;
       color: var(--blue-hint); margin-bottom: 8px;
     }
-    .hint-text {
-      font-size: .88rem; line-height: 1.7; color: var(--text-mid);
-    }
+    .hint-text { font-size: .88rem; line-height: 1.7; color: var(--text-mid); }
 
-    /* ══════════════════════════════════════════
-       VIDEO HELP LINK
-    ══════════════════════════════════════════ */
     .video-link {
       display: flex; align-items: center; gap: 12px;
-      background: rgba(11,31,58,.03);
-      border: 1.5px dashed rgba(11,31,58,.13);
-      border-radius: 14px;
-      padding: 14px 18px;
-      text-decoration: none;
-      transition: all .22s;
+      background: rgba(11,31,58,.03); border: 1.5px dashed rgba(11,31,58,.13);
+      border-radius: 14px; padding: 14px 18px; text-decoration: none; transition: all .22s;
     }
-    .video-link:hover {
-      border-color: var(--gold);
-      background: rgba(201,168,76,.05);
-    }
+    .video-link:hover { border-color: var(--gold); background: rgba(201,168,76,.05); }
     .video-thumb {
       width: 42px; height: 42px; border-radius: 10px; flex-shrink: 0;
-      background: rgba(201,168,76,.15);
-      border: 1px solid rgba(201,168,76,.25);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 1.1rem;
+      background: rgba(201,168,76,.15); border: 1px solid rgba(201,168,76,.25);
+      display: flex; align-items: center; justify-content: center; font-size: 1.1rem;
     }
-    .video-info {}
-    .video-label {
-      font-size: .68rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
-      color: var(--text-light); margin-bottom: 2px;
-    }
-    .video-title {
-      font-size: .85rem; font-weight: 700; color: var(--text-dark);
-    }
-    .video-source {
-      font-size: .72rem; color: var(--gold); font-weight: 700;
-    }
+    .video-label { font-size: .68rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--text-light); margin-bottom: 2px; }
+    .video-title-text { font-size: .85rem; font-weight: 700; color: var(--text-dark); }
+    .video-source { font-size: .72rem; color: var(--gold); font-weight: 700; }
 
-    /* ══════════════════════════════════════════
-       SESSION COMPLETE SCREEN
-    ══════════════════════════════════════════ */
     .complete-screen {
-      display: none;
-      position: relative; z-index: 10;
-      width: 100%; max-width: 560px;
-      text-align: center;
+      display: none; position: relative; z-index: 10;
+      width: 100%; max-width: 560px; text-align: center;
       animation: cardIn .5s cubic-bezier(.22,1,.36,1) forwards;
     }
     .complete-screen.visible { display: block; }
-    .complete-avatar {
-      width: 88px; height: 88px; border-radius: 50%;
-      background: linear-gradient(135deg, rgba(201,168,76,.2), rgba(201,168,76,.06));
-      border: 2px solid rgba(201,168,76,.4);
-      display: flex; align-items: center; justify-content: center;
-      margin: 0 auto 24px; font-size: 2.4rem;
-      animation: avatarPulse 2s ease-in-out infinite;
+
+    .results-panel {
+      display: none; position: relative; z-index: 10;
+      width: 100%; max-width: 780px;
+      background: var(--card-bg); border-radius: var(--radius-card);
+      border: 1px solid var(--card-border); box-shadow: 0 20px 60px rgba(0,0,0,.3);
+      padding: 40px 36px 36px;
+      animation: cardIn .45s cubic-bezier(.22,1,.36,1) forwards;
     }
-    .complete-title {
-      font-family: 'Playfair Display', serif;
-      font-size: 2.2rem; font-weight: 900; color: #fff;
-      margin-bottom: 10px; line-height: 1.2;
+    .results-panel.visible { display: block; }
+
+    .results-header { text-align: center; margin-bottom: 32px; }
+    .results-emoji { font-size: 3rem; margin-bottom: 12px; display: block; }
+    .results-title { font-family: 'Playfair Display', serif; font-size: 1.8rem; font-weight: 900; color: var(--text-dark); margin-bottom: 6px; }
+    .results-sub { font-size: .95rem; color: var(--text-mid); }
+
+    .results-score-bar {
+      display: flex; align-items: center; justify-content: center; gap: 24px;
+      background: var(--navy); border-radius: 16px; padding: 20px 28px; margin-bottom: 32px;
     }
-    .complete-sub { font-size: 1rem; color: rgba(255,255,255,.55); margin-bottom: 32px; }
-    .results-grid {
-      display: grid; grid-template-columns: 1fr 1fr 1fr;
-      gap: 14px; margin-bottom: 32px;
+    .results-score-num { font-family: 'Playfair Display', serif; font-size: 2.8rem; font-weight: 900; color: var(--gold); line-height: 1; }
+    .results-score-label { font-size: .8rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: rgba(255,255,255,.5); margin-top: 4px; }
+    .results-score-divider { width: 1px; height: 48px; background: rgba(255,255,255,.12); }
+    .results-section-title {
+      font-size: .72rem; font-weight: 900; letter-spacing: .1em; text-transform: uppercase;
+      color: var(--text-light); margin-bottom: 14px; padding-bottom: 8px;
+      border-bottom: 1px solid rgba(201,168,76,.15);
     }
-    .result-tile {
-      background: rgba(255,255,255,.055);
-      border: 1px solid rgba(201,168,76,.18);
-      border-radius: 16px; padding: 20px 12px;
+    .missed-list { display: flex; flex-direction: column; gap: 14px; margin-bottom: 32px; }
+    .missed-card {
+      background: #fff8f8; border: 1px solid rgba(239,68,68,.15);
+      border-left: 4px solid var(--red); border-radius: 12px; padding: 14px 16px;
     }
-    .result-number {
-      font-family: 'Playfair Display', serif;
-      font-size: 2rem; font-weight: 700; color: var(--gold);
-      margin-bottom: 4px;
+    .missed-q-text { font-size: .9rem; font-weight: 700; color: var(--text-dark); margin-bottom: 10px; line-height: 1.4; }
+    .missed-answers { display: flex; gap: 12px; flex-wrap: wrap; }
+    .missed-chip {
+      font-size: .78rem; font-weight: 700; padding: 4px 10px; border-radius: 6px;
+      display: flex; align-items: center; gap: 5px;
     }
-    .result-label { font-size: .75rem; color: rgba(255,255,255,.45); letter-spacing: .06em; }
-    .star-rating { display: flex; justify-content: center; gap: 6px; margin-bottom: 28px; }
-    .star-rating svg { animation: starPop .4s cubic-bezier(.34,1.56,.64,1) both; }
-    .star-rating svg:nth-child(1) { animation-delay:.1s; }
-    .star-rating svg:nth-child(2) { animation-delay:.2s; }
-    .star-rating svg:nth-child(3) { animation-delay:.3s; }
-    .star-rating svg:nth-child(4) { animation-delay:.4s; }
-    .star-rating svg:nth-child(5) { animation-delay:.5s; }
-    @keyframes starPop { from{opacity:0;transform:scale(.3) rotate(-20deg);} to{opacity:1;transform:scale(1) rotate(0);} }
+    .missed-chip.yours   { background: rgba(239,68,68,.1); color: var(--red); border: 1px solid rgba(239,68,68,.25); }
+    .missed-chip.correct { background: rgba(34,197,94,.1); color: #16a34a; border: 1px solid rgba(34,197,94,.25); }
+    .missed-topic-tag { font-size: .7rem; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--text-light); margin-bottom: 6px; }
+    .missed-video-link {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: .78rem; font-weight: 700; color: var(--blue-hint); text-decoration: none; margin-top: 8px;
+    }
+    .missed-video-link:hover { text-decoration: underline; }
+    .all-correct-msg {
+      text-align: center; padding: 28px; background: var(--green-bg);
+      border: 1px solid rgba(34,197,94,.2); border-radius: 12px; margin-bottom: 32px;
+    }
+    .all-correct-msg .ace { font-size: 2rem; margin-bottom: 8px; }
+    .all-correct-msg p { color: #16a34a; font-weight: 700; font-size: .95rem; }
+    .results-actions { display: flex; flex-direction: column; gap: 12px; }
 
     .btn-complete-primary {
       display: block; width: 100%;
       background: linear-gradient(135deg, var(--gold), var(--gold-light));
-      color: var(--navy); border: none; border-radius: 16px;
-      padding: 20px; font-family: 'Lato', sans-serif; font-size: 1rem; font-weight: 900;
-      letter-spacing: .1em; text-transform: uppercase;
-      cursor: pointer; margin-bottom: 12px;
-      box-shadow: 0 8px 32px rgba(201,168,76,.4);
-      transition: transform .2s, box-shadow .2s;
+      color: var(--navy); border: none; border-radius: 16px; padding: 20px;
+      font-family: 'Lato', sans-serif; font-size: 1rem; font-weight: 900;
+      letter-spacing: .1em; text-transform: uppercase; cursor: pointer; margin-bottom: 12px;
+      box-shadow: 0 8px 32px rgba(201,168,76,.4); transition: transform .2s, box-shadow .2s;
     }
     .btn-complete-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(201,168,76,.55); }
     .btn-complete-secondary {
@@ -574,218 +411,67 @@
     }
     .btn-complete-secondary:hover { background: rgba(255,255,255,.1); color: #fff; }
 
-    /* ══════════════════════════════════════════
-       RESPONSIVE
-    ══════════════════════════════════════════ */
+    @keyframes pulse-gold {
+      0%   { box-shadow: 0 0 0 0   rgba(255,191,0,0.7); }
+      70%  { box-shadow: 0 0 0 15px rgba(255,191,0,0);   }
+      100% { box-shadow: 0 0 0 0   rgba(255,191,0,0);    }
+    }
+    .tutorial-glow {
+      animation: pulse-gold 2s infinite;
+      border: 2px solid #ffbf00 !important;
+      transform: scale(1.05); transition: all 0.3s ease;
+    }
+
+    /* Upgrade prompt after free sprint */
+    .upgrade-banner {
+      background: linear-gradient(135deg, rgba(201,168,76,.15) 0%, rgba(201,168,76,.05) 100%);
+      border: 1px solid rgba(201,168,76,.3);
+      border-radius: 16px; padding: 24px 28px; margin-bottom: 16px; text-align: center;
+    }
+    .upgrade-banner h3 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.2rem; font-weight: 700; color: var(--text-dark); margin-bottom: 6px;
+    }
+    .upgrade-banner p { font-size: .88rem; color: var(--text-mid); margin-bottom: 16px; line-height: 1.6; }
+
     @media (max-width: 600px) {
       .card-header { padding: 14px 18px 12px; }
       .card-body   { padding: 20px 18px 0; }
       .card-footer { padding: 16px 18px 22px; }
       .question-text { font-size: 1.12rem; }
-      .results-grid { grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
-      .result-number { font-size: 1.6rem; }
-      .complete-title { font-size: 1.75rem; }
+      .segments-row { gap: 6px; }
+      .segment-text { font-size: .82rem; padding: 8px 10px; }
     }
     @media (min-width: 768px) {
-      /* Comfortable iPad tap targets */
       .mc-btn  { padding: 18px 20px; }
       .btn-submit, .btn-next { padding: 20px 28px; font-size: 1rem; }
       .btn-hint  { padding: 15px 20px; font-size: .85rem; }
     }
-    /* ── Results Panel ── */
-  .results-panel {
-    display: none;
-    position: relative; z-index: 10;
-    width: 100%; max-width: 780px;
-    background: var(--card-bg);
-    border-radius: var(--radius-card);
-    border: 1px solid var(--card-border);
-    box-shadow: 0 20px 60px rgba(0,0,0,.3);
-    padding: 40px 36px 36px;
-    animation: cardIn .45s cubic-bezier(.22,1,.36,1) forwards;
-  }
-  .results-panel.visible { display: block; }
-
-  .results-header {
-    text-align: center;
-    margin-bottom: 32px;
-  }
-  .results-emoji {
-    font-size: 3rem;
-    margin-bottom: 12px;
-    display: block;
-  }
-  .results-title {
-    font-family: 'Playfair Display', serif;
-    font-size: 1.8rem; font-weight: 900;
-    color: var(--text-dark);
-    margin-bottom: 6px;
-  }
-  .results-sub {
-    font-size: .95rem; color: var(--text-mid);
-  }
-  .results-score-bar {
-    display: flex; align-items: center; justify-content: center; gap: 24px;
-    background: var(--navy);
-    border-radius: 16px;
-    padding: 20px 28px;
-    margin-bottom: 32px;
-  }
-  .results-score-num {
-    font-family: 'Playfair Display', serif;
-    font-size: 2.8rem; font-weight: 900;
-    color: var(--gold);
-    line-height: 1;
-  }
-  .results-score-label {
-    font-size: .8rem; font-weight: 700; letter-spacing: .08em;
-    text-transform: uppercase; color: rgba(255,255,255,.5);
-    margin-top: 4px;
-  }
-  .results-score-divider {
-    width: 1px; height: 48px;
-    background: rgba(255,255,255,.12);
-  }
-  .results-section-title {
-    font-size: .72rem; font-weight: 900; letter-spacing: .1em;
-    text-transform: uppercase; color: var(--text-light);
-    margin-bottom: 14px;
-    padding-bottom: 8px;
-    border-bottom: 1px solid rgba(201,168,76,.15);
-  }
-  .missed-list {
-    display: flex; flex-direction: column; gap: 14px;
-    margin-bottom: 32px;
-  }
-  .missed-card {
-    background: #fff8f8;
-    border: 1px solid rgba(239,68,68,.15);
-    border-left: 4px solid var(--red);
-    border-radius: 12px;
-    padding: 14px 16px;
-  }
-  .missed-q-text {
-    font-size: .9rem; font-weight: 700;
-    color: var(--text-dark);
-    margin-bottom: 10px;
-    line-height: 1.4;
-  }
-  .missed-answers {
-    display: flex; gap: 12px; flex-wrap: wrap;
-  }
-  .missed-chip {
-    font-size: .78rem; font-weight: 700;
-    padding: 4px 10px; border-radius: 6px;
-    display: flex; align-items: center; gap: 5px;
-  }
-  .missed-chip.yours {
-    background: rgba(239,68,68,.1); color: var(--red);
-    border: 1px solid rgba(239,68,68,.25);
-  }
-  .missed-chip.correct {
-    background: rgba(34,197,94,.1); color: #16a34a;
-    border: 1px solid rgba(34,197,94,.25);
-  }
-  .missed-topic-tag {
-    font-size: .7rem; font-weight: 700; letter-spacing: .05em;
-    text-transform: uppercase;
-    color: var(--text-light);
-    margin-bottom: 6px;
-  }
-  .missed-video-link {
-    display: inline-flex; align-items: center; gap: 6px;
-    font-size: .78rem; font-weight: 700;
-    color: var(--blue-hint);
-    text-decoration: none;
-    margin-top: 8px;
-  }
-  .missed-video-link:hover { text-decoration: underline; }
-  .all-correct-msg {
-    text-align: center; padding: 28px;
-    background: var(--green-bg);
-    border: 1px solid rgba(34,197,94,.2);
-    border-radius: 12px;
-    margin-bottom: 32px;
-  }
-  .all-correct-msg .ace { font-size: 2rem; margin-bottom: 8px; }
-  .all-correct-msg p { color: #16a34a; font-weight: 700; font-size: .95rem; }
-  .results-actions {
-    display: flex; flex-direction: column; gap: 12px;
-  }
-
-  /* ── Tutorial Glow (wrong answer) ── */
-  @keyframes pulse-gold {
-    0%   { box-shadow: 0 0 0 0   rgba(255,191,0,0.7); }
-    70%  { box-shadow: 0 0 0 15px rgba(255,191,0,0);   }
-    100% { box-shadow: 0 0 0 0   rgba(255,191,0,0);    }
-  }
-  .tutorial-glow {
-    animation: pulse-gold 2s infinite;
-    border: 2px solid #ffbf00 !important;
-    transform: scale(1.05);
-    transition: all 0.3s ease;
-  }
-
-</style>
+  </style>
 
   <style>
     .star-footer {
-      position: relative; z-index: 10;
-      width: 100%; max-width: 1000px;
-      margin: 56px auto 0;
-      padding-top: 32px;
-      border-top: 1px solid rgba(201,168,76,0.15);
+      position: relative; z-index: 10; width: 100%; max-width: 1000px;
+      margin: 56px auto 0; padding-top: 32px; border-top: 1px solid rgba(201,168,76,0.15);
     }
-    .star-footer-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 32px;
-      padding-bottom: 28px;
-    }
+    .star-footer-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 32px; padding-bottom: 28px; }
     .star-footer-col-label {
       font-size: .68rem; font-weight: 900; letter-spacing: .13em; text-transform: uppercase;
-      color: rgba(201,168,76,0.7); margin-bottom: 11px;
-      display: flex; align-items: center; gap: 7px;
+      color: rgba(201,168,76,0.7); margin-bottom: 11px; display: flex; align-items: center; gap: 7px;
     }
-    .star-footer-col-label::before {
-      content: ''; display: inline-block;
-      width: 14px; height: 1.5px;
-      background: rgba(201,168,76,0.5); border-radius: 99px;
-    }
-    .star-footer-text {
-      font-size: .78rem; line-height: 1.75;
-      color: rgba(255,255,255,0.36);
-    }
-    .star-footer-text a {
-      color: rgba(201,168,76,0.7);
-      text-decoration: none;
-      transition: color .18s;
-    }
+    .star-footer-col-label::before { content: ''; display: inline-block; width: 14px; height: 1.5px; background: rgba(201,168,76,0.5); border-radius: 99px; }
+    .star-footer-text { font-size: .78rem; line-height: 1.75; color: rgba(255,255,255,0.36); }
+    .star-footer-text a { color: rgba(201,168,76,0.7); text-decoration: none; transition: color .18s; }
     .star-footer-text a:hover { color: #C9A84C; }
-    .star-footer-logo {
-      display: flex; align-items: center; gap: 7px; margin-bottom: 11px;
-    }
-    .star-footer-logo-text {
-      font-family: 'Playfair Display', serif;
-      font-size: .88rem; font-weight: 700;
-      color: #C9A84C; letter-spacing: .06em;
-    }
+    .star-footer-logo { display: flex; align-items: center; gap: 7px; margin-bottom: 11px; }
+    .star-footer-logo-text { font-family: 'Playfair Display', serif; font-size: .88rem; font-weight: 700; color: #C9A84C; letter-spacing: .06em; }
     .star-footer-bottom {
-      padding: 16px 0;
-      border-top: 1px solid rgba(255,255,255,0.05);
-      display: flex; align-items: center; justify-content: space-between;
-      flex-wrap: wrap; gap: 10px;
+      padding: 16px 0; border-top: 1px solid rgba(255,255,255,0.05);
+      display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;
     }
-    .star-footer-bottom-text {
-      font-size: .72rem; color: rgba(255,255,255,0.22);
-    }
-    .star-footer-bottom-links {
-      display: flex; gap: 18px;
-    }
-    .star-footer-bottom-links a {
-      font-size: .72rem; color: rgba(255,255,255,0.22);
-      text-decoration: none; transition: color .18s;
-    }
+    .star-footer-bottom-text { font-size: .72rem; color: rgba(255,255,255,0.22); }
+    .star-footer-bottom-links { display: flex; gap: 18px; }
+    .star-footer-bottom-links a { font-size: .72rem; color: rgba(255,255,255,0.22); text-decoration: none; transition: color .18s; }
     .star-footer-bottom-links a:hover { color: rgba(255,255,255,0.5); }
     @media(max-width: 620px) {
       .star-footer-grid { grid-template-columns: 1fr; gap: 24px; }
@@ -795,7 +481,6 @@
 </head>
 <body>
 
-<!-- Background -->
 <div class="bg-atmosphere">
   <div class="bg-glow"></div>
   <div class="bg-glow-2"></div>
@@ -807,11 +492,13 @@
   <div class="star-p" style="left:80%;top:82%;width:2px;height:2px;--d:4.1s;--del:1.8s;"></div>
 </div>
 
-<!-- ══════ TOP NAV ══════ -->
+<!-- TOP NAV -->
 <div class="top-nav">
   <div class="nav-logo">
     <div class="nav-logo-star">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="#C9A84C"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="#C9A84C">
+        <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/>
+      </svg>
     </div>
     <div>
       <div class="nav-logo-text">STAR</div>
@@ -821,7 +508,7 @@
   <a class="nav-exit" href="dashboard.html">✕ Exit</a>
 </div>
 
-<!-- ══════ PROGRESS ══════ -->
+<!-- PROGRESS -->
 <div class="progress-section" id="progress-section">
   <div class="progress-meta">
     <div class="progress-label">Question <span id="q-current">1</span> of <span id="q-total">10</span></div>
@@ -843,32 +530,23 @@
   </div>
 </div>
 
-<!-- ══════ QUESTION CARD ══════ -->
+<!-- QUESTION CARD -->
 <div class="question-card" id="question-card">
-
-  <!-- Card header -->
   <div class="card-header">
     <div id="card-type-badge" class="card-type-badge badge-maths">📐 Maths</div>
-    <div class="card-topic" id="card-topic">Fractions</div>
+    <div class="card-topic" id="card-topic">Loading…</div>
     <div class="card-marks" id="card-marks">1 mark</div>
   </div>
-
-  <!-- Card body -->
   <div class="card-body">
     <div class="question-number" id="q-number-label">Question 1</div>
     <div class="question-text" id="q-text">Loading question…</div>
     <div class="question-context" id="q-context" style="display:none;"></div>
-
-    <!-- Multiple choice options -->
+    <div class="segments-row" id="segments-row" style="display:none;"></div>
     <div class="mc-options" id="mc-options" style="display:none;"></div>
-
-    <!-- Free response -->
     <div class="fr-wrap" id="fr-wrap" style="display:none;">
       <div class="fr-label">Your Answer</div>
       <input type="text" class="fr-input" id="fr-input" placeholder="Type your answer here…" autocomplete="off" />
     </div>
-
-    <!-- Feedback panel -->
     <div class="feedback-panel" id="feedback-panel">
       <div class="feedback-inner">
         <div class="feedback-icon" id="feedback-icon">✓</div>
@@ -880,79 +558,45 @@
       </div>
     </div>
   </div>
-
-  <!-- Card footer -->
   <div class="card-footer">
-
-    <!-- Action row -->
     <div class="action-row">
       <button class="btn-submit" id="btn-submit" disabled onclick="submitAnswer()">Check Answer</button>
-      <button class="btn-next"   id="btn-next"   style="display:none;" onclick="nextQuestion()">Next →</button>
+      <button class="btn-next" id="btn-next" style="display:none;" onclick="nextQuestion()">Next →</button>
     </div>
-
-    <!-- Hint button -->
     <button class="btn-hint" id="btn-hint" onclick="toggleHint()">
       <span class="hint-icon">🔍</span>
       Request Detective Hint from STAR
     </button>
-
-    <!-- Hint panel -->
     <div class="hint-panel" id="hint-panel">
       <div class="hint-header">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
         STAR's Detective Hint
       </div>
       <div class="hint-text" id="hint-text">Loading hint…</div>
     </div>
-
-    <!-- Video link -->
     <a class="video-link" id="video-link" href="#" target="_blank" rel="noopener">
       <div class="video-thumb">▶️</div>
       <div class="video-info">
         <div class="video-label">Stuck? Watch this</div>
-        <div class="video-title" id="video-title">Loading resource…</div>
+        <div class="video-title-text" id="video-title">Loading resource…</div>
         <div class="video-source" id="video-source">CorbettMaths</div>
       </div>
     </a>
-
   </div>
 </div>
 
-<!-- ══════ SESSION COMPLETE ══════ -->
-<div class="complete-screen" id="complete-screen">
-  <div class="complete-avatar" id="complete-avatar">⭐</div>
-  <div class="complete-title" id="complete-title">Sprint Complete!</div>
-  <div class="complete-sub"   id="complete-sub">Here's how you did:</div>
-  <div class="star-rating" id="star-rating"></div>
-  <div class="results-grid">
-    <div class="result-tile">
-      <div class="result-number" id="res-correct">0</div>
-      <div class="result-label">Correct</div>
-    </div>
-    <div class="result-tile">
-      <div class="result-number" id="res-wrong" style="color:#ef4444;">0</div>
-      <div class="result-label">To Review</div>
-    </div>
-    <div class="result-tile">
-      <div class="result-number" id="res-pct">0%</div>
-      <div class="result-label">Score</div>
-    </div>
-  </div>
-  <button class="btn-complete-primary" onclick="restartSession()">🔄 &nbsp;Try Another Sprint</button>
-  <button class="btn-complete-secondary" onclick="goToDashboard()">View My Dashboard</button>
-</div>
+<!-- SESSION COMPLETE (legacy — kept for safety) -->
+<div class="complete-screen" id="complete-screen"></div>
 
-<!-- ══════ RESULTS PANEL ══════ -->
+<!-- RESULTS PANEL -->
 <div class="results-panel" id="results-panel">
-
-  <!-- Header -->
   <div class="results-header">
     <span class="results-emoji" id="res-emoji">⭐</span>
     <div class="results-title" id="res-title">Sprint Complete!</div>
     <div class="results-sub"   id="res-sub">Here's how you did this session.</div>
   </div>
-
-  <!-- Score bar -->
   <div class="results-score-bar">
     <div style="text-align:center">
       <div class="results-score-num" id="res-fraction">0/10</div>
@@ -966,346 +610,249 @@
     <div class="results-score-divider"></div>
     <div style="text-align:center" id="res-star-wrap"></div>
   </div>
-
-  <!-- Missed questions -->
   <div id="missed-section">
     <div class="results-section-title" id="missed-heading">Questions to Review</div>
     <div class="missed-list" id="missed-list"></div>
   </div>
 
-  <!-- Actions -->
-  <div class="results-actions">
-    <button class="btn-complete-primary" onclick="restartSession()">🔄 &nbsp;Try Another Sprint</button>
-    <button class="btn-complete-secondary" onclick="goToDashboard()">View My Dashboard →</button>
+  <!-- Upgrade prompt -->
+  <div class="upgrade-banner" id="upgrade-banner" style="display:none;">
+    <h3>🌟 Save Your Progress & Unlock More!</h3>
+    <p>Create a free account to save your badges, track your weak spots, and unlock 100+ additional SEAG questions.</p>
+    <button class="btn-complete-primary" style="margin-bottom:0;" onclick="goToSignup()">
+      🚀 Save My Results & Unlock More
+    </button>
   </div>
 
+  <div class="results-actions">
+    <button class="btn-complete-primary" id="btn-try-again" onclick="restartSession()">🔄 &nbsp;Try Another Sprint</button>
+    <button class="btn-complete-secondary" onclick="goToDashboard()">View My Dashboard →</button>
+  </div>
 </div>
 
-<!-- ══════════════════════════════════════════
-     QUESTION BANK
-══════════════════════════════════════════ -->
+<!-- FOOTER -->
+<footer class="star-footer">
+  <div class="star-footer-grid">
+    <div>
+      <div class="star-footer-logo">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="#C9A84C">
+          <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/>
+        </svg>
+        <span class="star-footer-logo-text">STAR AI Tutor</span>
+      </div>
+      <p class="star-footer-text">Empowering P6 &amp; P7 students for SEAG success.<br>Smart, personalised practice — built for Northern Ireland.</p>
+    </div>
+    <div>
+      <div class="star-footer-col-label">Educational Partners</div>
+      <p class="star-footer-text">
+        Visual tutorials powered by
+        <a href="https://corbettmaths.com" target="_blank" rel="noopener">CorbettMaths</a>
+        and <a href="https://www.bbc.co.uk/bitesize" target="_blank" rel="noopener">BBC Bitesize</a>.<br>
+        Used with deep respect for their incredible free resources.
+      </p>
+    </div>
+    <div>
+      <div class="star-footer-col-label">Legal</div>
+      <p class="star-footer-text">&copy; 2026 STAR AI Tutor. All rights reserved.<br>Not affiliated with the SEAG board or the BBC.</p>
+    </div>
+  </div>
+  <div class="star-footer-bottom">
+    <span class="star-footer-bottom-text">&copy; 2026 STAR AI Tutor</span>
+    <div class="star-footer-bottom-links">
+      <a href="#">Privacy Policy</a>
+      <a href="#">Terms of Service</a>
+      <a href="#">Contact</a>
+    </div>
+  </div>
+</footer>
+
 <script>
-
 /* ════════════════════════════════════════════════════
-   ALL QUESTIONS — each has a `level` property:
-     'P6'  →  P6 Builder Track  (foundation, KS2 NI core)
-     'P7'  →  P7 Executor Track (exam-level, SEAG format)
+   STATE
 ════════════════════════════════════════════════════ */
-const ALL_QUESTIONS = [
-
-  // ══════════════════════════════════════════
-  // P6 BUILDER TRACK
-  // ══════════════════════════════════════════
-
-  {
-    level: 'P6', type: 'maths', topic: 'Fractions', marks: '1 mark',
-    text: 'What is \u00bc of 32?',
-    options: ['A. 4', 'B. 8', 'C. 12', 'D. 16'],
-    answer: 'B',
-    explanation: '32 \u00f7 4 = 8.',
-    steps: ['Divide 32 by the denominator (4)', '32 \u00f7 4 = 8'],
-    hint: 'To find a quarter, divide by 4.',
-    videoTitle: 'Fractions of Amounts',
-    videoSource: 'CorbettMaths',
-    videoUrl: 'https://corbettmathsprimary.com/fractions-of-amounts-mov/',
-  },
-
-  {
-    level: 'P6', type: 'english', topic: 'Spelling', marks: '1 mark',
-    text: 'Which word is spelled correctly?',
-    options: ['A. Believe', 'B. Beleive', 'C. Believ', 'D. Bleive'],
-    answer: 'A',
-    explanation: 'The correct spelling is Believe. Remember: i before e except after c.',
-    hint: 'Think about the rule "i before e except after c". Which option follows it?',
-    videoTitle: 'Spelling Rules',
-    videoSource: 'BBC Teach',
-    videoUrl: 'https://www.youtube.com/watch?v=R9feMSRDbKE',
-  },
-
-  {
-    level: 'P6', type: 'maths', topic: 'Money', marks: '2 marks',
-    text: 'A toy costs \u00a34.50. I pay with a \u00a310 note. How much change do I get?',
-    options: ['A. \u00a35.50', 'B. \u00a36.50', 'C. \u00a34.50', 'D. \u00a35.00'],
-    answer: 'A',
-    explanation: '\u00a310.00 \u2212 \u00a34.50 = \u00a35.50.',
-    steps: ['Start at \u00a34.50', 'Count up to \u00a35.00 \u2192 50p', 'Count up to \u00a310.00 \u2192 \u00a35.00', '50p + \u00a35.00 = \u00a35.50'],
-    hint: 'Count up from \u00a34.50 to \u00a310.00 in steps.',
-    videoTitle: 'Money',
-    videoSource: 'CorbettMaths',
-    videoUrl: 'https://corbettmathsprimary.com/2018/07/24/money-video/',
-  },
-
-  {
-    level: 'P6', type: 'english', topic: 'Punctuation', marks: '1 mark',
-    text: 'Identify the missing capital letter: "on tuesday, we went to Belfast."',
-    options: ['A. on', 'B. tuesday', 'C. went', 'D. to'],
-    answer: 'B',
-    explanation: '"Tuesday" is a proper noun \u2014 days of the week always take a capital letter. Note: "on" also needs a capital as it starts the sentence, but "tuesday" is the answer expected here.',
-    hint: 'Days of the week are proper nouns and always need a capital letter.',
-    videoTitle: 'Capital Letters',
-    videoSource: 'BBC Teach',
-    videoUrl: 'https://www.youtube.com/watch?v=m8oedbwndlw',
-  },
-
-  {
-    level: 'P6', type: 'maths', topic: 'Multiplication', marks: '1 mark',
-    text: 'A box holds 12 eggs. How many eggs are in 5 boxes?',
-    options: ['A. 50', 'B. 60', 'C. 72', 'D. 48'],
-    answer: 'B',
-    explanation: '12 \u00d7 5 = 60.',
-    steps: ['12 \u00d7 5', '= 10 \u00d7 5 + 2 \u00d7 5', '= 50 + 10 = 60'],
-    hint: 'Multiply 12 by 5. Try 10 \u00d7 5 first, then add 2 \u00d7 5.',
-    videoTitle: 'Multiplication',
-    videoSource: 'CorbettMaths',
-    videoUrl: 'https://corbettmathsprimary.com/2018/07/21/multiplication-video/',
-  },
-
-  {
-    level: 'P6', type: 'english', topic: 'Nouns', marks: '1 mark',
-    text: 'Which of these is a proper noun?',
-    options: ['A. dog', 'B. city', 'C. London', 'D. park'],
-    answer: 'C',
-    explanation: 'London is a proper noun \u2014 it is the specific name of a place. Proper nouns always begin with a capital letter.',
-    hint: 'A proper noun is the specific name of a person, place, or thing. Which option is a specific name?',
-    videoTitle: 'Nouns',
-    videoSource: 'BBC Bitesize',
-    videoUrl: 'https://www.youtube.com/watch?v=PR22RAGsJ4A',
-  },
-
-  {
-    level: 'P6', type: 'maths', topic: 'Time', marks: '1 mark',
-    text: 'How many minutes are in 2 and a half hours?',
-    options: ['A. 120', 'B. 150', 'C. 180', 'D. 90'],
-    answer: 'B',
-    explanation: '1 hour = 60 minutes. 2 hours = 120 minutes. Half an hour = 30 minutes. 120 + 30 = 150 minutes.',
-    steps: ['1 hour = 60 minutes', '2 hours = 2 \u00d7 60 = 120 minutes', 'Half hour = 30 minutes', '120 + 30 = 150 minutes'],
-    hint: 'Convert 2 hours to minutes first (\u00d7 60), then add the extra 30 minutes.',
-    videoTitle: 'Time',
-    videoSource: 'CorbettMaths',
-    videoUrl: 'https://corbettmathsprimary.com/2018/07/31/time-video/',
-  },
-
-  {
-    level: 'P6', type: 'english', topic: 'Adjectives', marks: '1 mark',
-    text: 'Find the adjective in this sentence: "The fluffy cat slept."',
-    options: ['A. cat', 'B. fluffy', 'C. slept', 'D. the'],
-    answer: 'B',
-    explanation: '"Fluffy" is the adjective \u2014 it describes what the cat is like. Adjectives describe nouns.',
-    hint: 'An adjective describes a noun. Which word tells us what the cat is like?',
-    videoTitle: 'Adjectives',
-    videoSource: 'BBC Teach',
-    videoUrl: 'https://www.youtube.com/watch?v=e-C5FPbS7zc',
-  },
-
-  {
-    level: 'P6', type: 'maths', topic: 'Decimals', marks: '1 mark',
-    text: 'Write 0.5 as a fraction.',
-    options: ['A. 1/2', 'B. 1/5', 'C. 5/100', 'D. 1/4'],
-    answer: 'A',
-    explanation: '0.5 means 5 tenths = 5/10. Simplified, 5/10 = 1/2.',
-    hint: '0.5 is 5 tenths. Write that as a fraction, then simplify by dividing top and bottom by 5.',
-    videoTitle: 'Decimals to Fractions',
-    videoSource: 'CorbettMaths',
-    videoUrl: 'https://corbettmathsprimary.com/fractions-decimals-percentages-video/',
-  },
-
-  {
-    level: 'P6', type: 'english', topic: 'Verbs', marks: '1 mark',
-    text: 'Which word is the verb?',
-    options: ['A. quickly', 'B. ran', 'C. blue', 'D. house'],
-    answer: 'B',
-    explanation: '"Ran" is the verb \u2014 it is the action word. Verbs describe what someone or something does.',
-    hint: 'A verb is a doing or action word. Which option shows an action?',
-    videoTitle: 'Verbs',
-    videoSource: 'BBC Teach',
-    videoUrl: 'https://www.youtube.com/watch?v=OjiFdT0bF-w',
-  },
-
-  // ══════════════════════════════════════════
-  // P7 EXECUTOR TRACK
-  // ══════════════════════════════════════════
-
-  {
-    level: 'P7', type: 'maths', topic: 'Ratio', marks: '2 marks',
-    text: 'A necklace has 2 red beads for every 3 blue. If there are 10 red, how many blue are there?',
-    options: ['A. 12', 'B. 15', 'C. 20', 'D. 13'],
-    answer: 'B',
-    explanation: 'Red : Blue = 2 : 3. If red = 10 (\u00d75), then blue = 3 \u00d7 5 = 15.',
-    steps: ['Ratio is 2 red : 3 blue', '10 \u00f7 2 = 5 (scale factor)', '3 \u00d7 5 = 15 blue beads'],
-    hint: 'Find how many times bigger 10 is than 2. Then multiply the blue side by the same amount.',
-    videoTitle: 'Ratio & Proportion',
-    videoSource: 'CorbettMaths Primary',
-    videoUrl: 'https://corbettmathsprimary.com/2018/07/31/proportion-video/',
-  },
-
-  {
-    level: 'P7', type: 'english', topic: 'Apostrophes', marks: '1 mark',
-    text: 'Which uses a possessive apostrophe correctly?',
-    options: ['A. The dogs\'s bone', 'B. The dog\'s bone', 'C. The dogs bone\'s', 'D. The dogs bone'],
-    answer: 'B',
-    explanation: '"The dog\'s bone" uses the apostrophe correctly to show the bone belongs to the dog.',
-    hint: 'A possessive apostrophe shows ownership. Find the sentence where something belongs to the dog.',
-    videoTitle: 'Apostrophes',
-    videoSource: 'BBC Bitesize',
-    videoUrl: 'https://www.bbc.co.uk/bitesize/topics/zfywb7h/watch/z34tdnb',
-  },
-
-  {
-    level: 'P7', type: 'maths', topic: 'Percentages', marks: '2 marks',
-    text: 'Find 20% of \u00a380.',
-    options: ['A. \u00a38', 'B. \u00a316', 'C. \u00a320', 'D. \u00a340'],
-    answer: 'B',
-    explanation: '10% of \u00a380 = \u00a38. 20% = 2 \u00d7 \u00a38 = \u00a316.',
-    steps: ['10% of \u00a380 = \u00a380 \u00f7 10 = \u00a38', '20% = 2 \u00d7 10%', '2 \u00d7 \u00a38 = \u00a316'],
-    hint: 'Find 10% first by dividing by 10. Then double it to get 20%.',
-    videoTitle: 'Percentages of Amounts',
-    videoSource: 'CorbettMaths',
-    videoUrl: 'https://corbettmaths.com/2012/08/20/percentages-of-amounts-non-calculator/',
-  },
-
-  {
-    level: 'P7', type: 'english', topic: 'Synonyms', marks: '1 mark',
-    text: 'Which word is a synonym for "gigantic"?',
-    options: ['A. small', 'B. tiny', 'C. huge', 'D. fast'],
-    answer: 'C',
-    explanation: '"Huge" is a synonym for gigantic \u2014 both mean very large. Small and tiny are antonyms. Fast relates to speed.',
-    hint: 'A synonym means the same (or nearly the same) as the original word. Gigantic means very, very big.',
-    videoTitle: 'Synonyms',
-    videoSource: 'Oxford Owl',
-    videoUrl: 'https://www.youtube.com/watch?v=F_kvS4KYrqM',
-  },
-
-  {
-    level: 'P7', type: 'maths', topic: 'Area', marks: '2 marks',
-    text: 'A rectangle has a length of 8cm and a width of 5cm. What is the area?',
-    options: ['A. 13cm\u00b2', 'B. 40cm\u00b2', 'C. 26cm\u00b2', 'D. 40cm'],
-    answer: 'B',
-    explanation: 'Area of a rectangle = length \u00d7 width = 8 \u00d7 5 = 40cm\u00b2.',
-    steps: ['Area = length \u00d7 width', '= 8cm \u00d7 5cm', '= 40cm\u00b2'],
-    hint: 'Area of a rectangle = length \u00d7 width. Multiply the two measurements together.',
-    videoTitle: 'Area',
-    videoSource: 'CorbettMaths',
-    videoUrl: 'https://corbettmaths.com/?s=area',
-  },
-
-  {
-    level: 'P7', type: 'english', topic: 'Clauses', marks: '2 marks',
-    text: 'Which is a subordinate clause?',
-    options: ['A. The dog barked', 'B. because it was hungry', 'C. I ate lunch', 'D. She ran fast'],
-    answer: 'B',
-    explanation: '"Because it was hungry" is the subordinate clause \u2014 it cannot stand alone as a sentence. It depends on a main clause to make sense.',
-    hint: 'A subordinate clause cannot stand alone. It usually starts with a connective like "because", "although", or "when".',
-    videoTitle: 'Clauses',
-    videoSource: 'BBC Bitesize',
-    videoUrl: 'https://www.bbc.co.uk/bitesize/articles/zsrt4qt#zt2d6rd',
-  },
-
-  {
-    level: 'P7', type: 'maths', topic: 'Mean', marks: '2 marks',
-    text: 'Find the mean of 4, 6, and 8.',
-    options: ['A. 4', 'B. 6', 'C. 18', 'D. 8'],
-    answer: 'B',
-    explanation: 'Add all values: 4 + 6 + 8 = 18. Divide by the number of values: 18 \u00f7 3 = 6.',
-    steps: ['Add: 4 + 6 + 8 = 18', 'Count: there are 3 values', 'Mean = 18 \u00f7 3 = 6'],
-    hint: 'Mean = total \u00f7 how many numbers. Add them all up first, then divide by 3.',
-    videoTitle: 'The Mean',
-    videoSource: 'CorbettMaths',
-    videoUrl: 'https://www.youtube.com/watch?v=QqXLJRMxelk',
-  },
-
-  {
-    level: 'P7', type: 'english', topic: 'Antonyms', marks: '1 mark',
-    text: 'What is the antonym of "ancient"?',
-    options: ['A. old', 'B. modern', 'C. early', 'D. yesterday'],
-    answer: 'B',
-    explanation: '"Modern" is the antonym of ancient \u2014 it means new or current, the opposite of very old.',
-    hint: 'An antonym is the opposite meaning. Ancient means very old \u2014 what is the opposite of old?',
-    videoTitle: 'Antonyms',
-    videoSource: 'YouTube',
-    videoUrl: 'https://www.youtube.com/watch?v=R9feMSRDbKE',
-  },
-
-  {
-    level: 'P7', type: 'maths', topic: 'Sequences', marks: '2 marks',
-    text: 'Find the next number: 2, 5, 8, 11, ...',
-    options: ['A. 12', 'B. 13', 'C. 14', 'D. 15'],
-    answer: 'C',
-    explanation: 'The sequence increases by 3 each time. 11 + 3 = 14.',
-    steps: ['5 \u2212 2 = 3 (common difference)', '8 \u2212 5 = 3 \u2713', '11 \u2212 8 = 3 \u2713', '11 + 3 = 14'],
-    hint: 'Find the difference between each pair of numbers. Is it the same each time?',
-    videoTitle: 'Sequences',
-    videoSource: 'CorbettMaths',
-    videoUrl: 'https://www.youtube.com/watch?v=ohPSbZKyxx8',
-  },
-
-  {
-    level: 'P7', type: 'english', topic: 'Homophones', marks: '1 mark',
-    text: 'Which word correctly completes the sentence? "I can ____ the ocean."',
-    options: ['A. here', 'B. hear', 'C. hair', 'D. hire'],
-    answer: 'B',
-    explanation: '"Hear" is correct \u2014 it is the verb meaning to perceive sound. "Here" refers to a place.',
-    hint: 'One word is a place. The other is what your ears do. Which makes sense with "the ocean"?',
-    videoTitle: 'Homophones',
-    videoSource: 'BBC Bitesize',
-    videoUrl: 'https://www.youtube.com/watch?v=ZubFntFNUGE',
-  },
-
-];
-
-/* ════════════════════════════════════════════════════
-   STATE  (QUESTIONS is set by init() after filtering)
-════════════════════════════════════════════════════ */
-let QUESTIONS    = [];   // active question set for this session
-let currentQ     = 0;
-let score        = { correct: 0, wrong: 0 };
-let answers      = [];   // 'correct' | 'wrong' | null per question
-let userAnswers  = [];   // what the student actually typed/selected
+let QUESTIONS   = [];
+let currentQ    = 0;
+let score       = { correct: 0, wrong: 0 };
+let answers     = [];
+let userAnswers = [];
 let hintVisible = false;
 let answered    = false;
 let selectedMC  = null;
+let sprintCount = 0; // track how many sprints completed this session
 
-const SPRINT_SIZE = 10; // questions per sprint — increase bank freely, always picks 10
+/* ════════════════════════════════════════════════════
+   LOADING / ERROR STATES
+════════════════════════════════════════════════════ */
+function showLoadingState() {
+  document.getElementById('question-card').style.display = '';
+  document.getElementById('question-card').innerHTML = `
+    <div style="padding:60px 28px;text-align:center;">
+      <div style="width:64px;height:64px;border-radius:50%;
+        background:linear-gradient(135deg,rgba(201,168,76,.2),rgba(201,168,76,.06));
+        border:2px solid rgba(201,168,76,.4);
+        display:flex;align-items:center;justify-content:center;
+        margin:0 auto 24px;font-size:1.8rem;
+        animation:avatarPulse 1.5s ease-in-out infinite;">⭐</div>
+      <div style="font-family:'Playfair Display',serif;font-size:1.3rem;
+        font-weight:700;color:#fff;margin-bottom:8px;">
+        STAR is building your sprint…
+      </div>
+      <div style="font-size:.88rem;color:rgba(255,255,255,.45);">
+        Generating 10 fresh questions just for you
+      </div>
+    </div>`;
+}
 
-function init() {
-  // ── Reset ALL session state first — critical for restartSession() ──
+function showErrorState(message) {
+  document.getElementById('question-card').innerHTML = `
+    <div style="padding:48px 28px;text-align:center;">
+      <div style="font-size:2.5rem;margin-bottom:16px;">😕</div>
+      <div style="font-family:'Playfair Display',serif;font-size:1.2rem;
+        font-weight:700;color:#fff;margin-bottom:8px;">Something went wrong</div>
+      <div style="font-size:.88rem;color:rgba(255,255,255,.45);margin-bottom:28px;">${message}</div>
+      <button onclick="init()" style="
+        background:linear-gradient(135deg,#C9A84C,#E8C97A);
+        color:#0B1F3A;border:none;border-radius:12px;
+        padding:14px 32px;font-family:'Lato',sans-serif;
+        font-size:.9rem;font-weight:900;letter-spacing:.08em;
+        text-transform:uppercase;cursor:pointer;">Try Again</button>
+    </div>`;
+}
+
+/* ════════════════════════════════════════════════════
+   REBUILD QUESTION CARD HTML
+════════════════════════════════════════════════════ */
+function rebuildQuestionCard() {
+  document.getElementById('question-card').innerHTML = `
+    <div class="card-header">
+      <div id="card-type-badge" class="card-type-badge badge-maths">📐 Maths</div>
+      <div class="card-topic" id="card-topic">Loading…</div>
+      <div class="card-marks" id="card-marks">1 mark</div>
+    </div>
+    <div class="card-body">
+      <div class="question-number" id="q-number-label">Question 1</div>
+      <div class="question-text" id="q-text">Loading question…</div>
+      <div class="question-context" id="q-context" style="display:none;"></div>
+      <div class="segments-row" id="segments-row" style="display:none;"></div>
+      <div class="mc-options" id="mc-options" style="display:none;"></div>
+      <div class="fr-wrap" id="fr-wrap" style="display:none;">
+        <div class="fr-label">Your Answer</div>
+        <input type="text" class="fr-input" id="fr-input"
+          placeholder="Type your answer here…" autocomplete="off" />
+      </div>
+      <div class="feedback-panel" id="feedback-panel">
+        <div class="feedback-inner">
+          <div class="feedback-icon" id="feedback-icon">✓</div>
+          <div>
+            <div class="feedback-title" id="feedback-title">Correct!</div>
+            <div class="feedback-body" id="feedback-body"></div>
+            <ul class="feedback-steps" id="feedback-steps" style="display:none;"></ul>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-footer">
+      <div class="action-row">
+        <button class="btn-submit" id="btn-submit" disabled onclick="submitAnswer()">Check Answer</button>
+        <button class="btn-next" id="btn-next" style="display:none;" onclick="nextQuestion()">Next →</button>
+      </div>
+      <button class="btn-hint" id="btn-hint" onclick="toggleHint()">
+        <span class="hint-icon">🔍</span> Request Detective Hint from STAR
+      </button>
+      <div class="hint-panel" id="hint-panel">
+        <div class="hint-header">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+            stroke="#3b82f6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+          STAR's Detective Hint
+        </div>
+        <div class="hint-text" id="hint-text">Loading hint…</div>
+      </div>
+      <a class="video-link" id="video-link" href="#" target="_blank" rel="noopener">
+        <div class="video-thumb">▶️</div>
+        <div class="video-info">
+          <div class="video-label">Stuck? Watch this</div>
+          <div class="video-title-text" id="video-title">Loading resource…</div>
+          <div class="video-source" id="video-source">CorbettMaths</div>
+        </div>
+      </a>
+    </div>`;
+}
+
+/* ════════════════════════════════════════════════════
+   FETCH QUESTIONS FROM CLAUDE API
+════════════════════════════════════════════════════ */
+async function fetchQuestions(track) {
+  const response = await fetch('/api/generate-questions', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ track })
+  });
+
+  if (!response.ok) {
+    throw new Error('Could not load questions — please check your connection and try again');
+  }
+
+  const data = await response.json();
+
+  if (!data.questions || !Array.isArray(data.questions)) {
+    throw new Error('Invalid response from STAR — please try again');
+  }
+
+  return data.questions;
+}
+
+/* ════════════════════════════════════════════════════
+   INIT — fetch questions and start sprint
+════════════════════════════════════════════════════ */
+async function init() {
+  // Reset state
   currentQ    = 0;
   score       = { correct: 0, wrong: 0 };
   answered    = false;
   hintVisible = false;
   selectedMC  = null;
 
-  // ── Read student profile ──
-  const name     = sessionStorage.getItem('star_name');
+  // Read student profile
   const urlTrack = new URLSearchParams(window.location.search).get('track');
   const year     = urlTrack || sessionStorage.getItem('star_year') || 'P6';
-  const level    = ((year || '').trim().toUpperCase() === 'P7') ? 'P7' : 'P6';
+  const name     = sessionStorage.getItem('star_name') || '';
 
-  // ── Filter to correct level, Fisher-Yates shuffle on a copy ──
-  const pool = ALL_QUESTIONS.filter(q => q.level === level);
-  for (let i = pool.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [pool[i], pool[j]] = [pool[j], pool[i]];
-  }
+  // Hide results, show progress + loading
+  document.getElementById('results-panel').classList.remove('visible');
+  document.getElementById('complete-screen').classList.remove('visible');
+  document.getElementById('progress-section').style.display = '';
+  showLoadingState();
 
-  // ── Slice to SPRINT_SIZE so adding more questions never breaks the session ──
-  QUESTIONS   = pool.slice(0, SPRINT_SIZE);
-  answers     = new Array(QUESTIONS.length).fill(null);
-  userAnswers = new Array(QUESTIONS.length).fill(null);
-
-  // ── Update UI labels ──
+  // Nav labels
   if (name) document.getElementById('nav-student-name').textContent = '· ' + name;
   document.getElementById('track-badge').textContent =
-    level === 'P7' ? 'P7 Executor Track 🏆' : 'P6 Builder Track ⚡';
-  document.getElementById('q-total').textContent = QUESTIONS.length;
+    year === 'P7' ? 'P7 Executor Track 🏆' : 'P6 Builder Track ⚡';
 
-  // ── Reset score chips ──
-  document.getElementById('score-correct').textContent = '0 correct';
-  document.getElementById('score-wrong').textContent   = '0 wrong';
+  try {
+    QUESTIONS   = await fetchQuestions(year);
+    answers     = new Array(QUESTIONS.length).fill(null);
+    userAnswers = new Array(QUESTIONS.length).fill(null);
 
-  buildProgressPips();
-  loadQuestion(0);
+    rebuildQuestionCard();
+
+    document.getElementById('q-total').textContent       = QUESTIONS.length;
+    document.getElementById('score-correct').textContent = '0 correct';
+    document.getElementById('score-wrong').textContent   = '0 wrong';
+
+    buildProgressPips();
+    loadQuestion(0);
+
+  } catch (error) {
+    console.error('Failed to load questions:', error);
+    showErrorState(error.message || 'Please try again.');
+  }
 }
 
+/* ════════════════════════════════════════════════════
+   PROGRESS PIPS
+════════════════════════════════════════════════════ */
 function buildProgressPips() {
   const container = document.getElementById('progress-dots');
   container.innerHTML = '';
@@ -1327,21 +874,22 @@ function loadQuestion(idx) {
 
   const q = QUESTIONS[idx];
 
-  // Progress
-  document.getElementById('q-current').textContent  = idx + 1;
-  document.getElementById('progress-fill').style.width = ((idx + 1) / QUESTIONS.length * 100) + '%';
+  // Progress bar
+  document.getElementById('q-current').textContent = idx + 1;
+  document.getElementById('progress-fill').style.width =
+    ((idx + 1) / QUESTIONS.length * 100) + '%';
 
   // Update pips
   for (let i = 0; i < QUESTIONS.length; i++) {
     const pip = document.getElementById('pip-' + i);
     pip.className = 'progress-pip';
-    if (answers[i] === 'correct') pip.classList.add('correct');
-    else if (answers[i] === 'wrong') pip.classList.add('wrong');
-    else if (i < idx) pip.classList.add('done');
-    else if (i === idx) pip.classList.add('active');
+    if      (answers[i] === 'correct') pip.classList.add('correct');
+    else if (answers[i] === 'wrong')   pip.classList.add('wrong');
+    else if (i < idx)                  pip.classList.add('done');
+    else if (i === idx)                pip.classList.add('active');
   }
 
-  // Badge
+  // Type badge
   const badge = document.getElementById('card-type-badge');
   if (q.type === 'english') {
     badge.className = 'card-type-badge badge-english';
@@ -1351,26 +899,40 @@ function loadQuestion(idx) {
     badge.textContent = '📐 Maths';
   }
 
-  document.getElementById('card-topic').textContent    = q.topic;
-  document.getElementById('card-marks').textContent    = q.marks;
+  document.getElementById('card-topic').textContent     = q.topic;
+  document.getElementById('card-marks').textContent     = q.marks || '1 mark';
   document.getElementById('q-number-label').textContent = 'Question ' + (idx + 1);
-  document.getElementById('q-text').textContent        = q.text;
+  document.getElementById('q-text').textContent         = q.text;
 
-  // Context
+  // Context block
   const ctxEl = document.getElementById('q-context');
-  if (q.context) {
-    ctxEl.textContent = q.context;
-    ctxEl.style.display = 'block';
+  if (q.context) { ctxEl.textContent = q.context; ctxEl.style.display = 'block'; }
+  else           { ctxEl.style.display = 'none'; }
+
+  // Segments (punctuation/spelling)
+  const segRow = document.getElementById('segments-row');
+  const letters = ['A','B','C','D'];
+  if (q.segments && q.segments.length) {
+    segRow.style.display = 'flex';
+    segRow.innerHTML = '';
+    q.segments.forEach((seg, i) => {
+      const block = document.createElement('div');
+      block.className = 'segment-block';
+      block.innerHTML = `
+        <div class="segment-text">${seg}</div>
+        <div class="segment-label">${letters[i]}</div>`;
+      segRow.appendChild(block);
+    });
   } else {
-    ctxEl.style.display = 'none';
+    segRow.style.display = 'none';
   }
 
-  // MC or FR
-  const mcWrap = document.getElementById('mc-options');
-  const frWrap = document.getElementById('fr-wrap');
+  // Options or free response
+  const mcWrap  = document.getElementById('mc-options');
+  const frWrap  = document.getElementById('fr-wrap');
   const frInput = document.getElementById('fr-input');
 
-  if (q.type === 'english' || q.options) {
+  if (q.options && q.options.length) {
     mcWrap.style.display = 'flex';
     frWrap.style.display = 'none';
     buildMC(q.options);
@@ -1392,35 +954,43 @@ function loadQuestion(idx) {
     document.getElementById('btn-submit').disabled = true;
   }
 
-  // Reset feedback, hint, buttons — and clear any previous glow
+  // Reset feedback + hint
   document.getElementById('video-link').classList.remove('tutorial-glow');
-  const fp = document.getElementById('feedback-panel');
-  fp.className = 'feedback-panel';
+  document.getElementById('feedback-panel').className = 'feedback-panel';
   document.getElementById('hint-panel').className = 'hint-panel';
   document.getElementById('btn-hint').className = 'btn-hint';
-  document.getElementById('hint-text').textContent = q.hint;
+  document.getElementById('btn-hint').innerHTML =
+    '<span class="hint-icon">🔍</span> Request Detective Hint from STAR';
+  document.getElementById('hint-text').textContent = q.hint || 'Think carefully about each option.';
   document.getElementById('btn-submit').style.display = 'inline-block';
   document.getElementById('btn-submit').textContent = 'Check Answer';
-  document.getElementById('btn-submit').disabled = (q.type !== 'english' && !q.options);
+  if (q.options && q.options.length) {
+    document.getElementById('btn-submit').disabled = true;
+  }
   document.getElementById('btn-next').style.display = 'none';
 
-  // Video link — use setAttribute so href and target are always live
+  // Video link
   const videoLinkEl = document.getElementById('video-link');
-  document.getElementById('video-title').textContent  = q.videoTitle;
-  document.getElementById('video-source').textContent = q.videoSource;
-  videoLinkEl.setAttribute('href',   q.videoUrl);
+  document.getElementById('video-title').textContent  = q.videoTitle  || 'Watch Tutorial';
+  document.getElementById('video-source').textContent = q.videoSource || 'CorbettMaths';
+  videoLinkEl.setAttribute('href',   q.videoUrl || '#');
   videoLinkEl.setAttribute('target', '_blank');
   videoLinkEl.setAttribute('rel',    'noopener noreferrer');
 }
 
+/* ════════════════════════════════════════════════════
+   BUILD MC OPTIONS
+════════════════════════════════════════════════════ */
 function buildMC(options) {
   const wrap = document.getElementById('mc-options');
   wrap.innerHTML = '';
-  const letters = ['A','B','C','D'];
+  const letters = ['A','B','C','D','E'];
   options.forEach((opt, i) => {
     const btn = document.createElement('button');
     btn.className = 'mc-btn';
-    btn.innerHTML = `<div class="mc-letter">${letters[i]}</div><span>${opt.replace(/^[A-D]\.\s*/,'')}</span>`;
+    // Strip leading "A. " style prefix if present
+    const label = opt.replace(/^[A-EN]\.\s*/i, '');
+    btn.innerHTML = `<div class="mc-letter">${letters[i]}</div><span>${label}</span>`;
     btn.onclick = () => selectMC(letters[i], btn);
     wrap.appendChild(btn);
   });
@@ -1441,111 +1011,63 @@ function submitAnswer() {
   if (answered) return;
   answered = true;
 
-  const q  = QUESTIONS[currentQ];
+  const q = QUESTIONS[currentQ];
   let isCorrect = false;
 
-  if (q.options) {
-    // Multiple choice
+  if (q.options && q.options.length) {
     isCorrect = selectedMC === q.answer;
-    // Highlight options
+    const letters = ['A','B','C','D','E'];
     document.querySelectorAll('.mc-btn').forEach((btn, i) => {
-      const letter = ['A','B','C','D'][i];
+      const letter = letters[i];
       btn.disabled = true;
-      if (letter === q.answer) btn.classList.add('correct-ans');
+      if (letter === q.answer)                    btn.classList.add('correct-ans');
       else if (letter === selectedMC && !isCorrect) btn.classList.add('wrong-ans');
     });
+    const selIdx = letters.indexOf(selectedMC);
+    userAnswers[currentQ] = selIdx >= 0
+      ? q.options[selIdx].replace(/^[A-EN]\.\s*/i, '')
+      : selectedMC;
   } else {
-    // Free response
     const frInput = document.getElementById('fr-input');
     const normalise = s => s.trim().toLowerCase()
-      .replace(/²/g, '2').replace(/\^2/g, '2').replace(/\s+/g, ' ').trim();
-    const userVal = normalise(frInput.value);
+      .replace(/²/g,'2').replace(/\^2/g,'2').replace(/\s+/g,' ').trim();
+    const userVal  = normalise(frInput.value);
     const accepted = (q.acceptedAnswers || [q.answer]).map(normalise);
     isCorrect = accepted.includes(userVal);
     frInput.disabled = true;
     frInput.classList.add(isCorrect ? 'correct-inp' : 'wrong-inp');
+    userAnswers[currentQ] = frInput.value.trim();
   }
 
-  // Track score
   answers[currentQ] = isCorrect ? 'correct' : 'wrong';
   if (isCorrect) score.correct++; else score.wrong++;
 
-  // Store what the student actually answered (for results panel)
-  if (q.options) {
-    // Multiple choice — store the full option text
-    const selIdx = ['A','B','C','D'].indexOf(selectedMC);
-    userAnswers[currentQ] = selIdx >= 0 ? q.options[selIdx] : selectedMC;
-  } else {
-    // Free response — store what they typed
-    userAnswers[currentQ] = document.getElementById('fr-input').value.trim();
-  }
-
-  // Glow the video link when wrong, remove glow when correct
+  // Video glow on wrong answer
   const videoLinkEl = document.getElementById('video-link');
-  if (isCorrect) {
-    videoLinkEl.classList.remove('tutorial-glow');
-  } else {
-    videoLinkEl.classList.add('tutorial-glow');
-  }
+  if (!isCorrect) videoLinkEl.classList.add('tutorial-glow');
+  else            videoLinkEl.classList.remove('tutorial-glow');
 
-  // Update pip
+  // Pip update
   const pip = document.getElementById('pip-' + currentQ);
   pip.className = 'progress-pip ' + (isCorrect ? 'correct' : 'wrong');
 
-  // Update score chips
+  // Score chips
   document.getElementById('score-correct').textContent = score.correct + ' correct';
   document.getElementById('score-wrong').textContent   = score.wrong + ' wrong';
 
-  // Show feedback
   showFeedback(q, isCorrect);
 
-  // Swap buttons
   document.getElementById('btn-submit').style.display = 'none';
   document.getElementById('btn-next').style.display   = 'inline-block';
   document.getElementById('btn-next').textContent =
     currentQ < QUESTIONS.length - 1 ? 'Next Question →' : 'See Results 🏁';
 
-  // Persist progress after every answer so resuming from dashboard is accurate
   saveProgress();
 }
 
 /* ════════════════════════════════════════════════════
-   SAVE PROGRESS
-   Called after every answer. Writes a lightweight
-   snapshot to localStorage so the dashboard always
-   reflects the latest state even if the student exits
-   mid-sprint via the ✕ Exit button.
+   SHOW FEEDBACK
 ════════════════════════════════════════════════════ */
-function saveProgress() {
-  const track = sessionStorage.getItem('star_year') || 'P6';
-  const name  = sessionStorage.getItem('star_name')  || '';
-  const pct   = QUESTIONS.length
-    ? Math.round(score.correct / QUESTIONS.length * 100)
-    : 0;
-
-  localStorage.setItem('star_last_score', pct);
-  localStorage.setItem('star_last_track', track);
-  localStorage.setItem('star_last_name',  name);
-
-  // Snapshot of answered questions for the Memory Bank
-  const answered = QUESTIONS
-    .map((q, i) => ({ q, result: answers[i] }))
-    .filter(x => x.result !== null);
-
-  const toReview = answered
-    .filter(x => x.result === 'wrong')
-    .map(x => ({
-      topic:        x.q.topic,
-      videoTitle:   x.q.videoTitle,
-      videoUrl:     x.q.videoUrl,
-      videoSource:  x.q.videoSource,
-      questionText: x.q.text,
-    }))
-    .filter((item, idx, arr) => arr.findIndex(x => x.topic === item.topic) === idx);
-
-  localStorage.setItem('star_toReview', JSON.stringify(toReview));
-}
-
 function showFeedback(q, isCorrect) {
   const panel   = document.getElementById('feedback-panel');
   const icon    = document.getElementById('feedback-icon');
@@ -1555,8 +1077,8 @@ function showFeedback(q, isCorrect) {
 
   panel.className = 'feedback-panel visible ' + (isCorrect ? 'feedback-correct' : 'feedback-wrong');
   icon.textContent  = isCorrect ? '✓' : '✗';
-  title.textContent = isCorrect ? 'Correct! Well done.' : 'Not quite — here\'s how to solve it:';
-  body.textContent  = q.explanation;
+  title.textContent = isCorrect ? 'Correct! Well done.' : 'Not quite — here\'s how:';
+  body.textContent  = q.explanation || '';
 
   if (!isCorrect && q.steps && q.steps.length) {
     stepsEl.style.display = 'block';
@@ -1576,21 +1098,20 @@ function toggleHint() {
   if (hintVisible) {
     panel.className = 'hint-panel visible';
     btn.classList.add('hint-shown');
-    btn.innerHTML = `<span class="hint-icon">🔍</span> Hide Detective Hint`;
+    btn.innerHTML = '<span class="hint-icon">🔍</span> Hide Detective Hint';
   } else {
     panel.className = 'hint-panel';
     btn.classList.remove('hint-shown');
-    btn.innerHTML = `<span class="hint-icon">🔍</span> Request Detective Hint from STAR`;
+    btn.innerHTML = '<span class="hint-icon">🔍</span> Request Detective Hint from STAR';
   }
 }
 
 /* ════════════════════════════════════════════════════
-   NEXT QUESTION / COMPLETE
+   NEXT QUESTION
 ════════════════════════════════════════════════════ */
 function nextQuestion() {
   if (currentQ < QUESTIONS.length - 1) {
     currentQ++;
-    // Animate card
     const card = document.getElementById('question-card');
     card.classList.add('card-refreshing');
     setTimeout(() => {
@@ -1603,27 +1124,56 @@ function nextQuestion() {
 }
 
 /* ════════════════════════════════════════════════════
-   SESSION COMPLETE
+   SAVE PROGRESS TO LOCALSTORAGE
+════════════════════════════════════════════════════ */
+function saveProgress() {
+  const track = sessionStorage.getItem('star_year') || 'P6';
+  const name  = sessionStorage.getItem('star_name')  || '';
+  const pct   = QUESTIONS.length
+    ? Math.round(score.correct / QUESTIONS.length * 100) : 0;
+
+  localStorage.setItem('star_last_score', pct);
+  localStorage.setItem('star_last_track', track);
+  localStorage.setItem('star_last_name',  name);
+
+  const toReview = QUESTIONS
+    .map((q, i) => ({ q, result: answers[i] }))
+    .filter(x => x.result === 'wrong')
+    .map(x => ({
+      topic:        x.q.topic,
+      videoTitle:   x.q.videoTitle,
+      videoUrl:     x.q.videoUrl,
+      videoSource:  x.q.videoSource,
+      questionText: x.q.text,
+    }))
+    .filter((item, idx, arr) => arr.findIndex(x => x.topic === item.topic) === idx);
+
+  localStorage.setItem('star_toReview', JSON.stringify(toReview));
+}
+
+/* ════════════════════════════════════════════════════
+   SHOW RESULTS
 ════════════════════════════════════════════════════ */
 function showResults() {
-  // ── Hide question UI, show results panel ──
+  sprintCount++;
+
   document.getElementById('question-card').style.display    = 'none';
   document.getElementById('progress-section').style.display = 'none';
-  document.getElementById('complete-screen').classList.remove('visible'); // legacy safety
+  document.getElementById('complete-screen').classList.remove('visible');
   document.getElementById('results-panel').classList.add('visible');
 
   const pct  = Math.round(score.correct / QUESTIONS.length * 100);
   const name = sessionStorage.getItem('star_name') || '';
 
-  // ── Header emoji + message ──
+  // Header
   if (pct === 100) {
     document.getElementById('res-emoji').textContent = '🏆';
     document.getElementById('res-title').textContent = 'Perfect Score' + (name ? ', ' + name : '') + '!';
-    document.getElementById('res-sub').textContent   = 'Flawless — a clean sweep on every question!';
+    document.getElementById('res-sub').textContent   = 'Absolutely flawless — a clean sweep!';
   } else if (pct >= 80) {
     document.getElementById('res-emoji').textContent = '🌟';
     document.getElementById('res-title').textContent = 'Brilliant' + (name ? ', ' + name : '') + '!';
-    document.getElementById('res-sub').textContent   = 'Outstanding result. Review the ones below to make it perfect next time.';
+    document.getElementById('res-sub').textContent   = 'Outstanding result. Review the ones below to make it perfect.';
   } else if (pct >= 50) {
     document.getElementById('res-emoji').textContent = '⭐';
     document.getElementById('res-title').textContent = 'Great effort' + (name ? ', ' + name : '') + '!';
@@ -1634,12 +1184,12 @@ function showResults() {
     document.getElementById('res-sub').textContent   = 'Every sprint builds strength. Review below, then try again!';
   }
 
-  // ── Score bar ──
+  // Score bar
   document.getElementById('res-fraction').textContent = score.correct + '/' + QUESTIONS.length;
   document.getElementById('res-pct2').textContent     = pct + '%';
 
-  // Star rating in score bar (out of 5)
-  const stars   = Math.round(pct / 20);
+  // Stars
+  const stars    = Math.round(pct / 20);
   const starWrap = document.getElementById('res-star-wrap');
   starWrap.innerHTML = '';
   for (let i = 0; i < 5; i++) {
@@ -1658,7 +1208,7 @@ function showResults() {
   starsLabel.textContent = 'Rating';
   starWrap.appendChild(starsLabel);
 
-  // ── Missed questions list ──
+  // Missed questions
   const missedList    = document.getElementById('missed-list');
   const missedSection = document.getElementById('missed-section');
   missedList.innerHTML = '';
@@ -1678,9 +1228,8 @@ function showResults() {
     missedQuestions.forEach(q => {
       const qIdx       = QUESTIONS.indexOf(q);
       const studentAns = userAnswers[qIdx] || '(no answer)';
-      // For MC, correct answer is the full option text; for FR it's the canonical answer
       const correctAns = q.options
-        ? (q.options.find(o => o.startsWith(q.answer + '.')) || q.answer)
+        ? (q.options.find(o => o.startsWith(q.answer)) || q.answer)
         : q.answer;
 
       const card = document.createElement('div');
@@ -1690,7 +1239,7 @@ function showResults() {
         <div class="missed-q-text">${q.text}</div>
         <div class="missed-answers">
           <span class="missed-chip yours">✗ Your answer: ${studentAns}</span>
-          <span class="missed-chip correct">✓ Correct: ${correctAns}</span>
+          <span class="missed-chip correct">✓ Correct: ${correctAns.replace(/^[A-EN]\.\s*/i,'')}</span>
         </div>
         <a class="missed-video-link" href="${q.videoUrl}" target="_blank" rel="noopener">
           ▶ Watch: ${q.videoTitle} (${q.videoSource})
@@ -1699,7 +1248,16 @@ function showResults() {
     });
   }
 
-  // ── Persist to localStorage so Dashboard can read it ──
+  // Show upgrade banner after first sprint if not signed up
+  const isSignedUp = localStorage.getItem('star_signed_up');
+  if (!isSignedUp && sprintCount === 1) {
+    document.getElementById('upgrade-banner').style.display = 'block';
+    document.getElementById('btn-try-again').textContent = '🔄 Try Another Sprint';
+  } else {
+    document.getElementById('upgrade-banner').style.display = 'none';
+  }
+
+  // Persist to localStorage
   const toReview = missedQuestions
     .map(q => ({ topic: q.topic, videoTitle: q.videoTitle, videoUrl: q.videoUrl, videoSource: q.videoSource, questionText: q.text }))
     .filter((item, idx, arr) => arr.findIndex(x => x.topic === item.topic) === idx);
@@ -1709,115 +1267,62 @@ function showResults() {
   localStorage.setItem('star_last_track', sessionStorage.getItem('star_year') || 'P6');
   localStorage.setItem('star_last_name',  sessionStorage.getItem('star_name') || '');
 
-  // ── Cumulative mastery stats (read by parent portal) ──
-  // star_mastery: { [topic]: { correct: N, wrong: N } }
-  // star_video_log: [ { videoTitle, videoUrl, videoSource, topic, date }, ... ]
-  const mastery   = JSON.parse(localStorage.getItem('star_mastery'))   || {};
-  const videoLog  = JSON.parse(localStorage.getItem('star_video_log')) || [];
-  const sessions  = JSON.parse(localStorage.getItem('star_sessions'))  || [];
-  const now       = new Date().toISOString();
+  // Cumulative mastery stats
+  const mastery  = JSON.parse(localStorage.getItem('star_mastery'))   || {};
+  const videoLog = JSON.parse(localStorage.getItem('star_video_log')) || [];
+  const sessions = JSON.parse(localStorage.getItem('star_sessions'))  || [];
+  const now      = new Date().toISOString();
 
   QUESTIONS.forEach((q, i) => {
     const t = q.topic;
-    if (!mastery[t]) mastery[t] = { correct: 0, wrong: 0, type: q.type, videoTitle: q.videoTitle, videoUrl: q.videoUrl, videoSource: q.videoSource };
+    if (!mastery[t]) mastery[t] = { correct:0, wrong:0, type:q.type, videoTitle:q.videoTitle, videoUrl:q.videoUrl, videoSource:q.videoSource };
     if (answers[i] === 'correct') mastery[t].correct++;
     else if (answers[i] === 'wrong') {
       mastery[t].wrong++;
-      // Add to video log only if not already logged today for this topic
       const alreadyToday = videoLog.some(v => v.topic === t && v.date && v.date.slice(0,10) === now.slice(0,10));
       if (!alreadyToday) {
-        videoLog.unshift({ topic: t, videoTitle: q.videoTitle, videoUrl: q.videoUrl, videoSource: q.videoSource, date: now });
+        videoLog.unshift({ topic:t, videoTitle:q.videoTitle, videoUrl:q.videoUrl, videoSource:q.videoSource, date:now });
       }
     }
   });
 
-  // Keep video log to last 50 entries
   if (videoLog.length > 50) videoLog.length = 50;
-
-  // Append session summary
-  sessions.unshift({ date: now, score: pct, track: sessionStorage.getItem('star_year') || 'P6', correct: score.correct, total: QUESTIONS.length });
+  sessions.unshift({ date:now, score:pct, track:sessionStorage.getItem('star_year')||'P6', correct:score.correct, total:QUESTIONS.length });
   if (sessions.length > 20) sessions.length = 20;
 
   localStorage.setItem('star_mastery',   JSON.stringify(mastery));
   localStorage.setItem('star_video_log', JSON.stringify(videoLog));
   localStorage.setItem('star_sessions',  JSON.stringify(sessions));
+
+  // Mirror to sessionStorage for signup page
+  sessionStorage.setItem('star_last_score', pct);
 }
 
+/* ════════════════════════════════════════════════════
+   NAVIGATION
+════════════════════════════════════════════════════ */
 function restartSession() {
-  // ── Show quiz UI, hide results screens ──
   document.getElementById('results-panel').classList.remove('visible');
   document.getElementById('complete-screen').classList.remove('visible');
   document.getElementById('question-card').style.display    = '';
   document.getElementById('progress-section').style.display = '';
-
-  // ── init() resets ALL state (currentQ, score, answers, userAnswers)
-  //    AND re-shuffles + re-slices the bank for a genuinely fresh sprint ──
   init();
 }
 
-function goToDashboard() {
-  // star_toReview, star_last_score etc. already saved in showComplete()
-  // Also mirror score to sessionStorage for signup.html
+function goToSignup() {
   const pct = Math.round(score.correct / QUESTIONS.length * 100);
   sessionStorage.setItem('star_last_score', pct);
-  // Pass score in URL as a fallback for any page that can't read localStorage
+  window.location.href = 'signup.html?score=' + pct;
+}
+
+function goToDashboard() {
+  const pct = Math.round(score.correct / QUESTIONS.length * 100);
+  sessionStorage.setItem('star_last_score', pct);
   window.location.href = 'signup.html?score=' + pct;
 }
 
 /* ── Kick off ── */
 window.addEventListener('DOMContentLoaded', init);
 </script>
-
-
-  <!-- ══ STAR FOOTER ══ -->
-  <footer class="star-footer">
-    <div class="star-footer-grid">
-
-      <!-- Col 1: About -->
-      <div>
-        <div class="star-footer-logo">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="#C9A84C">
-            <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/>
-          </svg>
-          <span class="star-footer-logo-text">STAR AI Tutor</span>
-        </div>
-        <p class="star-footer-text">
-          Empowering P6 &amp; P7 students for SEAG success.<br>
-          Smart, personalised practice — built for Northern Ireland.
-        </p>
-      </div>
-
-      <!-- Col 2: Educational Partners -->
-      <div>
-        <div class="star-footer-col-label">Educational Partners</div>
-        <p class="star-footer-text">
-          Visual tutorials powered by
-          <a href="https://corbettmaths.com" target="_blank" rel="noopener">CorbettMaths</a>
-          and
-          <a href="https://www.bbc.co.uk/bitesize" target="_blank" rel="noopener">BBC Bitesize</a>.<br>
-          Used with deep respect for their incredible free resources.
-        </p>
-      </div>
-
-      <!-- Col 3: Legal -->
-      <div>
-        <div class="star-footer-col-label">Legal</div>
-        <p class="star-footer-text">
-          &copy; 2026 STAR AI Tutor. All rights reserved.<br>
-          Not affiliated with the SEAG board or the BBC.
-        </p>
-      </div>
-
-    </div>
-    <div class="star-footer-bottom">
-      <span class="star-footer-bottom-text">&copy; 2026 STAR AI Tutor</span>
-      <div class="star-footer-bottom-links">
-        <a href="#">Privacy Policy</a>
-        <a href="#">Terms of Service</a>
-        <a href="#">Contact</a>
-      </div>
-    </div>
-  </footer>
-
 </body>
 </html>
