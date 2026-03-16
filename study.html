@@ -28,10 +28,8 @@
       --radius-card:   24px;
       --radius-btn:    14px;
     }
-
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html { height: 100%; -webkit-text-size-adjust: 100%; }
-
     body {
       background: var(--navy);
       min-height: 100vh;
@@ -43,10 +41,7 @@
       position: relative;
       overflow-x: hidden;
     }
-
-    .bg-atmosphere {
-      position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden;
-    }
+    .bg-atmosphere { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
     .bg-glow {
       position: absolute; border-radius: 50%; pointer-events: none;
       background: radial-gradient(circle, rgba(201,168,76,.055) 0%, transparent 68%);
@@ -66,6 +61,7 @@
     }
     @keyframes twinkle { from {opacity:.04;} to {opacity:.2;} }
 
+    /* NAV */
     .top-nav {
       position: relative; z-index: 10;
       width: 100%; max-width: 780px;
@@ -84,10 +80,7 @@
       0%,100% { box-shadow: 0 0 0 4px rgba(201,168,76,.06); }
       50%      { box-shadow: 0 0 0 7px rgba(201,168,76,.11); }
     }
-    .nav-logo-text {
-      font-family: 'Playfair Display', serif;
-      font-size: 1.15rem; font-weight: 700; color: var(--gold); letter-spacing: .04em;
-    }
+    .nav-logo-text { font-family: 'Playfair Display', serif; font-size: 1.15rem; font-weight: 700; color: var(--gold); letter-spacing: .04em; }
     .nav-student { font-size: .78rem; color: rgba(255,255,255,.42); letter-spacing: .06em; }
     .nav-exit {
       background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.12);
@@ -99,17 +92,10 @@
     }
     .nav-exit:hover { background: rgba(255,255,255,.1); color: rgba(255,255,255,.8); border-color: rgba(255,255,255,.2); }
 
-    .progress-section {
-      position: relative; z-index: 10;
-      width: 100%; max-width: 780px; margin-bottom: 20px;
-    }
-    .progress-meta {
-      display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;
-    }
-    .progress-label {
-      font-size: .8rem; font-weight: 700;
-      color: rgba(255,255,255,.55); letter-spacing: .08em; text-transform: uppercase;
-    }
+    /* PROGRESS */
+    .progress-section { position: relative; z-index: 10; width: 100%; max-width: 780px; margin-bottom: 20px; }
+    .progress-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+    .progress-label { font-size: .8rem; font-weight: 700; color: rgba(255,255,255,.55); letter-spacing: .08em; text-transform: uppercase; }
     .progress-label span { color: var(--gold); }
     .progress-track { height: 6px; background: rgba(255,255,255,.1); border-radius: 99px; overflow: hidden; }
     .progress-fill {
@@ -123,37 +109,27 @@
       box-shadow: 0 0 8px rgba(232,201,122,.8);
     }
     .progress-dots { display: flex; gap: 5px; margin-top: 10px; }
-    .progress-pip {
-      flex: 1; height: 3px; border-radius: 99px;
-      background: rgba(255,255,255,.1); transition: background .3s;
-    }
+    .progress-pip { flex: 1; height: 3px; border-radius: 99px; background: rgba(255,255,255,.1); transition: background .3s; }
     .progress-pip.done    { background: rgba(201,168,76,.5); }
     .progress-pip.active  { background: var(--gold); }
     .progress-pip.correct { background: var(--green); }
     .progress-pip.wrong   { background: var(--red); }
     .score-row { display: flex; gap: 12px; margin-top: 10px; }
-    .score-chip {
-      display: flex; align-items: center; gap: 5px;
-      font-family: 'Lato', sans-serif; font-size: .75rem; font-weight: 700; letter-spacing: .04em;
-    }
+    .score-chip { display: flex; align-items: center; gap: 5px; font-family: 'Lato', sans-serif; font-size: .75rem; font-weight: 700; letter-spacing: .04em; }
     .score-chip .dot { width: 8px; height: 8px; border-radius: 50%; }
 
+    /* QUESTION CARD */
     .question-card {
       position: relative; z-index: 10;
       width: 100%; max-width: 780px;
       background: var(--card-bg); border-radius: var(--radius-card);
       border: 1px solid var(--card-border);
-      box-shadow: 0 4px 6px rgba(0,0,0,.04), 0 20px 60px rgba(0,0,0,.3), 0 0 0 1px rgba(201,168,76,.05);
+      box-shadow: 0 4px 6px rgba(0,0,0,.04), 0 20px 60px rgba(0,0,0,.3);
       overflow: hidden;
       animation: cardIn .45s cubic-bezier(.22,1,.36,1) forwards;
     }
-    @keyframes cardIn {
-      from { opacity:0; transform:translateY(18px) scale(.98); }
-      to   { opacity:1; transform:translateY(0) scale(1); }
-    }
-    .card-refreshing {
-      animation: cardRefresh .35s cubic-bezier(.22,1,.36,1) forwards !important;
-    }
+    @keyframes cardIn { from { opacity:0; transform:translateY(18px) scale(.98); } to { opacity:1; transform:translateY(0) scale(1); } }
+    .card-refreshing { animation: cardRefresh .35s cubic-bezier(.22,1,.36,1) forwards !important; }
     @keyframes cardRefresh {
       0%   { opacity:1; transform:translateX(0) scale(1); }
       40%  { opacity:0; transform:translateX(-28px) scale(.97); }
@@ -161,67 +137,29 @@
       100% { opacity:1; transform:translateX(0) scale(1); }
     }
 
-    .card-header {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 18px 28px 16px; border-bottom: 1px solid rgba(11,31,58,.06);
-    }
-    .card-type-badge {
-      display: inline-flex; align-items: center; gap: 6px;
-      border-radius: 999px; padding: 4px 13px;
-      font-size: .68rem; font-weight: 900; letter-spacing: .12em; text-transform: uppercase;
-    }
+    .card-header { display: flex; align-items: center; justify-content: space-between; padding: 18px 28px 16px; border-bottom: 1px solid rgba(11,31,58,.06); }
+    .card-type-badge { display: inline-flex; align-items: center; gap: 6px; border-radius: 999px; padding: 4px 13px; font-size: .68rem; font-weight: 900; letter-spacing: .12em; text-transform: uppercase; }
     .badge-english { background: rgba(59,130,246,.1); border: 1px solid rgba(59,130,246,.25); color: #3b82f6; }
     .badge-maths   { background: rgba(201,168,76,.12); border: 1px solid rgba(201,168,76,.3); color: #a07820; }
-    .card-topic  { font-size: .72rem; color: var(--text-light); font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
-    .card-marks  { font-size: .72rem; color: var(--text-light); font-weight: 400; }
+    .card-topic { font-size: .72rem; color: var(--text-light); font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+    .card-marks { font-size: .72rem; color: var(--text-light); font-weight: 400; }
 
     .card-body { padding: 28px 28px 0; }
     .question-number { font-size: .72rem; font-weight: 900; letter-spacing: .12em; text-transform: uppercase; color: var(--text-light); margin-bottom: 12px; }
-    .question-text {
-      font-family: 'Playfair Display', serif;
-      font-size: 1.28rem; line-height: 1.5; color: var(--text-dark); margin-bottom: 10px; min-height: 60px;
-    }
-    .question-context {
-      font-size: .9rem; color: var(--text-mid); line-height: 1.7; margin-bottom: 24px;
-      background: rgba(11,31,58,.04); border-left: 3px solid rgba(201,168,76,.4);
-      padding: 12px 16px; border-radius: 0 8px 8px 0;
-    }
+    .question-text { font-family: 'Playfair Display', serif; font-size: 1.28rem; line-height: 1.5; color: var(--text-dark); margin-bottom: 10px; min-height: 60px; }
+    .question-context { font-size: .95rem; color: var(--text-dark); line-height: 1.7; margin-bottom: 20px; background: rgba(11,31,58,.04); border-left: 3px solid rgba(201,168,76,.4); padding: 12px 16px; border-radius: 0 8px 8px 0; font-weight: 700; }
 
-    /* Punctuation/Spelling segment display */
-    .segments-row {
-      display: flex; flex-wrap: wrap; gap: 8px;
-      margin-bottom: 20px; align-items: flex-end;
-    }
-    .segment-block {
-      display: flex; flex-direction: column; align-items: center; gap: 4px;
-    }
-    .segment-text {
-      background: rgba(11,31,58,.06); border: 1.5px solid rgba(11,31,58,.12);
-      border-radius: 8px; padding: 10px 14px;
-      font-size: .92rem; font-weight: 700; color: var(--text-dark);
-      white-space: nowrap;
-    }
-    .segment-label {
-      font-size: .72rem; font-weight: 900; color: var(--text-light);
-      letter-spacing: .1em; text-transform: uppercase;
-    }
+    /* Segments */
+    .segments-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; align-items: flex-end; }
+    .segment-block { display: flex; flex-direction: column; align-items: center; gap: 5px; }
+    .segment-text { background: rgba(11,31,58,.05); border: 1.5px solid rgba(11,31,58,.12); border-radius: 8px; padding: 10px 14px; font-size: .92rem; font-weight: 700; color: var(--text-dark); white-space: nowrap; }
+    .segment-label { font-size: .72rem; font-weight: 900; color: var(--text-light); letter-spacing: .1em; text-transform: uppercase; }
 
+    /* MC */
     .mc-options { display: flex; flex-direction: column; gap: 11px; margin-bottom: 0; }
-    .mc-btn {
-      display: flex; align-items: center; gap: 14px;
-      background: rgba(11,31,58,.03); border: 1.5px solid rgba(11,31,58,.1);
-      border-radius: 12px; padding: 15px 18px;
-      font-family: 'Lato', sans-serif; font-size: .95rem; font-weight: 700;
-      color: var(--text-dark); cursor: pointer; text-align: left;
-      transition: all .2s ease; -webkit-tap-highlight-color: transparent;
-      position: relative; overflow: hidden;
-    }
+    .mc-btn { display: flex; align-items: center; gap: 14px; background: rgba(11,31,58,.03); border: 1.5px solid rgba(11,31,58,.1); border-radius: 12px; padding: 15px 18px; font-family: 'Lato', sans-serif; font-size: .95rem; font-weight: 700; color: var(--text-dark); cursor: pointer; text-align: left; transition: all .2s ease; -webkit-tap-highlight-color: transparent; }
     .mc-btn:hover:not(:disabled) { border-color: var(--gold); background: rgba(201,168,76,.05); transform: translateX(3px); }
-    .mc-letter {
-      width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0;
-      background: rgba(11,31,58,.07); display: flex; align-items: center; justify-content: center;
-      font-size: .78rem; font-weight: 900; color: var(--text-mid); transition: all .2s;
-    }
+    .mc-letter { width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0; background: rgba(11,31,58,.07); display: flex; align-items: center; justify-content: center; font-size: .78rem; font-weight: 900; color: var(--text-mid); transition: all .2s; }
     .mc-btn:hover:not(:disabled) .mc-letter { background: var(--gold); color: #fff; }
     .mc-btn.selected { border-color: var(--gold); background: rgba(201,168,76,.07); }
     .mc-btn.selected .mc-letter { background: var(--gold); color: #fff; }
@@ -231,34 +169,25 @@
     .mc-btn.wrong-ans .mc-letter { background: var(--red)!important; color:#fff!important; }
     .mc-btn:disabled { cursor: default; }
 
+    /* FR */
     .fr-wrap { margin-bottom: 0; }
     .fr-label { font-size: .75rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--text-light); margin-bottom: 8px; }
-    .fr-input {
-      width: 100%; background: rgba(11,31,58,.04); border: 1.5px solid rgba(11,31,58,.12);
-      border-radius: 12px; padding: 16px 20px;
-      font-family: 'Lato', sans-serif; font-size: 1.15rem; font-weight: 700; color: var(--text-dark);
-      outline: none; transition: border-color .22s, box-shadow .22s; caret-color: var(--gold);
-    }
+    .fr-input { width: 100%; background: rgba(11,31,58,.04); border: 1.5px solid rgba(11,31,58,.12); border-radius: 12px; padding: 16px 20px; font-family: 'Lato', sans-serif; font-size: 1.15rem; font-weight: 700; color: var(--text-dark); outline: none; transition: border-color .22s, box-shadow .22s; caret-color: var(--gold); }
     .fr-input::placeholder { color: rgba(11,31,58,.28); font-weight: 400; }
     .fr-input:focus { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(201,168,76,.12); }
     .fr-input.correct-inp { border-color: var(--green)!important; background: var(--green-bg)!important; }
     .fr-input.wrong-inp   { border-color: var(--red)!important;   background: var(--red-bg)!important; }
 
-    .feedback-panel {
-      display: none; margin: 20px 28px 0; border-radius: 14px; overflow: hidden;
-      animation: feedIn .35s cubic-bezier(.22,1,.36,1) forwards;
-    }
+    /* Feedback */
+    .feedback-panel { display: none; margin: 20px 28px 0; border-radius: 14px; overflow: hidden; animation: feedIn .35s cubic-bezier(.22,1,.36,1) forwards; }
     @keyframes feedIn { from{opacity:0;transform:translateY(10px);} to{opacity:1;transform:translateY(0);} }
     .feedback-panel.visible { display: block; }
     .feedback-inner { padding: 18px 20px; display: flex; gap: 14px; align-items: flex-start; }
-    .feedback-icon {
-      width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0;
-      display: flex; align-items: center; justify-content: center; font-size: 1.1rem;
-    }
+    .feedback-icon { width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; }
     .feedback-correct { background: var(--green-bg); border: 1px solid rgba(34,197,94,.25); }
-    .feedback-correct .feedback-icon { background: var(--green); }
+    .feedback-correct .feedback-icon { background: var(--green); color: white; }
     .feedback-wrong   { background: var(--red-bg);   border: 1px solid rgba(239,68,68,.25); }
-    .feedback-wrong   .feedback-icon { background: var(--red); }
+    .feedback-wrong   .feedback-icon { background: var(--red); color: white; }
     .feedback-title { font-family: 'Playfair Display', serif; font-size: 1rem; font-weight: 700; margin-bottom: 5px; }
     .feedback-correct .feedback-title { color: #166534; }
     .feedback-wrong   .feedback-title { color: #991b1b; }
@@ -266,173 +195,89 @@
     .feedback-steps { font-size: .84rem; line-height: 1.7; color: var(--text-mid); margin-top: 8px; padding-left: 16px; }
     .feedback-steps li { margin-bottom: 4px; }
 
+    /* Card footer */
     .card-footer { padding: 20px 28px 26px; display: flex; flex-direction: column; gap: 14px; }
     .action-row { display: flex; gap: 12px; align-items: center; }
-
     .btn-submit {
-      flex: 1;
-      background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 50%, var(--gold) 100%);
-      background-size: 200% auto; color: var(--navy);
-      border: none; border-radius: var(--radius-btn); padding: 17px 28px;
-      font-family: 'Lato', sans-serif; font-size: .95rem; font-weight: 900;
-      letter-spacing: .08em; text-transform: uppercase; cursor: pointer;
-      transition: background-position .4s, transform .18s, box-shadow .18s, opacity .2s;
+      flex: 1; background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 50%, var(--gold) 100%);
+      background-size: 200% auto; color: var(--navy); border: none; border-radius: var(--radius-btn); padding: 17px 28px;
+      font-family: 'Lato', sans-serif; font-size: .95rem; font-weight: 900; letter-spacing: .08em; text-transform: uppercase;
+      cursor: pointer; transition: background-position .4s, transform .18s, box-shadow .18s, opacity .2s;
       box-shadow: 0 5px 22px rgba(201,168,76,.38); -webkit-tap-highlight-color: transparent;
     }
     .btn-submit:hover:not(:disabled) { background-position: right center; transform: translateY(-2px); box-shadow: 0 8px 32px rgba(201,168,76,.55); }
     .btn-submit:active:not(:disabled) { transform: translateY(0); }
     .btn-submit:disabled { opacity: .35; cursor: not-allowed; box-shadow: none; }
-
     .btn-next {
-      flex: 1; background: var(--navy); color: var(--gold);
-      border: 1.5px solid var(--gold); border-radius: var(--radius-btn); padding: 17px 28px;
-      font-family: 'Lato', sans-serif; font-size: .95rem; font-weight: 900;
-      letter-spacing: .08em; text-transform: uppercase; cursor: pointer; transition: all .2s;
-      -webkit-tap-highlight-color: transparent;
+      flex: 1; background: var(--navy); color: var(--gold); border: 1.5px solid var(--gold);
+      border-radius: var(--radius-btn); padding: 17px 28px; font-family: 'Lato', sans-serif;
+      font-size: .95rem; font-weight: 900; letter-spacing: .08em; text-transform: uppercase;
+      cursor: pointer; transition: all .2s; -webkit-tap-highlight-color: transparent;
     }
     .btn-next:hover { background: var(--gold); color: var(--navy); transform: translateY(-2px); box-shadow: 0 8px 28px rgba(201,168,76,.4); }
-
     .btn-hint {
       display: flex; align-items: center; gap: 8px; justify-content: center;
-      background: transparent; border: 1.5px solid rgba(11,31,58,.14);
-      border-radius: var(--radius-btn); padding: 13px 20px;
-      font-family: 'Lato', sans-serif; font-size: .82rem; font-weight: 700;
-      color: var(--text-mid); letter-spacing: .06em; cursor: pointer; width: 100%;
-      transition: all .22s; -webkit-tap-highlight-color: transparent;
+      background: transparent; border: 1.5px solid rgba(11,31,58,.14); border-radius: var(--radius-btn);
+      padding: 13px 20px; font-family: 'Lato', sans-serif; font-size: .82rem; font-weight: 700;
+      color: var(--text-mid); letter-spacing: .06em; cursor: pointer; width: 100%; transition: all .22s;
     }
     .btn-hint:hover { border-color: var(--blue-hint); background: var(--blue-hint-bg); color: var(--blue-hint); }
     .btn-hint.hint-shown { border-color: var(--blue-hint); background: var(--blue-hint-bg); color: var(--blue-hint); }
     .hint-icon { font-size: 1rem; }
-
-    .hint-panel {
-      display: none; background: var(--blue-hint-bg); border: 1px solid rgba(59,130,246,.2);
-      border-radius: 14px; padding: 16px 18px; animation: feedIn .3s ease forwards;
-    }
+    .hint-panel { display: none; background: var(--blue-hint-bg); border: 1px solid rgba(59,130,246,.2); border-radius: 14px; padding: 16px 18px; }
     .hint-panel.visible { display: block; }
-    .hint-header {
-      display: flex; align-items: center; gap: 8px;
-      font-size: .72rem; font-weight: 900; letter-spacing: .1em; text-transform: uppercase;
-      color: var(--blue-hint); margin-bottom: 8px;
-    }
+    .hint-header { display: flex; align-items: center; gap: 8px; font-size: .72rem; font-weight: 900; letter-spacing: .1em; text-transform: uppercase; color: var(--blue-hint); margin-bottom: 8px; }
     .hint-text { font-size: .88rem; line-height: 1.7; color: var(--text-mid); }
-
-    .video-link {
-      display: flex; align-items: center; gap: 12px;
-      background: rgba(11,31,58,.03); border: 1.5px dashed rgba(11,31,58,.13);
-      border-radius: 14px; padding: 14px 18px; text-decoration: none; transition: all .22s;
-    }
+    .video-link { display: flex; align-items: center; gap: 12px; background: rgba(11,31,58,.03); border: 1.5px dashed rgba(11,31,58,.13); border-radius: 14px; padding: 14px 18px; text-decoration: none; transition: all .22s; }
     .video-link:hover { border-color: var(--gold); background: rgba(201,168,76,.05); }
-    .video-thumb {
-      width: 42px; height: 42px; border-radius: 10px; flex-shrink: 0;
-      background: rgba(201,168,76,.15); border: 1px solid rgba(201,168,76,.25);
-      display: flex; align-items: center; justify-content: center; font-size: 1.1rem;
-    }
+    .video-thumb { width: 42px; height: 42px; border-radius: 10px; flex-shrink: 0; background: rgba(201,168,76,.15); border: 1px solid rgba(201,168,76,.25); display: flex; align-items: center; justify-content: center; font-size: 1.1rem; }
     .video-label { font-size: .68rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--text-light); margin-bottom: 2px; }
     .video-title-text { font-size: .85rem; font-weight: 700; color: var(--text-dark); }
     .video-source { font-size: .72rem; color: var(--gold); font-weight: 700; }
 
-    .complete-screen {
-      display: none; position: relative; z-index: 10;
-      width: 100%; max-width: 560px; text-align: center;
-      animation: cardIn .5s cubic-bezier(.22,1,.36,1) forwards;
-    }
-    .complete-screen.visible { display: block; }
-
-    .results-panel {
-      display: none; position: relative; z-index: 10;
-      width: 100%; max-width: 780px;
-      background: var(--card-bg); border-radius: var(--radius-card);
-      border: 1px solid var(--card-border); box-shadow: 0 20px 60px rgba(0,0,0,.3);
-      padding: 40px 36px 36px;
-      animation: cardIn .45s cubic-bezier(.22,1,.36,1) forwards;
-    }
+    /* Results */
+    .complete-screen { display: none; }
+    .results-panel { display: none; position: relative; z-index: 10; width: 100%; max-width: 780px; background: var(--card-bg); border-radius: var(--radius-card); border: 1px solid var(--card-border); box-shadow: 0 20px 60px rgba(0,0,0,.3); padding: 40px 36px 36px; animation: cardIn .45s cubic-bezier(.22,1,.36,1) forwards; }
     .results-panel.visible { display: block; }
-
     .results-header { text-align: center; margin-bottom: 32px; }
     .results-emoji { font-size: 3rem; margin-bottom: 12px; display: block; }
     .results-title { font-family: 'Playfair Display', serif; font-size: 1.8rem; font-weight: 900; color: var(--text-dark); margin-bottom: 6px; }
     .results-sub { font-size: .95rem; color: var(--text-mid); }
-
-    .results-score-bar {
-      display: flex; align-items: center; justify-content: center; gap: 24px;
-      background: var(--navy); border-radius: 16px; padding: 20px 28px; margin-bottom: 32px;
-    }
+    .results-score-bar { display: flex; align-items: center; justify-content: center; gap: 24px; background: var(--navy); border-radius: 16px; padding: 20px 28px; margin-bottom: 32px; }
     .results-score-num { font-family: 'Playfair Display', serif; font-size: 2.8rem; font-weight: 900; color: var(--gold); line-height: 1; }
     .results-score-label { font-size: .8rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: rgba(255,255,255,.5); margin-top: 4px; }
     .results-score-divider { width: 1px; height: 48px; background: rgba(255,255,255,.12); }
-    .results-section-title {
-      font-size: .72rem; font-weight: 900; letter-spacing: .1em; text-transform: uppercase;
-      color: var(--text-light); margin-bottom: 14px; padding-bottom: 8px;
-      border-bottom: 1px solid rgba(201,168,76,.15);
-    }
+    .results-section-title { font-size: .72rem; font-weight: 900; letter-spacing: .1em; text-transform: uppercase; color: var(--text-light); margin-bottom: 14px; padding-bottom: 8px; border-bottom: 1px solid rgba(201,168,76,.15); }
     .missed-list { display: flex; flex-direction: column; gap: 14px; margin-bottom: 32px; }
-    .missed-card {
-      background: #fff8f8; border: 1px solid rgba(239,68,68,.15);
-      border-left: 4px solid var(--red); border-radius: 12px; padding: 14px 16px;
-    }
+    .missed-card { background: #fff8f8; border: 1px solid rgba(239,68,68,.15); border-left: 4px solid var(--red); border-radius: 12px; padding: 14px 16px; }
     .missed-q-text { font-size: .9rem; font-weight: 700; color: var(--text-dark); margin-bottom: 10px; line-height: 1.4; }
     .missed-answers { display: flex; gap: 12px; flex-wrap: wrap; }
-    .missed-chip {
-      font-size: .78rem; font-weight: 700; padding: 4px 10px; border-radius: 6px;
-      display: flex; align-items: center; gap: 5px;
-    }
+    .missed-chip { font-size: .78rem; font-weight: 700; padding: 4px 10px; border-radius: 6px; display: flex; align-items: center; gap: 5px; }
     .missed-chip.yours   { background: rgba(239,68,68,.1); color: var(--red); border: 1px solid rgba(239,68,68,.25); }
     .missed-chip.correct { background: rgba(34,197,94,.1); color: #16a34a; border: 1px solid rgba(34,197,94,.25); }
     .missed-topic-tag { font-size: .7rem; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--text-light); margin-bottom: 6px; }
-    .missed-video-link {
-      display: inline-flex; align-items: center; gap: 6px;
-      font-size: .78rem; font-weight: 700; color: var(--blue-hint); text-decoration: none; margin-top: 8px;
-    }
+    .missed-video-link { display: inline-flex; align-items: center; gap: 6px; font-size: .78rem; font-weight: 700; color: var(--blue-hint); text-decoration: none; margin-top: 8px; }
     .missed-video-link:hover { text-decoration: underline; }
-    .all-correct-msg {
-      text-align: center; padding: 28px; background: var(--green-bg);
-      border: 1px solid rgba(34,197,94,.2); border-radius: 12px; margin-bottom: 32px;
-    }
+    .all-correct-msg { text-align: center; padding: 28px; background: var(--green-bg); border: 1px solid rgba(34,197,94,.2); border-radius: 12px; margin-bottom: 32px; }
     .all-correct-msg .ace { font-size: 2rem; margin-bottom: 8px; }
     .all-correct-msg p { color: #16a34a; font-weight: 700; font-size: .95rem; }
     .results-actions { display: flex; flex-direction: column; gap: 12px; }
-
-    .btn-complete-primary {
-      display: block; width: 100%;
-      background: linear-gradient(135deg, var(--gold), var(--gold-light));
-      color: var(--navy); border: none; border-radius: 16px; padding: 20px;
-      font-family: 'Lato', sans-serif; font-size: 1rem; font-weight: 900;
-      letter-spacing: .1em; text-transform: uppercase; cursor: pointer; margin-bottom: 12px;
-      box-shadow: 0 8px 32px rgba(201,168,76,.4); transition: transform .2s, box-shadow .2s;
-    }
+    .btn-complete-primary { display: block; width: 100%; background: linear-gradient(135deg, var(--gold), var(--gold-light)); color: var(--navy); border: none; border-radius: 16px; padding: 20px; font-family: 'Lato', sans-serif; font-size: 1rem; font-weight: 900; letter-spacing: .1em; text-transform: uppercase; cursor: pointer; margin-bottom: 12px; box-shadow: 0 8px 32px rgba(201,168,76,.4); transition: transform .2s, box-shadow .2s; }
     .btn-complete-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(201,168,76,.55); }
-    .btn-complete-secondary {
-      display: block; width: 100%;
-      background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.14);
-      border-radius: 14px; padding: 16px;
-      font-family: 'Lato', sans-serif; font-size: .88rem; font-weight: 700;
-      color: rgba(255,255,255,.6); letter-spacing: .06em; text-transform: uppercase;
-      cursor: pointer; transition: all .2s;
-    }
+    .btn-complete-secondary { display: block; width: 100%; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.14); border-radius: 14px; padding: 16px; font-family: 'Lato', sans-serif; font-size: .88rem; font-weight: 700; color: rgba(255,255,255,.6); letter-spacing: .06em; text-transform: uppercase; cursor: pointer; transition: all .2s; }
     .btn-complete-secondary:hover { background: rgba(255,255,255,.1); color: #fff; }
+
+    /* Upgrade banner */
+    .upgrade-banner { background: linear-gradient(135deg, rgba(201,168,76,.15) 0%, rgba(201,168,76,.05) 100%); border: 1px solid rgba(201,168,76,.3); border-radius: 16px; padding: 24px 28px; margin-bottom: 20px; text-align: center; }
+    .upgrade-banner h3 { font-family: 'Playfair Display', serif; font-size: 1.2rem; font-weight: 700; color: var(--text-dark); margin-bottom: 8px; }
+    .upgrade-banner p { font-size: .88rem; color: var(--text-mid); margin-bottom: 18px; line-height: 1.6; }
 
     @keyframes pulse-gold {
       0%   { box-shadow: 0 0 0 0   rgba(255,191,0,0.7); }
-      70%  { box-shadow: 0 0 0 15px rgba(255,191,0,0);   }
-      100% { box-shadow: 0 0 0 0   rgba(255,191,0,0);    }
+      70%  { box-shadow: 0 0 0 15px rgba(255,191,0,0); }
+      100% { box-shadow: 0 0 0 0   rgba(255,191,0,0); }
     }
-    .tutorial-glow {
-      animation: pulse-gold 2s infinite;
-      border: 2px solid #ffbf00 !important;
-      transform: scale(1.05); transition: all 0.3s ease;
-    }
-
-    /* Upgrade prompt after free sprint */
-    .upgrade-banner {
-      background: linear-gradient(135deg, rgba(201,168,76,.15) 0%, rgba(201,168,76,.05) 100%);
-      border: 1px solid rgba(201,168,76,.3);
-      border-radius: 16px; padding: 24px 28px; margin-bottom: 16px; text-align: center;
-    }
-    .upgrade-banner h3 {
-      font-family: 'Playfair Display', serif;
-      font-size: 1.2rem; font-weight: 700; color: var(--text-dark); margin-bottom: 6px;
-    }
-    .upgrade-banner p { font-size: .88rem; color: var(--text-mid); margin-bottom: 16px; line-height: 1.6; }
+    .tutorial-glow { animation: pulse-gold 2s infinite; border: 2px solid #ffbf00 !important; transform: scale(1.05); transition: all 0.3s ease; }
 
     @media (max-width: 600px) {
       .card-header { padding: 14px 18px 12px; }
@@ -441,34 +286,26 @@
       .question-text { font-size: 1.12rem; }
       .segments-row { gap: 6px; }
       .segment-text { font-size: .82rem; padding: 8px 10px; }
+      .results-panel { padding: 28px 20px 24px; }
     }
     @media (min-width: 768px) {
       .mc-btn  { padding: 18px 20px; }
       .btn-submit, .btn-next { padding: 20px 28px; font-size: 1rem; }
-      .btn-hint  { padding: 15px 20px; font-size: .85rem; }
+      .btn-hint { padding: 15px 20px; font-size: .85rem; }
     }
   </style>
 
   <style>
-    .star-footer {
-      position: relative; z-index: 10; width: 100%; max-width: 1000px;
-      margin: 56px auto 0; padding-top: 32px; border-top: 1px solid rgba(201,168,76,0.15);
-    }
+    .star-footer { position: relative; z-index: 10; width: 100%; max-width: 1000px; margin: 56px auto 0; padding-top: 32px; border-top: 1px solid rgba(201,168,76,0.15); }
     .star-footer-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 32px; padding-bottom: 28px; }
-    .star-footer-col-label {
-      font-size: .68rem; font-weight: 900; letter-spacing: .13em; text-transform: uppercase;
-      color: rgba(201,168,76,0.7); margin-bottom: 11px; display: flex; align-items: center; gap: 7px;
-    }
+    .star-footer-col-label { font-size: .68rem; font-weight: 900; letter-spacing: .13em; text-transform: uppercase; color: rgba(201,168,76,0.7); margin-bottom: 11px; display: flex; align-items: center; gap: 7px; }
     .star-footer-col-label::before { content: ''; display: inline-block; width: 14px; height: 1.5px; background: rgba(201,168,76,0.5); border-radius: 99px; }
     .star-footer-text { font-size: .78rem; line-height: 1.75; color: rgba(255,255,255,0.36); }
     .star-footer-text a { color: rgba(201,168,76,0.7); text-decoration: none; transition: color .18s; }
     .star-footer-text a:hover { color: #C9A84C; }
     .star-footer-logo { display: flex; align-items: center; gap: 7px; margin-bottom: 11px; }
     .star-footer-logo-text { font-family: 'Playfair Display', serif; font-size: .88rem; font-weight: 700; color: #C9A84C; letter-spacing: .06em; }
-    .star-footer-bottom {
-      padding: 16px 0; border-top: 1px solid rgba(255,255,255,0.05);
-      display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;
-    }
+    .star-footer-bottom { padding: 16px 0; border-top: 1px solid rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
     .star-footer-bottom-text { font-size: .72rem; color: rgba(255,255,255,0.22); }
     .star-footer-bottom-links { display: flex; gap: 18px; }
     .star-footer-bottom-links a { font-size: .72rem; color: rgba(255,255,255,0.22); text-decoration: none; transition: color .18s; }
@@ -500,9 +337,7 @@
         <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/>
       </svg>
     </div>
-    <div>
-      <div class="nav-logo-text">STAR</div>
-    </div>
+    <div class="nav-logo-text">STAR</div>
     <div class="nav-student" id="nav-student-name" style="margin-left:4px;"></div>
   </div>
   <a class="nav-exit" href="dashboard.html">✕ Exit</a>
@@ -564,8 +399,7 @@
       <button class="btn-next" id="btn-next" style="display:none;" onclick="nextQuestion()">Next →</button>
     </div>
     <button class="btn-hint" id="btn-hint" onclick="toggleHint()">
-      <span class="hint-icon">🔍</span>
-      Request Detective Hint from STAR
+      <span class="hint-icon">🔍</span> Request Detective Hint from STAR
     </button>
     <div class="hint-panel" id="hint-panel">
       <div class="hint-header">
@@ -587,7 +421,6 @@
   </div>
 </div>
 
-<!-- SESSION COMPLETE (legacy — kept for safety) -->
 <div class="complete-screen" id="complete-screen"></div>
 
 <!-- RESULTS PANEL -->
@@ -614,18 +447,15 @@
     <div class="results-section-title" id="missed-heading">Questions to Review</div>
     <div class="missed-list" id="missed-list"></div>
   </div>
-
-  <!-- Upgrade prompt -->
   <div class="upgrade-banner" id="upgrade-banner" style="display:none;">
     <h3>🌟 Save Your Progress & Unlock More!</h3>
-    <p>Create a free account to save your badges, track your weak spots, and unlock 100+ additional SEAG questions.</p>
+    <p>Create a free account to save your badges, track your weak spots and unlock 100+ additional SEAG questions.</p>
     <button class="btn-complete-primary" style="margin-bottom:0;" onclick="goToSignup()">
       🚀 Save My Results & Unlock More
     </button>
   </div>
-
   <div class="results-actions">
-    <button class="btn-complete-primary" id="btn-try-again" onclick="restartSession()">🔄 &nbsp;Try Another Sprint</button>
+    <button class="btn-complete-primary" onclick="restartSession()">🔄 &nbsp;Try Another Sprint</button>
     <button class="btn-complete-secondary" onclick="goToDashboard()">View My Dashboard →</button>
   </div>
 </div>
@@ -667,9 +497,6 @@
 </footer>
 
 <script>
-/* ════════════════════════════════════════════════════
-   STATE
-════════════════════════════════════════════════════ */
 let QUESTIONS   = [];
 let currentQ    = 0;
 let score       = { correct: 0, wrong: 0 };
@@ -678,52 +505,71 @@ let userAnswers = [];
 let hintVisible = false;
 let answered    = false;
 let selectedMC  = null;
-let sprintCount = 0; // track how many sprints completed this session
+let sprintCount = 0;
 
-/* ════════════════════════════════════════════════════
-   LOADING / ERROR STATES
-════════════════════════════════════════════════════ */
+/* ── LOADING STATE — transparent so white text is visible on navy bg ── */
 function showLoadingState() {
-  document.getElementById('question-card').style.display = '';
-  document.getElementById('question-card').innerHTML = `
-    <div style="padding:60px 28px;text-align:center;">
-      <div style="width:64px;height:64px;border-radius:50%;
-        background:linear-gradient(135deg,rgba(201,168,76,.2),rgba(201,168,76,.06));
-        border:2px solid rgba(201,168,76,.4);
+  const card = document.getElementById('question-card');
+  card.style.display    = '';
+  card.style.background = 'transparent';
+  card.style.border     = '1px solid rgba(201,168,76,.25)';
+  card.style.boxShadow  = 'none';
+  card.innerHTML = `
+    <div style="padding:64px 28px 56px;text-align:center;">
+      <div style="
+        width:80px;height:80px;border-radius:50%;
+        background:linear-gradient(135deg,rgba(201,168,76,.25),rgba(201,168,76,.08));
+        border:2px solid rgba(201,168,76,.55);
         display:flex;align-items:center;justify-content:center;
-        margin:0 auto 24px;font-size:1.8rem;
+        margin:0 auto 28px;font-size:2.2rem;
         animation:avatarPulse 1.5s ease-in-out infinite;">⭐</div>
-      <div style="font-family:'Playfair Display',serif;font-size:1.3rem;
-        font-weight:700;color:#fff;margin-bottom:8px;">
+      <div style="
+        font-family:'Playfair Display',serif;
+        font-size:1.45rem;font-weight:700;
+        color:#ffffff;margin-bottom:10px;letter-spacing:.01em;">
         STAR is building your sprint…
       </div>
-      <div style="font-size:.88rem;color:rgba(255,255,255,.45);">
-        Generating 10 fresh questions just for you
+      <div style="font-size:.92rem;color:rgba(255,255,255,.7);margin-bottom:6px;">
+        Generating 10 tailored questions just for you
+      </div>
+      <div style="
+        font-size:.75rem;color:rgba(201,168,76,.8);
+        margin-top:20px;letter-spacing:.1em;
+        text-transform:uppercase;font-weight:700;">
+        ✦ &nbsp;Fresh questions every sprint&nbsp; ✦
       </div>
     </div>`;
 }
 
+/* ── ERROR STATE ── */
 function showErrorState(message) {
-  document.getElementById('question-card').innerHTML = `
-    <div style="padding:48px 28px;text-align:center;">
-      <div style="font-size:2.5rem;margin-bottom:16px;">😕</div>
-      <div style="font-family:'Playfair Display',serif;font-size:1.2rem;
-        font-weight:700;color:#fff;margin-bottom:8px;">Something went wrong</div>
-      <div style="font-size:.88rem;color:rgba(255,255,255,.45);margin-bottom:28px;">${message}</div>
+  const card = document.getElementById('question-card');
+  card.style.background = 'transparent';
+  card.style.border     = '1px solid rgba(239,68,68,.3)';
+  card.style.boxShadow  = 'none';
+  card.innerHTML = `
+    <div style="padding:52px 28px;text-align:center;">
+      <div style="font-size:2.8rem;margin-bottom:16px;">😕</div>
+      <div style="font-family:'Playfair Display',serif;font-size:1.25rem;font-weight:700;color:#ffffff;margin-bottom:10px;">
+        Something went wrong
+      </div>
+      <div style="font-size:.88rem;color:rgba(255,255,255,.6);margin-bottom:28px;line-height:1.6;">${message}</div>
       <button onclick="init()" style="
-        background:linear-gradient(135deg,#C9A84C,#E8C97A);
-        color:#0B1F3A;border:none;border-radius:12px;
-        padding:14px 32px;font-family:'Lato',sans-serif;
-        font-size:.9rem;font-weight:900;letter-spacing:.08em;
-        text-transform:uppercase;cursor:pointer;">Try Again</button>
+        background:linear-gradient(135deg,#C9A84C,#E8C97A);color:#0B1F3A;
+        border:none;border-radius:12px;padding:14px 36px;
+        font-family:'Lato',sans-serif;font-size:.92rem;font-weight:900;
+        letter-spacing:.08em;text-transform:uppercase;cursor:pointer;
+        box-shadow:0 4px 20px rgba(201,168,76,.4);">Try Again</button>
     </div>`;
 }
 
-/* ════════════════════════════════════════════════════
-   REBUILD QUESTION CARD HTML
-════════════════════════════════════════════════════ */
+/* ── REBUILD CARD — resets styles back to white card after loading ── */
 function rebuildQuestionCard() {
-  document.getElementById('question-card').innerHTML = `
+  const card = document.getElementById('question-card');
+  card.style.background = '';
+  card.style.border     = '';
+  card.style.boxShadow  = '';
+  card.innerHTML = `
     <div class="card-header">
       <div id="card-type-badge" class="card-type-badge badge-maths">📐 Maths</div>
       <div class="card-topic" id="card-topic">Loading…</div>
@@ -737,8 +583,7 @@ function rebuildQuestionCard() {
       <div class="mc-options" id="mc-options" style="display:none;"></div>
       <div class="fr-wrap" id="fr-wrap" style="display:none;">
         <div class="fr-label">Your Answer</div>
-        <input type="text" class="fr-input" id="fr-input"
-          placeholder="Type your answer here…" autocomplete="off" />
+        <input type="text" class="fr-input" id="fr-input" placeholder="Type your answer here…" autocomplete="off" />
       </div>
       <div class="feedback-panel" id="feedback-panel">
         <div class="feedback-inner">
@@ -761,8 +606,7 @@ function rebuildQuestionCard() {
       </button>
       <div class="hint-panel" id="hint-panel">
         <div class="hint-header">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-            stroke="#3b82f6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
           </svg>
           STAR's Detective Hint
@@ -780,79 +624,62 @@ function rebuildQuestionCard() {
     </div>`;
 }
 
-/* ════════════════════════════════════════════════════
-   FETCH QUESTIONS FROM CLAUDE API
-════════════════════════════════════════════════════ */
+/* ── FETCH FROM CLAUDE API ── */
 async function fetchQuestions(track) {
   const response = await fetch('/api/generate-questions', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ track })
   });
-
   if (!response.ok) {
-    throw new Error('Could not load questions — please check your connection and try again');
+    const errData = await response.json().catch(() => ({}));
+    throw new Error(errData.error || 'Could not load questions — please check your connection and try again');
   }
-
   const data = await response.json();
-
-  if (!data.questions || !Array.isArray(data.questions)) {
-    throw new Error('Invalid response from STAR — please try again');
+  if (!data.questions || !Array.isArray(data.questions) || data.questions.length === 0) {
+    throw new Error('STAR could not generate questions right now — please try again');
   }
-
   return data.questions;
 }
 
-/* ════════════════════════════════════════════════════
-   INIT — fetch questions and start sprint
-════════════════════════════════════════════════════ */
+/* ── INIT ── */
 async function init() {
-  // Reset state
   currentQ    = 0;
   score       = { correct: 0, wrong: 0 };
   answered    = false;
   hintVisible = false;
   selectedMC  = null;
 
-  // Read student profile
   const urlTrack = new URLSearchParams(window.location.search).get('track');
   const year     = urlTrack || sessionStorage.getItem('star_year') || 'P6';
   const name     = sessionStorage.getItem('star_name') || '';
 
-  // Hide results, show progress + loading
   document.getElementById('results-panel').classList.remove('visible');
   document.getElementById('complete-screen').classList.remove('visible');
   document.getElementById('progress-section').style.display = '';
-  showLoadingState();
 
-  // Nav labels
   if (name) document.getElementById('nav-student-name').textContent = '· ' + name;
   document.getElementById('track-badge').textContent =
     year === 'P7' ? 'P7 Executor Track 🏆' : 'P6 Builder Track ⚡';
+
+  showLoadingState();
 
   try {
     QUESTIONS   = await fetchQuestions(year);
     answers     = new Array(QUESTIONS.length).fill(null);
     userAnswers = new Array(QUESTIONS.length).fill(null);
-
     rebuildQuestionCard();
-
     document.getElementById('q-total').textContent       = QUESTIONS.length;
     document.getElementById('score-correct').textContent = '0 correct';
     document.getElementById('score-wrong').textContent   = '0 wrong';
-
     buildProgressPips();
     loadQuestion(0);
-
   } catch (error) {
     console.error('Failed to load questions:', error);
     showErrorState(error.message || 'Please try again.');
   }
 }
 
-/* ════════════════════════════════════════════════════
-   PROGRESS PIPS
-════════════════════════════════════════════════════ */
 function buildProgressPips() {
   const container = document.getElementById('progress-dots');
   container.innerHTML = '';
@@ -864,22 +691,15 @@ function buildProgressPips() {
   });
 }
 
-/* ════════════════════════════════════════════════════
-   LOAD QUESTION
-════════════════════════════════════════════════════ */
 function loadQuestion(idx) {
   answered    = false;
   hintVisible = false;
   selectedMC  = null;
-
   const q = QUESTIONS[idx];
 
-  // Progress bar
   document.getElementById('q-current').textContent = idx + 1;
-  document.getElementById('progress-fill').style.width =
-    ((idx + 1) / QUESTIONS.length * 100) + '%';
+  document.getElementById('progress-fill').style.width = ((idx + 1) / QUESTIONS.length * 100) + '%';
 
-  // Update pips
   for (let i = 0; i < QUESTIONS.length; i++) {
     const pip = document.getElementById('pip-' + i);
     pip.className = 'progress-pip';
@@ -889,27 +709,19 @@ function loadQuestion(idx) {
     else if (i === idx)                pip.classList.add('active');
   }
 
-  // Type badge
   const badge = document.getElementById('card-type-badge');
-  if (q.type === 'english') {
-    badge.className = 'card-type-badge badge-english';
-    badge.textContent = '📖 English';
-  } else {
-    badge.className = 'card-type-badge badge-maths';
-    badge.textContent = '📐 Maths';
-  }
+  if (q.type === 'english') { badge.className = 'card-type-badge badge-english'; badge.textContent = '📖 English'; }
+  else                      { badge.className = 'card-type-badge badge-maths';   badge.textContent = '📐 Maths'; }
 
   document.getElementById('card-topic').textContent     = q.topic;
   document.getElementById('card-marks').textContent     = q.marks || '1 mark';
   document.getElementById('q-number-label').textContent = 'Question ' + (idx + 1);
   document.getElementById('q-text').textContent         = q.text;
 
-  // Context block
   const ctxEl = document.getElementById('q-context');
   if (q.context) { ctxEl.textContent = q.context; ctxEl.style.display = 'block'; }
   else           { ctxEl.style.display = 'none'; }
 
-  // Segments (punctuation/spelling)
   const segRow = document.getElementById('segments-row');
   const letters = ['A','B','C','D'];
   if (q.segments && q.segments.length) {
@@ -918,69 +730,45 @@ function loadQuestion(idx) {
     q.segments.forEach((seg, i) => {
       const block = document.createElement('div');
       block.className = 'segment-block';
-      block.innerHTML = `
-        <div class="segment-text">${seg}</div>
-        <div class="segment-label">${letters[i]}</div>`;
+      block.innerHTML = `<div class="segment-text">${seg}</div><div class="segment-label">${letters[i]}</div>`;
       segRow.appendChild(block);
     });
-  } else {
-    segRow.style.display = 'none';
-  }
+  } else { segRow.style.display = 'none'; }
 
-  // Options or free response
   const mcWrap  = document.getElementById('mc-options');
   const frWrap  = document.getElementById('fr-wrap');
   const frInput = document.getElementById('fr-input');
 
   if (q.options && q.options.length) {
-    mcWrap.style.display = 'flex';
-    frWrap.style.display = 'none';
+    mcWrap.style.display = 'flex'; frWrap.style.display = 'none';
     buildMC(q.options);
+    document.getElementById('btn-submit').disabled = true;
   } else {
-    mcWrap.style.display = 'none';
-    frWrap.style.display = 'block';
-    frInput.value = '';
-    frInput.className = 'fr-input';
-    frInput.disabled = false;
-    frInput.focus();
-    frInput.oninput = () => {
-      document.getElementById('btn-submit').disabled = frInput.value.trim().length === 0;
-    };
-    frInput.onkeydown = (e) => {
-      if (e.key === 'Enter' && !document.getElementById('btn-submit').disabled && !answered) {
-        submitAnswer();
-      }
-    };
+    mcWrap.style.display = 'none'; frWrap.style.display = 'block';
+    frInput.value = ''; frInput.className = 'fr-input'; frInput.disabled = false; frInput.focus();
+    frInput.oninput  = () => { document.getElementById('btn-submit').disabled = frInput.value.trim().length === 0; };
+    frInput.onkeydown = (e) => { if (e.key === 'Enter' && !document.getElementById('btn-submit').disabled && !answered) submitAnswer(); };
     document.getElementById('btn-submit').disabled = true;
   }
 
-  // Reset feedback + hint
   document.getElementById('video-link').classList.remove('tutorial-glow');
   document.getElementById('feedback-panel').className = 'feedback-panel';
   document.getElementById('hint-panel').className = 'hint-panel';
   document.getElementById('btn-hint').className = 'btn-hint';
-  document.getElementById('btn-hint').innerHTML =
-    '<span class="hint-icon">🔍</span> Request Detective Hint from STAR';
+  document.getElementById('btn-hint').innerHTML = '<span class="hint-icon">🔍</span> Request Detective Hint from STAR';
   document.getElementById('hint-text').textContent = q.hint || 'Think carefully about each option.';
   document.getElementById('btn-submit').style.display = 'inline-block';
   document.getElementById('btn-submit').textContent = 'Check Answer';
-  if (q.options && q.options.length) {
-    document.getElementById('btn-submit').disabled = true;
-  }
   document.getElementById('btn-next').style.display = 'none';
 
-  // Video link
-  const videoLinkEl = document.getElementById('video-link');
+  const vl = document.getElementById('video-link');
   document.getElementById('video-title').textContent  = q.videoTitle  || 'Watch Tutorial';
   document.getElementById('video-source').textContent = q.videoSource || 'CorbettMaths';
-  videoLinkEl.setAttribute('href',   q.videoUrl || '#');
-  videoLinkEl.setAttribute('target', '_blank');
-  videoLinkEl.setAttribute('rel',    'noopener noreferrer');
+  vl.setAttribute('href',   q.videoUrl || '#');
+  vl.setAttribute('target', '_blank');
+  vl.setAttribute('rel',    'noopener noreferrer');
 }
 
-/* ════════════════════════════════════════════════════
-   BUILD MC OPTIONS
-════════════════════════════════════════════════════ */
 function buildMC(options) {
   const wrap = document.getElementById('mc-options');
   wrap.innerHTML = '';
@@ -988,7 +776,6 @@ function buildMC(options) {
   options.forEach((opt, i) => {
     const btn = document.createElement('button');
     btn.className = 'mc-btn';
-    // Strip leading "A. " style prefix if present
     const label = opt.replace(/^[A-EN]\.\s*/i, '');
     btn.innerHTML = `<div class="mc-letter">${letters[i]}</div><span>${label}</span>`;
     btn.onclick = () => selectMC(letters[i], btn);
@@ -1004,13 +791,9 @@ function selectMC(letter, btn) {
   document.getElementById('btn-submit').disabled = false;
 }
 
-/* ════════════════════════════════════════════════════
-   SUBMIT ANSWER
-════════════════════════════════════════════════════ */
 function submitAnswer() {
   if (answered) return;
   answered = true;
-
   const q = QUESTIONS[currentQ];
   let isCorrect = false;
 
@@ -1020,17 +803,14 @@ function submitAnswer() {
     document.querySelectorAll('.mc-btn').forEach((btn, i) => {
       const letter = letters[i];
       btn.disabled = true;
-      if (letter === q.answer)                    btn.classList.add('correct-ans');
+      if (letter === q.answer)                      btn.classList.add('correct-ans');
       else if (letter === selectedMC && !isCorrect) btn.classList.add('wrong-ans');
     });
     const selIdx = letters.indexOf(selectedMC);
-    userAnswers[currentQ] = selIdx >= 0
-      ? q.options[selIdx].replace(/^[A-EN]\.\s*/i, '')
-      : selectedMC;
+    userAnswers[currentQ] = selIdx >= 0 ? q.options[selIdx].replace(/^[A-EN]\.\s*/i,'') : (selectedMC || '(no answer)');
   } else {
     const frInput = document.getElementById('fr-input');
-    const normalise = s => s.trim().toLowerCase()
-      .replace(/²/g,'2').replace(/\^2/g,'2').replace(/\s+/g,' ').trim();
+    const normalise = s => s.trim().toLowerCase().replace(/²/g,'2').replace(/\^2/g,'2').replace(/\s+/g,' ').trim();
     const userVal  = normalise(frInput.value);
     const accepted = (q.acceptedAnswers || [q.answer]).map(normalise);
     isCorrect = accepted.includes(userVal);
@@ -1042,55 +822,37 @@ function submitAnswer() {
   answers[currentQ] = isCorrect ? 'correct' : 'wrong';
   if (isCorrect) score.correct++; else score.wrong++;
 
-  // Video glow on wrong answer
-  const videoLinkEl = document.getElementById('video-link');
-  if (!isCorrect) videoLinkEl.classList.add('tutorial-glow');
-  else            videoLinkEl.classList.remove('tutorial-glow');
+  const vl = document.getElementById('video-link');
+  if (!isCorrect) vl.classList.add('tutorial-glow'); else vl.classList.remove('tutorial-glow');
 
-  // Pip update
   const pip = document.getElementById('pip-' + currentQ);
   pip.className = 'progress-pip ' + (isCorrect ? 'correct' : 'wrong');
-
-  // Score chips
   document.getElementById('score-correct').textContent = score.correct + ' correct';
   document.getElementById('score-wrong').textContent   = score.wrong + ' wrong';
 
   showFeedback(q, isCorrect);
-
   document.getElementById('btn-submit').style.display = 'none';
   document.getElementById('btn-next').style.display   = 'inline-block';
-  document.getElementById('btn-next').textContent =
-    currentQ < QUESTIONS.length - 1 ? 'Next Question →' : 'See Results 🏁';
-
+  document.getElementById('btn-next').textContent = currentQ < QUESTIONS.length - 1 ? 'Next Question →' : 'See Results 🏁';
   saveProgress();
 }
 
-/* ════════════════════════════════════════════════════
-   SHOW FEEDBACK
-════════════════════════════════════════════════════ */
 function showFeedback(q, isCorrect) {
   const panel   = document.getElementById('feedback-panel');
   const icon    = document.getElementById('feedback-icon');
   const title   = document.getElementById('feedback-title');
   const body    = document.getElementById('feedback-body');
   const stepsEl = document.getElementById('feedback-steps');
-
   panel.className = 'feedback-panel visible ' + (isCorrect ? 'feedback-correct' : 'feedback-wrong');
   icon.textContent  = isCorrect ? '✓' : '✗';
   title.textContent = isCorrect ? 'Correct! Well done.' : 'Not quite — here\'s how:';
   body.textContent  = q.explanation || '';
-
   if (!isCorrect && q.steps && q.steps.length) {
     stepsEl.style.display = 'block';
     stepsEl.innerHTML = q.steps.map(s => `<li>${s}</li>`).join('');
-  } else {
-    stepsEl.style.display = 'none';
-  }
+  } else { stepsEl.style.display = 'none'; }
 }
 
-/* ════════════════════════════════════════════════════
-   HINT
-════════════════════════════════════════════════════ */
 function toggleHint() {
   hintVisible = !hintVisible;
   const panel = document.getElementById('hint-panel');
@@ -1106,57 +868,30 @@ function toggleHint() {
   }
 }
 
-/* ════════════════════════════════════════════════════
-   NEXT QUESTION
-════════════════════════════════════════════════════ */
 function nextQuestion() {
   if (currentQ < QUESTIONS.length - 1) {
     currentQ++;
     const card = document.getElementById('question-card');
     card.classList.add('card-refreshing');
-    setTimeout(() => {
-      card.classList.remove('card-refreshing');
-      loadQuestion(currentQ);
-    }, 180);
-  } else {
-    showResults();
-  }
+    setTimeout(() => { card.classList.remove('card-refreshing'); loadQuestion(currentQ); }, 180);
+  } else { showResults(); }
 }
 
-/* ════════════════════════════════════════════════════
-   SAVE PROGRESS TO LOCALSTORAGE
-════════════════════════════════════════════════════ */
 function saveProgress() {
   const track = sessionStorage.getItem('star_year') || 'P6';
   const name  = sessionStorage.getItem('star_name')  || '';
-  const pct   = QUESTIONS.length
-    ? Math.round(score.correct / QUESTIONS.length * 100) : 0;
-
+  const pct   = QUESTIONS.length ? Math.round(score.correct / QUESTIONS.length * 100) : 0;
   localStorage.setItem('star_last_score', pct);
   localStorage.setItem('star_last_track', track);
   localStorage.setItem('star_last_name',  name);
-
-  const toReview = QUESTIONS
-    .map((q, i) => ({ q, result: answers[i] }))
-    .filter(x => x.result === 'wrong')
-    .map(x => ({
-      topic:        x.q.topic,
-      videoTitle:   x.q.videoTitle,
-      videoUrl:     x.q.videoUrl,
-      videoSource:  x.q.videoSource,
-      questionText: x.q.text,
-    }))
+  const toReview = QUESTIONS.map((q, i) => ({ q, result: answers[i] })).filter(x => x.result === 'wrong')
+    .map(x => ({ topic:x.q.topic, videoTitle:x.q.videoTitle, videoUrl:x.q.videoUrl, videoSource:x.q.videoSource, questionText:x.q.text }))
     .filter((item, idx, arr) => arr.findIndex(x => x.topic === item.topic) === idx);
-
   localStorage.setItem('star_toReview', JSON.stringify(toReview));
 }
 
-/* ════════════════════════════════════════════════════
-   SHOW RESULTS
-════════════════════════════════════════════════════ */
 function showResults() {
   sprintCount++;
-
   document.getElementById('question-card').style.display    = 'none';
   document.getElementById('progress-section').style.display = 'none';
   document.getElementById('complete-screen').classList.remove('visible');
@@ -1165,11 +900,10 @@ function showResults() {
   const pct  = Math.round(score.correct / QUESTIONS.length * 100);
   const name = sessionStorage.getItem('star_name') || '';
 
-  // Header
   if (pct === 100) {
     document.getElementById('res-emoji').textContent = '🏆';
     document.getElementById('res-title').textContent = 'Perfect Score' + (name ? ', ' + name : '') + '!';
-    document.getElementById('res-sub').textContent   = 'Absolutely flawless — a clean sweep!';
+    document.getElementById('res-sub').textContent   = 'Absolutely flawless — every question right!';
   } else if (pct >= 80) {
     document.getElementById('res-emoji').textContent = '🌟';
     document.getElementById('res-title').textContent = 'Brilliant' + (name ? ', ' + name : '') + '!';
@@ -1177,61 +911,43 @@ function showResults() {
   } else if (pct >= 50) {
     document.getElementById('res-emoji').textContent = '⭐';
     document.getElementById('res-title').textContent = 'Great effort' + (name ? ', ' + name : '') + '!';
-    document.getElementById('res-sub').textContent   = 'Solid work. Study the missed questions and go again.';
+    document.getElementById('res-sub').textContent   = 'Solid work — study the missed questions and go again.';
   } else {
     document.getElementById('res-emoji').textContent = '💪';
     document.getElementById('res-title').textContent = 'Keep going' + (name ? ', ' + name : '') + '!';
     document.getElementById('res-sub').textContent   = 'Every sprint builds strength. Review below, then try again!';
   }
 
-  // Score bar
   document.getElementById('res-fraction').textContent = score.correct + '/' + QUESTIONS.length;
   document.getElementById('res-pct2').textContent     = pct + '%';
 
-  // Stars
   const stars    = Math.round(pct / 20);
   const starWrap = document.getElementById('res-star-wrap');
   starWrap.innerHTML = '';
   for (let i = 0; i < 5; i++) {
     const svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
-    svg.setAttribute('width','24'); svg.setAttribute('height','24');
-    svg.setAttribute('viewBox','0 0 24 24');
-    svg.setAttribute('fill',   i < stars ? '#C9A84C' : 'rgba(201,168,76,.2)');
-    svg.setAttribute('stroke', '#C9A84C'); svg.setAttribute('stroke-width','1.2');
+    svg.setAttribute('width','24'); svg.setAttribute('height','24'); svg.setAttribute('viewBox','0 0 24 24');
+    svg.setAttribute('fill', i < stars ? '#C9A84C' : 'rgba(201,168,76,.2)');
+    svg.setAttribute('stroke','#C9A84C'); svg.setAttribute('stroke-width','1.2');
     const poly = document.createElementNS('http://www.w3.org/2000/svg','polygon');
     poly.setAttribute('points','12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26');
     svg.appendChild(poly); starWrap.appendChild(svg);
   }
-  const starsLabel = document.createElement('div');
-  starsLabel.className = 'results-score-label';
-  starsLabel.style.marginTop = '4px';
-  starsLabel.textContent = 'Rating';
-  starWrap.appendChild(starsLabel);
+  const sl = document.createElement('div'); sl.className='results-score-label'; sl.style.marginTop='4px'; sl.textContent='Rating'; starWrap.appendChild(sl);
 
-  // Missed questions
   const missedList    = document.getElementById('missed-list');
   const missedSection = document.getElementById('missed-section');
   missedList.innerHTML = '';
-
   const missedQuestions = QUESTIONS.filter((q, i) => answers[i] === 'wrong');
 
   if (missedQuestions.length === 0) {
-    missedSection.innerHTML = `
-      <div class="all-correct-msg">
-        <div class="ace">🎉</div>
-        <p>You got every question right — nothing to review!</p>
-      </div>`;
+    missedSection.innerHTML = `<div class="all-correct-msg"><div class="ace">🎉</div><p>You got every question right — nothing to review!</p></div>`;
   } else {
-    document.getElementById('missed-heading').textContent =
-      missedQuestions.length + ' Question' + (missedQuestions.length > 1 ? 's' : '') + ' to Review';
-
+    document.getElementById('missed-heading').textContent = missedQuestions.length + ' Question' + (missedQuestions.length > 1 ? 's' : '') + ' to Review';
     missedQuestions.forEach(q => {
       const qIdx       = QUESTIONS.indexOf(q);
       const studentAns = userAnswers[qIdx] || '(no answer)';
-      const correctAns = q.options
-        ? (q.options.find(o => o.startsWith(q.answer)) || q.answer)
-        : q.answer;
-
+      const correctAns = q.options ? (q.options.find(o => o.startsWith(q.answer)) || q.answer) : q.answer;
       const card = document.createElement('div');
       card.className = 'missed-card';
       card.innerHTML = `
@@ -1241,38 +957,26 @@ function showResults() {
           <span class="missed-chip yours">✗ Your answer: ${studentAns}</span>
           <span class="missed-chip correct">✓ Correct: ${correctAns.replace(/^[A-EN]\.\s*/i,'')}</span>
         </div>
-        <a class="missed-video-link" href="${q.videoUrl}" target="_blank" rel="noopener">
-          ▶ Watch: ${q.videoTitle} (${q.videoSource})
-        </a>`;
+        <a class="missed-video-link" href="${q.videoUrl}" target="_blank" rel="noopener">▶ Watch: ${q.videoTitle} (${q.videoSource})</a>`;
       missedList.appendChild(card);
     });
   }
 
-  // Show upgrade banner after first sprint if not signed up
-  const isSignedUp = localStorage.getItem('star_signed_up');
-  if (!isSignedUp && sprintCount === 1) {
-    document.getElementById('upgrade-banner').style.display = 'block';
-    document.getElementById('btn-try-again').textContent = '🔄 Try Another Sprint';
-  } else {
-    document.getElementById('upgrade-banner').style.display = 'none';
-  }
+  document.getElementById('upgrade-banner').style.display = (!localStorage.getItem('star_signed_up') && sprintCount === 1) ? 'block' : 'none';
 
-  // Persist to localStorage
   const toReview = missedQuestions
-    .map(q => ({ topic: q.topic, videoTitle: q.videoTitle, videoUrl: q.videoUrl, videoSource: q.videoSource, questionText: q.text }))
+    .map(q => ({ topic:q.topic, videoTitle:q.videoTitle, videoUrl:q.videoUrl, videoSource:q.videoSource, questionText:q.text }))
     .filter((item, idx, arr) => arr.findIndex(x => x.topic === item.topic) === idx);
-
   localStorage.setItem('star_toReview',   JSON.stringify(toReview));
   localStorage.setItem('star_last_score', pct);
   localStorage.setItem('star_last_track', sessionStorage.getItem('star_year') || 'P6');
   localStorage.setItem('star_last_name',  sessionStorage.getItem('star_name') || '');
+  sessionStorage.setItem('star_last_score', pct);
 
-  // Cumulative mastery stats
   const mastery  = JSON.parse(localStorage.getItem('star_mastery'))   || {};
   const videoLog = JSON.parse(localStorage.getItem('star_video_log')) || [];
   const sessions = JSON.parse(localStorage.getItem('star_sessions'))  || [];
   const now      = new Date().toISOString();
-
   QUESTIONS.forEach((q, i) => {
     const t = q.topic;
     if (!mastery[t]) mastery[t] = { correct:0, wrong:0, type:q.type, videoTitle:q.videoTitle, videoUrl:q.videoUrl, videoSource:q.videoSource };
@@ -1280,27 +984,17 @@ function showResults() {
     else if (answers[i] === 'wrong') {
       mastery[t].wrong++;
       const alreadyToday = videoLog.some(v => v.topic === t && v.date && v.date.slice(0,10) === now.slice(0,10));
-      if (!alreadyToday) {
-        videoLog.unshift({ topic:t, videoTitle:q.videoTitle, videoUrl:q.videoUrl, videoSource:q.videoSource, date:now });
-      }
+      if (!alreadyToday) videoLog.unshift({ topic:t, videoTitle:q.videoTitle, videoUrl:q.videoUrl, videoSource:q.videoSource, date:now });
     }
   });
-
   if (videoLog.length > 50) videoLog.length = 50;
   sessions.unshift({ date:now, score:pct, track:sessionStorage.getItem('star_year')||'P6', correct:score.correct, total:QUESTIONS.length });
   if (sessions.length > 20) sessions.length = 20;
-
   localStorage.setItem('star_mastery',   JSON.stringify(mastery));
   localStorage.setItem('star_video_log', JSON.stringify(videoLog));
   localStorage.setItem('star_sessions',  JSON.stringify(sessions));
-
-  // Mirror to sessionStorage for signup page
-  sessionStorage.setItem('star_last_score', pct);
 }
 
-/* ════════════════════════════════════════════════════
-   NAVIGATION
-════════════════════════════════════════════════════ */
 function restartSession() {
   document.getElementById('results-panel').classList.remove('visible');
   document.getElementById('complete-screen').classList.remove('visible');
@@ -1308,20 +1002,17 @@ function restartSession() {
   document.getElementById('progress-section').style.display = '';
   init();
 }
-
 function goToSignup() {
   const pct = Math.round(score.correct / QUESTIONS.length * 100);
   sessionStorage.setItem('star_last_score', pct);
   window.location.href = 'signup.html?score=' + pct;
 }
-
 function goToDashboard() {
   const pct = Math.round(score.correct / QUESTIONS.length * 100);
   sessionStorage.setItem('star_last_score', pct);
   window.location.href = 'signup.html?score=' + pct;
 }
 
-/* ── Kick off ── */
 window.addEventListener('DOMContentLoaded', init);
 </script>
 </body>
