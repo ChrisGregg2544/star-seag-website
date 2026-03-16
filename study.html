@@ -42,72 +42,27 @@
       overflow-x: hidden;
     }
     .bg-atmosphere { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
-    .bg-glow {
-      position: absolute; border-radius: 50%; pointer-events: none;
-      background: radial-gradient(circle, rgba(201,168,76,.055) 0%, transparent 68%);
-      width: 700px; height: 700px;
-      top: 50%; left: 50%; transform: translate(-50%, -50%);
-    }
-    .bg-glow-2 {
-      position: absolute; border-radius: 50%;
-      background: radial-gradient(circle, rgba(59,130,246,.03) 0%, transparent 70%);
-      width: 400px; height: 400px; bottom: -100px; right: -80px;
-    }
-    .star-p {
-      position: absolute; border-radius: 50%;
-      background: var(--gold); opacity: .1;
-      animation: twinkle var(--d,3.8s) ease-in-out infinite alternate;
-      animation-delay: var(--del,0s);
-    }
+    .bg-glow { position: absolute; border-radius: 50%; pointer-events: none; background: radial-gradient(circle, rgba(201,168,76,.055) 0%, transparent 68%); width: 700px; height: 700px; top: 50%; left: 50%; transform: translate(-50%, -50%); }
+    .bg-glow-2 { position: absolute; border-radius: 50%; background: radial-gradient(circle, rgba(59,130,246,.03) 0%, transparent 70%); width: 400px; height: 400px; bottom: -100px; right: -80px; }
+    .star-p { position: absolute; border-radius: 50%; background: var(--gold); opacity: .1; animation: twinkle var(--d,3.8s) ease-in-out infinite alternate; animation-delay: var(--del,0s); }
     @keyframes twinkle { from {opacity:.04;} to {opacity:.2;} }
 
-    /* NAV */
-    .top-nav {
-      position: relative; z-index: 10;
-      width: 100%; max-width: 780px;
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 20px 0 16px;
-    }
+    .top-nav { position: relative; z-index: 10; width: 100%; max-width: 780px; display: flex; align-items: center; justify-content: space-between; padding: 20px 0 16px; }
     .nav-logo { display: flex; align-items: center; gap: 8px; }
-    .nav-logo-star {
-      width: 32px; height: 32px;
-      background: linear-gradient(135deg, rgba(201,168,76,.2) 0%, rgba(201,168,76,.06) 100%);
-      border: 1.5px solid rgba(201,168,76,.4); border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      animation: avatarPulse 3s ease-in-out infinite;
-    }
-    @keyframes avatarPulse {
-      0%,100% { box-shadow: 0 0 0 4px rgba(201,168,76,.06); }
-      50%      { box-shadow: 0 0 0 7px rgba(201,168,76,.11); }
-    }
+    .nav-logo-star { width: 32px; height: 32px; background: linear-gradient(135deg, rgba(201,168,76,.2) 0%, rgba(201,168,76,.06) 100%); border: 1.5px solid rgba(201,168,76,.4); border-radius: 50%; display: flex; align-items: center; justify-content: center; animation: avatarPulse 3s ease-in-out infinite; }
+    @keyframes avatarPulse { 0%,100% { box-shadow: 0 0 0 4px rgba(201,168,76,.06); } 50% { box-shadow: 0 0 0 7px rgba(201,168,76,.11); } }
     .nav-logo-text { font-family: 'Playfair Display', serif; font-size: 1.15rem; font-weight: 700; color: var(--gold); letter-spacing: .04em; }
     .nav-student { font-size: .78rem; color: rgba(255,255,255,.42); letter-spacing: .06em; }
-    .nav-exit {
-      background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.12);
-      border-radius: 8px; color: rgba(255,255,255,.5);
-      font-family: 'Lato', sans-serif; font-size: .75rem; font-weight: 700;
-      letter-spacing: .08em; text-transform: uppercase;
-      padding: 8px 16px; cursor: pointer; transition: all .2s;
-      text-decoration: none; display: inline-block;
-    }
+    .nav-exit { background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.12); border-radius: 8px; color: rgba(255,255,255,.5); font-family: 'Lato', sans-serif; font-size: .75rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; padding: 8px 16px; cursor: pointer; transition: all .2s; text-decoration: none; display: inline-block; }
     .nav-exit:hover { background: rgba(255,255,255,.1); color: rgba(255,255,255,.8); border-color: rgba(255,255,255,.2); }
 
-    /* PROGRESS */
     .progress-section { position: relative; z-index: 10; width: 100%; max-width: 780px; margin-bottom: 20px; }
     .progress-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
     .progress-label { font-size: .8rem; font-weight: 700; color: rgba(255,255,255,.55); letter-spacing: .08em; text-transform: uppercase; }
     .progress-label span { color: var(--gold); }
     .progress-track { height: 6px; background: rgba(255,255,255,.1); border-radius: 99px; overflow: hidden; }
-    .progress-fill {
-      height: 100%; border-radius: 99px;
-      background: linear-gradient(90deg, var(--gold), var(--gold-light));
-      transition: width .6s cubic-bezier(.34,1.56,.64,1); position: relative;
-    }
-    .progress-fill::after {
-      content: ''; position: absolute; right: 0; top: 50%; transform: translateY(-50%);
-      width: 10px; height: 10px; border-radius: 50%; background: var(--gold-light);
-      box-shadow: 0 0 8px rgba(232,201,122,.8);
-    }
+    .progress-fill { height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--gold), var(--gold-light)); transition: width .6s cubic-bezier(.34,1.56,.64,1); position: relative; }
+    .progress-fill::after { content: ''; position: absolute; right: 0; top: 50%; transform: translateY(-50%); width: 10px; height: 10px; border-radius: 50%; background: var(--gold-light); box-shadow: 0 0 8px rgba(232,201,122,.8); }
     .progress-dots { display: flex; gap: 5px; margin-top: 10px; }
     .progress-pip { flex: 1; height: 3px; border-radius: 99px; background: rgba(255,255,255,.1); transition: background .3s; }
     .progress-pip.done    { background: rgba(201,168,76,.5); }
@@ -118,24 +73,10 @@
     .score-chip { display: flex; align-items: center; gap: 5px; font-family: 'Lato', sans-serif; font-size: .75rem; font-weight: 700; letter-spacing: .04em; }
     .score-chip .dot { width: 8px; height: 8px; border-radius: 50%; }
 
-    /* QUESTION CARD */
-    .question-card {
-      position: relative; z-index: 10;
-      width: 100%; max-width: 780px;
-      background: var(--card-bg); border-radius: var(--radius-card);
-      border: 1px solid var(--card-border);
-      box-shadow: 0 4px 6px rgba(0,0,0,.04), 0 20px 60px rgba(0,0,0,.3);
-      overflow: hidden;
-      animation: cardIn .45s cubic-bezier(.22,1,.36,1) forwards;
-    }
+    .question-card { position: relative; z-index: 10; width: 100%; max-width: 780px; background: var(--card-bg); border-radius: var(--radius-card); border: 1px solid var(--card-border); box-shadow: 0 4px 6px rgba(0,0,0,.04), 0 20px 60px rgba(0,0,0,.3); overflow: hidden; animation: cardIn .45s cubic-bezier(.22,1,.36,1) forwards; }
     @keyframes cardIn { from { opacity:0; transform:translateY(18px) scale(.98); } to { opacity:1; transform:translateY(0) scale(1); } }
     .card-refreshing { animation: cardRefresh .35s cubic-bezier(.22,1,.36,1) forwards !important; }
-    @keyframes cardRefresh {
-      0%   { opacity:1; transform:translateX(0) scale(1); }
-      40%  { opacity:0; transform:translateX(-28px) scale(.97); }
-      41%  { opacity:0; transform:translateX(28px) scale(.97); }
-      100% { opacity:1; transform:translateX(0) scale(1); }
-    }
+    @keyframes cardRefresh { 0% { opacity:1; transform:translateX(0) scale(1); } 40% { opacity:0; transform:translateX(-28px) scale(.97); } 41% { opacity:0; transform:translateX(28px) scale(.97); } 100% { opacity:1; transform:translateX(0) scale(1); } }
 
     .card-header { display: flex; align-items: center; justify-content: space-between; padding: 18px 28px 16px; border-bottom: 1px solid rgba(11,31,58,.06); }
     .card-type-badge { display: inline-flex; align-items: center; gap: 6px; border-radius: 999px; padding: 4px 13px; font-size: .68rem; font-weight: 900; letter-spacing: .12em; text-transform: uppercase; }
@@ -149,13 +90,11 @@
     .question-text { font-family: 'Playfair Display', serif; font-size: 1.28rem; line-height: 1.5; color: var(--text-dark); margin-bottom: 10px; min-height: 60px; }
     .question-context { font-size: .95rem; color: var(--text-dark); line-height: 1.7; margin-bottom: 20px; background: rgba(11,31,58,.04); border-left: 3px solid rgba(201,168,76,.4); padding: 12px 16px; border-radius: 0 8px 8px 0; font-weight: 700; }
 
-    /* Segments */
     .segments-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; align-items: flex-end; }
     .segment-block { display: flex; flex-direction: column; align-items: center; gap: 5px; }
     .segment-text { background: rgba(11,31,58,.05); border: 1.5px solid rgba(11,31,58,.12); border-radius: 8px; padding: 10px 14px; font-size: .92rem; font-weight: 700; color: var(--text-dark); white-space: nowrap; }
     .segment-label { font-size: .72rem; font-weight: 900; color: var(--text-light); letter-spacing: .1em; text-transform: uppercase; }
 
-    /* MC */
     .mc-options { display: flex; flex-direction: column; gap: 11px; margin-bottom: 0; }
     .mc-btn { display: flex; align-items: center; gap: 14px; background: rgba(11,31,58,.03); border: 1.5px solid rgba(11,31,58,.1); border-radius: 12px; padding: 15px 18px; font-family: 'Lato', sans-serif; font-size: .95rem; font-weight: 700; color: var(--text-dark); cursor: pointer; text-align: left; transition: all .2s ease; -webkit-tap-highlight-color: transparent; }
     .mc-btn:hover:not(:disabled) { border-color: var(--gold); background: rgba(201,168,76,.05); transform: translateX(3px); }
@@ -169,7 +108,13 @@
     .mc-btn.wrong-ans .mc-letter { background: var(--red)!important; color:#fff!important; }
     .mc-btn:disabled { cursor: default; }
 
-    /* FR */
+    /* Special N button styling */
+    .mc-btn .mc-letter-n { width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0; background: rgba(11,31,58,.07); display: flex; align-items: center; justify-content: center; font-size: .72rem; font-weight: 900; color: var(--text-mid); transition: all .2s; }
+    .mc-btn:hover:not(:disabled) .mc-letter-n { background: var(--gold); color: #fff; }
+    .mc-btn.selected .mc-letter-n { background: var(--gold); color: #fff; }
+    .mc-btn.correct-ans .mc-letter-n { background: var(--green)!important; color:#fff!important; }
+    .mc-btn.wrong-ans .mc-letter-n { background: var(--red)!important; color:#fff!important; }
+
     .fr-wrap { margin-bottom: 0; }
     .fr-label { font-size: .75rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--text-light); margin-bottom: 8px; }
     .fr-input { width: 100%; background: rgba(11,31,58,.04); border: 1.5px solid rgba(11,31,58,.12); border-radius: 12px; padding: 16px 20px; font-family: 'Lato', sans-serif; font-size: 1.15rem; font-weight: 700; color: var(--text-dark); outline: none; transition: border-color .22s, box-shadow .22s; caret-color: var(--gold); }
@@ -178,7 +123,6 @@
     .fr-input.correct-inp { border-color: var(--green)!important; background: var(--green-bg)!important; }
     .fr-input.wrong-inp   { border-color: var(--red)!important;   background: var(--red-bg)!important; }
 
-    /* Feedback */
     .feedback-panel { display: none; margin: 20px 28px 0; border-radius: 14px; overflow: hidden; animation: feedIn .35s cubic-bezier(.22,1,.36,1) forwards; }
     @keyframes feedIn { from{opacity:0;transform:translateY(10px);} to{opacity:1;transform:translateY(0);} }
     .feedback-panel.visible { display: block; }
@@ -186,7 +130,7 @@
     .feedback-icon { width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; }
     .feedback-correct { background: var(--green-bg); border: 1px solid rgba(34,197,94,.25); }
     .feedback-correct .feedback-icon { background: var(--green); color: white; }
-    .feedback-wrong   { background: var(--red-bg);   border: 1px solid rgba(239,68,68,.25); }
+    .feedback-wrong   { background: var(--red-bg); border: 1px solid rgba(239,68,68,.25); }
     .feedback-wrong   .feedback-icon { background: var(--red); color: white; }
     .feedback-title { font-family: 'Playfair Display', serif; font-size: 1rem; font-weight: 700; margin-bottom: 5px; }
     .feedback-correct .feedback-title { color: #166534; }
@@ -195,32 +139,15 @@
     .feedback-steps { font-size: .84rem; line-height: 1.7; color: var(--text-mid); margin-top: 8px; padding-left: 16px; }
     .feedback-steps li { margin-bottom: 4px; }
 
-    /* Card footer */
     .card-footer { padding: 20px 28px 26px; display: flex; flex-direction: column; gap: 14px; }
     .action-row { display: flex; gap: 12px; align-items: center; }
-    .btn-submit {
-      flex: 1; background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 50%, var(--gold) 100%);
-      background-size: 200% auto; color: var(--navy); border: none; border-radius: var(--radius-btn); padding: 17px 28px;
-      font-family: 'Lato', sans-serif; font-size: .95rem; font-weight: 900; letter-spacing: .08em; text-transform: uppercase;
-      cursor: pointer; transition: background-position .4s, transform .18s, box-shadow .18s, opacity .2s;
-      box-shadow: 0 5px 22px rgba(201,168,76,.38); -webkit-tap-highlight-color: transparent;
-    }
+    .btn-submit { flex: 1; background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 50%, var(--gold) 100%); background-size: 200% auto; color: var(--navy); border: none; border-radius: var(--radius-btn); padding: 17px 28px; font-family: 'Lato', sans-serif; font-size: .95rem; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; cursor: pointer; transition: background-position .4s, transform .18s, box-shadow .18s, opacity .2s; box-shadow: 0 5px 22px rgba(201,168,76,.38); -webkit-tap-highlight-color: transparent; }
     .btn-submit:hover:not(:disabled) { background-position: right center; transform: translateY(-2px); box-shadow: 0 8px 32px rgba(201,168,76,.55); }
     .btn-submit:active:not(:disabled) { transform: translateY(0); }
     .btn-submit:disabled { opacity: .35; cursor: not-allowed; box-shadow: none; }
-    .btn-next {
-      flex: 1; background: var(--navy); color: var(--gold); border: 1.5px solid var(--gold);
-      border-radius: var(--radius-btn); padding: 17px 28px; font-family: 'Lato', sans-serif;
-      font-size: .95rem; font-weight: 900; letter-spacing: .08em; text-transform: uppercase;
-      cursor: pointer; transition: all .2s; -webkit-tap-highlight-color: transparent;
-    }
+    .btn-next { flex: 1; background: var(--navy); color: var(--gold); border: 1.5px solid var(--gold); border-radius: var(--radius-btn); padding: 17px 28px; font-family: 'Lato', sans-serif; font-size: .95rem; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; cursor: pointer; transition: all .2s; -webkit-tap-highlight-color: transparent; }
     .btn-next:hover { background: var(--gold); color: var(--navy); transform: translateY(-2px); box-shadow: 0 8px 28px rgba(201,168,76,.4); }
-    .btn-hint {
-      display: flex; align-items: center; gap: 8px; justify-content: center;
-      background: transparent; border: 1.5px solid rgba(11,31,58,.14); border-radius: var(--radius-btn);
-      padding: 13px 20px; font-family: 'Lato', sans-serif; font-size: .82rem; font-weight: 700;
-      color: var(--text-mid); letter-spacing: .06em; cursor: pointer; width: 100%; transition: all .22s;
-    }
+    .btn-hint { display: flex; align-items: center; gap: 8px; justify-content: center; background: transparent; border: 1.5px solid rgba(11,31,58,.14); border-radius: var(--radius-btn); padding: 13px 20px; font-family: 'Lato', sans-serif; font-size: .82rem; font-weight: 700; color: var(--text-mid); letter-spacing: .06em; cursor: pointer; width: 100%; transition: all .22s; }
     .btn-hint:hover { border-color: var(--blue-hint); background: var(--blue-hint-bg); color: var(--blue-hint); }
     .btn-hint.hint-shown { border-color: var(--blue-hint); background: var(--blue-hint-bg); color: var(--blue-hint); }
     .hint-icon { font-size: 1rem; }
@@ -235,7 +162,6 @@
     .video-title-text { font-size: .85rem; font-weight: 700; color: var(--text-dark); }
     .video-source { font-size: .72rem; color: var(--gold); font-weight: 700; }
 
-    /* Results */
     .complete-screen { display: none; }
     .results-panel { display: none; position: relative; z-index: 10; width: 100%; max-width: 780px; background: var(--card-bg); border-radius: var(--radius-card); border: 1px solid var(--card-border); box-shadow: 0 20px 60px rgba(0,0,0,.3); padding: 40px 36px 36px; animation: cardIn .45s cubic-bezier(.22,1,.36,1) forwards; }
     .results-panel.visible { display: block; }
@@ -266,35 +192,15 @@
     .btn-complete-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(201,168,76,.55); }
     .btn-complete-secondary { display: block; width: 100%; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.14); border-radius: 14px; padding: 16px; font-family: 'Lato', sans-serif; font-size: .88rem; font-weight: 700; color: rgba(255,255,255,.6); letter-spacing: .06em; text-transform: uppercase; cursor: pointer; transition: all .2s; }
     .btn-complete-secondary:hover { background: rgba(255,255,255,.1); color: #fff; }
-
-    /* Upgrade banner */
     .upgrade-banner { background: linear-gradient(135deg, rgba(201,168,76,.15) 0%, rgba(201,168,76,.05) 100%); border: 1px solid rgba(201,168,76,.3); border-radius: 16px; padding: 24px 28px; margin-bottom: 20px; text-align: center; }
     .upgrade-banner h3 { font-family: 'Playfair Display', serif; font-size: 1.2rem; font-weight: 700; color: var(--text-dark); margin-bottom: 8px; }
     .upgrade-banner p { font-size: .88rem; color: var(--text-mid); margin-bottom: 18px; line-height: 1.6; }
-
-    @keyframes pulse-gold {
-      0%   { box-shadow: 0 0 0 0   rgba(255,191,0,0.7); }
-      70%  { box-shadow: 0 0 0 15px rgba(255,191,0,0); }
-      100% { box-shadow: 0 0 0 0   rgba(255,191,0,0); }
-    }
+    @keyframes pulse-gold { 0% { box-shadow: 0 0 0 0 rgba(255,191,0,0.7); } 70% { box-shadow: 0 0 0 15px rgba(255,191,0,0); } 100% { box-shadow: 0 0 0 0 rgba(255,191,0,0); } }
     .tutorial-glow { animation: pulse-gold 2s infinite; border: 2px solid #ffbf00 !important; transform: scale(1.05); transition: all 0.3s ease; }
 
-    @media (max-width: 600px) {
-      .card-header { padding: 14px 18px 12px; }
-      .card-body   { padding: 20px 18px 0; }
-      .card-footer { padding: 16px 18px 22px; }
-      .question-text { font-size: 1.12rem; }
-      .segments-row { gap: 6px; }
-      .segment-text { font-size: .82rem; padding: 8px 10px; }
-      .results-panel { padding: 28px 20px 24px; }
-    }
-    @media (min-width: 768px) {
-      .mc-btn  { padding: 18px 20px; }
-      .btn-submit, .btn-next { padding: 20px 28px; font-size: 1rem; }
-      .btn-hint { padding: 15px 20px; font-size: .85rem; }
-    }
+    @media (max-width: 600px) { .card-header { padding: 14px 18px 12px; } .card-body { padding: 20px 18px 0; } .card-footer { padding: 16px 18px 22px; } .question-text { font-size: 1.12rem; } .segments-row { gap: 6px; } .segment-text { font-size: .82rem; padding: 8px 10px; } .results-panel { padding: 28px 20px 24px; } }
+    @media (min-width: 768px) { .mc-btn { padding: 18px 20px; } .btn-submit, .btn-next { padding: 20px 28px; font-size: 1rem; } .btn-hint { padding: 15px 20px; font-size: .85rem; } }
   </style>
-
   <style>
     .star-footer { position: relative; z-index: 10; width: 100%; max-width: 1000px; margin: 56px auto 0; padding-top: 32px; border-top: 1px solid rgba(201,168,76,0.15); }
     .star-footer-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 32px; padding-bottom: 28px; }
@@ -310,10 +216,7 @@
     .star-footer-bottom-links { display: flex; gap: 18px; }
     .star-footer-bottom-links a { font-size: .72rem; color: rgba(255,255,255,0.22); text-decoration: none; transition: color .18s; }
     .star-footer-bottom-links a:hover { color: rgba(255,255,255,0.5); }
-    @media(max-width: 620px) {
-      .star-footer-grid { grid-template-columns: 1fr; gap: 24px; }
-      .star-footer-bottom { flex-direction: column; align-items: flex-start; }
-    }
+    @media(max-width: 620px) { .star-footer-grid { grid-template-columns: 1fr; gap: 24px; } .star-footer-bottom { flex-direction: column; align-items: flex-start; } }
   </style>
 </head>
 <body>
@@ -329,13 +232,10 @@
   <div class="star-p" style="left:80%;top:82%;width:2px;height:2px;--d:4.1s;--del:1.8s;"></div>
 </div>
 
-<!-- TOP NAV -->
 <div class="top-nav">
   <div class="nav-logo">
     <div class="nav-logo-star">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="#C9A84C">
-        <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/>
-      </svg>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="#C9A84C"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
     </div>
     <div class="nav-logo-text">STAR</div>
     <div class="nav-student" id="nav-student-name" style="margin-left:4px;"></div>
@@ -343,29 +243,19 @@
   <a class="nav-exit" href="dashboard.html">✕ Exit</a>
 </div>
 
-<!-- PROGRESS -->
 <div class="progress-section" id="progress-section">
   <div class="progress-meta">
     <div class="progress-label">Question <span id="q-current">1</span> of <span id="q-total">10</span></div>
     <div class="progress-label" id="track-badge" style="color:rgba(255,255,255,.38);font-weight:400;"></div>
   </div>
-  <div class="progress-track">
-    <div class="progress-fill" id="progress-fill" style="width:10%;"></div>
-  </div>
+  <div class="progress-track"><div class="progress-fill" id="progress-fill" style="width:10%;"></div></div>
   <div class="progress-dots" id="progress-dots"></div>
   <div class="score-row">
-    <div class="score-chip">
-      <div class="dot" style="background:#22c55e;"></div>
-      <span id="score-correct" style="color:rgba(255,255,255,.55);">0 correct</span>
-    </div>
-    <div class="score-chip">
-      <div class="dot" style="background:#ef4444;"></div>
-      <span id="score-wrong" style="color:rgba(255,255,255,.55);">0 wrong</span>
-    </div>
+    <div class="score-chip"><div class="dot" style="background:#22c55e;"></div><span id="score-correct" style="color:rgba(255,255,255,.55);">0 correct</span></div>
+    <div class="score-chip"><div class="dot" style="background:#ef4444;"></div><span id="score-wrong" style="color:rgba(255,255,255,.55);">0 wrong</span></div>
   </div>
 </div>
 
-<!-- QUESTION CARD -->
 <div class="question-card" id="question-card">
   <div class="card-header">
     <div id="card-type-badge" class="card-type-badge badge-maths">📐 Maths</div>
@@ -403,9 +293,7 @@
     </button>
     <div class="hint-panel" id="hint-panel">
       <div class="hint-header">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-        </svg>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
         STAR's Detective Hint
       </div>
       <div class="hint-text" id="hint-text">Loading hint…</div>
@@ -413,9 +301,9 @@
     <a class="video-link" id="video-link" href="#" target="_blank" rel="noopener">
       <div class="video-thumb">▶️</div>
       <div class="video-info">
-        <div class="video-label">Stuck? Watch this</div>
+        <div class="video-label">Stuck? Search this topic</div>
         <div class="video-title-text" id="video-title">Loading resource…</div>
-        <div class="video-source" id="video-source">CorbettMaths</div>
+        <div class="video-source" id="video-source">BBC Bitesize</div>
       </div>
     </a>
   </div>
@@ -423,23 +311,16 @@
 
 <div class="complete-screen" id="complete-screen"></div>
 
-<!-- RESULTS PANEL -->
 <div class="results-panel" id="results-panel">
   <div class="results-header">
     <span class="results-emoji" id="res-emoji">⭐</span>
     <div class="results-title" id="res-title">Sprint Complete!</div>
-    <div class="results-sub"   id="res-sub">Here's how you did this session.</div>
+    <div class="results-sub" id="res-sub">Here's how you did this session.</div>
   </div>
   <div class="results-score-bar">
-    <div style="text-align:center">
-      <div class="results-score-num" id="res-fraction">0/10</div>
-      <div class="results-score-label">Score</div>
-    </div>
+    <div style="text-align:center"><div class="results-score-num" id="res-fraction">0/10</div><div class="results-score-label">Score</div></div>
     <div class="results-score-divider"></div>
-    <div style="text-align:center">
-      <div class="results-score-num" id="res-pct2">0%</div>
-      <div class="results-score-label">Accuracy</div>
-    </div>
+    <div style="text-align:center"><div class="results-score-num" id="res-pct2">0%</div><div class="results-score-label">Accuracy</div></div>
     <div class="results-score-divider"></div>
     <div style="text-align:center" id="res-star-wrap"></div>
   </div>
@@ -450,9 +331,7 @@
   <div class="upgrade-banner" id="upgrade-banner" style="display:none;">
     <h3>🌟 Save Your Progress & Unlock More!</h3>
     <p>Create a free account to save your badges, track your weak spots and unlock 100+ additional SEAG questions.</p>
-    <button class="btn-complete-primary" style="margin-bottom:0;" onclick="goToSignup()">
-      🚀 Save My Results & Unlock More
-    </button>
+    <button class="btn-complete-primary" style="margin-bottom:0;" onclick="goToSignup()">🚀 Save My Results & Unlock More</button>
   </div>
   <div class="results-actions">
     <button class="btn-complete-primary" onclick="restartSession()">🔄 &nbsp;Try Another Sprint</button>
@@ -460,26 +339,18 @@
   </div>
 </div>
 
-<!-- FOOTER -->
 <footer class="star-footer">
   <div class="star-footer-grid">
     <div>
       <div class="star-footer-logo">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="#C9A84C">
-          <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/>
-        </svg>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="#C9A84C"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
         <span class="star-footer-logo-text">STAR AI Tutor</span>
       </div>
       <p class="star-footer-text">Empowering P6 &amp; P7 students for SEAG success.<br>Smart, personalised practice — built for Northern Ireland.</p>
     </div>
     <div>
       <div class="star-footer-col-label">Educational Partners</div>
-      <p class="star-footer-text">
-        Visual tutorials powered by
-        <a href="https://corbettmaths.com" target="_blank" rel="noopener">CorbettMaths</a>
-        and <a href="https://www.bbc.co.uk/bitesize" target="_blank" rel="noopener">BBC Bitesize</a>.<br>
-        Used with deep respect for their incredible free resources.
-      </p>
+      <p class="star-footer-text">Visual tutorials powered by <a href="https://corbettmaths.com" target="_blank" rel="noopener">CorbettMaths</a> and <a href="https://www.bbc.co.uk/bitesize" target="_blank" rel="noopener">BBC Bitesize</a>.<br>Used with deep respect for their incredible free resources.</p>
     </div>
     <div>
       <div class="star-footer-col-label">Legal</div>
@@ -488,15 +359,14 @@
   </div>
   <div class="star-footer-bottom">
     <span class="star-footer-bottom-text">&copy; 2026 STAR AI Tutor</span>
-    <div class="star-footer-bottom-links">
-      <a href="#">Privacy Policy</a>
-      <a href="#">Terms of Service</a>
-      <a href="#">Contact</a>
-    </div>
+    <div class="star-footer-bottom-links"><a href="#">Privacy Policy</a><a href="#">Terms of Service</a><a href="#">Contact</a></div>
   </div>
 </footer>
 
 <script>
+/* ════════════════════════════════
+   STATE
+════════════════════════════════ */
 let QUESTIONS   = [];
 let currentQ    = 0;
 let score       = { correct: 0, wrong: 0 };
@@ -504,10 +374,12 @@ let answers     = [];
 let userAnswers = [];
 let hintVisible = false;
 let answered    = false;
-let selectedMC  = null;
+let selectedMC  = null; // stores 'A','B','C','D','E', or 'N'
 let sprintCount = 0;
 
-/* ── LOADING STATE — transparent so white text is visible on navy bg ── */
+/* ════════════════════════════════
+   LOADING STATE
+════════════════════════════════ */
 function showLoadingState() {
   const card = document.getElementById('question-card');
   card.style.display    = '';
@@ -516,32 +388,13 @@ function showLoadingState() {
   card.style.boxShadow  = 'none';
   card.innerHTML = `
     <div style="padding:64px 28px 56px;text-align:center;">
-      <div style="
-        width:80px;height:80px;border-radius:50%;
-        background:linear-gradient(135deg,rgba(201,168,76,.25),rgba(201,168,76,.08));
-        border:2px solid rgba(201,168,76,.55);
-        display:flex;align-items:center;justify-content:center;
-        margin:0 auto 28px;font-size:2.2rem;
-        animation:avatarPulse 1.5s ease-in-out infinite;">⭐</div>
-      <div style="
-        font-family:'Playfair Display',serif;
-        font-size:1.45rem;font-weight:700;
-        color:#ffffff;margin-bottom:10px;letter-spacing:.01em;">
-        STAR is building your sprint…
-      </div>
-      <div style="font-size:.92rem;color:rgba(255,255,255,.7);margin-bottom:6px;">
-        Generating 10 tailored questions just for you
-      </div>
-      <div style="
-        font-size:.75rem;color:rgba(201,168,76,.8);
-        margin-top:20px;letter-spacing:.1em;
-        text-transform:uppercase;font-weight:700;">
-        ✦ &nbsp;Fresh questions every sprint&nbsp; ✦
-      </div>
+      <div style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,rgba(201,168,76,.25),rgba(201,168,76,.08));border:2px solid rgba(201,168,76,.55);display:flex;align-items:center;justify-content:center;margin:0 auto 28px;font-size:2.2rem;animation:avatarPulse 1.5s ease-in-out infinite;">⭐</div>
+      <div style="font-family:'Playfair Display',serif;font-size:1.45rem;font-weight:700;color:#ffffff;margin-bottom:10px;">STAR is building your sprint…</div>
+      <div style="font-size:.92rem;color:rgba(255,255,255,.7);margin-bottom:6px;">Generating 10 tailored questions just for you</div>
+      <div style="font-size:.75rem;color:rgba(201,168,76,.8);margin-top:20px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;">✦ &nbsp;Fresh questions every sprint&nbsp; ✦</div>
     </div>`;
 }
 
-/* ── ERROR STATE ── */
 function showErrorState(message) {
   const card = document.getElementById('question-card');
   card.style.background = 'transparent';
@@ -550,20 +403,12 @@ function showErrorState(message) {
   card.innerHTML = `
     <div style="padding:52px 28px;text-align:center;">
       <div style="font-size:2.8rem;margin-bottom:16px;">😕</div>
-      <div style="font-family:'Playfair Display',serif;font-size:1.25rem;font-weight:700;color:#ffffff;margin-bottom:10px;">
-        Something went wrong
-      </div>
+      <div style="font-family:'Playfair Display',serif;font-size:1.25rem;font-weight:700;color:#ffffff;margin-bottom:10px;">Something went wrong</div>
       <div style="font-size:.88rem;color:rgba(255,255,255,.6);margin-bottom:28px;line-height:1.6;">${message}</div>
-      <button onclick="init()" style="
-        background:linear-gradient(135deg,#C9A84C,#E8C97A);color:#0B1F3A;
-        border:none;border-radius:12px;padding:14px 36px;
-        font-family:'Lato',sans-serif;font-size:.92rem;font-weight:900;
-        letter-spacing:.08em;text-transform:uppercase;cursor:pointer;
-        box-shadow:0 4px 20px rgba(201,168,76,.4);">Try Again</button>
+      <button onclick="init()" style="background:linear-gradient(135deg,#C9A84C,#E8C97A);color:#0B1F3A;border:none;border-radius:12px;padding:14px 36px;font-family:'Lato',sans-serif;font-size:.92rem;font-weight:900;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;box-shadow:0 4px 20px rgba(201,168,76,.4);">Try Again</button>
     </div>`;
 }
 
-/* ── REBUILD CARD — resets styles back to white card after loading ── */
 function rebuildQuestionCard() {
   const card = document.getElementById('question-card');
   card.style.background = '';
@@ -606,9 +451,7 @@ function rebuildQuestionCard() {
       </button>
       <div class="hint-panel" id="hint-panel">
         <div class="hint-header">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-          </svg>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
           STAR's Detective Hint
         </div>
         <div class="hint-text" id="hint-text">Loading hint…</div>
@@ -616,15 +459,17 @@ function rebuildQuestionCard() {
       <a class="video-link" id="video-link" href="#" target="_blank" rel="noopener">
         <div class="video-thumb">▶️</div>
         <div class="video-info">
-          <div class="video-label">Stuck? Watch this</div>
+          <div class="video-label">Stuck? Search this topic</div>
           <div class="video-title-text" id="video-title">Loading resource…</div>
-          <div class="video-source" id="video-source">CorbettMaths</div>
+          <div class="video-source" id="video-source">BBC Bitesize</div>
         </div>
       </a>
     </div>`;
 }
 
-/* ── FETCH FROM CLAUDE API ── */
+/* ════════════════════════════════
+   FETCH QUESTIONS
+════════════════════════════════ */
 async function fetchQuestions(track) {
   const response = await fetch('/api/generate-questions', {
     method: 'POST',
@@ -633,7 +478,7 @@ async function fetchQuestions(track) {
   });
   if (!response.ok) {
     const errData = await response.json().catch(() => ({}));
-    throw new Error(errData.error || 'Could not load questions — please check your connection and try again');
+    throw new Error(errData.error || 'Could not load questions — please try again');
   }
   const data = await response.json();
   if (!data.questions || !Array.isArray(data.questions) || data.questions.length === 0) {
@@ -642,7 +487,9 @@ async function fetchQuestions(track) {
   return data.questions;
 }
 
-/* ── INIT ── */
+/* ════════════════════════════════
+   INIT
+════════════════════════════════ */
 async function init() {
   currentQ    = 0;
   score       = { correct: 0, wrong: 0 };
@@ -659,8 +506,7 @@ async function init() {
   document.getElementById('progress-section').style.display = '';
 
   if (name) document.getElementById('nav-student-name').textContent = '· ' + name;
-  document.getElementById('track-badge').textContent =
-    year === 'P7' ? 'P7 Executor Track 🏆' : 'P6 Builder Track ⚡';
+  document.getElementById('track-badge').textContent = year === 'P7' ? 'P7 Executor Track 🏆' : 'P6 Builder Track ⚡';
 
   showLoadingState();
 
@@ -691,6 +537,9 @@ function buildProgressPips() {
   });
 }
 
+/* ════════════════════════════════
+   LOAD QUESTION
+════════════════════════════════ */
 function loadQuestion(idx) {
   answered    = false;
   hintVisible = false;
@@ -722,7 +571,7 @@ function loadQuestion(idx) {
   if (q.context) { ctxEl.textContent = q.context; ctxEl.style.display = 'block'; }
   else           { ctxEl.style.display = 'none'; }
 
-  const segRow = document.getElementById('segments-row');
+  const segRow  = document.getElementById('segments-row');
   const letters = ['A','B','C','D'];
   if (q.segments && q.segments.length) {
     segRow.style.display = 'flex';
@@ -746,7 +595,7 @@ function loadQuestion(idx) {
   } else {
     mcWrap.style.display = 'none'; frWrap.style.display = 'block';
     frInput.value = ''; frInput.className = 'fr-input'; frInput.disabled = false; frInput.focus();
-    frInput.oninput  = () => { document.getElementById('btn-submit').disabled = frInput.value.trim().length === 0; };
+    frInput.oninput   = () => { document.getElementById('btn-submit').disabled = frInput.value.trim().length === 0; };
     frInput.onkeydown = (e) => { if (e.key === 'Enter' && !document.getElementById('btn-submit').disabled && !answered) submitAnswer(); };
     document.getElementById('btn-submit').disabled = true;
   }
@@ -762,23 +611,34 @@ function loadQuestion(idx) {
   document.getElementById('btn-next').style.display = 'none';
 
   const vl = document.getElementById('video-link');
-  document.getElementById('video-title').textContent  = q.videoTitle  || 'Watch Tutorial';
-  document.getElementById('video-source').textContent = q.videoSource || 'CorbettMaths';
+  document.getElementById('video-title').textContent  = q.videoTitle  || (q.videoTopic ? `Search: ${q.videoTopic}` : 'Watch Tutorial');
+  document.getElementById('video-source').textContent = q.videoSource || 'BBC Bitesize';
   vl.setAttribute('href',   q.videoUrl || '#');
   vl.setAttribute('target', '_blank');
   vl.setAttribute('rel',    'noopener noreferrer');
 }
 
+/* ════════════════════════════════
+   BUILD MC — handles A/B/C/D/E and N options
+════════════════════════════════ */
 function buildMC(options) {
   const wrap = document.getElementById('mc-options');
   wrap.innerHTML = '';
-  const letters = ['A','B','C','D','E'];
+  const defaultLetters = ['A','B','C','D','E'];
+
   options.forEach((opt, i) => {
+    // Determine the real letter for this option
+    // If the option text starts with "N." it IS the No-mistake option → use N
+    const optLower = (opt || '').toLowerCase().trim();
+    const isNoMistake = optLower.startsWith('n.') || optLower === 'no mistake' || optLower === 'n. no mistake';
+    const letter = isNoMistake ? 'N' : defaultLetters[i];
+    const label  = opt.replace(/^[A-EN]\.\s*/i, '');
+
     const btn = document.createElement('button');
     btn.className = 'mc-btn';
-    const label = opt.replace(/^[A-EN]\.\s*/i, '');
-    btn.innerHTML = `<div class="mc-letter">${letters[i]}</div><span>${label}</span>`;
-    btn.onclick = () => selectMC(letters[i], btn);
+    btn.dataset.letter = letter; // store the real letter on the button
+    btn.innerHTML = `<div class="mc-letter">${letter}</div><span>${label}</span>`;
+    btn.onclick = () => selectMC(letter, btn);
     wrap.appendChild(btn);
   });
 }
@@ -791,6 +651,9 @@ function selectMC(letter, btn) {
   document.getElementById('btn-submit').disabled = false;
 }
 
+/* ════════════════════════════════
+   SUBMIT ANSWER
+════════════════════════════════ */
 function submitAnswer() {
   if (answered) return;
   answered = true;
@@ -799,15 +662,21 @@ function submitAnswer() {
 
   if (q.options && q.options.length) {
     isCorrect = selectedMC === q.answer;
-    const letters = ['A','B','C','D','E'];
-    document.querySelectorAll('.mc-btn').forEach((btn, i) => {
-      const letter = letters[i];
+
+    // Highlight buttons using their stored data-letter attribute
+    document.querySelectorAll('.mc-btn').forEach(btn => {
       btn.disabled = true;
-      if (letter === q.answer)                      btn.classList.add('correct-ans');
-      else if (letter === selectedMC && !isCorrect) btn.classList.add('wrong-ans');
+      const btnLetter = btn.dataset.letter;
+      if (btnLetter === q.answer)                        btn.classList.add('correct-ans');
+      else if (btnLetter === selectedMC && !isCorrect)   btn.classList.add('wrong-ans');
     });
-    const selIdx = letters.indexOf(selectedMC);
-    userAnswers[currentQ] = selIdx >= 0 ? q.options[selIdx].replace(/^[A-EN]\.\s*/i,'') : (selectedMC || '(no answer)');
+
+    // Store what the student answered for the results panel
+    const selectedBtn = document.querySelector(`.mc-btn[data-letter="${selectedMC}"]`);
+    userAnswers[currentQ] = selectedBtn
+      ? selectedBtn.querySelector('span').textContent
+      : (selectedMC || '(no answer)');
+
   } else {
     const frInput = document.getElementById('fr-input');
     const normalise = s => s.trim().toLowerCase().replace(/²/g,'2').replace(/\^2/g,'2').replace(/\s+/g,' ').trim();
@@ -885,7 +754,7 @@ function saveProgress() {
   localStorage.setItem('star_last_track', track);
   localStorage.setItem('star_last_name',  name);
   const toReview = QUESTIONS.map((q, i) => ({ q, result: answers[i] })).filter(x => x.result === 'wrong')
-    .map(x => ({ topic:x.q.topic, videoTitle:x.q.videoTitle, videoUrl:x.q.videoUrl, videoSource:x.q.videoSource, questionText:x.q.text }))
+    .map(x => ({ topic:x.q.topic, videoTitle:x.q.videoTitle||x.q.videoTopic, videoUrl:x.q.videoUrl, videoSource:x.q.videoSource, questionText:x.q.text }))
     .filter((item, idx, arr) => arr.findIndex(x => x.topic === item.topic) === idx);
   localStorage.setItem('star_toReview', JSON.stringify(toReview));
 }
@@ -947,7 +816,18 @@ function showResults() {
     missedQuestions.forEach(q => {
       const qIdx       = QUESTIONS.indexOf(q);
       const studentAns = userAnswers[qIdx] || '(no answer)';
-      const correctAns = q.options ? (q.options.find(o => o.startsWith(q.answer)) || q.answer) : q.answer;
+      // For correct answer display
+      let correctAns = q.answer;
+      if (q.options) {
+        if (q.answer === 'N') {
+          correctAns = 'No mistake';
+        } else {
+          const idx = ['A','B','C','D','E'].indexOf(q.answer);
+          if (idx >= 0 && q.options[idx]) {
+            correctAns = q.options[idx].replace(/^[A-EN]\.\s*/i, '');
+          }
+        }
+      }
       const card = document.createElement('div');
       card.className = 'missed-card';
       card.innerHTML = `
@@ -955,9 +835,9 @@ function showResults() {
         <div class="missed-q-text">${q.text}</div>
         <div class="missed-answers">
           <span class="missed-chip yours">✗ Your answer: ${studentAns}</span>
-          <span class="missed-chip correct">✓ Correct: ${correctAns.replace(/^[A-EN]\.\s*/i,'')}</span>
+          <span class="missed-chip correct">✓ Correct: ${correctAns}</span>
         </div>
-        <a class="missed-video-link" href="${q.videoUrl}" target="_blank" rel="noopener">▶ Watch: ${q.videoTitle} (${q.videoSource})</a>`;
+        <a class="missed-video-link" href="${q.videoUrl}" target="_blank" rel="noopener">🔍 Search: ${q.videoTopic || q.topic} on ${q.videoSource}</a>`;
       missedList.appendChild(card);
     });
   }
@@ -965,7 +845,7 @@ function showResults() {
   document.getElementById('upgrade-banner').style.display = (!localStorage.getItem('star_signed_up') && sprintCount === 1) ? 'block' : 'none';
 
   const toReview = missedQuestions
-    .map(q => ({ topic:q.topic, videoTitle:q.videoTitle, videoUrl:q.videoUrl, videoSource:q.videoSource, questionText:q.text }))
+    .map(q => ({ topic:q.topic, videoTitle:q.videoTopic||q.topic, videoUrl:q.videoUrl, videoSource:q.videoSource, questionText:q.text }))
     .filter((item, idx, arr) => arr.findIndex(x => x.topic === item.topic) === idx);
   localStorage.setItem('star_toReview',   JSON.stringify(toReview));
   localStorage.setItem('star_last_score', pct);
@@ -979,12 +859,12 @@ function showResults() {
   const now      = new Date().toISOString();
   QUESTIONS.forEach((q, i) => {
     const t = q.topic;
-    if (!mastery[t]) mastery[t] = { correct:0, wrong:0, type:q.type, videoTitle:q.videoTitle, videoUrl:q.videoUrl, videoSource:q.videoSource };
+    if (!mastery[t]) mastery[t] = { correct:0, wrong:0, type:q.type, videoTitle:q.videoTopic||q.topic, videoUrl:q.videoUrl, videoSource:q.videoSource };
     if (answers[i] === 'correct') mastery[t].correct++;
     else if (answers[i] === 'wrong') {
       mastery[t].wrong++;
       const alreadyToday = videoLog.some(v => v.topic === t && v.date && v.date.slice(0,10) === now.slice(0,10));
-      if (!alreadyToday) videoLog.unshift({ topic:t, videoTitle:q.videoTitle, videoUrl:q.videoUrl, videoSource:q.videoSource, date:now });
+      if (!alreadyToday) videoLog.unshift({ topic:t, videoTitle:q.videoTopic||q.topic, videoUrl:q.videoUrl, videoSource:q.videoSource, date:now });
     }
   });
   if (videoLog.length > 50) videoLog.length = 50;
