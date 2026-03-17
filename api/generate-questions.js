@@ -75,6 +75,22 @@ NEVER use these — always debatable:
 ✗ Oxford comma — FORBIDDEN
 ✗ Semicolons — FORBIDDEN for P6, only very obvious cases for P7
 
+⚠️ CRITICAL INSTRUCTION TEXT RULE — READ CAREFULLY:
+The "text" field in each punctuation question MUST match the type of error being tested:
+
+- If the error is a CAPITAL LETTER mistake (missing capital, wrong capital):
+  text MUST be: "Find the section with the punctuation or capital letter mistake. If there is no mistake, mark N."
+
+- If the error is a PUNCTUATION mark only (apostrophe, full stop, question mark, speech marks):
+  text MUST be: "Find the section with the punctuation mistake. If there is no mistake, mark N."
+
+- If there is NO mistake in the sentence:
+  text MUST be: "Find the section with the punctuation or capital letter mistake. If there is no mistake, mark N."
+
+NEVER write "punctuation mistake" when the error is a capital letter. A student who
+answers N on a capital letter question labelled only as "punctuation" cannot be marked wrong.
+This is a critical commercial quality failure. Always match the instruction to the error type.
+
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 📋 SPELLING — EXAMINER RULES
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -151,70 +167,90 @@ Generate exactly 10 questions:
 - 2 Spelling
 - 5 Maths (varied topics)
 
+PUNCTUATION EXAMPLE — capital letter error (note the instruction text):
 {
-  "questions": [
-    {
-      "level": "${level}",
-      "type": "english",
-      "topic": "Punctuation",
-      "marks": "1 mark",
-      "text": "Find the section with the punctuation mistake. If there is no mistake, mark N.",
-      "segments": ["Sarah and james", "visited the wildlife", "park on Saturday", "morning."],
-      "options": ["A. Sarah and james", "B. visited the wildlife", "C. park on Saturday", "D. morning.", "N. No mistake"],
-      "answer": "A",
-      "explanation": "'james' should have a capital letter because it is a proper noun — a person's name.",
-      "steps": [],
-      "hint": "Check whether all names and proper nouns have a capital letter.",
-      "videoTopic": "ks2 capital letters proper nouns",
-      "videoSource": "BBC Bitesize"
-    },
-    {
-      "level": "${level}",
-      "type": "english",
-      "topic": "Spelling",
-      "marks": "1 mark",
-      "text": "Find the section with the spelling mistake. If there is no mistake, mark N.",
-      "segments": ["The children were", "absolutly thrilled", "to visit the new", "science museum."],
-      "options": ["A. The children were", "B. absolutly thrilled", "C. to visit the new", "D. science museum.", "N. No mistake"],
-      "answer": "B",
-      "explanation": "'absolutly' is misspelled. The correct spelling is 'absolutely'.",
-      "steps": [],
-      "hint": "Say each word carefully in your head. Does any word look wrong?",
-      "videoTopic": "ks2 spelling rules suffixes",
-      "videoSource": "BBC Bitesize"
-    },
-    {
-      "level": "${level}",
-      "type": "english",
-      "topic": "Grammar",
-      "marks": "1 mark",
-      "text": "Choose the best word to complete the sentence.",
-      "segments": [],
-      "context": "The horses bolted _____ the stable as fast as their legs could carry them.",
-      "options": ["A. across", "B. through", "C. on", "D. within", "E. in"],
-      "answer": "B",
-      "explanation": "'Through' is the correct preposition — the horses ran through the stable door.",
-      "steps": [],
-      "hint": "Think about which word best describes the movement in the sentence.",
-      "videoTopic": "ks2 prepositions grammar",
-      "videoSource": "BBC Bitesize"
-    },
-    {
-      "level": "${level}",
-      "type": "maths",
-      "topic": "Fractions",
-      "marks": "2 marks",
-      "text": "A baker makes 120 rolls. She gives away one quarter of them. How many rolls does she have left?",
-      "segments": [],
-      "options": ["A. 30", "B. 60", "C. 80", "D. 90", "E. 100"],
-      "answer": "D",
-      "explanation": "One quarter of 120 = 120 ÷ 4 = 30. Rolls left = 120 - 30 = 90.",
-      "steps": ["120 ÷ 4 = 30 (one quarter given away)", "120 - 30 = 90 rolls remaining"],
-      "hint": "Find one quarter by dividing by 4, then subtract from the total.",
-      "videoTopic": "ks2 fractions of amounts",
-      "videoSource": "CorbettMaths"
-    }
-  ]
+  "level": "${level}",
+  "type": "english",
+  "topic": "Punctuation",
+  "marks": "1 mark",
+  "text": "Find the section with the punctuation or capital letter mistake. If there is no mistake, mark N.",
+  "segments": ["Sarah and james", "visited the wildlife", "park on Saturday", "morning."],
+  "options": ["A. Sarah and james", "B. visited the wildlife", "C. park on Saturday", "D. morning.", "N. No mistake"],
+  "answer": "A",
+  "explanation": "'james' should have a capital letter because it is a proper noun — a person's name.",
+  "steps": [],
+  "hint": "Check whether all names and proper nouns have a capital letter.",
+  "videoTopic": "ks2 capital letters proper nouns",
+  "videoSource": "BBC Bitesize"
+}
+
+PUNCTUATION EXAMPLE — apostrophe error (note the instruction text):
+{
+  "level": "${level}",
+  "type": "english",
+  "topic": "Punctuation",
+  "marks": "1 mark",
+  "text": "Find the section with the punctuation mistake. If there is no mistake, mark N.",
+  "segments": ["We couldnt believe", "how fast the", "cheetah ran across", "the open plain."],
+  "options": ["A. We couldnt believe", "B. how fast the", "C. cheetah ran across", "D. the open plain.", "N. No mistake"],
+  "answer": "A",
+  "explanation": "'couldnt' is missing an apostrophe. The correct spelling is 'couldn't'.",
+  "steps": [],
+  "hint": "Check every contraction — does it have its apostrophe?",
+  "videoTopic": "ks2 apostrophes contractions",
+  "videoSource": "BBC Bitesize"
+}
+
+SPELLING EXAMPLE:
+{
+  "level": "${level}",
+  "type": "english",
+  "topic": "Spelling",
+  "marks": "1 mark",
+  "text": "Find the section with the spelling mistake. If there is no mistake, mark N.",
+  "segments": ["The children were", "absolutly thrilled", "to visit the new", "science museum."],
+  "options": ["A. The children were", "B. absolutly thrilled", "C. to visit the new", "D. science museum.", "N. No mistake"],
+  "answer": "B",
+  "explanation": "'absolutly' is misspelled. The correct spelling is 'absolutely'.",
+  "steps": [],
+  "hint": "Say each word carefully in your head. Does any word look wrong?",
+  "videoTopic": "ks2 spelling rules suffixes",
+  "videoSource": "BBC Bitesize"
+}
+
+GRAMMAR EXAMPLE:
+{
+  "level": "${level}",
+  "type": "english",
+  "topic": "Grammar",
+  "marks": "1 mark",
+  "text": "Choose the best word to complete the sentence.",
+  "segments": [],
+  "context": "The horses bolted _____ the stable as fast as their legs could carry them.",
+  "options": ["A. across", "B. through", "C. on", "D. within", "E. in"],
+  "answer": "B",
+  "explanation": "'Through' is the correct preposition — the horses ran through the stable door.",
+  "steps": [],
+  "hint": "Think about which word best describes the movement in the sentence.",
+  "videoTopic": "ks2 prepositions grammar",
+  "videoSource": "BBC Bitesize"
+}
+
+MATHS EXAMPLE:
+{
+  "level": "${level}",
+  "type": "maths",
+  "topic": "Fractions",
+  "marks": "2 marks",
+  "text": "A baker makes 120 rolls. She gives away one quarter of them. How many rolls does she have left?",
+  "segments": [],
+  "options": ["A. 30", "B. 60", "C. 80", "D. 90", "E. 100"],
+  "answer": "D",
+  "explanation": "One quarter of 120 = 120 ÷ 4 = 30. Rolls left = 120 - 30 = 90.",
+  "steps": ["120 ÷ 4 = 30 (one quarter given away)", "120 - 30 = 90 rolls remaining"],
+  "hint": "Find one quarter by dividing by 4, then subtract from the total.",
+  "videoTopic": "ks2 fractions of amounts",
+  "videoSource": "CorbettMaths"
 }`;
 
   try {
@@ -241,8 +277,9 @@ MANDATORY SELF-CHECK before returning:
 2. No mistake: Every Punctuation/Spelling 5th option EXACTLY "N. No mistake" not "E. No mistake"?
 3. No mistake: Answer is "N" (not "E") for no-mistake questions?
 4. Punctuation: No optional commas used as errors?
-5. Maths: Correct answer actually listed in A/B/C/D/E options?
-6. Content: All suitable for ages 9-11?
+5. Punctuation instruction text: If the error is a capital letter, does the text field say "punctuation or capital letter mistake"? If the error is apostrophe/full stop/speech marks only, does it say "punctuation mistake"?
+6. Maths: Correct answer actually listed in A/B/C/D/E options?
+7. Content: All suitable for ages 9-11?
 
 Return JSON only. No other text before or after.`
           }
@@ -293,7 +330,7 @@ Return JSON only. No other text before or after.`
     }
 
     /* ══════════════════════════════════════════════════
-       SERVER-SIDE SAFETY VALIDATION — 3 LAYERS
+       SERVER-SIDE SAFETY VALIDATION — 4 LAYERS
     ══════════════════════════════════════════════════ */
     parsed.questions.forEach((q, idx) => {
 
@@ -348,6 +385,30 @@ Return JSON only. No other text before or after.`
         q.videoUrl = `https://corbettmathsprimary.com/?s=${searchTerm}`;
       } else {
         q.videoUrl = `https://www.bbc.co.uk/bitesize/search?q=${searchTerm}`;
+      }
+
+      // ── Layer 4: Fix instruction text for capital letter questions ──
+      // If the explanation mentions capital letters but the question text says
+      // only "punctuation mistake", upgrade the instruction to include capitals.
+      if (q.topic === 'Punctuation') {
+        const exp = (q.explanation || '').toLowerCase();
+        const isCapitalError =
+          exp.includes('capital letter') ||
+          exp.includes('proper noun') ||
+          exp.includes('days of the week') ||
+          exp.includes('months of the year') ||
+          exp.includes('place name') ||
+          exp.includes('person\'s name') ||
+          exp.includes('should be capitalised') ||
+          exp.includes('should have a capital');
+
+        const textField = (q.text || '').toLowerCase();
+        const alreadyMentionsCapital = textField.includes('capital');
+
+        if (isCapitalError && !alreadyMentionsCapital) {
+          console.warn(`Q${idx+1}: Capital letter error but instruction only says "punctuation" — fixing instruction text`);
+          q.text = 'Find the section with the punctuation or capital letter mistake. If there is no mistake, mark N.';
+        }
       }
 
       // ── Ensure required fields exist ──
