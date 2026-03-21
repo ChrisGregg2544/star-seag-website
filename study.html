@@ -6,6 +6,7 @@
   <title>STAR – Study Hall</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,400&family=Lato:wght@300;400;700;900&display=swap" rel="stylesheet" />
   <style>
     :root {
@@ -367,7 +368,13 @@
 /* ════════════════════════════════
    STATE
 ════════════════════════════════ */
-let QUESTIONS   = [];
+// ── Supabase client ───────────────────────────
+const { createClient } = supabase;
+const sb = createClient(
+  'https://iutcgogmxhaqgaxkznxu.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml1dGNnb2dteGhhcWdheGt6bnh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM3NjE4MTQsImV4cCI6MjA4OTMzNzgxNH0.o0plRQzH8ezfttG_sEeWu3F4IUtKnyzcXtPEGJ9xRF0'
+);
+  let QUESTIONS   = [];
 let currentQ    = 0;
 let score       = { correct: 0, wrong: 0 };
 let answers     = [];
@@ -757,6 +764,47 @@ function saveProgress() {
     .map(x => ({ topic:x.q.topic, videoTitle:x.q.videoTitle||x.q.videoTopic, videoUrl:x.q.videoUrl, videoSource:x.q.videoSource, questionText:x.q.text }))
     .filter((item, idx, arr) => arr.findIndex(x => x.topic === item.topic) === idx);
   localStorage.setItem('star_toReview', JSON.stringify(toReview));
+  // ── Save to Supabase if logged in ─────────────
+  sb.auth.getSession().then(async ({ data }) => {
+    if (!data?.session?.user) return;
+    const userId = data.session.user.id;
+    const track  = sessionStorage.getItem('star_year') || 'P6';
+    const pct    = QUESTIONS.length ? Math.round(score.correct / QUESTIONS.length * 100) : 0;
+
+    // Save session
+    const { data: sessionData } = await sb.from('sessions').insert({
+      user_id:         userId,
+      session_type:    'mini_sprint',
+      track:           track,
+      score:           score.correct,
+      total_questions: QUESTIONS.length,
+      english_score:   QUESTIONS.filter((q,i) => q.type==='english' && answers[i]==='correct').length,
+      maths_score:     QUESTIONS.filter((q,i) => q.type==='maths'   && answers[i]==='correct').length,
+    }).select().single();
+
+    // Save individual question results
+    if (sessionData?.id) {
+      const results = QUESTIONS.map((q, i) => ({
+        session_id:    sessionData.id,
+        user_id:       userId,
+        topic:         q.topic,
+        question_type: q.type,
+        correct:       answers[i] === 'correct'
+      }));
+      await sb.from('question_results').insert(results);
+    }
+
+    // Update progress summary
+    await sb.from('progress_summary').upsert({
+      user_id:            userId,
+      last_score:         score.correct,
+      last_total:         QUESTIONS.length,
+      last_session_at:    new Date().toISOString(),
+      updated_at:         new Date().toISOString()
+    }, { onConflict: 'user_id' });
+
+    console.log('Progress saved to Supabase ✅');
+  });
 }
 
 function showResults() {
