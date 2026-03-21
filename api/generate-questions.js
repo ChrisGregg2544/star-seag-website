@@ -87,9 +87,7 @@ The "text" field in each punctuation question MUST match the type of error being
 - If there is NO mistake in the sentence:
   text MUST be: "Find the section with the punctuation or capital letter mistake. If there is no mistake, mark N."
 
-NEVER write "punctuation mistake" when the error is a capital letter. A student who
-answers N on a capital letter question labelled only as "punctuation" cannot be marked wrong.
-This is a critical commercial quality failure. Always match the instruction to the error type.
+NEVER write "punctuation mistake" when the error is a capital letter.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 📋 SPELLING — EXAMINER RULES
@@ -156,9 +154,19 @@ music, hobbies, history, geography, family (positive contexts only).
 FORBIDDEN: violence, theft, bullying, danger, alcohol, gambling.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-📋 JSON FORMAT — RETURN THIS ONLY
+📋 JSON FORMAT — RETURN THIS EXACTLY
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Return ONLY valid raw JSON. No markdown, no code fences, no explanation.
+Return ONLY valid raw JSON in this exact format. No markdown, no code fences, no explanation.
+The root element MUST be an object with a "questions" key containing an array.
+
+{
+  "questions": [
+    { ...question1... },
+    { ...question2... },
+    ...10 questions total...
+  ]
+}
+
 videoTopic field: 3-4 word search phrase for this topic.
 
 Generate exactly 10 questions:
@@ -167,7 +175,7 @@ Generate exactly 10 questions:
 - 2 Spelling
 - 5 Maths (varied topics)
 
-PUNCTUATION EXAMPLE — capital letter error (note the instruction text):
+PUNCTUATION EXAMPLE — capital letter error:
 {
   "level": "${level}",
   "type": "english",
@@ -184,7 +192,7 @@ PUNCTUATION EXAMPLE — capital letter error (note the instruction text):
   "videoSource": "BBC Bitesize"
 }
 
-PUNCTUATION EXAMPLE — apostrophe error (note the instruction text):
+PUNCTUATION EXAMPLE — apostrophe error:
 {
   "level": "${level}",
   "type": "english",
@@ -273,15 +281,16 @@ MATHS EXAMPLE:
             content: `Generate 10 fresh original SEAG questions for ${level}.
 
 MANDATORY SELF-CHECK before returning:
-1. Copyright: All scenarios, names and sentences completely original? Not from any published SEAG paper?
+1. Copyright: All scenarios, names and sentences completely original?
 2. No mistake: Every Punctuation/Spelling 5th option EXACTLY "N. No mistake" not "E. No mistake"?
 3. No mistake: Answer is "N" (not "E") for no-mistake questions?
 4. Punctuation: No optional commas used as errors?
-5. Punctuation instruction text: If the error is a capital letter, does the text field say "punctuation or capital letter mistake"? If the error is apostrophe/full stop/speech marks only, does it say "punctuation mistake"?
+5. Punctuation instruction text: If the error is a capital letter, does the text field say "punctuation or capital letter mistake"?
 6. Maths: Correct answer actually listed in A/B/C/D/E options?
 7. Content: All suitable for ages 9-11?
+8. Format: Is the root element {"questions": [...]} with exactly that key?
 
-Return JSON only. No other text before or after.`
+Return JSON only. The root MUST be {"questions": [...10 questions...]}. No other text before or after.`
           }
         ]
       })
@@ -297,6 +306,8 @@ Return JSON only. No other text before or after.`
     }
 
     const data = await response.json();
+    console.log('Stop reason:', data.stop_reason);
+    console.log('Content blocks:', data.content ? data.content.length : 0);
 
     if (!data.content || !data.content.length) {
       console.error('Empty response from Anthropic');
@@ -313,6 +324,9 @@ Return JSON only. No other text before or after.`
       return res.status(500).json({ error: 'No content returned — please try again' });
     }
 
+    console.log('Text length:', text.length);
+    console.log('Text preview:', text.substring(0, 300));
+
     // Strip any accidental markdown fences
     const clean = text.replace(/```json|```/g, '').trim();
 
@@ -320,21 +334,31 @@ Return JSON only. No other text before or after.`
     try {
       parsed = JSON.parse(clean);
     } catch (parseErr) {
-      console.error('JSON parse error:', parseErr, 'Raw text:', clean.substring(0, 200));
+      console.error('JSON parse error:', parseErr.message);
+      console.error('Raw text (500 chars):', clean.substring(0, 500));
       return res.status(500).json({ error: 'Could not parse questions — please try again' });
     }
 
+    // ── Handle both {questions:[]} and direct [] formats ──
+    if (Array.isArray(parsed)) {
+      console.log('Model returned array directly — wrapping');
+      parsed = { questions: parsed };
+    }
+
     if (!parsed.questions || !Array.isArray(parsed.questions)) {
-      console.error('No questions array in parsed response');
+      console.error('No questions array. Keys found:', Object.keys(parsed));
+      console.error('Full parsed object:', JSON.stringify(parsed).substring(0, 500));
       return res.status(500).json({ error: 'Invalid question format — please try again' });
     }
+
+    console.log('Questions count:', parsed.questions.length);
 
     /* ══════════════════════════════════════════════════
        SERVER-SIDE SAFETY VALIDATION — 4 LAYERS
     ══════════════════════════════════════════════════ */
     parsed.questions.forEach((q, idx) => {
 
-      // ── Layer 1: Force "N. No mistake" — never "E. No mistake" ──
+      // ── Layer 1: Force "N. No mistake" ──
       if (q.topic === 'Punctuation' || q.topic === 'Spelling') {
         if (q.options && Array.isArray(q.options)) {
           q.options = q.options.map((opt, i) => {
@@ -350,7 +374,6 @@ Return JSON only. No other text before or after.`
             return opt;
           });
         }
-        // Also catch if answer is E and last option contains no mistake
         if (q.answer === 'E' && q.options && q.options.length === 5) {
           const last = (q.options[4] || '').toLowerCase();
           if (last.includes('no mistake')) {
@@ -388,8 +411,6 @@ Return JSON only. No other text before or after.`
       }
 
       // ── Layer 4: Fix instruction text for capital letter questions ──
-      // If the explanation mentions capital letters but the question text says
-      // only "punctuation mistake", upgrade the instruction to include capitals.
       if (q.topic === 'Punctuation') {
         const exp = (q.explanation || '').toLowerCase();
         const isCapitalError =
@@ -406,7 +427,7 @@ Return JSON only. No other text before or after.`
         const alreadyMentionsCapital = textField.includes('capital');
 
         if (isCapitalError && !alreadyMentionsCapital) {
-          console.warn(`Q${idx+1}: Capital letter error but instruction only says "punctuation" — fixing instruction text`);
+          console.warn(`Q${idx+1}: Fixing instruction text for capital error`);
           q.text = 'Find the section with the punctuation or capital letter mistake. If there is no mistake, mark N.';
         }
       }
