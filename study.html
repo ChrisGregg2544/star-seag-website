@@ -751,6 +751,52 @@ function nextQuestion() {
     card.classList.add('card-refreshing');
     setTimeout(() => { card.classList.remove('card-refreshing'); loadQuestion(currentQ); }, 180);
   } else { showResults(); }
+  // ── Save to Supabase ──────────────────────────
+  sb.auth.getSession().then(async ({ data }) => {
+    if (!data?.session?.user) {
+      console.log('No Supabase session found — not saving');
+      return;
+    }
+    console.log('User logged in:', data.session.user.email);
+    const userId = data.session.user.id;
+    const track  = sessionStorage.getItem('star_year') || 'P6';
+
+    const { data: sessionData, error } = await sb.from('sessions').insert({
+      user_id:         userId,
+      session_type:    'mini_sprint',
+      track:           track,
+      score:           score.correct,
+      total_questions: QUESTIONS.length,
+      english_score:   QUESTIONS.filter((q,i) => q.type==='english' && answers[i]==='correct').length,
+      maths_score:     QUESTIONS.filter((q,i) => q.type==='maths'   && answers[i]==='correct').length,
+    }).select().single();
+
+    if (error) {
+      console.error('Supabase insert error:', error.message);
+      return;
+    }
+
+    if (sessionData?.id) {
+      const results = QUESTIONS.map((q, i) => ({
+        session_id:    sessionData.id,
+        user_id:       userId,
+        topic:         q.topic,
+        question_type: q.type,
+        correct:       answers[i] === 'correct'
+      }));
+      await sb.from('question_results').insert(results);
+    }
+
+    await sb.from('progress_summary').upsert({
+      user_id:         userId,
+      last_score:      score.correct,
+      last_total:      QUESTIONS.length,
+      last_session_at: new Date().toISOString(),
+      updated_at:      new Date().toISOString()
+    }, { onConflict: 'user_id' });
+
+    console.log('✅ Saved to Supabase!');
+  });
 }
 
 function saveProgress() {
