@@ -47,7 +47,6 @@
     .bg-glow-2 { position: absolute; border-radius: 50%; background: radial-gradient(circle, rgba(59,130,246,.03) 0%, transparent 70%); width: 400px; height: 400px; bottom: -100px; right: -80px; }
     .star-p { position: absolute; border-radius: 50%; background: var(--gold); opacity: .1; animation: twinkle var(--d,3.8s) ease-in-out infinite alternate; animation-delay: var(--del,0s); }
     @keyframes twinkle { from {opacity:.04;} to {opacity:.2;} }
-
     .top-nav { position: relative; z-index: 10; width: 100%; max-width: 780px; display: flex; align-items: center; justify-content: space-between; padding: 20px 0 16px; }
     .nav-logo { display: flex; align-items: center; gap: 8px; }
     .nav-logo-star { width: 32px; height: 32px; background: linear-gradient(135deg, rgba(201,168,76,.2) 0%, rgba(201,168,76,.06) 100%); border: 1.5px solid rgba(201,168,76,.4); border-radius: 50%; display: flex; align-items: center; justify-content: center; animation: avatarPulse 3s ease-in-out infinite; }
@@ -56,7 +55,6 @@
     .nav-student { font-size: .78rem; color: rgba(255,255,255,.42); letter-spacing: .06em; }
     .nav-exit { background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.12); border-radius: 8px; color: rgba(255,255,255,.5); font-family: 'Lato', sans-serif; font-size: .75rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; padding: 8px 16px; cursor: pointer; transition: all .2s; text-decoration: none; display: inline-block; }
     .nav-exit:hover { background: rgba(255,255,255,.1); color: rgba(255,255,255,.8); border-color: rgba(255,255,255,.2); }
-
     .progress-section { position: relative; z-index: 10; width: 100%; max-width: 780px; margin-bottom: 20px; }
     .progress-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
     .progress-label { font-size: .8rem; font-weight: 700; color: rgba(255,255,255,.55); letter-spacing: .08em; text-transform: uppercase; }
@@ -73,29 +71,24 @@
     .score-row { display: flex; gap: 12px; margin-top: 10px; }
     .score-chip { display: flex; align-items: center; gap: 5px; font-family: 'Lato', sans-serif; font-size: .75rem; font-weight: 700; letter-spacing: .04em; }
     .score-chip .dot { width: 8px; height: 8px; border-radius: 50%; }
-
     .question-card { position: relative; z-index: 10; width: 100%; max-width: 780px; background: var(--card-bg); border-radius: var(--radius-card); border: 1px solid var(--card-border); box-shadow: 0 4px 6px rgba(0,0,0,.04), 0 20px 60px rgba(0,0,0,.3); overflow: hidden; animation: cardIn .45s cubic-bezier(.22,1,.36,1) forwards; }
     @keyframes cardIn { from { opacity:0; transform:translateY(18px) scale(.98); } to { opacity:1; transform:translateY(0) scale(1); } }
     .card-refreshing { animation: cardRefresh .35s cubic-bezier(.22,1,.36,1) forwards !important; }
     @keyframes cardRefresh { 0% { opacity:1; transform:translateX(0) scale(1); } 40% { opacity:0; transform:translateX(-28px) scale(.97); } 41% { opacity:0; transform:translateX(28px) scale(.97); } 100% { opacity:1; transform:translateX(0) scale(1); } }
-
     .card-header { display: flex; align-items: center; justify-content: space-between; padding: 18px 28px 16px; border-bottom: 1px solid rgba(11,31,58,.06); }
     .card-type-badge { display: inline-flex; align-items: center; gap: 6px; border-radius: 999px; padding: 4px 13px; font-size: .68rem; font-weight: 900; letter-spacing: .12em; text-transform: uppercase; }
     .badge-english { background: rgba(59,130,246,.1); border: 1px solid rgba(59,130,246,.25); color: #3b82f6; }
     .badge-maths   { background: rgba(201,168,76,.12); border: 1px solid rgba(201,168,76,.3); color: #a07820; }
     .card-topic { font-size: .72rem; color: var(--text-light); font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
     .card-marks { font-size: .72rem; color: var(--text-light); font-weight: 400; }
-
     .card-body { padding: 28px 28px 0; }
     .question-number { font-size: .72rem; font-weight: 900; letter-spacing: .12em; text-transform: uppercase; color: var(--text-light); margin-bottom: 12px; }
     .question-text { font-family: 'Playfair Display', serif; font-size: 1.28rem; line-height: 1.5; color: var(--text-dark); margin-bottom: 10px; min-height: 60px; }
     .question-context { font-size: .95rem; color: var(--text-dark); line-height: 1.7; margin-bottom: 20px; background: rgba(11,31,58,.04); border-left: 3px solid rgba(201,168,76,.4); padding: 12px 16px; border-radius: 0 8px 8px 0; font-weight: 700; }
-
     .segments-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; align-items: flex-end; }
     .segment-block { display: flex; flex-direction: column; align-items: center; gap: 5px; }
     .segment-text { background: rgba(11,31,58,.05); border: 1.5px solid rgba(11,31,58,.12); border-radius: 8px; padding: 10px 14px; font-size: .92rem; font-weight: 700; color: var(--text-dark); white-space: nowrap; }
     .segment-label { font-size: .72rem; font-weight: 900; color: var(--text-light); letter-spacing: .1em; text-transform: uppercase; }
-
     .mc-options { display: flex; flex-direction: column; gap: 11px; margin-bottom: 0; }
     .mc-btn { display: flex; align-items: center; gap: 14px; background: rgba(11,31,58,.03); border: 1.5px solid rgba(11,31,58,.1); border-radius: 12px; padding: 15px 18px; font-family: 'Lato', sans-serif; font-size: .95rem; font-weight: 700; color: var(--text-dark); cursor: pointer; text-align: left; transition: all .2s ease; -webkit-tap-highlight-color: transparent; }
     .mc-btn:hover:not(:disabled) { border-color: var(--gold); background: rgba(201,168,76,.05); transform: translateX(3px); }
@@ -108,14 +101,6 @@
     .mc-btn.wrong-ans { border-color: var(--red)!important; background: var(--red-bg)!important; }
     .mc-btn.wrong-ans .mc-letter { background: var(--red)!important; color:#fff!important; }
     .mc-btn:disabled { cursor: default; }
-
-    /* Special N button styling */
-    .mc-btn .mc-letter-n { width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0; background: rgba(11,31,58,.07); display: flex; align-items: center; justify-content: center; font-size: .72rem; font-weight: 900; color: var(--text-mid); transition: all .2s; }
-    .mc-btn:hover:not(:disabled) .mc-letter-n { background: var(--gold); color: #fff; }
-    .mc-btn.selected .mc-letter-n { background: var(--gold); color: #fff; }
-    .mc-btn.correct-ans .mc-letter-n { background: var(--green)!important; color:#fff!important; }
-    .mc-btn.wrong-ans .mc-letter-n { background: var(--red)!important; color:#fff!important; }
-
     .fr-wrap { margin-bottom: 0; }
     .fr-label { font-size: .75rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--text-light); margin-bottom: 8px; }
     .fr-input { width: 100%; background: rgba(11,31,58,.04); border: 1.5px solid rgba(11,31,58,.12); border-radius: 12px; padding: 16px 20px; font-family: 'Lato', sans-serif; font-size: 1.15rem; font-weight: 700; color: var(--text-dark); outline: none; transition: border-color .22s, box-shadow .22s; caret-color: var(--gold); }
@@ -123,7 +108,6 @@
     .fr-input:focus { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(201,168,76,.12); }
     .fr-input.correct-inp { border-color: var(--green)!important; background: var(--green-bg)!important; }
     .fr-input.wrong-inp   { border-color: var(--red)!important;   background: var(--red-bg)!important; }
-
     .feedback-panel { display: none; margin: 20px 28px 0; border-radius: 14px; overflow: hidden; animation: feedIn .35s cubic-bezier(.22,1,.36,1) forwards; }
     @keyframes feedIn { from{opacity:0;transform:translateY(10px);} to{opacity:1;transform:translateY(0);} }
     .feedback-panel.visible { display: block; }
@@ -139,7 +123,6 @@
     .feedback-body  { font-size: .84rem; line-height: 1.68; color: var(--text-mid); }
     .feedback-steps { font-size: .84rem; line-height: 1.7; color: var(--text-mid); margin-top: 8px; padding-left: 16px; }
     .feedback-steps li { margin-bottom: 4px; }
-
     .card-footer { padding: 20px 28px 26px; display: flex; flex-direction: column; gap: 14px; }
     .action-row { display: flex; gap: 12px; align-items: center; }
     .btn-submit { flex: 1; background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 50%, var(--gold) 100%); background-size: 200% auto; color: var(--navy); border: none; border-radius: var(--radius-btn); padding: 17px 28px; font-family: 'Lato', sans-serif; font-size: .95rem; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; cursor: pointer; transition: background-position .4s, transform .18s, box-shadow .18s, opacity .2s; box-shadow: 0 5px 22px rgba(201,168,76,.38); -webkit-tap-highlight-color: transparent; }
@@ -162,7 +145,6 @@
     .video-label { font-size: .68rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--text-light); margin-bottom: 2px; }
     .video-title-text { font-size: .85rem; font-weight: 700; color: var(--text-dark); }
     .video-source { font-size: .72rem; color: var(--gold); font-weight: 700; }
-
     .complete-screen { display: none; }
     .results-panel { display: none; position: relative; z-index: 10; width: 100%; max-width: 780px; background: var(--card-bg); border-radius: var(--radius-card); border: 1px solid var(--card-border); box-shadow: 0 20px 60px rgba(0,0,0,.3); padding: 40px 36px 36px; animation: cardIn .45s cubic-bezier(.22,1,.36,1) forwards; }
     .results-panel.visible { display: block; }
@@ -198,7 +180,6 @@
     .upgrade-banner p { font-size: .88rem; color: var(--text-mid); margin-bottom: 18px; line-height: 1.6; }
     @keyframes pulse-gold { 0% { box-shadow: 0 0 0 0 rgba(255,191,0,0.7); } 70% { box-shadow: 0 0 0 15px rgba(255,191,0,0); } 100% { box-shadow: 0 0 0 0 rgba(255,191,0,0); } }
     .tutorial-glow { animation: pulse-gold 2s infinite; border: 2px solid #ffbf00 !important; transform: scale(1.05); transition: all 0.3s ease; }
-
     @media (max-width: 600px) { .card-header { padding: 14px 18px 12px; } .card-body { padding: 20px 18px 0; } .card-footer { padding: 16px 18px 22px; } .question-text { font-size: 1.12rem; } .segments-row { gap: 6px; } .segment-text { font-size: .82rem; padding: 8px 10px; } .results-panel { padding: 28px 20px 24px; } }
     @media (min-width: 768px) { .mc-btn { padding: 18px 20px; } .btn-submit, .btn-next { padding: 20px 28px; font-size: 1rem; } .btn-hint { padding: 15px 20px; font-size: .85rem; } }
   </style>
@@ -366,22 +347,25 @@
 
 <script>
 /* ════════════════════════════════
-   STATE
+   SUPABASE CLIENT
 ════════════════════════════════ */
-// ── Supabase client ───────────────────────────
 const { createClient } = supabase;
 const sb = createClient(
   'https://iutcgogmxhaqgaxkznxu.supabase.co',
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml1dGNnb2dteGhhcWdheGt6bnh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM3NjE4MTQsImV4cCI6MjA4OTMzNzgxNH0.o0plRQzH8ezfttG_sEeWu3F4IUtKnyzcXtPEGJ9xRF0'
 );
-  let QUESTIONS   = [];
+
+/* ════════════════════════════════
+   STATE
+════════════════════════════════ */
+let QUESTIONS   = [];
 let currentQ    = 0;
 let score       = { correct: 0, wrong: 0 };
 let answers     = [];
 let userAnswers = [];
 let hintVisible = false;
 let answered    = false;
-let selectedMC  = null; // stores 'A','B','C','D','E', or 'N'
+let selectedMC  = null;
 let sprintCount = 0;
 
 /* ════════════════════════════════
@@ -626,24 +610,20 @@ function loadQuestion(idx) {
 }
 
 /* ════════════════════════════════
-   BUILD MC — handles A/B/C/D/E and N options
+   BUILD MC
 ════════════════════════════════ */
 function buildMC(options) {
   const wrap = document.getElementById('mc-options');
   wrap.innerHTML = '';
   const defaultLetters = ['A','B','C','D','E'];
-
   options.forEach((opt, i) => {
-    // Determine the real letter for this option
-    // If the option text starts with "N." it IS the No-mistake option → use N
     const optLower = (opt || '').toLowerCase().trim();
     const isNoMistake = optLower.startsWith('n.') || optLower === 'no mistake' || optLower === 'n. no mistake';
     const letter = isNoMistake ? 'N' : defaultLetters[i];
     const label  = opt.replace(/^[A-EN]\.\s*/i, '');
-
     const btn = document.createElement('button');
     btn.className = 'mc-btn';
-    btn.dataset.letter = letter; // store the real letter on the button
+    btn.dataset.letter = letter;
     btn.innerHTML = `<div class="mc-letter">${letter}</div><span>${label}</span>`;
     btn.onclick = () => selectMC(letter, btn);
     wrap.appendChild(btn);
@@ -669,21 +649,16 @@ function submitAnswer() {
 
   if (q.options && q.options.length) {
     isCorrect = selectedMC === q.answer;
-
-    // Highlight buttons using their stored data-letter attribute
     document.querySelectorAll('.mc-btn').forEach(btn => {
       btn.disabled = true;
       const btnLetter = btn.dataset.letter;
       if (btnLetter === q.answer)                        btn.classList.add('correct-ans');
       else if (btnLetter === selectedMC && !isCorrect)   btn.classList.add('wrong-ans');
     });
-
-    // Store what the student answered for the results panel
     const selectedBtn = document.querySelector(`.mc-btn[data-letter="${selectedMC}"]`);
     userAnswers[currentQ] = selectedBtn
       ? selectedBtn.querySelector('span').textContent
       : (selectedMC || '(no answer)');
-
   } else {
     const frInput = document.getElementById('fr-input');
     const normalise = s => s.trim().toLowerCase().replace(/²/g,'2').replace(/\^2/g,'2').replace(/\s+/g,' ').trim();
@@ -710,7 +685,13 @@ function submitAnswer() {
   document.getElementById('btn-submit').style.display = 'none';
   document.getElementById('btn-next').style.display   = 'inline-block';
   document.getElementById('btn-next').textContent = currentQ < QUESTIONS.length - 1 ? 'Next Question →' : 'See Results 🏁';
-  saveProgress();
+
+  /* Save to localStorage after each answer */
+  const track = sessionStorage.getItem('star_year') || 'P6';
+  const pct   = QUESTIONS.length ? Math.round(score.correct / QUESTIONS.length * 100) : 0;
+  localStorage.setItem('star_last_score', pct);
+  localStorage.setItem('star_last_track', track);
+  localStorage.setItem('star_last_name',  sessionStorage.getItem('star_name') || '');
 }
 
 function showFeedback(q, isCorrect) {
@@ -744,115 +725,24 @@ function toggleHint() {
   }
 }
 
+/* ════════════════════════════════
+   NEXT QUESTION
+════════════════════════════════ */
 function nextQuestion() {
   if (currentQ < QUESTIONS.length - 1) {
     currentQ++;
     const card = document.getElementById('question-card');
     card.classList.add('card-refreshing');
     setTimeout(() => { card.classList.remove('card-refreshing'); loadQuestion(currentQ); }, 180);
-  } else { showResults(); }
-  // ── Save to Supabase ──────────────────────────
-  sb.auth.getSession().then(async ({ data }) => {
-    if (!data?.session?.user) {
-      console.log('No Supabase session found — not saving');
-      return;
-    }
-    console.log('User logged in:', data.session.user.email);
-    const userId = data.session.user.id;
-    const track  = sessionStorage.getItem('star_year') || 'P6';
-
-    const { data: sessionData, error } = await sb.from('sessions').insert({
-      user_id:         userId,
-      session_type:    'mini_sprint',
-      track:           track,
-      score:           score.correct,
-      total_questions: QUESTIONS.length,
-      english_score:   QUESTIONS.filter((q,i) => q.type==='english' && answers[i]==='correct').length,
-      maths_score:     QUESTIONS.filter((q,i) => q.type==='maths'   && answers[i]==='correct').length,
-    }).select().single();
-
-    if (error) {
-      console.error('Supabase insert error:', error.message);
-      return;
-    }
-
-    if (sessionData?.id) {
-      const results = QUESTIONS.map((q, i) => ({
-        session_id:    sessionData.id,
-        user_id:       userId,
-        topic:         q.topic,
-        question_type: q.type,
-        correct:       answers[i] === 'correct'
-      }));
-      await sb.from('question_results').insert(results);
-    }
-
-    await sb.from('progress_summary').upsert({
-      user_id:         userId,
-      last_score:      score.correct,
-      last_total:      QUESTIONS.length,
-      last_session_at: new Date().toISOString(),
-      updated_at:      new Date().toISOString()
-    }, { onConflict: 'user_id' });
-
-    console.log('✅ Saved to Supabase!');
-  });
+  } else {
+    showResults();
+  }
 }
 
-function saveProgress() {
-  const track = sessionStorage.getItem('star_year') || 'P6';
-  const name  = sessionStorage.getItem('star_name')  || '';
-  const pct   = QUESTIONS.length ? Math.round(score.correct / QUESTIONS.length * 100) : 0;
-  localStorage.setItem('star_last_score', pct);
-  localStorage.setItem('star_last_track', track);
-  localStorage.setItem('star_last_name',  name);
-  const toReview = QUESTIONS.map((q, i) => ({ q, result: answers[i] })).filter(x => x.result === 'wrong')
-    .map(x => ({ topic:x.q.topic, videoTitle:x.q.videoTitle||x.q.videoTopic, videoUrl:x.q.videoUrl, videoSource:x.q.videoSource, questionText:x.q.text }))
-    .filter((item, idx, arr) => arr.findIndex(x => x.topic === item.topic) === idx);
-  localStorage.setItem('star_toReview', JSON.stringify(toReview));
-  // ── Save to Supabase if logged in ─────────────
-  sb.auth.getSession().then(async ({ data }) => {
-    if (!data?.session?.user) return;
-    const userId = data.session.user.id;
-    const track  = sessionStorage.getItem('star_year') || 'P6';
-    const pct    = QUESTIONS.length ? Math.round(score.correct / QUESTIONS.length * 100) : 0;
-
-    // Save session
-    const { data: sessionData } = await sb.from('sessions').insert({
-      user_id:         userId,
-      session_type:    'mini_sprint',
-      track:           track,
-      score:           score.correct,
-      total_questions: QUESTIONS.length,
-      english_score:   QUESTIONS.filter((q,i) => q.type==='english' && answers[i]==='correct').length,
-      maths_score:     QUESTIONS.filter((q,i) => q.type==='maths'   && answers[i]==='correct').length,
-    }).select().single();
-
-    // Save individual question results
-    if (sessionData?.id) {
-      const results = QUESTIONS.map((q, i) => ({
-        session_id:    sessionData.id,
-        user_id:       userId,
-        topic:         q.topic,
-        question_type: q.type,
-        correct:       answers[i] === 'correct'
-      }));
-      await sb.from('question_results').insert(results);
-    }
-
-    // Update progress summary
-    await sb.from('progress_summary').upsert({
-      user_id:            userId,
-      last_score:         score.correct,
-      last_total:         QUESTIONS.length,
-      last_session_at:    new Date().toISOString(),
-      updated_at:         new Date().toISOString()
-    }, { onConflict: 'user_id' });
-
-    console.log('Progress saved to Supabase ✅');
-  });
-}
-
+/* ════════════════════════════════
+   SHOW RESULTS
+   Supabase save happens HERE — once, at end of sprint only
+════════════════════════════════ */
 function showResults() {
   sprintCount++;
   document.getElementById('question-card').style.display    = 'none';
@@ -910,16 +800,13 @@ function showResults() {
     missedQuestions.forEach(q => {
       const qIdx       = QUESTIONS.indexOf(q);
       const studentAns = userAnswers[qIdx] || '(no answer)';
-      // For correct answer display
       let correctAns = q.answer;
       if (q.options) {
         if (q.answer === 'N') {
           correctAns = 'No mistake';
         } else {
           const idx = ['A','B','C','D','E'].indexOf(q.answer);
-          if (idx >= 0 && q.options[idx]) {
-            correctAns = q.options[idx].replace(/^[A-EN]\.\s*/i, '');
-          }
+          if (idx >= 0 && q.options[idx]) correctAns = q.options[idx].replace(/^[A-EN]\.\s*/i, '');
         }
       }
       const card = document.createElement('div');
@@ -938,6 +825,7 @@ function showResults() {
 
   document.getElementById('upgrade-banner').style.display = (!localStorage.getItem('star_signed_up') && sprintCount === 1) ? 'block' : 'none';
 
+  /* Update localStorage */
   const toReview = missedQuestions
     .map(q => ({ topic:q.topic, videoTitle:q.videoTopic||q.topic, videoUrl:q.videoUrl, videoSource:q.videoSource, questionText:q.text }))
     .filter((item, idx, arr) => arr.findIndex(x => x.topic === item.topic) === idx);
@@ -967,6 +855,53 @@ function showResults() {
   localStorage.setItem('star_mastery',   JSON.stringify(mastery));
   localStorage.setItem('star_video_log', JSON.stringify(videoLog));
   localStorage.setItem('star_sessions',  JSON.stringify(sessions));
+
+  /* ── SUPABASE SAVE — runs once here at end of sprint only ── */
+  sb.auth.getSession().then(async ({ data }) => {
+    if (!data?.session?.user) {
+      console.log('No Supabase session — saved locally only');
+      return;
+    }
+    console.log('Saving to Supabase for:', data.session.user.email);
+    const userId = data.session.user.id;
+    const track  = sessionStorage.getItem('star_year') || 'P6';
+
+    const { data: sessionData, error } = await sb.from('sessions').insert({
+      user_id:         userId,
+      session_type:    'mini_sprint',
+      track:           track,
+      score:           score.correct,
+      total_questions: QUESTIONS.length,
+      english_score:   QUESTIONS.filter((q,i) => q.type==='english' && answers[i]==='correct').length,
+      maths_score:     QUESTIONS.filter((q,i) => q.type==='maths'   && answers[i]==='correct').length,
+    }).select().single();
+
+    if (error) {
+      console.error('Supabase insert error:', error.message);
+      return;
+    }
+
+    if (sessionData?.id) {
+      const results = QUESTIONS.map((q, i) => ({
+        session_id:    sessionData.id,
+        user_id:       userId,
+        topic:         q.topic,
+        question_type: q.type,
+        correct:       answers[i] === 'correct'
+      }));
+      await sb.from('question_results').insert(results);
+    }
+
+    await sb.from('progress_summary').upsert({
+      user_id:         userId,
+      last_score:      score.correct,
+      last_total:      QUESTIONS.length,
+      last_session_at: new Date().toISOString(),
+      updated_at:      new Date().toISOString()
+    }, { onConflict: 'user_id' });
+
+    console.log('✅ Saved to Supabase!');
+  });
 }
 
 function restartSession() {
