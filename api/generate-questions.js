@@ -405,9 +405,9 @@ Return JSON only. The root MUST be {"questions": [...10 questions...]}. No other
       // ── Layer 3: Build working search video URLs ──
       const searchTerm = encodeURIComponent(q.videoTopic || (q.topic + ' ks2'));
       if (q.videoSource === 'CorbettMaths') {
-        q.videoUrl = `https://corbettmathsprimary.com/?s=${searchTerm}`;
+      q.videoUrl = `https://corbettmathsprimary.com/content/`;
       } else {
-        q.videoUrl = `https://www.bbc.co.uk/bitesize/search?q=${searchTerm}`;
+      q.videoUrl = `https://www.bbc.co.uk/bitesize/subjects/z38pycw`;
       }
 
       // ── Layer 4: Fix instruction text for capital letter questions ──
