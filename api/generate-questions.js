@@ -1,17 +1,222 @@
+/* ══════════════════════════════════════════════════════
+   RESOURCE LOOKUP TABLES
+   Exact URLs from CorbettMathsPrimary and BBC Bitesize.
+   Falls back to search/subject page if no match found.
+══════════════════════════════════════════════════════ */
+
+// ── CorbettMaths Primary — topic → exact video URL ──
+const corbettLookup = {
+  // NUMBER
+  'addition':                    'https://corbettmathsprimary.com/2018/07/17/addition-video/',
+  'subtraction':                 'https://corbettmathsprimary.com/2018/07/17/subtraction-video/',
+  'multiplication':              'https://corbettmathsprimary.com/2018/07/21/multiplication-video/',
+  'division':                    'https://corbettmathsprimary.com/2018/07/17/division-video/',
+  'place value':                 'https://corbettmathsprimary.com/2018/07/17/place-value-video/',
+  'rounding':                    'https://corbettmathsprimary.com/2018/07/17/rounding-video/',
+  'negative numbers':            'https://corbettmathsprimary.com/2018/07/17/negative-numbers-video/',
+  'ordering numbers':            'https://corbettmathsprimary.com/2018/07/17/ordering-numbers-video/',
+  'number sequences':            'https://corbettmathsprimary.com/2018/07/31/sequences-video/',
+  'sequences':                   'https://corbettmathsprimary.com/2018/07/31/sequences-video/',
+  'prime numbers':               'https://corbettmathsprimary.com/2018/07/17/prime-numbers-video/',
+  'square numbers':              'https://corbettmathsprimary.com/2018/07/17/square-numbers-video/',
+  'cube numbers':                'https://corbettmathsprimary.com/2018/07/17/cube-numbers-video/',
+  'factors':                     'https://corbettmathsprimary.com/2018/07/17/factors-video/',
+  'multiples':                   'https://corbettmathsprimary.com/2018/07/17/multiples-video/',
+  // FRACTIONS, DECIMALS, PERCENTAGES
+  'fractions':                   'https://corbettmathsprimary.com/2018/07/17/fractions-of-amounts-video/',
+  'fractions of amounts':        'https://corbettmathsprimary.com/2018/07/17/fractions-of-amounts-video/',
+  'equivalent fractions':        'https://corbettmathsprimary.com/2018/07/17/equivalent-fractions-video/',
+  'adding fractions':            'https://corbettmathsprimary.com/2018/07/17/adding-fractions-video/',
+  'subtracting fractions':       'https://corbettmathsprimary.com/2018/07/17/subtracting-fractions-video/',
+  'fractions decimals percentages': 'https://corbettmathsprimary.com/2018/07/17/fractions-decimals-percentages-video/',
+  'decimals':                    'https://corbettmathsprimary.com/2018/07/17/decimals-video/',
+  'percentages':                 'https://corbettmathsprimary.com/2018/07/18/percentages-of-amounts-video/',
+  'percentages of amounts':      'https://corbettmathsprimary.com/2018/07/18/percentages-of-amounts-video/',
+  // RATIO & PROPORTION
+  'ratio':                       'https://corbettmathsprimary.com/2018/07/17/ratio-video/',
+  'proportion':                  'https://corbettmathsprimary.com/2018/07/17/proportion-video/',
+  'scaling':                     'https://corbettmathsprimary.com/2018/07/17/proportion-video/',
+  // ALGEBRA
+  'algebra':                     'https://corbettmathsprimary.com/2018/07/17/algebra-video/',
+  'function machines':           'https://corbettmathsprimary.com/2018/07/17/function-machines-video/',
+  // MEASUREMENT
+  'measurement':                 'https://corbettmathsprimary.com/2018/07/17/measurement-video/',
+  'metric units':                'https://corbettmathsprimary.com/2018/07/17/metric-units-video/',
+  'converting units':            'https://corbettmathsprimary.com/2018/07/17/metric-units-video/',
+  'length':                      'https://corbettmathsprimary.com/2018/07/17/measurement-video/',
+  'weight':                      'https://corbettmathsprimary.com/2018/07/17/measurement-video/',
+  'mass':                        'https://corbettmathsprimary.com/2018/07/17/measurement-video/',
+  'capacity':                    'https://corbettmathsprimary.com/2018/07/17/measurement-video/',
+  'volume':                      'https://corbettmathsprimary.com/2018/07/17/volume-video/',
+  'area':                        'https://corbettmathsprimary.com/2018/07/17/area-video/',
+  'perimeter':                   'https://corbettmathsprimary.com/2018/07/17/perimeter-video/',
+  'temperature':                 'https://corbettmathsprimary.com/2018/07/17/negative-numbers-video/',
+  // TIME
+  'time':                        'https://corbettmathsprimary.com/2018/07/31/time-video/',
+  'timetables':                  'https://corbettmathsprimary.com/2018/07/31/time-video/',
+  '24 hour clock':               'https://corbettmathsprimary.com/2018/07/31/time-video/',
+  'analogue clock':              'https://corbettmathsprimary.com/2018/07/31/time-video/',
+  // MONEY
+  'money':                       'https://corbettmathsprimary.com/2018/07/24/money-video/',
+  'change':                      'https://corbettmathsprimary.com/2018/07/24/money-video/',
+  // SHAPE & SPACE
+  'shapes':                      'https://corbettmathsprimary.com/2018/07/17/2d-shapes-video/',
+  '2d shapes':                   'https://corbettmathsprimary.com/2018/07/17/2d-shapes-video/',
+  '3d shapes':                   'https://corbettmathsprimary.com/2018/07/17/3d-shapes-video/',
+  'angles':                      'https://corbettmathsprimary.com/2018/07/17/angles-video/',
+  'symmetry':                    'https://corbettmathsprimary.com/2018/07/17/symmetry-video/',
+  'lines of symmetry':           'https://corbettmathsprimary.com/2018/07/17/symmetry-video/',
+  'reflection':                  'https://corbettmathsprimary.com/2018/07/17/reflection-video/',
+  'coordinates':                 'https://corbettmathsprimary.com/2018/07/17/coordinates-video/',
+  'translation':                 'https://corbettmathsprimary.com/2018/07/17/translation-video/',
+  // DATA
+  'data handling':               'https://corbettmathsprimary.com/2018/07/17/bar-charts-video/',
+  'bar charts':                  'https://corbettmathsprimary.com/2018/07/17/bar-charts-video/',
+  'bar chart':                   'https://corbettmathsprimary.com/2018/07/17/bar-charts-video/',
+  'pictograms':                  'https://corbettmathsprimary.com/2018/07/17/pictograms-video/',
+  'pictogram':                   'https://corbettmathsprimary.com/2018/07/17/pictograms-video/',
+  'line graphs':                 'https://corbettmathsprimary.com/2018/07/17/line-graphs-video/',
+  'pie charts':                  'https://corbettmathsprimary.com/2018/07/17/pie-charts-video/',
+  'venn diagrams':               'https://corbettmathsprimary.com/2018/07/17/venn-diagrams-video/',
+  'mean':                        'https://corbettmathsprimary.com/2018/07/17/mean-video/',
+  'mean and range':              'https://corbettmathsprimary.com/2018/07/17/mean-video/',
+  'range':                       'https://corbettmathsprimary.com/2018/07/17/mean-video/',
+  // PROBABILITY
+  'probability':                 'https://corbettmathsprimary.com/2018/07/17/probability-video/',
+};
+
+// ── BBC Bitesize — topic → exact article/topic URL ──
+const bbcLookup = {
+  // PUNCTUATION
+  'apostrophe':                  'https://www.bbc.co.uk/bitesize/topics/zpmws82/articles/zx9ydxs',
+  'possessive apostrophe':       'https://www.bbc.co.uk/bitesize/topics/zpmws82/articles/zx9ydxs',
+  'apostrophes':                 'https://www.bbc.co.uk/bitesize/topics/zpmws82/articles/zx9ydxs',
+  'contraction':                 'https://www.bbc.co.uk/bitesize/topics/zpmws82/articles/zx9ydxs',
+  'contractions':                'https://www.bbc.co.uk/bitesize/topics/zpmws82/articles/zx9ydxs',
+  'speech marks':                'https://www.bbc.co.uk/bitesize/topics/zpmws82/articles/ztcp97h',
+  'inverted commas':             'https://www.bbc.co.uk/bitesize/topics/zpmws82/articles/ztcp97h',
+  'direct speech':               'https://www.bbc.co.uk/bitesize/topics/zpmws82/articles/ztcp97h',
+  'comma':                       'https://www.bbc.co.uk/bitesize/topics/zpmws82/articles/zc773k7',
+  'commas':                      'https://www.bbc.co.uk/bitesize/topics/zpmws82/articles/zc773k7',
+  'comma in a list':             'https://www.bbc.co.uk/bitesize/topics/zpmws82/articles/zxvcrdm',
+  'exclamation mark':            'https://www.bbc.co.uk/bitesize/topics/zpmws82/articles/z3dcmsg',
+  'question mark':               'https://www.bbc.co.uk/bitesize/topics/zpmws82/articles/zcm3qhv',
+  'question marks':              'https://www.bbc.co.uk/bitesize/topics/zpmws82/articles/zcm3qhv',
+  'semi-colon':                  'https://www.bbc.co.uk/bitesize/topics/zpmws82/articles/zshfdxs',
+  'semicolon':                   'https://www.bbc.co.uk/bitesize/topics/zpmws82/articles/zshfdxs',
+  'brackets':                    'https://www.bbc.co.uk/bitesize/topics/zpmws82/articles/zg6xb82',
+  'hyphen':                      'https://www.bbc.co.uk/bitesize/topics/zpmws82/articles/zg8gbk7',
+  'dash':                        'https://www.bbc.co.uk/bitesize/topics/zpmws82/articles/zg8gbk7',
+  'ellipsis':                    'https://www.bbc.co.uk/bitesize/topics/zpmws82/articles/zpgjy4j',
+  'capital letter':              'https://www.bbc.co.uk/bitesize/topics/zpmws82',
+  'capital letters':             'https://www.bbc.co.uk/bitesize/topics/zpmws82',
+  'proper noun':                 'https://www.bbc.co.uk/bitesize/topics/zpmws82',
+  'proper nouns':                'https://www.bbc.co.uk/bitesize/topics/zpmws82',
+  'full stop':                   'https://www.bbc.co.uk/bitesize/topics/zpmws82',
+  'punctuation':                 'https://www.bbc.co.uk/bitesize/topics/zpmws82',
+  // GRAMMAR
+  'noun':                        'https://www.bbc.co.uk/bitesize/topics/zxtm8p3/articles/zrcy6rd',
+  'nouns':                       'https://www.bbc.co.uk/bitesize/topics/zxtm8p3/articles/zrcy6rd',
+  'verb':                        'https://www.bbc.co.uk/bitesize/topics/zxtm8p3/articles/z34tjfr',
+  'verbs':                       'https://www.bbc.co.uk/bitesize/topics/zxtm8p3/articles/z34tjfr',
+  'tense':                       'https://www.bbc.co.uk/bitesize/topics/znxjfdm/articles/zh4thbk',
+  'tenses':                      'https://www.bbc.co.uk/bitesize/topics/znxjfdm/articles/zh4thbk',
+  'past tense':                  'https://www.bbc.co.uk/bitesize/topics/znxjfdm/articles/zh4thbk',
+  'present tense':               'https://www.bbc.co.uk/bitesize/topics/znxjfdm/articles/zh4thbk',
+  'future tense':                'https://www.bbc.co.uk/bitesize/topics/znxjfdm/articles/zh4thbk',
+  'verb tense':                  'https://www.bbc.co.uk/bitesize/topics/znxjfdm/articles/zh4thbk',
+  'subject verb agreement':      'https://www.bbc.co.uk/bitesize/topics/znxjfdm/articles/znfbf82',
+  'adjective':                   'https://www.bbc.co.uk/bitesize/topics/zxtm8p3/articles/zcvcs82',
+  'adjectives':                  'https://www.bbc.co.uk/bitesize/topics/zxtm8p3/articles/zcvcs82',
+  'adverb':                      'https://www.bbc.co.uk/bitesize/topics/znxjfdm/articles/zgsgxfr',
+  'adverbs':                     'https://www.bbc.co.uk/bitesize/topics/znxjfdm/articles/zgsgxfr',
+  'pronoun':                     'https://www.bbc.co.uk/bitesize/topics/znxjfdm/articles/z37xrwx',
+  'pronouns':                    'https://www.bbc.co.uk/bitesize/topics/znxjfdm/articles/z37xrwx',
+  'preposition':                 'https://www.bbc.co.uk/bitesize/topics/zxtm8p3/articles/z96fxg8',
+  'prepositions':                'https://www.bbc.co.uk/bitesize/topics/zxtm8p3/articles/z96fxg8',
+  'conjunction':                 'https://www.bbc.co.uk/bitesize/topics/zxtm8p3/articles/zhgk3qt',
+  'conjunctions':                'https://www.bbc.co.uk/bitesize/topics/zxtm8p3/articles/zhgk3qt',
+  'coordinating conjunction':    'https://www.bbc.co.uk/bitesize/topics/znxjfdm/articles/z9wvqhv',
+  'subordinating conjunction':   'https://www.bbc.co.uk/bitesize/topics/znxjfdm/articles/zqk37p3',
+  'modal verb':                  'https://www.bbc.co.uk/bitesize/topics/znxjfdm/articles/zps4pbk',
+  'modal verbs':                 'https://www.bbc.co.uk/bitesize/topics/znxjfdm/articles/zps4pbk',
+  'passive verb':                'https://www.bbc.co.uk/bitesize/topics/znxjfdm/articles/zsx2b82',
+  'relative clause':             'https://www.bbc.co.uk/bitesize/topics/znxjfdm/articles/zsrt4qt',
+  'prefix':                      'https://www.bbc.co.uk/bitesize/topics/znxjfdm/articles/z9hjwxs',
+  'prefixes':                    'https://www.bbc.co.uk/bitesize/topics/znxjfdm/articles/z9hjwxs',
+  'suffix':                      'https://www.bbc.co.uk/bitesize/topics/znxjfdm/articles/zwgbcwx',
+  'suffixes':                    'https://www.bbc.co.uk/bitesize/topics/znxjfdm/articles/zwgbcwx',
+  'synonym':                     'https://www.bbc.co.uk/bitesize/topics/zxtm8p3/articles/zrhgnk7',
+  'synonyms':                    'https://www.bbc.co.uk/bitesize/topics/zxtm8p3/articles/zrhgnk7',
+  'antonym':                     'https://www.bbc.co.uk/bitesize/topics/zxtm8p3/articles/zrhgnk7',
+  'comparative':                 'https://www.bbc.co.uk/bitesize/topics/zxtm8p3/articles/zcvcs82',
+  'superlative':                 'https://www.bbc.co.uk/bitesize/topics/zxtm8p3/articles/zcvcs82',
+  'grammar':                     'https://www.bbc.co.uk/bitesize/topics/znxjfdm',
+  // SPELLING
+  'spelling':                    'https://www.bbc.co.uk/bitesize/topics/zt78p9q',
+  'homophone':                   'https://www.bbc.co.uk/bitesize/topics/znxjfdm/articles/zc84cwx',
+  'homophones':                  'https://www.bbc.co.uk/bitesize/topics/znxjfdm/articles/zc84cwx',
+  'their there':                 'https://www.bbc.co.uk/bitesize/topics/znxjfdm/articles/z3cxrwx',
+  "they're":                     'https://www.bbc.co.uk/bitesize/topics/znxjfdm/articles/z3cxrwx',
+  'to too two':                  'https://www.bbc.co.uk/bitesize/topics/znxjfdm/articles/zc4jpbk',
+  'silent letter':               'https://www.bbc.co.uk/bitesize/topics/zt78p9q/articles/zy4fdxs',
+  'silent letters':              'https://www.bbc.co.uk/bitesize/topics/zt78p9q/articles/zy4fdxs',
+  'tion':                        'https://www.bbc.co.uk/bitesize/topics/zt78p9q/articles/zyv4qhv',
+  'sion':                        'https://www.bbc.co.uk/bitesize/topics/zt78p9q/articles/zyv4qhv',
+  'cious':                       'https://www.bbc.co.uk/bitesize/topics/zt78p9q/articles/zp7dk7h',
+  'tious':                       'https://www.bbc.co.uk/bitesize/topics/zt78p9q/articles/zp7dk7h',
+  'ough':                        'https://www.bbc.co.uk/bitesize/topics/zt78p9q/articles/z9f2b82',
+  'double consonant':            'https://www.bbc.co.uk/bitesize/topics/zt78p9q',
+  'double consonants':           'https://www.bbc.co.uk/bitesize/topics/zt78p9q',
+  'proofreading':                'https://www.bbc.co.uk/bitesize/topics/zxtm8p3/articles/z738b7h',
+  // COMPREHENSION & READING
+  'comprehension':               'https://www.bbc.co.uk/bitesize/topics/zxtm8p3/articles/zrcy6rd',
+  'inference':                   'https://www.bbc.co.uk/bitesize/topics/zd43qyc/articles/zqmyw6f',
+  'reading':                     'https://www.bbc.co.uk/bitesize/topics/zd43qyc',
+  'fiction':                     'https://www.bbc.co.uk/bitesize/topics/zjkg239',
+  'non-fiction':                 'https://www.bbc.co.uk/bitesize/topics/zw9b7v4',
+  'poetry':                      'https://www.bbc.co.uk/bitesize/topics/z7dcxg8',
+  'poem':                        'https://www.bbc.co.uk/bitesize/topics/z7dcxg8',
+  'metaphor':                    'https://www.bbc.co.uk/bitesize/topics/zvnxg2p/articles/z9tkxfr',
+  'simile':                      'https://www.bbc.co.uk/bitesize/topics/zvnxg2p/articles/z9tkxfr',
+  'alliteration':                'https://www.bbc.co.uk/bitesize/topics/zvnxg2p/articles/zq4c7p3',
+  'onomatopoeia':                'https://www.bbc.co.uk/bitesize/topics/zvnxg2p/articles/z8t3g82',
+};
+
+/* ──────────────────────────────────────────────────────
+   LOOKUP HELPER FUNCTIONS
+────────────────────────────────────────────────────── */
+function getCorbettUrl(topic) {
+  if (!topic) return 'https://corbettmathsprimary.com/content/';
+  const key = topic.toLowerCase().trim();
+  if (corbettLookup[key]) return corbettLookup[key];
+  for (const [k, url] of Object.entries(corbettLookup)) {
+    if (key.includes(k) || k.includes(key)) return url;
+  }
+  return `https://corbettmathsprimary.com/?s=${encodeURIComponent(topic)}`;
+}
+
+function getBBCUrl(topic) {
+  if (!topic) return 'https://www.bbc.co.uk/bitesize/subjects/zfw9bdm';
+  const key = topic.toLowerCase().trim();
+  if (bbcLookup[key]) return bbcLookup[key];
+  for (const [k, url] of Object.entries(bbcLookup)) {
+    if (key.includes(k) || k.includes(key)) return url;
+  }
+  return 'https://www.bbc.co.uk/bitesize/subjects/zfw9bdm';
+}
+
+/* ══════════════════════════════════════════════════════
+   MAIN HANDLER
+══════════════════════════════════════════════════════ */
 export default async function handler(req, res) {
 
-  // Allow CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-  }
-
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
+  if (req.method === 'OPTIONS') return res.status(200).end();
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   const { track } = req.body || {};
   const level = track === 'P7' ? 'P7' : 'P6';
@@ -156,100 +361,64 @@ FORBIDDEN: violence, theft, bullying, danger, alcohol, gambling.
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 📋 JSON FORMAT — RETURN THIS EXACTLY
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Return ONLY valid raw JSON in this exact format. No markdown, no code fences, no explanation.
+Return ONLY valid raw JSON. No markdown, no code fences, no explanation.
 The root element MUST be an object with a "questions" key containing an array.
 
-{
-  "questions": [
-    { ...question1... },
-    { ...question2... },
-    ...10 questions total...
-  ]
-}
+videoTopic field: 3-4 word phrase matching a topic key e.g. "apostrophes contractions", "fractions of amounts", "bar charts".
 
-videoTopic field: 3-4 word search phrase for this topic.
-
-Generate exactly 10 questions:
-- 2 Punctuation
-- 1 Grammar
-- 2 Spelling
-- 5 Maths (varied topics)
+Generate exactly 10 questions: 2 Punctuation, 1 Grammar, 2 Spelling, 5 Maths (varied topics).
 
 PUNCTUATION EXAMPLE — capital letter error:
 {
-  "level": "${level}",
-  "type": "english",
-  "topic": "Punctuation",
-  "marks": "1 mark",
+  "level": "${level}", "type": "english", "topic": "Punctuation", "marks": "1 mark",
   "text": "Find the section with the punctuation or capital letter mistake. If there is no mistake, mark N.",
   "segments": ["Sarah and james", "visited the wildlife", "park on Saturday", "morning."],
   "options": ["A. Sarah and james", "B. visited the wildlife", "C. park on Saturday", "D. morning.", "N. No mistake"],
   "answer": "A",
   "explanation": "'james' should have a capital letter because it is a proper noun — a person's name.",
-  "steps": [],
-  "hint": "Check whether all names and proper nouns have a capital letter.",
-  "videoTopic": "ks2 capital letters proper nouns",
-  "videoSource": "BBC Bitesize"
+  "steps": [], "hint": "Check whether all names and proper nouns have a capital letter.",
+  "videoTopic": "capital letters proper nouns", "videoSource": "BBC Bitesize"
 }
 
 PUNCTUATION EXAMPLE — apostrophe error:
 {
-  "level": "${level}",
-  "type": "english",
-  "topic": "Punctuation",
-  "marks": "1 mark",
+  "level": "${level}", "type": "english", "topic": "Punctuation", "marks": "1 mark",
   "text": "Find the section with the punctuation mistake. If there is no mistake, mark N.",
   "segments": ["We couldnt believe", "how fast the", "cheetah ran across", "the open plain."],
   "options": ["A. We couldnt believe", "B. how fast the", "C. cheetah ran across", "D. the open plain.", "N. No mistake"],
   "answer": "A",
   "explanation": "'couldnt' is missing an apostrophe. The correct spelling is 'couldn't'.",
-  "steps": [],
-  "hint": "Check every contraction — does it have its apostrophe?",
-  "videoTopic": "ks2 apostrophes contractions",
-  "videoSource": "BBC Bitesize"
+  "steps": [], "hint": "Check every contraction — does it have its apostrophe?",
+  "videoTopic": "apostrophes contractions", "videoSource": "BBC Bitesize"
 }
 
 SPELLING EXAMPLE:
 {
-  "level": "${level}",
-  "type": "english",
-  "topic": "Spelling",
-  "marks": "1 mark",
+  "level": "${level}", "type": "english", "topic": "Spelling", "marks": "1 mark",
   "text": "Find the section with the spelling mistake. If there is no mistake, mark N.",
   "segments": ["The children were", "absolutly thrilled", "to visit the new", "science museum."],
   "options": ["A. The children were", "B. absolutly thrilled", "C. to visit the new", "D. science museum.", "N. No mistake"],
   "answer": "B",
   "explanation": "'absolutly' is misspelled. The correct spelling is 'absolutely'.",
-  "steps": [],
-  "hint": "Say each word carefully in your head. Does any word look wrong?",
-  "videoTopic": "ks2 spelling rules suffixes",
-  "videoSource": "BBC Bitesize"
+  "steps": [], "hint": "Say each word carefully in your head. Does any word look wrong?",
+  "videoTopic": "spelling rules suffixes", "videoSource": "BBC Bitesize"
 }
 
 GRAMMAR EXAMPLE:
 {
-  "level": "${level}",
-  "type": "english",
-  "topic": "Grammar",
-  "marks": "1 mark",
+  "level": "${level}", "type": "english", "topic": "Grammar", "marks": "1 mark",
   "text": "Choose the best word to complete the sentence.",
-  "segments": [],
-  "context": "The horses bolted _____ the stable as fast as their legs could carry them.",
+  "segments": [], "context": "The horses bolted _____ the stable as fast as their legs could carry them.",
   "options": ["A. across", "B. through", "C. on", "D. within", "E. in"],
   "answer": "B",
   "explanation": "'Through' is the correct preposition — the horses ran through the stable door.",
-  "steps": [],
-  "hint": "Think about which word best describes the movement in the sentence.",
-  "videoTopic": "ks2 prepositions grammar",
-  "videoSource": "BBC Bitesize"
+  "steps": [], "hint": "Think about which word best describes the movement in the sentence.",
+  "videoTopic": "prepositions grammar", "videoSource": "BBC Bitesize"
 }
 
 MATHS EXAMPLE:
 {
-  "level": "${level}",
-  "type": "maths",
-  "topic": "Fractions",
-  "marks": "2 marks",
+  "level": "${level}", "type": "maths", "topic": "Fractions", "marks": "2 marks",
   "text": "A baker makes 120 rolls. She gives away one quarter of them. How many rolls does she have left?",
   "segments": [],
   "options": ["A. 30", "B. 60", "C. 80", "D. 90", "E. 100"],
@@ -257,8 +426,7 @@ MATHS EXAMPLE:
   "explanation": "One quarter of 120 = 120 ÷ 4 = 30. Rolls left = 120 - 30 = 90.",
   "steps": ["120 ÷ 4 = 30 (one quarter given away)", "120 - 30 = 90 rolls remaining"],
   "hint": "Find one quarter by dividing by 4, then subtract from the total.",
-  "videoTopic": "ks2 fractions of amounts",
-  "videoSource": "CorbettMaths"
+  "videoTopic": "fractions of amounts", "videoSource": "CorbettMaths"
 }`;
 
   try {
@@ -275,10 +443,9 @@ MATHS EXAMPLE:
         model: 'claude-sonnet-4-6',
         max_tokens: 4000,
         system: systemPrompt,
-        messages: [
-          {
-            role: 'user',
-            content: `Generate 10 fresh original SEAG questions for ${level}.
+        messages: [{
+          role: 'user',
+          content: `Generate 10 fresh original SEAG questions for ${level}.
 
 MANDATORY SELF-CHECK before returning:
 1. Copyright: All scenarios, names and sentences completely original?
@@ -291,26 +458,20 @@ MANDATORY SELF-CHECK before returning:
 8. Format: Is the root element {"questions": [...]} with exactly that key?
 
 Return JSON only. The root MUST be {"questions": [...10 questions...]}. No other text before or after.`
-          }
-        ]
+        }]
       })
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Anthropic API error status:', response.status, errorText);
-      return res.status(500).json({
-        error: 'Failed to generate questions — please try again',
-        detail: response.status
-      });
+      console.error('Anthropic API error:', response.status, errorText);
+      return res.status(500).json({ error: 'Failed to generate questions — please try again', detail: response.status });
     }
 
     const data = await response.json();
     console.log('Stop reason:', data.stop_reason);
-    console.log('Content blocks:', data.content ? data.content.length : 0);
 
     if (!data.content || !data.content.length) {
-      console.error('Empty response from Anthropic');
       return res.status(500).json({ error: 'Empty response — please try again' });
     }
 
@@ -320,14 +481,10 @@ Return JSON only. The root MUST be {"questions": [...10 questions...]}. No other
       .join('');
 
     if (!text) {
-      console.error('No text in response');
       return res.status(500).json({ error: 'No content returned — please try again' });
     }
 
     console.log('Text length:', text.length);
-    console.log('Text preview:', text.substring(0, 300));
-
-    // Strip any accidental markdown fences
     const clean = text.replace(/```json|```/g, '').trim();
 
     let parsed;
@@ -335,19 +492,18 @@ Return JSON only. The root MUST be {"questions": [...10 questions...]}. No other
       parsed = JSON.parse(clean);
     } catch (parseErr) {
       console.error('JSON parse error:', parseErr.message);
-      console.error('Raw text (500 chars):', clean.substring(0, 500));
+      console.error('Raw text preview:', clean.substring(0, 500));
       return res.status(500).json({ error: 'Could not parse questions — please try again' });
     }
 
-    // ── Handle both {questions:[]} and direct [] formats ──
+    // Handle both {questions:[]} and direct [] formats
     if (Array.isArray(parsed)) {
       console.log('Model returned array directly — wrapping');
       parsed = { questions: parsed };
     }
 
     if (!parsed.questions || !Array.isArray(parsed.questions)) {
-      console.error('No questions array. Keys found:', Object.keys(parsed));
-      console.error('Full parsed object:', JSON.stringify(parsed).substring(0, 500));
+      console.error('No questions array. Keys:', Object.keys(parsed));
       return res.status(500).json({ error: 'Invalid question format — please try again' });
     }
 
@@ -358,7 +514,7 @@ Return JSON only. The root MUST be {"questions": [...10 questions...]}. No other
     ══════════════════════════════════════════════════ */
     parsed.questions.forEach((q, idx) => {
 
-      // ── Layer 1: Force "N. No mistake" ──
+      // ── Layer 1: Force "N. No mistake" on option and answer ──
       if (q.topic === 'Punctuation' || q.topic === 'Spelling') {
         if (q.options && Array.isArray(q.options)) {
           q.options = q.options.map((opt, i) => {
@@ -402,13 +558,17 @@ Return JSON only. The root MUST be {"questions": [...10 questions...]}. No other
         }
       }
 
-      // ── Layer 3: Build working search video URLs ──
-      const searchTerm = encodeURIComponent(q.videoTopic || (q.topic + ' ks2'));
-      if (q.videoSource === 'CorbettMaths') {
-      q.videoUrl = `https://corbettmathsprimary.com/content/`;
+      // ── Layer 3: Build exact resource URLs from lookup tables ──
+      const videoTopic = (q.videoTopic || q.topic || '').toLowerCase().trim();
+      const source = (q.videoSource || '').trim();
+
+      if (source === 'CorbettMaths') {
+        q.videoUrl = getCorbettUrl(videoTopic);
       } else {
-      q.videoUrl = `https://www.bbc.co.uk/bitesize/subjects/z38pycw`;
+        q.videoUrl = getBBCUrl(videoTopic);
       }
+
+      console.log(`Q${idx+1} [${q.topic}] "${videoTopic}" → ${q.videoUrl}`);
 
       // ── Layer 4: Fix instruction text for capital letter questions ──
       if (q.topic === 'Punctuation') {
@@ -419,7 +579,7 @@ Return JSON only. The root MUST be {"questions": [...10 questions...]}. No other
           exp.includes('days of the week') ||
           exp.includes('months of the year') ||
           exp.includes('place name') ||
-          exp.includes('person\'s name') ||
+          exp.includes("person's name") ||
           exp.includes('should be capitalised') ||
           exp.includes('should have a capital');
 
@@ -445,9 +605,6 @@ Return JSON only. The root MUST be {"questions": [...10 questions...]}. No other
 
   } catch (error) {
     console.error('Unexpected server error:', error);
-    return res.status(500).json({
-      error: 'Server error — please try again',
-      detail: error.message
-    });
+    return res.status(500).json({ error: 'Server error — please try again', detail: error.message });
   }
 }
