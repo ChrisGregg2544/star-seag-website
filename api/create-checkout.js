@@ -1,6 +1,7 @@
 /* ══════════════════════════════════════════════════════
    /api/create-checkout.js
-   Creates a Stripe Checkout session with 7-day free trial
+   Creates a Stripe Checkout session using REST API directly.
+   No npm package required — uses native fetch.
 ══════════════════════════════════════════════════════ */
 
 export default async function handler(req, res) {
@@ -13,54 +14,47 @@ export default async function handler(req, res) {
 
   const { email, userId } = req.body || {};
 
-  if (!process.env.STRIPE_SECRET_KEY) {
-    console.error('STRIPE_SECRET_KEY not set');
-    return res.status(500).json({ error: 'Payment configuration error' });
-  }
+  const secretKey = process.env.STRIPE_SECRET_KEY;
+  const priceId   = process.env.STRIPE_PRICE_ID;
 
-  if (!process.env.STRIPE_PRICE_ID) {
-    console.error('STRIPE_PRICE_ID not set');
-    return res.status(500).json({ error: 'Price configuration error' });
-  }
+  if (!secretKey) return res.status(500).json({ error: 'Payment configuration error' });
+  if (!priceId)   return res.status(500).json({ error: 'Price configuration error' });
 
   try {
-    // Dynamic import of Stripe (works in Vercel serverless)
-    const Stripe = (await import('stripe')).default;
-    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-      apiVersion: '2023-10-16',
+    // Build x-www-form-urlencoded body for Stripe REST API
+    const params = new URLSearchParams();
+    params.append('mode',                                      'subscription');
+    params.append('payment_method_types[]',                    'card');
+    params.append('line_items[0][price]',                      priceId);
+    params.append('line_items[0][quantity]',                   '1');
+    params.append('subscription_data[trial_period_days]',      '7');
+    params.append('success_url',  'https://star-seag-website.vercel.app/study.html?checkout=success');
+    params.append('cancel_url',   'https://star-seag-website.vercel.app/pricing.html?checkout=cancelled');
+
+    if (userId) params.append('metadata[userId]', userId);
+    if (email)  params.append('customer_email',   email);
+
+    const response = await fetch('https://api.stripe.com/v1/checkout/sessions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${secretKey}`,
+        'Content-Type':  'application/x-www-form-urlencoded',
+      },
+      body: params.toString(),
     });
 
-    const sessionParams = {
-      mode: 'subscription',
-      payment_method_types: ['card'],
-      line_items: [
-        {
-          price: process.env.STRIPE_PRICE_ID,
-          quantity: 1,
-        },
-      ],
-      subscription_data: {
-        trial_period_days: 7,
-      },
-      success_url: `https://star-seag-website.vercel.app/study.html?checkout=success`,
-      cancel_url:  `https://star-seag-website.vercel.app/pricing.html?checkout=cancelled`,
-      metadata: {
-        userId: userId || '',
-      },
-    };
+    const session = await response.json();
 
-    // Pre-fill email if user is already logged in
-    if (email) {
-      sessionParams.customer_email = email;
+    if (!response.ok) {
+      console.error('Stripe API error:', session.error);
+      return res.status(500).json({ error: session.error?.message || 'Stripe error' });
     }
-
-    const session = await stripe.checkout.sessions.create(sessionParams);
 
     console.log('Checkout session created:', session.id, 'for', email || 'guest');
     return res.status(200).json({ url: session.url });
 
   } catch (err) {
-    console.error('Stripe error:', err.message);
+    console.error('Create checkout error:', err.message);
     return res.status(500).json({ error: err.message || 'Failed to create checkout session' });
   }
 }
