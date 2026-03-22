@@ -922,7 +922,14 @@ function goToDashboard() {
   window.location.href = 'signup.html?score=' + pct;
 }
 
-window.addEventListener('DOMContentLoaded', init);
+window.addEventListener('DOMContentLoaded', async () => {
+  const { data } = await sb.auth.getSession();
+  if (!data?.session) {
+    window.location.href = '/login.html';
+    return;
+  }
+  init();
+});
 </script>
 </body>
 </html>
