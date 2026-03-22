@@ -917,9 +917,7 @@ function goToSignup() {
   window.location.href = 'signup.html?score=' + pct;
 }
 function goToDashboard() {
-  const pct = Math.round(score.correct / QUESTIONS.length * 100);
-  sessionStorage.setItem('star_last_score', pct);
-  window.location.href = 'signup.html?score=' + pct;
+  window.location.href = 'dashboard.html';
 }
 
 window.addEventListener('DOMContentLoaded', async () => {
