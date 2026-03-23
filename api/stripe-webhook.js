@@ -1,11 +1,11 @@
 /* ══════════════════════════════════════════════════════
    /api/stripe-webhook.js
-   Verifies Stripe webhook signature using Node's built-in
-   crypto module. No npm package required.
-   Uses Supabase Service Role key to bypass RLS.
+   Uses Node's built-in https module instead of fetch
+   to avoid Vercel serverless network restrictions.
 ══════════════════════════════════════════════════════ */
 
 import crypto from 'crypto';
+import https from 'https';
 
 export const config = {
   api: {
@@ -53,30 +53,52 @@ function verifyStripeSignature(rawBody, sigHeader, secret) {
   }
 }
 
+function httpsRequest(options, body) {
+  return new Promise((resolve, reject) => {
+    const req = https.request(options, (res) => {
+      let data = '';
+      res.on('data', chunk => { data += chunk; });
+      res.on('end', () => {
+        resolve({ status: res.statusCode, body: data });
+      });
+    });
+    req.on('error', reject);
+    if (body) req.write(body);
+    req.end();
+  });
+}
+
 async function updateProfile(supabaseUrl, serviceRoleKey, filter, updates) {
   const { field, value } = filter;
-  const url = `${supabaseUrl}/rest/v1/profiles?${field}=eq.${encodeURIComponent(value)}`;
+  const path = `/rest/v1/profiles?${field}=eq.${encodeURIComponent(value)}`;
+  const body = JSON.stringify(updates);
 
-  console.log('Attempting Supabase PATCH to:', url.substring(0, 60));
+  // Parse hostname from supabaseUrl
+  const hostname = supabaseUrl.replace('https://', '').replace('http://', '').split('/')[0];
 
-  const res = await fetch(url, {
+  console.log('PATCH to hostname:', hostname, 'path:', path);
+
+  const options = {
+    hostname,
+    path,
     method: 'PATCH',
     headers: {
-      'apikey':        serviceRoleKey,
-      'Authorization': `Bearer ${serviceRoleKey}`,
-      'Content-Type':  'application/json',
-      'Prefer':        'return=minimal',
+      'apikey':         serviceRoleKey,
+      'Authorization':  `Bearer ${serviceRoleKey}`,
+      'Content-Type':   'application/json',
+      'Content-Length': Buffer.byteLength(body),
+      'Prefer':         'return=minimal',
     },
-    body: JSON.stringify(updates),
-  });
+  };
 
-  if (!res.ok) {
-    const text = await res.text();
-    console.error('Supabase update error:', res.status, text);
-    throw new Error('Supabase update failed: ' + text);
-  } else {
-    console.log('Profile updated successfully:', filter, updates);
+  const result = await httpsRequest(options, body);
+  console.log('Supabase response status:', result.status, 'body:', result.body.substring(0, 100));
+
+  if (result.status >= 300) {
+    throw new Error('Supabase update failed: ' + result.body);
   }
+
+  console.log('Profile updated successfully:', filter, updates);
 }
 
 export default async function handler(req, res) {
@@ -86,7 +108,6 @@ export default async function handler(req, res) {
   const supabaseUrl    = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-  // Debug log — shows which vars are present without exposing values
   console.log('ENV CHECK — webhookSecret:', !!webhookSecret,
     '| supabaseUrl:', supabaseUrl ? supabaseUrl.substring(0, 35) : 'MISSING',
     '| serviceRoleKey:', !!serviceRoleKey);
