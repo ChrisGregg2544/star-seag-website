@@ -2,14 +2,14 @@
    /api/stripe-webhook.js
    Verifies Stripe webhook signature using Node's built-in
    crypto module. No npm package required.
-   Updates Supabase subscription_status on payment events.
+   Uses Supabase Service Role key to bypass RLS.
 ══════════════════════════════════════════════════════ */
 
 import crypto from 'crypto';
 
 export const config = {
   api: {
-    bodyParser: false, // Must be raw for signature verification
+    bodyParser: false,
   },
 };
 
@@ -23,7 +23,6 @@ async function getRawBody(req) {
 }
 
 function verifyStripeSignature(rawBody, sigHeader, secret) {
-  // Parse the Stripe-Signature header
   const parts = sigHeader.split(',').reduce((acc, part) => {
     const [key, val] = part.split('=');
     acc[key.trim()] = val;
@@ -35,33 +34,34 @@ function verifyStripeSignature(rawBody, sigHeader, secret) {
 
   if (!timestamp || !signature) return false;
 
-  // Reject events older than 5 minutes
   const now = Math.floor(Date.now() / 1000);
   if (Math.abs(now - parseInt(timestamp)) > 300) return false;
 
-  // Compute expected signature
   const payload  = `${timestamp}.${rawBody}`;
   const expected = crypto
     .createHmac('sha256', secret)
     .update(payload, 'utf8')
     .digest('hex');
 
-  // Timing-safe comparison
-  return crypto.timingSafeEqual(
-    Buffer.from(expected, 'hex'),
-    Buffer.from(signature, 'hex')
-  );
+  try {
+    return crypto.timingSafeEqual(
+      Buffer.from(expected, 'hex'),
+      Buffer.from(signature, 'hex')
+    );
+  } catch (e) {
+    return false;
+  }
 }
 
-async function updateProfile(supabaseUrl, supabaseKey, filter, updates) {
+async function updateProfile(supabaseUrl, serviceRoleKey, filter, updates) {
   const { field, value } = filter;
   const url = `${supabaseUrl}/rest/v1/profiles?${field}=eq.${encodeURIComponent(value)}`;
 
   const res = await fetch(url, {
     method: 'PATCH',
     headers: {
-      'apikey':        supabaseKey,
-      'Authorization': `Bearer ${supabaseKey}`,
+      'apikey':        serviceRoleKey,
+      'Authorization': `Bearer ${serviceRoleKey}`,
       'Content-Type':  'application/json',
       'Prefer':        'return=minimal',
     },
@@ -71,6 +71,7 @@ async function updateProfile(supabaseUrl, supabaseKey, filter, updates) {
   if (!res.ok) {
     const text = await res.text();
     console.error('Supabase update error:', text);
+    throw new Error('Supabase update failed: ' + text);
   } else {
     console.log('Profile updated:', filter, updates);
   }
@@ -79,16 +80,16 @@ async function updateProfile(supabaseUrl, supabaseKey, filter, updates) {
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
 
-  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
-  const supabaseUrl   = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseKey   = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+  const webhookSecret  = process.env.STRIPE_WEBHOOK_SECRET;
+  const supabaseUrl    = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-  if (!webhookSecret || !supabaseUrl || !supabaseKey) {
-    console.error('Missing environment variables');
-    return res.status(500).end();
+  if (!webhookSecret || !supabaseUrl || !serviceRoleKey) {
+    console.error('Missing env vars — webhook/supabase/service role');
+    return res.status(500).json({ error: 'Server configuration error' });
   }
 
-  const rawBody  = await getRawBody(req);
+  const rawBody   = await getRawBody(req);
   const sigHeader = req.headers['stripe-signature'];
 
   if (!sigHeader) {
@@ -115,11 +116,11 @@ export default async function handler(req, res) {
     switch (event.type) {
 
       case 'checkout.session.completed': {
-        const session     = event.data.object;
-        const email       = session.customer_details?.email || session.customer_email;
-        const userId      = session.metadata?.userId;
-        const customerId  = session.customer;
-        const subId       = session.subscription;
+        const session    = event.data.object;
+        const email      = session.customer_details?.email || session.customer_email;
+        const userId     = session.metadata?.userId;
+        const customerId = session.customer;
+        const subId      = session.subscription;
 
         const updates = {
           subscription_status:    'trialing',
@@ -128,22 +129,22 @@ export default async function handler(req, res) {
         };
 
         if (userId) {
-          await updateProfile(supabaseUrl, supabaseKey, { field: 'id', value: userId }, updates);
+          await updateProfile(supabaseUrl, serviceRoleKey, { field: 'id', value: userId }, updates);
         } else if (email) {
-          await updateProfile(supabaseUrl, supabaseKey, { field: 'parent_email', value: email }, updates);
+          await updateProfile(supabaseUrl, serviceRoleKey, { field: 'parent_email', value: email }, updates);
         }
         break;
       }
 
       case 'customer.subscription.created':
       case 'customer.subscription.updated': {
-        const sub    = event.data.object;
-        let status   = 'inactive';
+        const sub  = event.data.object;
+        let status = 'inactive';
         if (sub.status === 'active')   status = 'active';
         if (sub.status === 'trialing') status = 'trialing';
         if (sub.status === 'past_due') status = 'active';
 
-        await updateProfile(supabaseUrl, supabaseKey,
+        await updateProfile(supabaseUrl, serviceRoleKey,
           { field: 'stripe_customer_id', value: sub.customer },
           {
             subscription_status:    status,
@@ -158,7 +159,7 @@ export default async function handler(req, res) {
 
       case 'customer.subscription.deleted': {
         const sub = event.data.object;
-        await updateProfile(supabaseUrl, supabaseKey,
+        await updateProfile(supabaseUrl, serviceRoleKey,
           { field: 'stripe_customer_id', value: sub.customer },
           { subscription_status: 'inactive', stripe_subscription_id: null }
         );
