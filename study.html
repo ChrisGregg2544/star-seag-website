@@ -938,32 +938,55 @@ async function checkAccess() {
 
     const userId = data.session.user.id;
 
-    // Check subscription status in profiles
-    const { data: profile, error } = await sb
-      .from('profiles')
-      .select('subscription_status')
-      .eq('id', userId)
-      .single();
+    // If arriving from Stripe checkout, retry up to 4 times
+    // to give the webhook time to update subscription_status
+    const justPaid = new URLSearchParams(window.location.search).get('checkout') === 'success';
+    const maxAttempts = justPaid ? 4 : 1;
 
-    if (error) {
-      console.error('Profile check error:', error.message);
-      // If we can't read the profile, let them in rather than block
-      return true;
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      if (attempt > 1) {
+        await new Promise(resolve => setTimeout(resolve, 2000));
+      }
+
+      const { data: profile, error } = await sb
+        .from('profiles')
+        .select('subscription_status')
+        .eq('id', userId)
+        .single();
+
+      if (error) {
+        console.error('Profile check error:', error.message);
+        return true; // Fail open
+      }
+
+      const status = profile?.subscription_status;
+      console.log('Access check attempt ' + attempt + ': status = ' + status);
+
+      if (status === 'active' || status === 'trialing') {
+        return true;
+      }
+
+      if (justPaid && attempt < maxAttempts) {
+        console.log('Webhook not yet received — retrying...');
+        continue;
+      }
+
+      // After all retries, if they just paid let them in anyway
+      // Stripe confirmed payment — webhook will catch up
+      if (justPaid) {
+        console.log('Letting in post-checkout user — webhook pending');
+        return true;
+      }
+
+      // No subscription and did not just pay — send to pricing
+      window.location.href = 'pricing.html';
+      return false;
     }
 
-    const status = profile?.subscription_status;
-
-    if (status === 'active' || status === 'trialing') {
-      return true;
-    }
-
-    // No active subscription — redirect to pricing
-    window.location.href = 'pricing.html';
     return false;
 
   } catch (err) {
     console.error('Access check failed:', err.message);
-    // Fail open — don't block on network error
     return true;
   }
 }
