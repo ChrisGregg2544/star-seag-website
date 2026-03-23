@@ -57,6 +57,8 @@ async function updateProfile(supabaseUrl, serviceRoleKey, filter, updates) {
   const { field, value } = filter;
   const url = `${supabaseUrl}/rest/v1/profiles?${field}=eq.${encodeURIComponent(value)}`;
 
+  console.log('Attempting Supabase PATCH to:', url.substring(0, 60));
+
   const res = await fetch(url, {
     method: 'PATCH',
     headers: {
@@ -70,10 +72,10 @@ async function updateProfile(supabaseUrl, serviceRoleKey, filter, updates) {
 
   if (!res.ok) {
     const text = await res.text();
-    console.error('Supabase update error:', text);
+    console.error('Supabase update error:', res.status, text);
     throw new Error('Supabase update failed: ' + text);
   } else {
-    console.log('Profile updated:', filter, updates);
+    console.log('Profile updated successfully:', filter, updates);
   }
 }
 
@@ -84,8 +86,13 @@ export default async function handler(req, res) {
   const supabaseUrl    = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
+  // Debug log — shows which vars are present without exposing values
+  console.log('ENV CHECK — webhookSecret:', !!webhookSecret,
+    '| supabaseUrl:', supabaseUrl ? supabaseUrl.substring(0, 35) : 'MISSING',
+    '| serviceRoleKey:', !!serviceRoleKey);
+
   if (!webhookSecret || !supabaseUrl || !serviceRoleKey) {
-    console.error('Missing env vars — webhook/supabase/service role');
+    console.error('Missing env vars');
     return res.status(500).json({ error: 'Server configuration error' });
   }
 
@@ -121,6 +128,8 @@ export default async function handler(req, res) {
         const userId     = session.metadata?.userId;
         const customerId = session.customer;
         const subId      = session.subscription;
+
+        console.log('Checkout completed — userId:', userId, '| email:', email);
 
         const updates = {
           subscription_status:    'trialing',
