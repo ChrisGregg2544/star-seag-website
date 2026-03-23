@@ -222,7 +222,10 @@
     <div class="nav-logo-text">STAR</div>
     <div class="nav-student" id="nav-student-name" style="margin-left:4px;"></div>
   </div>
-  <a class="nav-exit" href="dashboard.html">✕ Exit</a>
+  <div style="display:flex;align-items:center;gap:8px;">
+    <a class="nav-exit" href="dashboard.html">✕ Exit</a>
+    <button class="nav-exit" onclick="signOut()" style="background:rgba(239,68,68,0.08);border-color:rgba(239,68,68,0.25);color:rgba(239,68,68,0.7);">Sign Out</button>
+  </div>
 </div>
 
 <div class="progress-section" id="progress-section">
@@ -918,8 +921,13 @@ function goToSignup() {
 }
 function goToDashboard() {
   const pct = Math.round(score.correct / QUESTIONS.length * 100);
-  localStorage.setItem('star_last_score', pct);
-  window.location.href = 'dashboard.html';
+  sessionStorage.setItem('star_last_score', pct);
+  window.location.href = 'signup.html?score=' + pct;
+}
+
+async function signOut() {
+  await sb.auth.signOut();
+  window.location.href = 'login.html';
 }
 
 /* ════════════════════════════════
