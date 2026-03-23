@@ -7,372 +7,166 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,400&family=Lato:wght@300;400;700;900&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     :root {
       --gold:       #C9A84C;
       --gold-light: #E8C97A;
-      --gold-dim:   rgba(201,168,76,0.15);
       --navy:       #0B1F3A;
-      --navy-mid:   #112544;
-      --navy-card:  rgba(255,255,255,0.055);
-      --white-60:   rgba(255,255,255,0.6);
       --white-40:   rgba(255,255,255,0.4);
       --white-20:   rgba(255,255,255,0.2);
     }
-
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body { height: 100%; }
-
+    *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+    html, body { height:100%; }
     body {
-      background: var(--navy);
-      color: #fff;
-      font-family: 'Lato', sans-serif;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-      overflow: hidden;
-      padding: 24px;
+      background:var(--navy); color:#fff;
+      font-family:'Lato',sans-serif;
+      display:flex; flex-direction:column;
+      align-items:center; justify-content:center;
+      min-height:100vh; padding:24px;
     }
+    .bg-layer { position:fixed; inset:0; pointer-events:none; z-index:0; }
+    .bg-glow  { position:absolute; border-radius:50%; background:radial-gradient(circle,rgba(201,168,76,.06) 0%,transparent 70%); }
+    .star-p   { position:absolute; border-radius:50%; background:var(--gold); opacity:.12; animation:twinkle var(--dur,3.5s) ease-in-out infinite alternate; }
+    @keyframes twinkle { from{opacity:.04;transform:scale(.8);}to{opacity:.24;transform:scale(1.2);} }
 
-    /* ── Background ── */
-    .bg-layer {
-      position: fixed; inset: 0; pointer-events: none; z-index: 0;
-    }
-    .bg-glow {
-      position: absolute; border-radius: 50%;
-      background: radial-gradient(circle, rgba(201,168,76,.06) 0%, transparent 70%);
-    }
-    .star-p {
-      position: absolute; border-radius: 50%;
-      background: var(--gold); opacity: .12;
-      animation: twinkle var(--dur, 3.5s) ease-in-out infinite alternate;
-    }
-    @keyframes twinkle { from { opacity:.04; transform:scale(.8); } to { opacity:.24; transform:scale(1.2); } }
-
-    /* ── Main card ── */
     .card {
-      position: relative; z-index: 1;
-      width: 100%; max-width: 520px;
-      background: linear-gradient(160deg, rgba(255,255,255,.07) 0%, rgba(255,255,255,.02) 100%);
-      border: 1px solid rgba(201,168,76,.22);
-      border-radius: 28px;
-      padding: 52px 48px 44px;
-      box-shadow: 0 32px 80px rgba(0,0,0,.45), 0 0 0 1px rgba(201,168,76,.06);
-      text-align: center;
+      position:relative; z-index:1;
+      width:100%; max-width:540px;
+      background:linear-gradient(160deg,rgba(255,255,255,.07) 0%,rgba(255,255,255,.02) 100%);
+      border:1px solid rgba(201,168,76,.22); border-radius:28px;
+      padding:48px 44px 40px;
+      box-shadow:0 32px 80px rgba(0,0,0,.45);
+      text-align:center;
     }
 
-    /* ── Progress bar ── */
-    .progress-wrap {
-      display: flex; gap: 8px; margin-bottom: 40px; justify-content: center;
-    }
-    .progress-dot {
-      height: 4px; border-radius: 99px;
-      background: rgba(255,255,255,.15);
-      flex: 1; max-width: 60px;
-      transition: background .4s ease;
-    }
-    .progress-dot.active  { background: var(--gold); }
-    .progress-dot.done    { background: rgba(201,168,76,.45); }
+    .progress-wrap { display:flex; gap:8px; margin-bottom:36px; justify-content:center; }
+    .progress-dot  { height:4px; border-radius:99px; background:rgba(255,255,255,.15); flex:1; max-width:44px; transition:background .4s; }
+    .progress-dot.active { background:var(--gold); }
+    .progress-dot.done   { background:rgba(201,168,76,.45); }
 
-    /* ── Avatar ── */
-    .avatar-wrap {
-      display: flex; justify-content: center; margin-bottom: 28px;
-    }
+    .avatar-wrap { display:flex; justify-content:center; margin-bottom:24px; }
     .avatar {
-      width: 96px; height: 96px; border-radius: 50%;
-      background: linear-gradient(135deg, rgba(201,168,76,.2) 0%, rgba(201,168,76,.06) 100%);
-      border: 2px solid rgba(201,168,76,.4);
-      display: flex; align-items: center; justify-content: center;
-      position: relative;
-      box-shadow: 0 0 0 8px rgba(201,168,76,.06), 0 0 0 16px rgba(201,168,76,.03);
-      animation: avatarPulse 3s ease-in-out infinite;
+      width:88px; height:88px; border-radius:50%;
+      background:linear-gradient(135deg,rgba(201,168,76,.2),rgba(201,168,76,.06));
+      border:2px solid rgba(201,168,76,.4);
+      display:flex; align-items:center; justify-content:center;
+      position:relative; animation:avatarPulse 3s ease-in-out infinite;
     }
     @keyframes avatarPulse {
-      0%,100% { box-shadow: 0 0 0 8px rgba(201,168,76,.06), 0 0 0 16px rgba(201,168,76,.03); }
-      50%      { box-shadow: 0 0 0 12px rgba(201,168,76,.1),  0 0 0 24px rgba(201,168,76,.04); }
+      0%,100%{box-shadow:0 0 0 8px rgba(201,168,76,.06),0 0 0 16px rgba(201,168,76,.03);}
+      50%{box-shadow:0 0 0 12px rgba(201,168,76,.1),0 0 0 24px rgba(201,168,76,.04);}
     }
-    .avatar-face {
-      width: 64px; height: 64px;
-      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
-    }
-    .avatar-eyes {
-      display: flex; gap: 12px; align-items: center;
-    }
-    .avatar-eye {
-      width: 9px; height: 9px; border-radius: 50%;
-      background: var(--gold);
-      animation: blink 4s ease-in-out infinite;
-    }
-    .avatar-eye.right { animation-delay: .08s; }
-    @keyframes blink {
-      0%,92%,100% { transform: scaleY(1); }
-      95%          { transform: scaleY(.1); }
-    }
-    .avatar-smile {
-      width: 22px; height: 11px;
-      border: 2px solid var(--gold);
-      border-top: none;
-      border-radius: 0 0 22px 22px;
-    }
-    /* Antenna */
-    .avatar::before {
-      content: '';
-      position: absolute; top: -18px; left: 50%; transform: translateX(-50%);
-      width: 2px; height: 14px;
-      background: linear-gradient(180deg, var(--gold), rgba(201,168,76,.3));
-      border-radius: 2px;
-    }
-    .avatar::after {
-      content: '';
-      position: absolute; top: -24px; left: 50%; transform: translateX(-50%);
-      width: 8px; height: 8px; border-radius: 50%;
-      background: var(--gold);
-      box-shadow: 0 0 8px rgba(201,168,76,.8);
-      animation: antennaPulse 2s ease-in-out infinite;
-    }
-    @keyframes antennaPulse {
-      0%,100% { transform: translateX(-50%) scale(1); box-shadow: 0 0 8px rgba(201,168,76,.8); }
-      50%      { transform: translateX(-50%) scale(1.3); box-shadow: 0 0 16px rgba(201,168,76,1); }
-    }
+    .avatar-face { width:58px;height:58px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px; }
+    .avatar-eyes { display:flex;gap:11px;align-items:center; }
+    .avatar-eye  { width:8px;height:8px;border-radius:50%;background:var(--gold);animation:blink 4s ease-in-out infinite; }
+    .avatar-eye.r{ animation-delay:.08s; }
+    @keyframes blink{0%,92%,100%{transform:scaleY(1);}95%{transform:scaleY(.1);}}
+    .avatar-smile{ width:20px;height:10px;border:2px solid var(--gold);border-top:none;border-radius:0 0 20px 20px; }
+    .avatar::before{content:'';position:absolute;top:-16px;left:50%;transform:translateX(-50%);width:2px;height:12px;background:linear-gradient(180deg,var(--gold),rgba(201,168,76,.3));border-radius:2px;}
+    .avatar::after{content:'';position:absolute;top:-22px;left:50%;transform:translateX(-50%);width:7px;height:7px;border-radius:50%;background:var(--gold);box-shadow:0 0 8px rgba(201,168,76,.8);animation:antPulse 2s ease-in-out infinite;}
+    @keyframes antPulse{0%,100%{transform:translateX(-50%) scale(1);}50%{transform:translateX(-50%) scale(1.3);}}
 
-    /* ── Question text ── */
-    .question-label {
-      font-family: 'Playfair Display', serif;
-      font-size: 1.6rem; font-weight: 700; line-height: 1.25;
-      margin-bottom: 10px;
-      min-height: 72px;
-    }
-    .question-sub {
-      font-size: .88rem; color: var(--white-40);
-      margin-bottom: 32px; min-height: 20px;
-      letter-spacing: .03em;
-    }
+    .qlabel { font-family:'Playfair Display',serif; font-size:1.5rem; font-weight:700; line-height:1.25; margin-bottom:8px; min-height:64px; }
+    .qsub   { font-size:.86rem; color:var(--white-40); margin-bottom:26px; letter-spacing:.03em; line-height:1.6; }
 
-    /* ── Text input ── */
     .text-input {
-      width: 100%;
-      background: rgba(255,255,255,.06);
-      border: 1px solid rgba(201,168,76,.28);
-      border-radius: 14px;
-      padding: 18px 22px;
-      font-family: 'Lato', sans-serif;
-      font-size: 1.1rem; font-weight: 700;
-      color: #fff;
-      text-align: center;
-      outline: none;
-      transition: border-color .25s, background .25s, box-shadow .25s;
-      caret-color: var(--gold);
-      margin-bottom: 24px;
+      width:100%; background:rgba(255,255,255,.06);
+      border:1px solid rgba(201,168,76,.28); border-radius:14px;
+      padding:16px 20px; font-family:'Lato',sans-serif;
+      font-size:1.1rem; font-weight:700; color:#fff;
+      text-align:center; outline:none; margin-bottom:22px;
+      caret-color:var(--gold); transition:border-color .25s,background .25s,box-shadow .25s;
     }
-    .text-input::placeholder { color: rgba(255,255,255,.25); font-weight: 400; }
-    .text-input:focus {
-      border-color: var(--gold);
-      background: rgba(201,168,76,.07);
-      box-shadow: 0 0 0 3px rgba(201,168,76,.12);
-    }
+    .text-input::placeholder{color:rgba(255,255,255,.25);font-weight:400;}
+    .text-input:focus{border-color:var(--gold);background:rgba(201,168,76,.07);box-shadow:0 0 0 3px rgba(201,168,76,.12);}
 
-    /* ── Choice buttons (P6/P7 + age) ── */
-    .choices { display: flex; flex-direction: column; gap: 14px; margin-bottom: 24px; }
-    .choices.row { flex-direction: row; }
+    .choices   { display:flex; flex-direction:column; gap:10px; margin-bottom:22px; }
+    .choices.r { flex-direction:row; }
+    .cbtn {
+      flex:1; background:rgba(255,255,255,.05);
+      border:1.5px solid rgba(201,168,76,.2); border-radius:14px;
+      padding:16px 12px; color:rgba(255,255,255,.8);
+      font-family:'Lato',sans-serif; font-size:.9rem; font-weight:700;
+      cursor:pointer; transition:all .22s; position:relative; overflow:hidden;
+      display:flex; flex-direction:column; align-items:center; gap:4px;
+      -webkit-tap-highlight-color:transparent;
+    }
+    .cbtn .ci { font-size:1.4rem; }
+    .cbtn .cl { font-size:.9rem; }
+    .cbtn .cs { font-size:.7rem; color:var(--white-40); font-weight:400; }
+    .cbtn:hover{border-color:rgba(201,168,76,.5);background:rgba(201,168,76,.08);transform:translateY(-2px);color:#fff;}
+    .cbtn.sel {
+      border-color:var(--gold);
+      background:linear-gradient(135deg,rgba(201,168,76,.18),rgba(201,168,76,.06));
+      color:#fff; box-shadow:0 4px 20px rgba(201,168,76,.2);
+    }
+    .cbtn.sel::after{
+      content:'';position:absolute;top:8px;right:10px;
+      width:16px;height:16px;border-radius:50%;background:var(--gold);
+      -webkit-mask:url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='3' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E") center/11px no-repeat;
+      mask:url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='3' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E") center/11px no-repeat;
+    }
+    .cbtn.row-style{flex-direction:row;justify-content:flex-start;gap:14px;padding:14px 18px;}
+    .cbtn.row-style .ci{font-size:1.2rem;}
+    .cbtn.row-style .txt{text-align:left;}
 
-    .choice-btn {
-      flex: 1;
-      background: rgba(255,255,255,.05);
-      border: 1.5px solid rgba(201,168,76,.2);
-      border-radius: 16px;
-      padding: 20px 16px;
-      color: rgba(255,255,255,.8);
-      font-family: 'Lato', sans-serif;
-      font-size: 1rem; font-weight: 700;
-      cursor: pointer;
-      transition: all .22s ease;
-      position: relative; overflow: hidden;
-      display: flex; flex-direction: column; align-items: center; gap: 6px;
-      -webkit-tap-highlight-color: transparent;
+    .info-note {
+      display:flex; align-items:flex-start; gap:9px;
+      background:rgba(201,168,76,.07); border:1px solid rgba(201,168,76,.18);
+      border-radius:10px; padding:11px 14px;
+      margin-bottom:18px; text-align:left;
     }
-    .choice-btn .choice-icon { font-size: 1.6rem; }
-    .choice-btn .choice-label { font-size: 1rem; }
-    .choice-btn .choice-sub { font-size: .75rem; color: var(--white-40); font-weight: 400; }
-    .choice-btn:hover {
-      border-color: rgba(201,168,76,.5);
-      background: rgba(201,168,76,.08);
-      transform: translateY(-2px);
-      color: #fff;
-    }
-    .choice-btn.selected {
-      border-color: var(--gold);
-      background: linear-gradient(135deg, rgba(201,168,76,.18) 0%, rgba(201,168,76,.06) 100%);
-      color: #fff;
-      box-shadow: 0 4px 20px rgba(201,168,76,.2);
-    }
-    .choice-btn.selected .choice-sub { color: var(--gold-light); }
-    /* Tick for selected */
-    .choice-btn.selected::after {
-      content: '';
-      position: absolute; top: 10px; right: 12px;
-      width: 18px; height: 18px; border-radius: 50%;
-      background: var(--gold);
-      -webkit-mask: url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='3' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E") center/12px no-repeat;
-      mask: url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='3' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E") center/12px no-repeat;
-    }
+    .info-note svg { flex-shrink:0; margin-top:1px; }
+    .info-note span { font-size:.76rem; color:rgba(255,255,255,.48); line-height:1.6; }
 
-    /* ── Next / CTA button ── */
-    .next-btn {
-      width: 100%;
-      background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 50%, var(--gold) 100%);
-      background-size: 200% auto;
-      color: var(--navy);
-      border: none; border-radius: 16px;
-      padding: 20px 32px;
-      font-family: 'Lato', sans-serif;
-      font-size: 1rem; font-weight: 900;
-      letter-spacing: .1em; text-transform: uppercase;
-      cursor: pointer;
-      transition: background-position .4s, transform .18s, box-shadow .18s, opacity .2s;
-      box-shadow: 0 6px 28px rgba(201,168,76,.42);
-      -webkit-tap-highlight-color: transparent;
+    .nbtn {
+      width:100%;
+      background:linear-gradient(135deg,var(--gold) 0%,var(--gold-light) 50%,var(--gold) 100%);
+      background-size:200% auto; color:var(--navy);
+      border:none; border-radius:14px; padding:18px 28px;
+      font-family:'Lato',sans-serif; font-size:.95rem; font-weight:900;
+      letter-spacing:.1em; text-transform:uppercase;
+      cursor:pointer; transition:background-position .4s,transform .18s,box-shadow .18s,opacity .2s;
+      box-shadow:0 6px 28px rgba(201,168,76,.42);
     }
-    .next-btn:hover:not(:disabled) {
-      background-position: right center;
-      transform: translateY(-2px);
-      box-shadow: 0 10px 40px rgba(201,168,76,.65);
-    }
-    .next-btn:active:not(:disabled) { transform: translateY(0); }
-    .next-btn:disabled { opacity: .38; cursor: not-allowed; box-shadow: none; }
+    .nbtn:hover:not(:disabled){background-position:right center;transform:translateY(-2px);box-shadow:0 10px 40px rgba(201,168,76,.65);}
+    .nbtn:disabled{opacity:.38;cursor:not-allowed;box-shadow:none;}
+    .nbtn.big{font-size:1.05rem;padding:20px 28px;}
 
-    .start-btn {
-      font-size: 1.1rem;
-      padding: 22px 32px;
-    }
+    .back-link{display:inline-block;margin-top:14px;font-size:.78rem;color:var(--white-40);cursor:pointer;background:none;border:none;letter-spacing:.06em;transition:color .2s;}
+    .back-link:hover{color:var(--gold);}
 
-    /* ── Back link ── */
-    .back-link {
-      display: inline-block; margin-top: 18px;
-      font-size: .8rem; color: var(--white-40);
-      cursor: pointer; letter-spacing: .06em;
-      transition: color .2s;
-      background: none; border: none;
-    }
-    .back-link:hover { color: var(--gold); }
+    .complete-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(201,168,76,.12);border:1px solid rgba(201,168,76,.3);border-radius:999px;padding:5px 16px;font-size:.7rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin-bottom:20px;}
 
-    /* ── Step animations ── */
-    .step { display: none; }
-    .step.active { display: block; animation: stepIn .4s cubic-bezier(.22,1,.36,1) forwards; }
-    .step.out    { display: block; animation: stepOut .3s ease forwards; pointer-events: none; }
+    .summary-box{background:rgba(201,168,76,.07);border:1px solid rgba(201,168,76,.18);border-radius:13px;padding:16px 20px;margin:16px 0 20px;text-align:left;display:flex;flex-direction:column;gap:10px;}
+    .srow{display:flex;align-items:center;gap:11px;font-size:.84rem;color:rgba(255,255,255,.7);}
+    .srow svg{flex-shrink:0;}
 
-    @keyframes stepIn {
-      from { opacity:0; transform:translateX(40px) scale(.98); }
-      to   { opacity:1; transform:translateX(0) scale(1); }
-    }
-    @keyframes stepOut {
-      from { opacity:1; transform:translateX(0) scale(1); }
-      to   { opacity:0; transform:translateX(-40px) scale(.98); }
-    }
+    .star-explains{background:rgba(255,255,255,.04);border:1px solid rgba(201,168,76,.15);border-radius:13px;padding:18px 20px;margin-bottom:24px;text-align:left;}
+    .se-title{font-size:.68rem;font-weight:900;letter-spacing:.13em;text-transform:uppercase;color:var(--gold);margin-bottom:11px;display:flex;align-items:center;gap:6px;}
+    .star-explains p{font-size:.8rem;color:rgba(255,255,255,.52);line-height:1.75;margin-bottom:7px;}
+    .star-explains p:last-child{margin-bottom:0;}
+    .star-explains strong{color:rgba(255,255,255,.82);}
 
-    /* ── Complete screen ── */
-    .complete-badge {
-      display: inline-flex; align-items: center; gap: 8px;
-      background: rgba(201,168,76,.12); border: 1px solid rgba(201,168,76,.3);
-      border-radius: 999px; padding: 6px 18px;
-      font-size: .72rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase;
-      color: var(--gold); margin-bottom: 24px;
-    }
-    .summary-box {
-      background: rgba(201,168,76,.07);
-      border: 1px solid rgba(201,168,76,.18);
-      border-radius: 14px; padding: 20px 24px;
-      margin: 24px 0 32px;
-      text-align: left; display: flex; flex-direction: column; gap: 12px;
-    }
-    .summary-row {
-      display: flex; align-items: center; gap: 12px;
-      font-size: .88rem; color: rgba(255,255,255,.75);
-    }
-    .summary-row svg { flex-shrink: 0; }
+    .step{display:none;}
+    .step.active{display:block;animation:sIn .4s cubic-bezier(.22,1,.36,1) forwards;}
+    .step.out   {display:block;animation:sOut .3s ease forwards;pointer-events:none;}
+    @keyframes sIn {from{opacity:0;transform:translateX(38px) scale(.98);}to{opacity:1;transform:translateX(0) scale(1);}}
+    @keyframes sOut{from{opacity:1;transform:translateX(0) scale(1);}to{opacity:0;transform:translateX(-38px) scale(.98);}}
 
-    /* ── Responsive ── */
-    @media (max-width: 560px) {
-      .card { padding: 40px 28px 36px; border-radius: 22px; }
-      .question-label { font-size: 1.35rem; }
-      .choices.row { flex-direction: column; }
-    }
-    @media (min-width: 768px) {
-      /* iPad tap targets already large; ensure comfortable sizing */
-      .choice-btn { padding: 24px 20px; }
-      .next-btn   { padding: 22px 32px; font-size: 1.05rem; }
-    }
-  </style>
+    .shint{margin-top:8px;font-size:.7rem;color:var(--white-20);letter-spacing:.05em;}
+    .saving-msg{font-size:.82rem;color:var(--gold);margin-top:14px;min-height:18px;}
 
-  <style>
-    .star-footer {
-      position: relative; z-index: 10;
-      width: 100%; max-width: 1000px;
-      margin: 56px auto 0;
-      padding-top: 32px;
-      border-top: 1px solid rgba(201,168,76,0.15);
-    }
-    .star-footer-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 32px;
-      padding-bottom: 28px;
-    }
-    .star-footer-col-label {
-      font-size: .68rem; font-weight: 900; letter-spacing: .13em; text-transform: uppercase;
-      color: rgba(201,168,76,0.7); margin-bottom: 11px;
-      display: flex; align-items: center; gap: 7px;
-    }
-    .star-footer-col-label::before {
-      content: ''; display: inline-block;
-      width: 14px; height: 1.5px;
-      background: rgba(201,168,76,0.5); border-radius: 99px;
-    }
-    .star-footer-text {
-      font-size: .78rem; line-height: 1.75;
-      color: rgba(255,255,255,0.36);
-    }
-    .star-footer-text a {
-      color: rgba(201,168,76,0.7);
-      text-decoration: none;
-      transition: color .18s;
-    }
-    .star-footer-text a:hover { color: #C9A84C; }
-    .star-footer-logo {
-      display: flex; align-items: center; gap: 7px; margin-bottom: 11px;
-    }
-    .star-footer-logo-text {
-      font-family: 'Playfair Display', serif;
-      font-size: .88rem; font-weight: 700;
-      color: #C9A84C; letter-spacing: .06em;
-    }
-    .star-footer-bottom {
-      padding: 16px 0;
-      border-top: 1px solid rgba(255,255,255,0.05);
-      display: flex; align-items: center; justify-content: space-between;
-      flex-wrap: wrap; gap: 10px;
-    }
-    .star-footer-bottom-text {
-      font-size: .72rem; color: rgba(255,255,255,0.22);
-    }
-    .star-footer-bottom-links {
-      display: flex; gap: 18px;
-    }
-    .star-footer-bottom-links a {
-      font-size: .72rem; color: rgba(255,255,255,0.22);
-      text-decoration: none; transition: color .18s;
-    }
-    .star-footer-bottom-links a:hover { color: rgba(255,255,255,0.5); }
-    @media(max-width: 620px) {
-      .star-footer-grid { grid-template-columns: 1fr; gap: 24px; }
-      .star-footer-bottom { flex-direction: column; align-items: flex-start; }
+    @media(max-width:560px){
+      .card{padding:34px 22px 30px;border-radius:20px;}
+      .qlabel{font-size:1.28rem;}
+      .choices.r{flex-direction:column;}
     }
   </style>
 </head>
 <body>
 
-<!-- Background -->
 <div class="bg-layer">
   <div class="bg-glow" style="width:600px;height:600px;top:50%;left:50%;transform:translate(-50%,-50%);"></div>
   <div class="star-p" style="left:6%;top:10%;width:3px;height:3px;--dur:3.6s;"></div>
@@ -381,307 +175,318 @@
   <div class="star-p" style="left:91%;top:40%;width:2px;height:2px;--dur:4.5s;animation-delay:1.1s;"></div>
   <div class="star-p" style="left:10%;top:75%;width:3px;height:3px;--dur:3.7s;animation-delay:.5s;"></div>
   <div class="star-p" style="left:78%;top:80%;width:2px;height:2px;--dur:4.1s;animation-delay:1.8s;"></div>
-  <div class="star-p" style="left:50%;top:8%;width:2px;height:2px;--dur:4.0s;animation-delay:2.2s;"></div>
 </div>
 
-<!-- ══════════════ CARD ══════════════ -->
 <div class="card">
 
-  <!-- Progress dots -->
-  <div class="progress-wrap" id="progress-wrap">
+  <div class="progress-wrap">
     <div class="progress-dot active" id="dot-0"></div>
     <div class="progress-dot"        id="dot-1"></div>
     <div class="progress-dot"        id="dot-2"></div>
     <div class="progress-dot"        id="dot-3"></div>
+    <div class="progress-dot"        id="dot-4"></div>
   </div>
 
-  <!-- Avatar -->
   <div class="avatar-wrap">
     <div class="avatar">
       <div class="avatar-face">
         <div class="avatar-eyes">
-          <div class="avatar-eye left"></div>
-          <div class="avatar-eye right"></div>
+          <div class="avatar-eye"></div>
+          <div class="avatar-eye r"></div>
         </div>
         <div class="avatar-smile"></div>
       </div>
     </div>
   </div>
 
-  <!-- ── STEP 0: Name ── -->
+  <!-- STEP 0: Name -->
   <div class="step active" id="step-0">
-    <div class="question-label">Hi! I'm STAR.<br>What's your name?</div>
-    <div class="question-sub">Let's get to know each other ✨</div>
-    <input
-      class="text-input"
-      id="input-name"
-      type="text"
-      placeholder="Type your first name…"
-      autocomplete="off"
-      maxlength="32"
-    />
-    <button class="next-btn" id="btn-name" disabled onclick="goNext(0)">Next →</button>
-    <div style="margin-top:16px;font-size:.75rem;color:var(--white-20);letter-spacing:.05em;">Step 1 of 3</div>
+    <div class="qlabel">Hi! I'm STAR.<br>What's your name?</div>
+    <div class="qsub">Let's get to know each other ✨</div>
+    <input class="text-input" id="inp-name" type="text" placeholder="Type your first name…" autocomplete="off" maxlength="32"/>
+    <button class="nbtn" id="btn-0" disabled onclick="goNext(0)">Next →</button>
+    <div class="shint">Step 1 of 5</div>
   </div>
 
-  <!-- ── STEP 1: Age ── -->
+  <!-- STEP 1: Year Group -->
   <div class="step" id="step-1">
-    <div class="question-label" id="label-age">Great to meet you!<br>How old are you?</div>
-    <div class="question-sub">Choose your age below 👇</div>
-    <div class="choices row" id="age-choices">
-      <button class="choice-btn" onclick="selectAge(9)"  data-age="9">
-        <span class="choice-icon">🎒</span>
-        <span class="choice-label">9</span>
+    <div class="qlabel" id="lbl-1">Which year<br>are you in?</div>
+    <div class="qsub">This helps STAR pick the right track for you</div>
+    <div class="choices r">
+      <button class="cbtn" onclick="sel('year','P6',this)" style="padding:24px 12px;">
+        <span class="ci">⚡</span>
+        <span class="cl" style="font-size:1.25rem;">P6</span>
+        <span class="cs">The Builder Track</span>
+        <span class="cs" style="font-size:.66rem;">Foundation sprints</span>
       </button>
-      <button class="choice-btn" onclick="selectAge(10)" data-age="10">
-        <span class="choice-icon">📚</span>
-        <span class="choice-label">10</span>
-      </button>
-      <button class="choice-btn" onclick="selectAge(11)" data-age="11">
-        <span class="choice-icon">🌟</span>
-        <span class="choice-label">11</span>
-      </button>
-      <button class="choice-btn" onclick="selectAge(12)" data-age="12">
-        <span class="choice-icon">🚀</span>
-        <span class="choice-label">12</span>
+      <button class="cbtn" onclick="sel('year','P7',this)" style="padding:24px 12px;">
+        <span class="ci">🏆</span>
+        <span class="cl" style="font-size:1.25rem;">P7</span>
+        <span class="cs">The Executor Track</span>
+        <span class="cs" style="font-size:.66rem;">Full mock papers</span>
       </button>
     </div>
-    <button class="next-btn" id="btn-age" disabled onclick="goNext(1)">Next →</button>
+    <button class="nbtn" id="btn-1" disabled onclick="goNext(1)">Next →</button>
     <button class="back-link" onclick="goBack(1)">← Back</button>
-    <div style="margin-top:8px;font-size:.75rem;color:var(--white-20);letter-spacing:.05em;">Step 2 of 3</div>
+    <div class="shint">Step 2 of 5</div>
   </div>
 
-  <!-- ── STEP 2: Year Group ── -->
+  <!-- STEP 2: Sessions Per Week -->
   <div class="step" id="step-2">
-    <div class="question-label" id="label-year">Which year<br>are you in?</div>
-    <div class="question-sub">This helps STAR pick the right track for you</div>
-    <div class="choices row">
-      <button class="choice-btn" onclick="selectYear('P6')" data-year="P6" style="padding:28px 16px;">
-        <span class="choice-icon">⚡</span>
-        <span class="choice-label" style="font-size:1.3rem;">P6</span>
-        <span class="choice-sub">The Builder Track</span>
-        <span class="choice-sub" style="font-size:.7rem;margin-top:2px;">10-question sprints</span>
+    <div class="qlabel" id="lbl-2">How often can you<br>study each week?</div>
+    <div class="qsub">Be honest — even 2 sessions a week makes a big difference!</div>
+    <div class="choices">
+      <button class="cbtn row-style" onclick="sel('sessions',2,this)">
+        <span class="ci">📅</span>
+        <div class="txt"><div class="cl">2 sessions a week</div><div class="cs">A steady, manageable pace</div></div>
       </button>
-      <button class="choice-btn" onclick="selectYear('P7')" data-year="P7" style="padding:28px 16px;">
-        <span class="choice-icon">🏆</span>
-        <span class="choice-label" style="font-size:1.3rem;">P7</span>
-        <span class="choice-sub">The Executor Track</span>
-        <span class="choice-sub" style="font-size:.7rem;margin-top:2px;">Full mock papers</span>
+      <button class="cbtn row-style" onclick="sel('sessions',3,this)">
+        <span class="ci">🚀</span>
+        <div class="txt"><div class="cl">3 sessions a week</div><div class="cs">Recommended for most students</div></div>
+      </button>
+      <button class="cbtn row-style" onclick="sel('sessions',4,this)">
+        <span class="ci">⭐</span>
+        <div class="txt"><div class="cl">4 sessions a week</div><div class="cs">Great for P7s in the final stretch</div></div>
+      </button>
+      <button class="cbtn row-style" onclick="sel('sessions',5,this)">
+        <span class="ci">🔥</span>
+        <div class="txt"><div class="cl">5+ sessions a week</div><div class="cs">Full exam prep mode!</div></div>
       </button>
     </div>
-    <button class="next-btn" id="btn-year" disabled onclick="goNext(2)">Next →</button>
+    <div class="info-note">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(201,168,76,0.7)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <span>Don't worry — you can change this any time from your dashboard. No pressure to get it perfect now!</span>
+    </div>
+    <button class="nbtn" id="btn-2" disabled onclick="goNext(2)">Next →</button>
     <button class="back-link" onclick="goBack(2)">← Back</button>
-    <div style="margin-top:8px;font-size:.75rem;color:var(--white-20);letter-spacing:.05em;">Step 3 of 3</div>
+    <div class="shint">Step 3 of 5</div>
   </div>
 
-  <!-- ── STEP 3: Complete ── -->
+  <!-- STEP 3: Exam Year -->
   <div class="step" id="step-3">
+    <div class="qlabel" id="lbl-3">When is your<br>SEAG exam?</div>
+    <div class="qsub" id="sub-3">We've worked this out — just confirm it looks right</div>
+    <div class="choices r" id="exam-choices"></div>
+    <div class="info-note">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(201,168,76,0.7)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <span>The SEAG Transfer Test is always in November — Paper 1 on the third Saturday, Paper 2 the following week.</span>
+    </div>
+    <button class="nbtn" id="btn-3" disabled onclick="goNext(3)">Next →</button>
+    <button class="back-link" onclick="goBack(3)">← Back</button>
+    <div class="shint">Step 4 of 5</div>
+  </div>
+
+  <!-- STEP 4: Summary -->
+  <div class="step" id="step-4">
     <div class="complete-badge">
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="#C9A84C"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="#C9A84C"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
       Profile Complete
     </div>
-    <div class="question-label" id="complete-title" style="font-size:1.5rem;">You're all set!</div>
-    <div class="question-sub" id="complete-sub">Your personalised SEAG training is ready.</div>
+    <div class="qlabel" id="lbl-4">You're all set! 🎉</div>
 
-    <div class="summary-box" id="summary-box">
-      <div class="summary-row">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-        <span>Name: <strong id="summary-name" style="color:#fff;">—</strong></span>
+    <div class="summary-box">
+      <div class="srow">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <span>Name: <strong id="s-name" style="color:#fff;">—</strong></span>
       </div>
-      <div class="summary-row">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-        <span>Age: <strong id="summary-age" style="color:#fff;">—</strong></span>
+      <div class="srow">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
+        <span>Track: <strong id="s-track" style="color:#C9A84C;">—</strong></span>
       </div>
-      <div class="summary-row">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
-        <span>Track: <strong id="summary-track" style="color:#C9A84C;">—</strong></span>
+      <div class="srow">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        <span>Sessions per week: <strong id="s-sessions" style="color:#fff;">—</strong></span>
+      </div>
+      <div class="srow">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg>
+        <span>Exam: <strong id="s-exam" style="color:#fff;">—</strong></span>
+      </div>
+      <div class="srow">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22,4 12,14.01 9,11.01"/></svg>
+        <span id="s-weeks" style="color:rgba(255,255,255,.65);">—</span>
       </div>
     </div>
 
-    <button class="next-btn start-btn" onclick="startTraining()">
-      🚀 &nbsp;Let's Start Training!
-    </button>
-    <button class="back-link" onclick="goBack(3)">← Change answers</button>
+    <div class="star-explains">
+      <div class="se-title">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="#C9A84C"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
+        How STAR works for you
+      </div>
+      <p>I'll start you on sessions matched to your year group straight away. <strong>No diagnostic test needed — just start practising!</strong></p>
+      <p>Behind the scenes, I'll be <strong>learning about you from your very first answer</strong> — tracking which topics you find easy and which ones need more work.</p>
+      <p>After <strong>3 sessions</strong> I'll unlock your personal <strong>Skills Map</strong> — a clear picture of exactly where you're strong and where to focus next. The more you practise, the smarter my recommendations become.</p>
+      <p style="color:rgba(201,168,76,0.75);">You're always in control — switch sessions, change your schedule, or ask me anything in STAR Chat at any time. ✨</p>
+    </div>
+
+    <button class="nbtn big" id="btn-start" onclick="startTraining()">🚀 &nbsp;Let's Start Training!</button>
+    <div class="saving-msg" id="saving-msg"></div>
+    <button class="back-link" onclick="goBack(4)">← Change answers</button>
   </div>
 
 </div>
 
-<!-- ══════════════ SCRIPT ══════════════ -->
 <script>
-  const state = { name: '', age: null, year: null };
-  let currentStep = 0;
+  const { createClient } = supabase;
+  const sb = createClient(
+    'https://iutcgogmxhaqgaxkznxu.supabase.co',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml1dGNnb2dteGhhcWdheGt6bnh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM3NjE4MTQsImV4cCI6MjA4OTMzNzgxNH0.o0plRQzH8ezfttG_sEeWu3F4IUtKnyzcXtPEGJ9xRF0'
+  );
 
-  // ── Name input live validation ──
-  const nameInput = document.getElementById('input-name');
-  const btnName   = document.getElementById('btn-name');
-  nameInput.addEventListener('input', () => {
-    const val = nameInput.value.trim();
-    btnName.disabled = val.length < 1;
-  });
-  nameInput.addEventListener('keydown', e => {
-    if (e.key === 'Enter' && !btnName.disabled) goNext(0);
-  });
+  const state = { name:'', year:null, sessions:null, examYear:null };
+  const selections = { year:null, sessions:null, examYear:null };
 
-  // ── Age selection ──
-  function selectAge(age) {
-    state.age = age;
-    document.querySelectorAll('#age-choices .choice-btn').forEach(b => {
-      b.classList.toggle('selected', parseInt(b.dataset.age) === age);
+  /* Check if already onboarded */
+  (async () => {
+    try {
+      const { data } = await sb.auth.getSession();
+      if (!data?.session?.user) { window.location.href = 'login.html'; return; }
+      const { data: p } = await sb.from('profiles').select('onboarded').eq('id', data.session.user.id).single();
+      if (p?.onboarded) window.location.href = 'dashboard.html';
+    } catch(e) { /* show onboarding normally */ }
+  })();
+
+  /* Name */
+  const inp = document.getElementById('inp-name');
+  inp.addEventListener('input', () => { document.getElementById('btn-0').disabled = inp.value.trim().length < 1; });
+  inp.addEventListener('keydown', e => { if(e.key==='Enter' && !document.getElementById('btn-0').disabled) goNext(0); });
+
+  /* Generic selector */
+  function sel(field, value, btn) {
+    state[field] = value;
+    // Deselect siblings
+    btn.closest('.choices').querySelectorAll('.cbtn').forEach(b => b.classList.remove('sel'));
+    btn.classList.add('sel');
+    const btnId = field === 'year' ? 'btn-1' : field === 'sessions' ? 'btn-2' : 'btn-3';
+    document.getElementById(btnId).disabled = false;
+  }
+
+  /* Exam year choices */
+  function buildExamChoices() {
+    const now   = new Date();
+    const month = now.getMonth();
+    const year  = now.getFullYear();
+    let suggested = state.year === 'P7'
+      ? (month >= 10 ? year + 1 : year)
+      : (month >= 10 ? year + 2 : year + 1);
+
+    const container = document.getElementById('exam-choices');
+    container.innerHTML = '';
+    [suggested, suggested + 1].forEach((yr, i) => {
+      const b = document.createElement('button');
+      b.className = 'cbtn';
+      b.style.cssText = 'padding:22px 12px;';
+      b.innerHTML = `<span class="ci">${i===0?'📝':'📚'}</span><span class="cl" style="font-size:1.1rem;">Nov ${yr}</span><span class="cs">${i===0?'Most likely for you':'One year later'}</span>`;
+      b.onclick = () => {
+        state.examYear = yr;
+        container.querySelectorAll('.cbtn').forEach(x => x.classList.remove('sel'));
+        b.classList.add('sel');
+        document.getElementById('btn-3').disabled = false;
+      };
+      container.appendChild(b);
     });
-    document.getElementById('btn-age').disabled = false;
+
+    // Auto-select suggested
+    container.firstChild.click();
+    const weeks = weeksUntil(suggested);
+    document.getElementById('sub-3').textContent = `We've worked this out — that's about ${weeks} weeks away!`;
   }
 
-  // ── Year selection ──
-  function selectYear(year) {
-    state.year = year;
-    document.querySelectorAll('[data-year]').forEach(b => {
-      b.classList.toggle('selected', b.dataset.year === year);
-    });
-    document.getElementById('btn-year').disabled = false;
+  function weeksUntil(yr) {
+    const diff = new Date(yr, 10, 15) - new Date();
+    return diff > 0 ? Math.ceil(diff / 604800000) : 0;
   }
 
-  // ── Navigate forward ──
-  function goNext(fromStep) {
-    if (fromStep === 0) state.name = nameInput.value.trim();
+  /* Navigation */
+  function goNext(from) {
+    if (from === 0) state.name = inp.value.trim();
+    if (from === 2) buildExamChoices();
+    if (from === 3) buildSummary();
 
-    const from = document.getElementById('step-' + fromStep);
-    const to   = document.getElementById('step-' + (fromStep + 1));
+    const fromEl = document.getElementById('step-' + from);
+    const toEl   = document.getElementById('step-' + (from + 1));
+    fromEl.classList.remove('active'); fromEl.classList.add('out');
+    setTimeout(() => fromEl.classList.remove('out'), 320);
+    toEl.classList.add('active');
+    updateDots(from + 1);
 
-    from.classList.remove('active');
-    from.classList.add('out');
-    setTimeout(() => from.classList.remove('out'), 320);
-
-    to.classList.add('active');
-    updateProgress(fromStep + 1);
-
-    if (fromStep + 1 === 1) {
-      document.getElementById('label-age').innerHTML =
-        `Great to meet you, ${state.name}!<br>How old are you?`;
-    }
-    if (fromStep + 1 === 2) {
-      document.getElementById('label-year').innerHTML =
-        `Almost there, ${state.name}!<br>Which year are you in?`;
-    }
-    if (fromStep + 1 === 3) {
-      buildSummary();
-    }
-
-    currentStep = fromStep + 1;
+    const n = state.name;
+    if (from + 1 === 1) document.getElementById('lbl-1').innerHTML = `Which year<br>are you in, ${n}?`;
+    if (from + 1 === 2) document.getElementById('lbl-2').innerHTML = `How often can you<br>study each week, ${n}?`;
+    if (from + 1 === 3) document.getElementById('lbl-3').innerHTML = `When is your<br>SEAG exam, ${n}?`;
   }
 
-  // ── Navigate back ──
-  function goBack(fromStep) {
-    const from = document.getElementById('step-' + fromStep);
-    const to   = document.getElementById('step-' + (fromStep - 1));
-
-    from.classList.remove('active');
-    to.classList.add('active');
-    // reverse slide
-    to.style.animation = 'none';
-    to.offsetHeight; // reflow
-    to.style.animation = '';
-    updateProgress(fromStep - 1);
-    currentStep = fromStep - 1;
+  function goBack(from) {
+    const fromEl = document.getElementById('step-' + from);
+    const toEl   = document.getElementById('step-' + (from - 1));
+    fromEl.classList.remove('active');
+    toEl.style.animation = 'none'; toEl.offsetHeight; toEl.style.animation = '';
+    toEl.classList.add('active');
+    updateDots(from - 1);
   }
 
-  // ── Progress dots ──
-  function updateProgress(activeStep) {
-    for (let i = 0; i <= 3; i++) {
-      const dot = document.getElementById('dot-' + i);
-      dot.classList.remove('active', 'done');
-      if (i < activeStep)  dot.classList.add('done');
-      if (i === activeStep) dot.classList.add('active');
+  function updateDots(active) {
+    for (let i = 0; i <= 4; i++) {
+      const d = document.getElementById('dot-' + i);
+      d.classList.remove('active','done');
+      if (i < active)  d.classList.add('done');
+      if (i === active) d.classList.add('active');
     }
   }
 
-  // ── Build summary card ──
+  /* Summary */
   function buildSummary() {
-    document.getElementById('summary-name').textContent = state.name;
-    document.getElementById('summary-age').textContent  = state.age + ' years old';
-
-    const trackLabel = state.year === 'P6'
-      ? 'P6 Foundation — The Builder ⚡'
-      : 'P7 Exam Track — The Executor 🏆';
-    document.getElementById('summary-track').textContent = trackLabel;
-
-    document.getElementById('complete-title').textContent =
-      `You're all set, ${state.name}! 🎉`;
-    document.getElementById('complete-sub').textContent =
-      state.year === 'P6'
-        ? 'Your first 10-question sprint is ready and waiting.'
-        : 'Your first full mock paper is loaded and ready.';
+    const track    = state.year === 'P6' ? 'P6 Foundation — The Builder ⚡' : 'P7 Exam Track — The Executor 🏆';
+    const sessions = state.sessions >= 5 ? '5+ sessions a week 🔥' : `${state.sessions} sessions a week`;
+    const weeks    = weeksUntil(state.examYear);
+    document.getElementById('lbl-4').textContent        = `You're all set, ${state.name}! 🎉`;
+    document.getElementById('s-name').textContent       = state.name;
+    document.getElementById('s-track').textContent      = track;
+    document.getElementById('s-sessions').textContent   = sessions;
+    document.getElementById('s-exam').textContent       = `November ${state.examYear}`;
+    document.getElementById('s-weeks').textContent      = weeks > 0
+      ? `${weeks} weeks until your exam — let's make them count! 🎯`
+      : 'Exam is very close — time to focus! 🎯';
   }
 
-  // ── Start Training ──
-  function startTraining() {
-    // Store to sessionStorage for use by the training page
-    sessionStorage.setItem('star_name', state.name);
-    sessionStorage.setItem('star_age',  state.age);
-    sessionStorage.setItem('star_year', state.year);
-
-    // Animate button
-    const btn = document.querySelector('.start-btn');
-    btn.textContent = 'Loading your session…';
+  /* Save and go */
+  async function startTraining() {
+    const btn  = document.getElementById('btn-start');
+    const msg  = document.getElementById('saving-msg');
     btn.disabled = true;
+    btn.textContent = 'Saving your profile…';
 
-    window.location.href = 'study.html?track=' + state.year;
-    setTimeout(() => {
-      btn.textContent = '✅ Session ready! (connect to your training page)';
-      btn.style.opacity = '0.7';
-    }, 1400);
+    // Always save to sessionStorage for immediate use
+    sessionStorage.setItem('star_name',     state.name);
+    sessionStorage.setItem('star_year',     state.year);
+    sessionStorage.setItem('star_sessions', state.sessions);
+    sessionStorage.setItem('star_examYear', state.examYear);
+
+    try {
+      const { data } = await sb.auth.getSession();
+      if (data?.session?.user) {
+        const { error } = await sb.from('profiles').update({
+          name:              state.name,
+          year_group:        state.year,
+          sessions_per_week: state.sessions,
+          exam_year:         state.examYear,
+          onboarded:         true,
+          updated_at:        new Date().toISOString(),
+        }).eq('id', data.session.user.id);
+
+        if (error) {
+          console.error('Save error:', error.message);
+          msg.textContent = 'Saved locally — will sync when back online.';
+        } else {
+          msg.textContent = '✅ Profile saved!';
+        }
+      }
+    } catch(e) {
+      console.error(e.message);
+      msg.textContent = 'Saved locally.';
+    }
+
+    setTimeout(() => { window.location.href = 'dashboard.html'; }, 700);
   }
 </script>
-
-
-  <!-- ══ STAR FOOTER ══ -->
-  <footer class="star-footer">
-    <div class="star-footer-grid">
-
-      <!-- Col 1: About -->
-      <div>
-        <div class="star-footer-logo">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="#C9A84C">
-            <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/>
-          </svg>
-          <span class="star-footer-logo-text">STAR AI Tutor</span>
-        </div>
-        <p class="star-footer-text">
-          Empowering P6 &amp; P7 students for SEAG success.<br>
-          Smart, personalised practice — built for Northern Ireland.
-        </p>
-      </div>
-
-      <!-- Col 2: Educational Partners -->
-      <div>
-        <div class="star-footer-col-label">Educational Partners</div>
-        <p class="star-footer-text">
-          Visual tutorials powered by
-          <a href="https://corbettmaths.com" target="_blank" rel="noopener">CorbettMaths</a>
-          and
-          <a href="https://www.bbc.co.uk/bitesize" target="_blank" rel="noopener">BBC Bitesize</a>.<br>
-          Used with deep respect for their incredible free resources.
-        </p>
-      </div>
-
-      <!-- Col 3: Legal -->
-      <div>
-        <div class="star-footer-col-label">Legal</div>
-        <p class="star-footer-text">
-          &copy; 2026 STAR AI Tutor. All rights reserved.<br>
-          Not affiliated with the SEAG board or the BBC.
-        </p>
-      </div>
-
-    </div>
-    <div class="star-footer-bottom">
-      <span class="star-footer-bottom-text">&copy; 2026 STAR AI Tutor</span>
-      <div class="star-footer-bottom-links">
-        <a href="#">Privacy Policy</a>
-        <a href="#">Terms of Service</a>
-        <a href="#">Contact</a>
-      </div>
-    </div>
-  </footer>
-
 </body>
 </html>
