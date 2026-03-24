@@ -352,6 +352,20 @@ ${level === 'P6' ? `P6 Foundation — NI KS2 core:
 - Reflection`}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📋 MATHS QUESTION WORDING RULES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+NEVER use two-part wording that implies ordering then asking a separate question.
+FORBIDDEN: "Write these in order from smallest to largest — which is the largest?"
+FORBIDDEN: "Arrange these from smallest to largest. Which comes first?"
+These are confusing because they imply a multi-step task but only allow one answer.
+
+INSTEAD use clear single-task wording:
+✓ "Which of these fractions is the largest?"
+✓ "Which of these numbers is the smallest?"
+✓ "Put these in order — what is the third number?"
+Each question must ask for exactly ONE thing with ONE answer.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 🛡️ SAFE CONTENT — AGES 9-11
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ALL scenarios positive and wholesome.
