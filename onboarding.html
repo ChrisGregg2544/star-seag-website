@@ -464,14 +464,21 @@
     try {
       const { data } = await sb.auth.getSession();
       if (data?.session?.user) {
-        const { error } = await sb.from('profiles').update({
-          name:              state.name,
-          year_group:        state.year,
-          sessions_per_week: state.sessions,
-          exam_year:         state.examYear,
-          onboarded:         true,
-          updated_at:        new Date().toISOString(),
-        }).eq('id', data.session.user.id);
+        const userId    = data.session.user.id;
+        const userEmail = data.session.user.email;
+
+        // UPSERT — creates row if missing, updates if exists
+        const { error } = await sb.from('profiles').upsert({
+          id:                  userId,
+          parent_email:        userEmail,
+          name:                state.name,
+          year_group:          state.year,
+          sessions_per_week:   state.sessions,
+          exam_year:           state.examYear,
+          onboarded:           true,
+          subscription_status: 'inactive',
+          updated_at:          new Date().toISOString(),
+        }, { onConflict: 'id' });
 
         if (error) {
           console.error('Save error:', error.message);
