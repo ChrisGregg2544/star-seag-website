@@ -464,11 +464,14 @@ function rebuildQuestionCard() {
 /* ════════════════════════════════
    FETCH QUESTIONS
 ════════════════════════════════ */
-async function fetchQuestions(track) {
+async function fetchQuestions(track, topic) {
+  const body = topic
+    ? { track, topic, mode: 'topic' }
+    : { track };
   const response = await fetch('/api/generate-questions', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ track })
+    body: JSON.stringify(body)
   });
   if (!response.ok) {
     const errData = await response.json().catch(() => ({}));
@@ -491,7 +494,10 @@ async function init() {
   hintVisible = false;
   selectedMC  = null;
 
-  const urlTrack = new URLSearchParams(window.location.search).get('track');
+  const params   = new URLSearchParams(window.location.search);
+  const urlTrack = params.get('track');
+  const urlTopic = params.get('topic');
+  const urlMode  = params.get('mode');
   const year     = urlTrack || sessionStorage.getItem('star_year') || 'P6';
   const name     = sessionStorage.getItem('star_name') || '';
 
@@ -500,12 +506,18 @@ async function init() {
   document.getElementById('progress-section').style.display = '';
 
   if (name) document.getElementById('nav-student-name').textContent = '· ' + name;
-  document.getElementById('track-badge').textContent = year === 'P7' ? 'P7 Executor Track 🏆' : 'P6 Builder Track ⚡';
+
+  // Show topic sprint badge if in topic mode
+  if (urlMode === 'topic' && urlTopic) {
+    document.getElementById('track-badge').textContent = '⚡ Topic Sprint: ' + urlTopic;
+  } else {
+    document.getElementById('track-badge').textContent = year === 'P7' ? 'P7 Executor Track 🏆' : 'P6 Builder Track ⚡';
+  }
 
   showLoadingState();
 
   try {
-    QUESTIONS   = await fetchQuestions(year);
+    QUESTIONS   = await fetchQuestions(year, urlTopic);
     answers     = new Array(QUESTIONS.length).fill(null);
     userAnswers = new Array(QUESTIONS.length).fill(null);
     rebuildQuestionCard();
