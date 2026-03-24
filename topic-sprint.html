@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>STAR – Topic Sprint</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,400&family=Lato:wght@300;400;700;900&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root {
+      --gold:#C9A84C;--gold-light:#E8C97A;--gold-dim:rgba(201,168,76,0.14);
+      --navy:#0B1F3A;--navy-card:#112240;
+      --text-dark:#0B1F3A;--text-mid:#3a5070;--text-light:#6b85a0;
+      --green:#22c55e;--green-bg:rgba(34,197,94,0.08);
+      --red:#ef4444;--blue:#3b82f6;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    html{height:100%;}
+    body{background:var(--navy);min-height:100vh;font-family:'Lato',sans-serif;display:flex;flex-direction:column;align-items:center;padding:0 16px 60px;overflow-x:hidden;}
+    .bg-atmosphere{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden;}
+    .bg-glow{position:absolute;border-radius:50%;background:radial-gradient(circle,rgba(201,168,76,.05) 0%,transparent 65%);width:700px;height:700px;top:5%;left:50%;transform:translateX(-50%);}
+    .star-p{position:absolute;border-radius:50%;background:var(--gold);opacity:.08;animation:twinkle var(--d,3.8s) ease-in-out infinite alternate;animation-delay:var(--del,0s);}
+    @keyframes twinkle{from{opacity:.03;}to{opacity:.16;}}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(18px);}to{opacity:1;transform:translateY(0);}}
+
+    /* NAV */
+    .top-nav{position:relative;z-index:10;width:100%;max-width:860px;display:flex;align-items:center;justify-content:space-between;padding:22px 0 18px;}
+    .nav-logo{display:flex;align-items:center;gap:9px;text-decoration:none;}
+    .nav-logo-star{width:32px;height:32px;background:linear-gradient(135deg,rgba(201,168,76,.2),rgba(201,168,76,.06));border:1.5px solid rgba(201,168,76,.4);border-radius:50%;display:flex;align-items:center;justify-content:center;}
+    .nav-logo-text{font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:700;color:var(--gold);letter-spacing:.04em;}
+    .nav-right{display:flex;align-items:center;gap:10px;}
+    .nav-btn{font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:7px 14px;border-radius:8px;cursor:pointer;border:none;font-family:'Lato',sans-serif;transition:all .2s;text-decoration:none;display:inline-block;}
+    .nav-back{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.5);}
+    .nav-back:hover{background:rgba(255,255,255,.1);color:rgba(255,255,255,.8);}
+    .nav-signout{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);color:rgba(239,68,68,.7);}
+    .nav-signout:hover{background:rgba(239,68,68,.15);color:#ef4444;}
+
+    /* PAGE HEADER */
+    .page-header{position:relative;z-index:10;width:100%;max-width:860px;margin-bottom:24px;animation:fadeUp .45s cubic-bezier(.22,1,.36,1) both;}
+    .page-eyebrow{font-size:.72rem;font-weight:900;letter-spacing:.13em;text-transform:uppercase;color:rgba(201,168,76,.6);margin-bottom:8px;}
+    .page-title{font-family:'Playfair Display',serif;font-size:2rem;font-weight:900;color:#fff;line-height:1.15;margin-bottom:8px;}
+    .page-sub{font-size:.9rem;color:rgba(255,255,255,.45);line-height:1.6;max-width:560px;}
+
+    /* STAR RECOMMENDATION BANNER */
+    .rec-banner{position:relative;z-index:10;width:100%;max-width:860px;margin-bottom:24px;background:linear-gradient(135deg,rgba(201,168,76,.15),rgba(201,168,76,.06));border:1px solid rgba(201,168,76,.3);border-radius:20px;padding:24px 28px;display:flex;align-items:center;justify-content:space-between;gap:20px;animation:fadeUp .5s .05s cubic-bezier(.22,1,.36,1) both;}
+    .rec-banner.hidden{display:none;}
+    .rec-left{display:flex;align-items:center;gap:16px;}
+    .rec-star-icon{width:48px;height:48px;border-radius:12px;background:rgba(201,168,76,.15);border:1px solid rgba(201,168,76,.3);display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0;}
+    .rec-eyebrow{font-size:.68rem;font-weight:900;letter-spacing:.12em;text-transform:uppercase;color:rgba(201,168,76,.7);margin-bottom:3px;}
+    .rec-topic{font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:900;color:#fff;}
+    .rec-reason{font-size:.78rem;color:rgba(255,255,255,.45);margin-top:2px;}
+    .rec-btn{flex-shrink:0;background:linear-gradient(135deg,var(--gold),var(--gold-light));color:var(--navy);border:none;border-radius:12px;padding:12px 24px;font-family:'Lato',sans-serif;font-size:.82rem;font-weight:900;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;transition:all .22s;box-shadow:0 4px 20px rgba(201,168,76,.35);white-space:nowrap;}
+    .rec-btn:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(201,168,76,.55);}
+
+    /* DISCOVERY BANNER (no history) */
+    .discovery-banner{position:relative;z-index:10;width:100%;max-width:860px;margin-bottom:28px;background:linear-gradient(135deg,rgba(59,130,246,.12),rgba(59,130,246,.05));border:1px solid rgba(59,130,246,.25);border-radius:20px;padding:28px 30px;animation:fadeUp .5s .05s cubic-bezier(.22,1,.36,1) both;}
+    .discovery-banner.hidden{display:none;}
+    .disc-header{display:flex;align-items:center;gap:14px;margin-bottom:14px;}
+    .disc-icon{width:44px;height:44px;border-radius:11px;background:rgba(59,130,246,.12);border:1px solid rgba(59,130,246,.25);display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0;}
+    .disc-title{font-family:'Playfair Display',serif;font-size:1.15rem;font-weight:900;color:#fff;}
+    .disc-sub{font-size:.82rem;color:rgba(255,255,255,.5);line-height:1.7;margin-bottom:20px;}
+    .disc-progress{display:flex;align-items:center;gap:12px;margin-bottom:20px;}
+    .disc-pips{display:flex;gap:6px;}
+    .disc-pip{width:32px;height:6px;border-radius:99px;background:rgba(255,255,255,.1);}
+    .disc-pip.done{background:var(--green);}
+    .disc-pip.active{background:var(--gold);}
+    .disc-progress-label{font-size:.75rem;color:rgba(255,255,255,.4);}
+    .disc-start-btn{width:100%;background:linear-gradient(135deg,#3b82f6,#2563eb);color:#fff;border:none;border-radius:14px;padding:18px 28px;font-family:'Lato',sans-serif;font-size:.95rem;font-weight:900;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;transition:all .22s;box-shadow:0 4px 20px rgba(59,130,246,.35);}
+    .disc-start-btn:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(59,130,246,.55);}
+
+    /* TOPIC SECTIONS */
+    .topics-section{position:relative;z-index:10;width:100%;max-width:860px;margin-bottom:28px;animation:fadeUp .55s .1s cubic-bezier(.22,1,.36,1) both;}
+    .topics-section.hidden{display:none;}
+    .topics-section-title{font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:900;color:#fff;margin-bottom:6px;}
+    .topics-section-sub{font-size:.78rem;color:rgba(255,255,255,.38);margin-bottom:14px;letter-spacing:.02em;}
+
+    /* TOPIC GRID */
+    .topic-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;}
+    .topic-btn{background:rgba(255,255,255,.05);border:1.5px solid rgba(255,255,255,.1);border-radius:14px;padding:16px 14px;text-align:left;cursor:pointer;font-family:'Lato',sans-serif;transition:all .22s;display:flex;flex-direction:column;gap:5px;-webkit-tap-highlight-color:transparent;position:relative;}
+    .topic-btn:hover{background:rgba(201,168,76,.1);border-color:rgba(201,168,76,.35);transform:translateY(-2px);}
+    .topic-btn.selected{background:linear-gradient(135deg,rgba(201,168,76,.2),rgba(201,168,76,.08));border-color:var(--gold);box-shadow:0 4px 20px rgba(201,168,76,.2);}
+    .topic-btn.selected::after{content:'✓';position:absolute;top:10px;right:12px;width:20px;height:20px;border-radius:50%;background:var(--gold);color:var(--navy);font-size:.7rem;font-weight:900;display:flex;align-items:center;justify-content:center;}
+    .topic-btn.weak{border-color:rgba(239,68,68,.3);background:rgba(239,68,68,.06);}
+    .topic-btn.weak:hover{border-color:rgba(239,68,68,.6);background:rgba(239,68,68,.1);}
+    .topic-icon{font-size:1.3rem;}
+    .topic-name{font-size:.82rem;font-weight:700;color:rgba(255,255,255,.8);}
+    .topic-tag{font-size:.66rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.3);}
+    .topic-weak-tag{font-size:.62rem;font-weight:900;letter-spacing:.06em;text-transform:uppercase;color:#ef4444;background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.2);border-radius:4px;padding:1px 6px;display:inline-block;margin-top:2px;}
+
+    /* START BUTTON */
+    .start-section{position:relative;z-index:10;width:100%;max-width:860px;animation:fadeUp .6s .15s cubic-bezier(.22,1,.36,1) both;}
+    .start-section.hidden{display:none;}
+    .selected-topic-label{font-size:.78rem;color:rgba(255,255,255,.4);margin-bottom:10px;min-height:20px;}
+    .start-btn{width:100%;background:linear-gradient(135deg,var(--gold) 0%,var(--gold-light) 50%,var(--gold) 100%);background-size:200% auto;color:var(--navy);border:none;border-radius:16px;padding:20px 28px;font-family:'Lato',sans-serif;font-size:1rem;font-weight:900;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:background-position .4s,transform .18s,box-shadow .18s,opacity .2s;box-shadow:0 6px 28px rgba(201,168,76,.42);}
+    .start-btn:hover:not(:disabled){background-position:right center;transform:translateY(-2px);box-shadow:0 10px 40px rgba(201,168,76,.65);}
+    .start-btn:disabled{opacity:.35;cursor:not-allowed;box-shadow:none;}
+
+    /* Loading */
+    .loading-state{position:relative;z-index:10;width:100%;max-width:860px;text-align:center;padding:60px 20px;}
+    .loading-state .spin{width:36px;height:36px;border:3px solid rgba(201,168,76,.2);border-top-color:var(--gold);border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 16px;}
+    @keyframes spin{to{transform:rotate(360deg);}}
+    .loading-state p{color:rgba(255,255,255,.4);font-size:.88rem;}
+
+    @media(max-width:600px){
+      .page-title{font-size:1.6rem;}
+      .topic-grid{grid-template-columns:repeat(2,1fr);}
+      .rec-banner{flex-direction:column;align-items:flex-start;}
+      .nav-logo-text{display:none;}
+    }
+  </style>
+</head>
+<body>
+
+<div class="bg-atmosphere">
+  <div class="bg-glow"></div>
+  <div class="star-p" style="width:5px;height:5px;top:10%;left:8%;--d:4.1s;--del:.3s"></div>
+  <div class="star-p" style="width:3px;height:3px;top:30%;left:92%;--d:3.5s;--del:1.2s"></div>
+  <div class="star-p" style="width:4px;height:4px;top:65%;left:5%;--d:5.2s;--del:.7s"></div>
+</div>
+
+<!-- NAV -->
+<nav class="top-nav">
+  <a class="nav-logo" href="dashboard.html">
+    <div class="nav-logo-star">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="#C9A84C"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
+    </div>
+    <span class="nav-logo-text">STAR AI Tutor</span>
+  </a>
+  <div class="nav-right">
+    <a class="nav-btn nav-back" href="dashboard.html">← Dashboard</a>
+    <button class="nav-btn nav-signout" onclick="signOut()">Sign Out</button>
+  </div>
+</nav>
+
+<!-- Loading state -->
+<div class="loading-state" id="loading">
+  <div class="spin"></div>
+  <p>Loading your topic sprint...</p>
+</div>
+
+<!-- PAGE HEADER -->
+<div class="page-header hidden" id="page-header">
+  <div class="page-eyebrow">⚡ Topic Sprint</div>
+  <div class="page-title" id="page-title">Choose Your Topic</div>
+  <div class="page-sub" id="page-sub">Pick a topic and STAR will generate 10 focused questions just for you.</div>
+</div>
+
+<!-- DISCOVERY BANNER (shown when < 3 sessions) -->
+<div class="discovery-banner hidden" id="discovery-banner">
+  <div class="disc-header">
+    <div class="disc-icon">🔍</div>
+    <div class="disc-title">Discovery Sprint</div>
+  </div>
+  <div class="disc-sub" id="disc-sub">
+    I'm still getting to know you! This sprint will cover a variety of topics so I can figure out exactly where your strengths and weaknesses are. After <strong>3 sessions</strong> I'll be able to recommend specific topics for you.
+  </div>
+  <div class="disc-progress">
+    <div class="disc-pips" id="disc-pips">
+      <div class="disc-pip"></div>
+      <div class="disc-pip"></div>
+      <div class="disc-pip"></div>
+    </div>
+    <span class="disc-progress-label" id="disc-label">0 of 3 discovery sessions completed</span>
+  </div>
+  <button class="disc-start-btn" onclick="startMixedSprint()">🚀 Start Discovery Sprint</button>
+</div>
+
+<!-- STAR RECOMMENDATION (shown when >= 3 sessions) -->
+<div class="rec-banner hidden" id="rec-banner">
+  <div class="rec-left">
+    <div class="rec-star-icon">⭐</div>
+    <div>
+      <div class="rec-eyebrow">STAR Recommends</div>
+      <div class="rec-topic" id="rec-topic">Long Division</div>
+      <div class="rec-reason" id="rec-reason">Your weakest topic from recent sprints</div>
+    </div>
+  </div>
+  <button class="rec-btn" id="rec-btn" onclick="startRecommended()">Start This Topic →</button>
+</div>
+
+<!-- ENGLISH TOPICS -->
+<div class="topics-section hidden" id="english-section">
+  <div class="topics-section-title">English Topics</div>
+  <div class="topics-section-sub">Reading, writing and language skills</div>
+  <div class="topic-grid" id="english-grid"></div>
+</div>
+
+<!-- MATHS TOPICS -->
+<div class="topics-section hidden" id="maths-section">
+  <div class="topics-section-title">Maths Topics</div>
+  <div class="topics-section-sub">Numbers, shapes and problem solving</div>
+  <div class="topic-grid" id="maths-grid"></div>
+</div>
+
+<!-- START BUTTON -->
+<div class="start-section hidden" id="start-section">
+  <div class="selected-topic-label" id="selected-label">No topic selected yet</div>
+  <button class="start-btn" id="start-btn" disabled onclick="startTopicSprint()">
+    ⚡ Start Topic Sprint
+  </button>
+</div>
+
+<script>
+  const { createClient } = supabase;
+  const sb = createClient(
+    'https://iutcgogmxhaqgaxkznxu.supabase.co',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml1dGNnb2dteGhhcWdheGt6bnh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM3NjE4MTQsImV4cCI6MjA4OTMzNzgxNH0.o0plRQzH8ezfttG_sEeWu3F4IUtKnyzcXtPEGJ9xRF0'
+  );
+
+  /* ══════════════════════════════════════
+     TOPIC DATA
+  ══════════════════════════════════════ */
+  const ENGLISH_TOPICS = [
+    { id:'punctuation',    name:'Punctuation',      icon:'✏️', tag:'English' },
+    { id:'capital-letters',name:'Capital Letters',   icon:'🔤', tag:'English' },
+    { id:'grammar',        name:'Grammar',           icon:'📖', tag:'English' },
+    { id:'spelling',       name:'Spelling',          icon:'🔡', tag:'English' },
+    { id:'apostrophes',    name:'Apostrophes',       icon:'\'',  tag:'English' },
+    { id:'speech-marks',   name:'Speech Marks',      icon:'💬', tag:'English' },
+    { id:'comprehension',  name:'Comprehension',     icon:'📝', tag:'English' },
+    { id:'nouns-verbs',    name:'Nouns & Verbs',     icon:'🏷️', tag:'English' },
+    { id:'adjectives',     name:'Adjectives',        icon:'🎨', tag:'English' },
+    { id:'conjunctions',   name:'Conjunctions',      icon:'🔗', tag:'English' },
+  ];
+
+  const MATHS_TOPICS = [
+    { id:'fractions',      name:'Fractions',         icon:'½',  tag:'Maths' },
+    { id:'decimals',       name:'Decimals',          icon:'📊', tag:'Maths' },
+    { id:'percentages',    name:'Percentages',       icon:'%',  tag:'Maths' },
+    { id:'multiplication', name:'Multiplication',    icon:'✖️', tag:'Maths' },
+    { id:'division',       name:'Division',          icon:'➗', tag:'Maths' },
+    { id:'word-problems',  name:'Word Problems',     icon:'💡', tag:'Maths' },
+    { id:'data-handling',  name:'Data Handling',     icon:'📈', tag:'Maths' },
+    { id:'sequences',      name:'Sequences',         icon:'🔢', tag:'Maths' },
+    { id:'shapes',         name:'Shapes & Geometry', icon:'🔷', tag:'Maths' },
+    { id:'time',           name:'Time',              icon:'⏰', tag:'Maths' },
+    { id:'money',          name:'Money',             icon:'💷', tag:'Maths' },
+    { id:'area-perimeter', name:'Area & Perimeter',  icon:'📐', tag:'Maths' },
+  ];
+
+  let selectedTopic   = null;
+  let recommendedTopic = null;
+
+  /* ══════════════════════════════════════
+     SIGN OUT
+  ══════════════════════════════════════ */
+  async function signOut() {
+    await sb.auth.signOut();
+    window.location.href = 'login.html';
+  }
+
+  /* ══════════════════════════════════════
+     GET RECOMMENDED TOPIC
+     Based on worst performing topic from localStorage
+  ══════════════════════════════════════ */
+  function getRecommendedTopic() {
+    const toReview = JSON.parse(localStorage.getItem('star_toReview')) || [];
+    if (toReview.length === 0) return null;
+    // Return first topic in toReview list (worst performing)
+    const first = toReview[0];
+    return first?.topic || null;
+  }
+
+  /* ══════════════════════════════════════
+     BUILD TOPIC GRIDS
+  ══════════════════════════════════════ */
+  function buildGrid(topics, containerId, weakTopics = []) {
+    const grid = document.getElementById(containerId);
+    grid.innerHTML = '';
+
+    topics.forEach(t => {
+      const isWeak = weakTopics.some(w =>
+        (w.topic || '').toLowerCase().includes(t.name.toLowerCase()) ||
+        t.name.toLowerCase().includes((w.topic || '').toLowerCase())
+      );
+
+      const btn = document.createElement('button');
+      btn.className = 'topic-btn' + (isWeak ? ' weak' : '');
+      btn.dataset.topicId   = t.id;
+      btn.dataset.topicName = t.name;
+      btn.dataset.topicTag  = t.tag;
+      btn.innerHTML = `
+        <div class="topic-icon">${t.icon}</div>
+        <div class="topic-name">${t.name}</div>
+        <div class="topic-tag">${t.tag}</div>
+        ${isWeak ? '<span class="topic-weak-tag">Needs work</span>' : ''}
+      `;
+      btn.addEventListener('click', () => selectTopic(t, btn));
+      grid.appendChild(btn);
+    });
+  }
+
+  /* ══════════════════════════════════════
+     SELECT TOPIC
+  ══════════════════════════════════════ */
+  function selectTopic(topic, btnEl) {
+    // Deselect all
+    document.querySelectorAll('.topic-btn').forEach(b => b.classList.remove('selected'));
+    // Select this one
+    btnEl.classList.add('selected');
+    selectedTopic = topic;
+
+    // Update start button
+    const startBtn   = document.getElementById('start-btn');
+    const labelEl    = document.getElementById('selected-label');
+    startBtn.disabled = false;
+    startBtn.textContent = `⚡ Start: ${topic.name}`;
+    labelEl.textContent  = `Selected: ${topic.name} (${topic.tag})`;
+  }
+
+  /* ══════════════════════════════════════
+     START FUNCTIONS
+  ══════════════════════════════════════ */
+  function startMixedSprint() {
+    window.location.href = 'study.html?mode=mixed';
+  }
+
+  function startRecommended() {
+    if (!recommendedTopic) return;
+    window.location.href = `study.html?mode=topic&topic=${encodeURIComponent(recommendedTopic)}`;
+  }
+
+  function startTopicSprint() {
+    if (!selectedTopic) return;
+    window.location.href = `study.html?mode=topic&topic=${encodeURIComponent(selectedTopic.name)}`;
+  }
+
+  /* ══════════════════════════════════════
+     MAIN INIT
+  ══════════════════════════════════════ */
+  async function init() {
+    // Auth check
+    const { data: authData } = await sb.auth.getSession();
+    if (!authData?.session?.user) {
+      window.location.href = 'login.html';
+      return;
+    }
+
+    const userId = authData.session.user.id;
+
+    // Load profile
+    const { data: profile } = await sb
+      .from('profiles')
+      .select('name, year_group')
+      .eq('id', userId)
+      .single();
+
+    const name      = profile?.name      || 'Student';
+    const yearGroup = profile?.year_group || 'P6';
+
+    // Count sessions
+    const { count: sessionsCount } = await sb
+      .from('sessions')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', userId);
+
+    const count    = sessionsCount || 0;
+    const toReview = JSON.parse(localStorage.getItem('star_toReview')) || [];
+
+    // Hide loading
+    document.getElementById('loading').style.display = 'none';
+
+    // Show header
+    const header = document.getElementById('page-header');
+    header.classList.remove('hidden');
+    document.getElementById('page-title').textContent =
+      count < 3 ? `Let's Discover Your Skills, ${name}!` : `Choose Your Topic, ${name}!`;
+    document.getElementById('page-sub').textContent = count < 3
+      ? 'STAR is still learning about you — complete 3 sessions to unlock topic recommendations.'
+      : 'Pick a topic below or start STAR\'s recommendation for the fastest improvement.';
+
+    if (count < 3) {
+      /* ── DISCOVERY MODE ── */
+      const disc = document.getElementById('discovery-banner');
+      disc.classList.remove('hidden');
+
+      // Update pips
+      const pips = document.querySelectorAll('.disc-pip');
+      pips.forEach((pip, i) => {
+        if (i < count)       pip.classList.add('done');
+        else if (i === count) pip.classList.add('active');
+      });
+      document.getElementById('disc-label').textContent =
+        `${count} of 3 discovery sessions completed`;
+
+    } else {
+      /* ── TOPIC PICKER MODE ── */
+
+      // STAR recommendation
+      recommendedTopic = getRecommendedTopic();
+      if (recommendedTopic) {
+        const recBanner = document.getElementById('rec-banner');
+        recBanner.classList.remove('hidden');
+        document.getElementById('rec-topic').textContent  = recommendedTopic;
+        document.getElementById('rec-reason').textContent = 'Your weakest topic from recent sprints — let\'s fix it!';
+      }
+
+      // Build grids
+      document.getElementById('english-section').classList.remove('hidden');
+      document.getElementById('maths-section').classList.remove('hidden');
+      document.getElementById('start-section').classList.remove('hidden');
+
+      buildGrid(ENGLISH_TOPICS, 'english-grid', toReview);
+      buildGrid(MATHS_TOPICS,   'maths-grid',   toReview);
+    }
+  }
+
+  window.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
