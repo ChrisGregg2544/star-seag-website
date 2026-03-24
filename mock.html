@@ -457,7 +457,25 @@ async function init() {
 }
 
 /* ══════════════════════════════════════
+   FETCH SECTION QUESTIONS
+   Makes separate API calls for each section
+   to avoid Vercel timeout limits
+══════════════════════════════════════ */
+async function fetchSection(sectionMode, count) {
+  const response = await fetch('/api/generate-questions', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ track: userYear, mode: sectionMode, count })
+  });
+  if (!response.ok) throw new Error('Failed to generate ' + sectionMode + ' questions');
+  const data = await response.json();
+  if (!data.questions || data.questions.length === 0) throw new Error('No questions returned for ' + sectionMode);
+  return data.questions;
+}
+
+/* ══════════════════════════════════════
    START MOCK
+   3 separate API calls to avoid timeout
 ══════════════════════════════════════ */
 async function startMock(skip) {
   skipPractice = skip;
@@ -465,20 +483,25 @@ async function startMock(skip) {
   document.getElementById('nav-exit').style.display = 'none';
 
   try {
-    const response = await fetch('/api/generate-questions', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ track: userYear, mode: 'mock' })
-    });
+    const loadingSub = document.getElementById('loading-sub');
 
-    if (!response.ok) throw new Error('Failed to generate questions');
-    const data = await response.json();
-    if (!data.questions || data.questions.length < 50) throw new Error('Not enough questions generated');
+    // Call 1: Practice section
+    loadingSub.textContent = 'Generating practice questions (1 of 3)…';
+    const practiceQs = await fetchSection('mock_practice', 10);
 
-    ALL_QUESTIONS = data.questions;
-    PRACTICE_QS   = ALL_QUESTIONS.slice(0, 10);
-    ENGLISH_QS    = ALL_QUESTIONS.slice(10, 38);
-    MATHS_QS      = ALL_QUESTIONS.slice(38, 66);
+    // Call 2: English main test
+    loadingSub.textContent = 'Generating English questions (2 of 3)…';
+    const englishQs = await fetchSection('mock_english', 28);
+
+    // Call 3: Maths main test
+    loadingSub.textContent = 'Generating Maths questions (3 of 3)…';
+    const mathsQs = await fetchSection('mock_maths', 28);
+
+    // Combine all questions
+    ALL_QUESTIONS = [...practiceQs, ...englishQs, ...mathsQs];
+    PRACTICE_QS   = practiceQs;
+    ENGLISH_QS    = englishQs;
+    MATHS_QS      = mathsQs;
 
     answers       = {};
     mockStartTime = Date.now();
