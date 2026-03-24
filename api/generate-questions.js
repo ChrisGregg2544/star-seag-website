@@ -218,8 +218,9 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const { track } = req.body || {};
+  const { track, topic, mode } = req.body || {};
   const level = track === 'P7' ? 'P7' : 'P6';
+  const topicMode = mode === 'topic' && topic;
 
   if (!process.env.ANTHROPIC_API_KEY) {
     console.error('ANTHROPIC_API_KEY is not set');
@@ -366,7 +367,7 @@ The root element MUST be an object with a "questions" key containing an array.
 
 videoTopic field: 3-4 word phrase matching a topic key e.g. "apostrophes contractions", "fractions of amounts", "bar charts".
 
-Generate exactly 10 questions: 2 Punctuation, 1 Grammar, 2 Spelling, 5 Maths (varied topics).
+${topicMode ? `Generate exactly 10 questions ALL focused on the topic: "${topic}". Mix question types appropriately for this topic — if it is a Maths topic, generate 10 Maths questions on that specific topic; if it is an English topic, generate 10 English questions on that specific topic. Vary the question style and difficulty within the topic.` : 'Generate exactly 10 questions: 2 Punctuation, 1 Grammar, 2 Spelling, 5 Maths (varied topics).'}
 
 PUNCTUATION EXAMPLE — capital letter error:
 {
@@ -445,9 +446,15 @@ MATHS EXAMPLE:
         system: systemPrompt,
         messages: [{
           role: 'user',
-          content: `Generate 10 fresh original SEAG questions for ${level}.
+          content: `Generate 10 fresh original SEAG questions for ${level}${topicMode ? ` focused ONLY on the topic: "${topic}"` : ''}.
 
-MANDATORY SELF-CHECK before returning:
+${topicMode ? `TOPIC SPRINT RULES:
+- ALL 10 questions must be about "${topic}" — no other topics allowed
+- Vary the style: some straightforward, some applied word problems, some multi-step
+- Vary the difficulty: start easier, build to harder
+- Do NOT mix in other topics even if the count seems uneven
+
+` : ''}MANDATORY SELF-CHECK before returning:
 1. Copyright: All scenarios, names and sentences completely original?
 2. No mistake: Every Punctuation/Spelling 5th option EXACTLY "N. No mistake" not "E. No mistake"?
 3. No mistake: Answer is "N" (not "E") for no-mistake questions?
@@ -456,6 +463,7 @@ MANDATORY SELF-CHECK before returning:
 6. Maths: Correct answer actually listed in A/B/C/D/E options?
 7. Content: All suitable for ages 9-11?
 8. Format: Is the root element {"questions": [...]} with exactly that key?
+${topicMode ? `9. Topic sprint: Are ALL 10 questions genuinely about "${topic}"?` : ''}
 
 Return JSON only. The root MUST be {"questions": [...10 questions...]}. No other text before or after.`
         }]
