@@ -1,0 +1,970 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>STAR – Full Coached Mock</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,400&family=Lato:wght@300;400;700;900&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root {
+      --gold:#C9A84C;--gold-light:#E8C97A;--gold-dim:rgba(201,168,76,0.14);
+      --navy:#0B1F3A;--navy-mid:#0f2747;--navy-card:#112240;
+      --card-bg:rgba(255,255,255,0.97);--card-border:rgba(201,168,76,0.22);
+      --text-dark:#0B1F3A;--text-mid:#3a5070;--text-light:#6b85a0;
+      --green:#22c55e;--green-bg:rgba(34,197,94,0.1);
+      --red:#ef4444;--red-bg:rgba(239,68,68,0.1);
+      --blue:#3b82f6;--blue-bg:rgba(59,130,246,0.08);
+      --radius-card:24px;--radius-btn:14px;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    html{height:100%;-webkit-text-size-adjust:100%;}
+    body{background:var(--navy);min-height:100vh;font-family:'Lato',sans-serif;display:flex;flex-direction:column;align-items:center;padding:0 16px 60px;overflow-x:hidden;}
+    .bg-atmosphere{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden;}
+    .bg-glow{position:absolute;border-radius:50%;background:radial-gradient(circle,rgba(201,168,76,.055) 0%,transparent 68%);width:700px;height:700px;top:50%;left:50%;transform:translate(-50%,-50%);}
+    .star-p{position:absolute;border-radius:50%;background:var(--gold);opacity:.1;animation:twinkle var(--d,3.8s) ease-in-out infinite alternate;animation-delay:var(--del,0s);}
+    @keyframes twinkle{from{opacity:.04;}to{opacity:.2;}}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(18px);}to{opacity:1;transform:translateY(0);}}
+    @keyframes cardIn{from{opacity:0;transform:translateY(16px) scale(.98);}to{opacity:1;transform:translateY(0) scale(1);}}
+    @keyframes avatarPulse{0%,100%{box-shadow:0 0 0 4px rgba(201,168,76,.06);}50%{box-shadow:0 0 0 8px rgba(201,168,76,.12);}}
+
+    /* NAV */
+    .top-nav{position:relative;z-index:10;width:100%;max-width:860px;display:flex;align-items:center;justify-content:space-between;padding:20px 0 16px;}
+    .nav-logo{display:flex;align-items:center;gap:8px;}
+    .nav-logo-star{width:32px;height:32px;background:linear-gradient(135deg,rgba(201,168,76,.2),rgba(201,168,76,.06));border:1.5px solid rgba(201,168,76,.4);border-radius:50%;display:flex;align-items:center;justify-content:center;animation:avatarPulse 3s ease-in-out infinite;}
+    .nav-logo-text{font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:700;color:var(--gold);letter-spacing:.04em;}
+    .nav-right{display:flex;align-items:center;gap:8px;}
+    .nav-btn{font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:7px 14px;border-radius:8px;cursor:pointer;border:none;font-family:'Lato',sans-serif;transition:all .2s;text-decoration:none;display:inline-block;}
+    .nav-ghost{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.5);}
+    .nav-ghost:hover{background:rgba(255,255,255,.1);color:rgba(255,255,255,.8);}
+    .nav-signout{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);color:rgba(239,68,68,.7);}
+    .nav-signout:hover{background:rgba(239,68,68,.15);color:#ef4444;}
+
+    /* PROGRESS BAR */
+    .mock-progress{position:relative;z-index:10;width:100%;max-width:860px;margin-bottom:16px;}
+    .mock-progress-meta{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+    .mock-progress-label{font-size:.8rem;font-weight:700;color:rgba(255,255,255,.55);letter-spacing:.08em;text-transform:uppercase;}
+    .mock-progress-label span{color:var(--gold);}
+    .mock-section-badges{display:flex;gap:6px;}
+    .section-badge{font-size:.65rem;font-weight:900;letter-spacing:.08em;text-transform:uppercase;padding:3px 10px;border-radius:99px;}
+    .badge-practice{background:rgba(59,130,246,.15);border:1px solid rgba(59,130,246,.3);color:#60a5fa;}
+    .badge-english{background:rgba(168,85,247,.15);border:1px solid rgba(168,85,247,.3);color:#c084fc;}
+    .badge-maths{background:rgba(201,168,76,.15);border:1px solid rgba(201,168,76,.3);color:var(--gold);}
+    .mock-progress-track{height:6px;background:rgba(255,255,255,.1);border-radius:99px;overflow:hidden;}
+    .mock-progress-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--gold),var(--gold-light));transition:width .5s cubic-bezier(.34,1.56,.64,1);}
+    .score-row{display:flex;gap:14px;margin-top:8px;}
+    .score-chip{display:flex;align-items:center;gap:5px;font-size:.75rem;font-weight:700;color:rgba(255,255,255,.5);}
+    .score-chip .dot{width:7px;height:7px;border-radius:50%;}
+
+    /* QUESTION CARD */
+    .question-card{position:relative;z-index:10;width:100%;max-width:860px;background:var(--card-bg);border-radius:var(--radius-card);border:1px solid var(--card-border);box-shadow:0 4px 6px rgba(0,0,0,.04),0 20px 60px rgba(0,0,0,.3);overflow:hidden;animation:cardIn .45s cubic-bezier(.22,1,.36,1) forwards;}
+    .card-header{display:flex;align-items:center;justify-content:space-between;padding:16px 26px 14px;border-bottom:1px solid rgba(11,31,58,.06);}
+    .card-type-badge{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:4px 13px;font-size:.68rem;font-weight:900;letter-spacing:.12em;text-transform:uppercase;}
+    .badge-eng{background:rgba(168,85,247,.1);border:1px solid rgba(168,85,247,.25);color:#a855f7;}
+    .badge-mat{background:rgba(201,168,76,.12);border:1px solid rgba(201,168,76,.3);color:#a07820;}
+    .card-topic-label{font-size:.72rem;color:var(--text-light);font-weight:700;letter-spacing:.08em;text-transform:uppercase;}
+    .card-marks{font-size:.72rem;color:var(--text-light);}
+    .card-body{padding:26px 26px 0;}
+    .q-number{font-size:.72rem;font-weight:900;letter-spacing:.12em;text-transform:uppercase;color:var(--text-light);margin-bottom:10px;}
+    .q-text{font-family:'Playfair Display',serif;font-size:1.22rem;line-height:1.5;color:var(--text-dark);margin-bottom:10px;min-height:54px;}
+    .q-context{font-size:.95rem;color:var(--text-dark);line-height:1.7;margin-bottom:18px;background:rgba(11,31,58,.04);border-left:3px solid rgba(201,168,76,.4);padding:12px 16px;border-radius:0 8px 8px 0;font-weight:700;}
+    .segments-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px;align-items:flex-end;}
+    .segment-block{display:flex;flex-direction:column;align-items:center;gap:4px;}
+    .segment-text{background:rgba(11,31,58,.05);border:1.5px solid rgba(11,31,58,.12);border-radius:8px;padding:9px 13px;font-size:.9rem;font-weight:700;color:var(--text-dark);white-space:nowrap;}
+    .segment-label{font-size:.7rem;font-weight:900;color:var(--text-light);letter-spacing:.1em;text-transform:uppercase;}
+    .mc-options{display:flex;flex-direction:column;gap:10px;margin-bottom:0;}
+    .mc-btn{display:flex;align-items:center;gap:13px;background:rgba(11,31,58,.03);border:1.5px solid rgba(11,31,58,.1);border-radius:12px;padding:14px 17px;font-family:'Lato',sans-serif;font-size:.93rem;font-weight:700;color:var(--text-dark);cursor:pointer;text-align:left;transition:all .2s;-webkit-tap-highlight-color:transparent;}
+    .mc-btn:hover:not(:disabled){border-color:var(--gold);background:rgba(201,168,76,.05);transform:translateX(3px);}
+    .mc-letter{width:28px;height:28px;border-radius:50%;flex-shrink:0;background:rgba(11,31,58,.07);display:flex;align-items:center;justify-content:center;font-size:.76rem;font-weight:900;color:var(--text-mid);transition:all .2s;}
+    .mc-btn:hover:not(:disabled) .mc-letter{background:var(--gold);color:#fff;}
+    .mc-btn.selected{border-color:var(--gold);background:rgba(201,168,76,.07);}
+    .mc-btn.selected .mc-letter{background:var(--gold);color:#fff;}
+    .mc-btn.correct-ans{border-color:var(--green)!important;background:var(--green-bg)!important;}
+    .mc-btn.correct-ans .mc-letter{background:var(--green)!important;color:#fff!important;}
+    .mc-btn.wrong-ans{border-color:var(--red)!important;background:var(--red-bg)!important;}
+    .mc-btn.wrong-ans .mc-letter{background:var(--red)!important;color:#fff!important;}
+    .mc-btn:disabled{cursor:default;transform:none!important;}
+
+    /* FREE RESPONSE */
+    .fr-wrap{padding:0 0 6px;}
+    .fr-label{font-size:.75rem;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:var(--text-light);margin-bottom:8px;}
+    .fr-input{width:100%;border:2px solid rgba(11,31,58,.15);border-radius:12px;padding:14px 18px;font-family:'Lato',sans-serif;font-size:1rem;font-weight:700;color:var(--text-dark);outline:none;transition:border-color .2s;}
+    .fr-input:focus{border-color:var(--gold);}
+    .fr-input:disabled{background:rgba(11,31,58,.04);color:var(--text-mid);}
+
+    /* FEEDBACK */
+    .feedback-panel{margin:16px 0 0;border-radius:16px;padding:18px 20px;display:none;}
+    .feedback-panel.visible{display:block;animation:fadeUp .3s ease both;}
+    .feedback-panel.correct-fb{background:var(--green-bg);border:1px solid rgba(34,197,94,.25);}
+    .feedback-panel.wrong-fb{background:var(--red-bg);border:1px solid rgba(239,68,68,.2);}
+    .feedback-header{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+    .feedback-icon{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.85rem;font-weight:900;color:#fff;flex-shrink:0;}
+    .feedback-icon.ok{background:var(--green);}
+    .feedback-icon.no{background:var(--red);}
+    .feedback-title{font-size:.9rem;font-weight:900;color:var(--text-dark);}
+    .feedback-explanation{font-size:.84rem;color:var(--text-mid);line-height:1.6;margin-bottom:8px;}
+    .feedback-steps{margin:8px 0;padding-left:16px;}
+    .feedback-steps li{font-size:.82rem;color:var(--text-mid);line-height:1.6;margin-bottom:3px;}
+
+    /* HINT (practice section only) */
+    .hint-btn{display:flex;align-items:center;gap:8px;background:rgba(59,130,246,.06);border:1px solid rgba(59,130,246,.2);border-radius:12px;padding:12px 18px;font-family:'Lato',sans-serif;font-size:.82rem;font-weight:700;color:var(--blue);cursor:pointer;margin:12px 0 0;transition:all .2s;width:100%;}
+    .hint-btn:hover{background:rgba(59,130,246,.1);border-color:rgba(59,130,246,.4);}
+    .hint-panel{background:var(--blue-bg);border:1px solid rgba(59,130,246,.2);border-radius:12px;padding:14px 18px;margin-top:10px;display:none;}
+    .hint-panel.visible{display:block;animation:fadeUp .3s ease both;}
+    .hint-header{font-size:.72rem;font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:var(--blue);margin-bottom:6px;}
+    .hint-text{font-size:.84rem;color:var(--text-mid);line-height:1.6;}
+
+    /* CARD ACTIONS */
+    .card-actions{padding:18px 26px 22px;display:flex;gap:10px;}
+    .btn-submit{flex:1;background:linear-gradient(135deg,var(--gold),var(--gold-light));color:var(--navy);border:none;border-radius:var(--radius-btn);padding:16px 24px;font-family:'Lato',sans-serif;font-size:.9rem;font-weight:900;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;transition:all .22s;box-shadow:0 4px 20px rgba(201,168,76,.35);}
+    .btn-submit:disabled{opacity:.35;cursor:not-allowed;box-shadow:none;}
+    .btn-submit:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 8px 32px rgba(201,168,76,.55);}
+    .btn-next{flex:1;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);border-radius:var(--radius-btn);padding:16px 24px;font-family:'Lato',sans-serif;font-size:.9rem;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:#fff;cursor:pointer;transition:all .22s;display:none;}
+    .btn-next:hover{background:rgba(255,255,255,.14);}
+
+    /* SCREENS */
+    .screen{position:relative;z-index:10;width:100%;max-width:680px;display:none;}
+    .screen.active{display:block;animation:fadeUp .5s cubic-bezier(.22,1,.36,1) both;}
+
+    /* BRIEFING SCREEN */
+    .briefing-card{background:linear-gradient(160deg,rgba(255,255,255,.07),rgba(255,255,255,.02));border:1px solid rgba(201,168,76,.22);border-radius:28px;padding:48px 44px;text-align:center;}
+    .brief-icon{font-size:3rem;margin-bottom:20px;}
+    .brief-title{font-family:'Playfair Display',serif;font-size:1.8rem;font-weight:900;color:#fff;margin-bottom:10px;line-height:1.2;}
+    .brief-sub{font-size:.9rem;color:rgba(255,255,255,.5);line-height:1.75;margin-bottom:28px;max-width:460px;margin-left:auto;margin-right:auto;}
+    .brief-format{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:20px 24px;margin-bottom:28px;text-align:left;}
+    .brief-format-title{font-size:.7rem;font-weight:900;letter-spacing:.12em;text-transform:uppercase;color:rgba(201,168,76,.7);margin-bottom:14px;}
+    .brief-row{display:flex;align-items:center;gap:12px;margin-bottom:10px;font-size:.84rem;color:rgba(255,255,255,.65);}
+    .brief-row:last-child{margin-bottom:0;}
+    .brief-row-icon{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0;}
+    .brief-start-btn{width:100%;background:linear-gradient(135deg,var(--gold),var(--gold-light));color:var(--navy);border:none;border-radius:16px;padding:20px 28px;font-family:'Lato',sans-serif;font-size:1rem;font-weight:900;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:all .22s;box-shadow:0 6px 28px rgba(201,168,76,.42);margin-bottom:14px;}
+    .brief-start-btn:hover{transform:translateY(-2px);box-shadow:0 10px 40px rgba(201,168,76,.65);}
+    .brief-skip-btn{width:100%;background:none;border:1px solid rgba(255,255,255,.15);border-radius:12px;padding:12px 20px;font-family:'Lato',sans-serif;font-size:.8rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.35);cursor:pointer;transition:all .2s;}
+    .brief-skip-btn:hover{border-color:rgba(255,255,255,.3);color:rgba(255,255,255,.6);}
+    .brief-skip-warning{font-size:.72rem;color:rgba(239,68,68,.6);margin-top:8px;}
+
+    /* SECTION TRANSITION SCREEN */
+    .transition-card{background:linear-gradient(160deg,rgba(255,255,255,.07),rgba(255,255,255,.02));border:1px solid rgba(201,168,76,.22);border-radius:28px;padding:48px 44px;text-align:center;}
+    .trans-icon{font-size:3rem;margin-bottom:16px;}
+    .trans-title{font-family:'Playfair Display',serif;font-size:1.6rem;font-weight:900;color:#fff;margin-bottom:10px;}
+    .trans-sub{font-size:.88rem;color:rgba(255,255,255,.5);line-height:1.7;margin-bottom:24px;max-width:420px;margin-left:auto;margin-right:auto;}
+    .trans-warning{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);border-radius:12px;padding:14px 18px;margin-bottom:24px;font-size:.82rem;color:rgba(239,68,68,.9);line-height:1.6;}
+    .trans-btn{width:100%;background:linear-gradient(135deg,var(--gold),var(--gold-light));color:var(--navy);border:none;border-radius:16px;padding:18px 28px;font-family:'Lato',sans-serif;font-size:.95rem;font-weight:900;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:all .22s;box-shadow:0 6px 28px rgba(201,168,76,.42);}
+    .trans-btn:hover{transform:translateY(-2px);box-shadow:0 10px 40px rgba(201,168,76,.65);}
+
+    /* RESULTS SCREEN */
+    .results-card{background:linear-gradient(160deg,rgba(255,255,255,.07),rgba(255,255,255,.02));border:1px solid rgba(201,168,76,.22);border-radius:28px;padding:40px 36px;}
+    .results-header{text-align:center;margin-bottom:32px;}
+    .results-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(201,168,76,.12);border:1px solid rgba(201,168,76,.3);border-radius:999px;padding:6px 18px;font-size:.7rem;font-weight:900;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin-bottom:16px;}
+    .results-title{font-family:'Playfair Display',serif;font-size:1.8rem;font-weight:900;color:#fff;margin-bottom:6px;}
+    .results-sub{font-size:.88rem;color:rgba(255,255,255,.45);}
+    .results-scores{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:28px;}
+    .results-score-tile{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:18px 14px;text-align:center;}
+    .results-score-tile.gold-tile{background:rgba(201,168,76,.1);border-color:rgba(201,168,76,.3);}
+    .results-score-num{font-family:'Playfair Display',serif;font-size:2rem;font-weight:900;color:#fff;line-height:1;}
+    .results-score-num.gold{color:var(--gold);}
+    .results-score-label{font-size:.68rem;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.38);margin-top:4px;}
+
+    /* WRONG ANSWERS LIST */
+    .wrong-section{margin-bottom:24px;}
+    .wrong-section-title{font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:900;color:#fff;margin-bottom:14px;}
+    .wrong-item{background:var(--card-bg);border:1px solid var(--card-border);border-radius:16px;padding:16px 18px;margin-bottom:10px;}
+    .wrong-item-header{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+    .wrong-item-num{width:26px;height:26px;border-radius:50%;background:var(--red);color:#fff;font-size:.72rem;font-weight:900;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+    .wrong-item-topic{font-size:.72rem;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:var(--text-light);}
+    .wrong-item-q{font-size:.88rem;font-weight:700;color:var(--text-dark);margin-bottom:6px;line-height:1.4;}
+    .wrong-item-answer{display:flex;gap:8px;align-items:center;font-size:.8rem;color:var(--text-mid);}
+    .wrong-answer-tag{background:var(--red-bg);border:1px solid rgba(239,68,68,.2);color:var(--red);padding:2px 8px;border-radius:6px;font-weight:700;font-size:.72rem;}
+    .correct-answer-tag{background:var(--green-bg);border:1px solid rgba(34,197,94,.2);color:var(--green);padding:2px 8px;border-radius:6px;font-weight:700;font-size:.72rem;}
+    .wrong-item-explanation{font-size:.8rem;color:var(--text-mid);line-height:1.55;margin-top:6px;padding-top:6px;border-top:1px solid rgba(11,31,58,.08);}
+
+    /* RESULTS ACTIONS */
+    .results-actions{display:flex;flex-direction:column;gap:10px;margin-top:24px;}
+    .results-btn{width:100%;border:none;border-radius:14px;padding:16px 24px;font-family:'Lato',sans-serif;font-size:.88rem;font-weight:900;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;transition:all .22s;}
+    .results-btn.primary{background:linear-gradient(135deg,var(--gold),var(--gold-light));color:var(--navy);box-shadow:0 4px 20px rgba(201,168,76,.35);}
+    .results-btn.primary:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(201,168,76,.55);}
+    .results-btn.secondary{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.7);}
+    .results-btn.secondary:hover{background:rgba(255,255,255,.12);}
+
+    /* LOADING */
+    .loading-card{background:linear-gradient(160deg,rgba(255,255,255,.07),rgba(255,255,255,.02));border:1px solid rgba(201,168,76,.22);border-radius:28px;padding:64px 44px;text-align:center;}
+    .loading-icon{width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,rgba(201,168,76,.25),rgba(201,168,76,.08));border:2px solid rgba(201,168,76,.55);display:flex;align-items:center;justify-content:center;margin:0 auto 24px;font-size:2rem;animation:avatarPulse 1.5s ease-in-out infinite;}
+    .loading-title{font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:700;color:#fff;margin-bottom:8px;}
+    .loading-sub{font-size:.86rem;color:rgba(255,255,255,.5);}
+
+    @media(max-width:600px){
+      .results-scores{grid-template-columns:1fr 1fr;}
+      .briefing-card,.transition-card,.results-card{padding:32px 20px;}
+      .q-text{font-size:1.08rem;}
+    }
+  </style>
+</head>
+<body>
+
+<div class="bg-atmosphere">
+  <div class="bg-glow"></div>
+  <div class="star-p" style="width:5px;height:5px;top:12%;left:8%;--d:4.1s;--del:.3s"></div>
+  <div class="star-p" style="width:3px;height:3px;top:30%;left:92%;--d:3.5s;--del:1.2s"></div>
+  <div class="star-p" style="width:4px;height:4px;top:65%;left:5%;--d:5.2s;--del:.7s"></div>
+</div>
+
+<!-- NAV -->
+<nav class="top-nav">
+  <div class="nav-logo">
+    <div class="nav-logo-star">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="#C9A84C"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
+    </div>
+    <span class="nav-logo-text">STAR AI Tutor</span>
+  </div>
+  <div class="nav-right">
+    <span id="nav-section-label" style="font-size:.72rem;color:rgba(255,255,255,.35);letter-spacing:.06em;text-transform:uppercase;"></span>
+    <a class="nav-btn nav-ghost" href="dashboard.html" id="nav-exit">✕ Exit</a>
+    <button class="nav-btn nav-signout" onclick="signOut()">Sign Out</button>
+  </div>
+</nav>
+
+<!-- PROGRESS BAR (hidden during briefing/transition/results) -->
+<div class="mock-progress" id="mock-progress" style="display:none;">
+  <div class="mock-progress-meta">
+    <div class="mock-progress-label">Question <span id="q-current">1</span> of <span id="q-total">56</span></div>
+    <div class="mock-section-badges">
+      <span class="section-badge badge-practice" id="badge-practice" style="display:none;">Practice</span>
+      <span class="section-badge badge-english" id="badge-english" style="display:none;">English</span>
+      <span class="section-badge badge-maths" id="badge-maths" style="display:none;">Maths</span>
+    </div>
+  </div>
+  <div class="mock-progress-track"><div class="mock-progress-fill" id="progress-fill" style="width:0%"></div></div>
+  <div class="score-row">
+    <div class="score-chip"><div class="dot" style="background:#22c55e;"></div><span id="score-correct" style="color:rgba(255,255,255,.5);">0 correct</span></div>
+    <div class="score-chip"><div class="dot" style="background:#ef4444;"></div><span id="score-wrong" style="color:rgba(255,255,255,.5);">0 wrong</span></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ SCREENS ═══════════════════════════════ -->
+
+<!-- BRIEFING -->
+<div class="screen active" id="screen-briefing">
+  <div class="briefing-card">
+    <div class="brief-icon">📝</div>
+    <div class="brief-title" id="brief-title">Full Coached Mock</div>
+    <div class="brief-sub">This mock follows the exact format of the real SEAG Transfer Test. Get comfortable, take a breath, and give it your best shot!</div>
+    <div class="brief-format">
+      <div class="brief-format-title">📋 What to expect today</div>
+      <div class="brief-row"><div class="brief-row-icon" style="background:rgba(59,130,246,.12);">🎯</div><div><strong style="color:#fff;">Practice Section</strong> — 10 warm-up questions, not marked. Hints allowed. Use these to settle in!</div></div>
+      <div class="brief-row"><div class="brief-row-icon" style="background:rgba(168,85,247,.12);">📖</div><div><strong style="color:#fff;">English Main Test</strong> — 28 questions. No hints. Focus!</div></div>
+      <div class="brief-row"><div class="brief-row-icon" style="background:rgba(201,168,76,.12);">📐</div><div><strong style="color:#fff;">Maths Main Test</strong> — 28 questions. No hints. You've got this!</div></div>
+      <div class="brief-row" style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,.08);"><div class="brief-row-icon" style="background:rgba(34,197,94,.1);">💾</div><div style="color:rgba(255,255,255,.5);">Your progress is saved automatically — if you need to stop, come back and pick up where you left off.</div></div>
+    </div>
+    <button class="brief-start-btn" onclick="startMock(false)">🚀 Start Full Mock</button>
+    <button class="brief-skip-btn" onclick="startMock(true)">Skip Practice Section → Go straight to main test</button>
+    <div class="brief-skip-warning">⚠️ Not recommended — in the real exam you can't skip these 10 warm-up questions</div>
+  </div>
+</div>
+
+<!-- LOADING -->
+<div class="screen" id="screen-loading">
+  <div class="loading-card">
+    <div class="loading-icon">⭐</div>
+    <div class="loading-title">STAR is building your mock…</div>
+    <div class="loading-sub" id="loading-sub">Generating 66 original questions — this may take a moment</div>
+  </div>
+</div>
+
+<!-- QUESTION -->
+<div class="screen" id="screen-question">
+  <div class="question-card" id="question-card">
+    <div class="card-header">
+      <div id="card-type-badge" class="card-type-badge badge-mat">📐 Maths</div>
+      <div class="card-topic-label" id="card-topic">Loading…</div>
+      <div class="card-marks" id="card-marks">1 mark</div>
+    </div>
+    <div class="card-body">
+      <div class="q-number" id="q-number-label">Question 1</div>
+      <div class="q-text" id="q-text">Loading…</div>
+      <div class="q-context" id="q-context" style="display:none;"></div>
+      <div class="segments-row" id="segments-row" style="display:none;"></div>
+      <div class="mc-options" id="mc-options" style="display:none;"></div>
+      <div class="fr-wrap" id="fr-wrap" style="display:none;">
+        <div class="fr-label">Your Answer</div>
+        <input type="text" class="fr-input" id="fr-input" placeholder="Type your answer here…" autocomplete="off"/>
+      </div>
+      <div class="feedback-panel" id="feedback-panel">
+        <div class="feedback-header">
+          <div class="feedback-icon" id="feedback-icon">✓</div>
+          <div class="feedback-title" id="feedback-title">Well done!</div>
+        </div>
+        <div class="feedback-explanation" id="feedback-explanation"></div>
+        <ul class="feedback-steps" id="feedback-steps"></ul>
+      </div>
+      <!-- Hint (practice only) -->
+      <button class="hint-btn" id="hint-btn" onclick="toggleHint()" style="display:none;">
+        🔍 Request Detective Hint from STAR
+      </button>
+      <div class="hint-panel" id="hint-panel">
+        <div class="hint-header">STAR's Detective Hint</div>
+        <div class="hint-text" id="hint-text"></div>
+      </div>
+    </div>
+    <div class="card-actions">
+      <button class="btn-submit" id="btn-submit" disabled onclick="submitAnswer()">Check Answer</button>
+      <button class="btn-next" id="btn-next" onclick="nextQuestion()">Next →</button>
+    </div>
+  </div>
+</div>
+
+<!-- PRACTICE COMPLETE TRANSITION -->
+<div class="screen" id="screen-practice-done">
+  <div class="transition-card">
+    <div class="trans-icon">✅</div>
+    <div class="trans-title">Practice Complete!</div>
+    <div class="trans-sub">Well done on finishing the warm-up section. Those 10 questions don't count toward your score — they were just to help you settle in.<br><br>Now the real test begins. Give it everything you've got!</div>
+    <div class="trans-warning">⚠️ From this point on — <strong>no hints</strong>. This is exam conditions. Read each question carefully before answering.</div>
+    <button class="trans-btn" onclick="startMainTest()">📖 Begin English Main Test →</button>
+  </div>
+</div>
+
+<!-- ENGLISH TO MATHS TRANSITION -->
+<div class="screen" id="screen-english-done">
+  <div class="transition-card">
+    <div class="trans-icon">📐</div>
+    <div class="trans-title">English Done!</div>
+    <div class="trans-sub">You've completed all 28 English questions. Now it's time for the Maths section — 28 more questions to go!<br><br>Remember — no hints, exam conditions. You can do this!</div>
+    <div class="trans-warning">⭐ Exam tip: If you get stuck on any question, skip it and come back at the end. Never leave a blank — always put your best guess!</div>
+    <button class="trans-btn" onclick="startMathsTest()">📐 Begin Maths Main Test →</button>
+  </div>
+</div>
+
+<!-- RESULTS -->
+<div class="screen" id="screen-results">
+  <div class="results-card">
+    <div class="results-header">
+      <div class="results-badge">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="#C9A84C"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
+        Mock Complete
+      </div>
+      <div class="results-title" id="results-title">Well done!</div>
+      <div class="results-sub" id="results-sub">Here's how you did</div>
+    </div>
+    <div class="results-scores">
+      <div class="results-score-tile gold-tile">
+        <div class="results-score-num gold" id="res-total">—</div>
+        <div class="results-score-label">Overall</div>
+      </div>
+      <div class="results-score-tile">
+        <div class="results-score-num" id="res-english">—</div>
+        <div class="results-score-label">English</div>
+      </div>
+      <div class="results-score-tile">
+        <div class="results-score-num" id="res-maths">—</div>
+        <div class="results-score-label">Maths</div>
+      </div>
+    </div>
+    <div class="wrong-section" id="wrong-section"></div>
+    <div class="results-actions">
+      <button class="results-btn primary" onclick="window.location.href='mock.html'">📝 Take Another Mock</button>
+      <button class="results-btn secondary" onclick="window.location.href='dashboard.html'">← Back to Dashboard</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ══════════════════════════════════════
+   SUPABASE
+══════════════════════════════════════ */
+const { createClient } = supabase;
+const sb = createClient(
+  'https://iutcgogmxhaqgaxkznxu.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml1dGNnb2dteGhhcWdheGt6bnh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM3NjE4MTQsImV4cCI6MjA4OTMzNzgxNH0.o0plRQzH8ezfttG_sEeWu3F4IUtKnyzcXtPEGJ9xRF0'
+);
+
+async function signOut() {
+  await sb.auth.signOut();
+  window.location.href = 'login.html';
+}
+
+/* ══════════════════════════════════════
+   STATE
+══════════════════════════════════════ */
+let ALL_QUESTIONS  = []; // All 66 questions (10 practice + 28 English + 28 Maths)
+let PRACTICE_QS    = []; // indices 0-9
+let ENGLISH_QS     = []; // indices 10-37
+let MATHS_QS       = []; // indices 38-65
+let currentSection = 'practice'; // 'practice' | 'english' | 'maths'
+let currentIdx     = 0; // index within current section array
+let answers        = {}; // { globalIdx: 'correct'|'wrong' }
+let skipPractice   = false;
+let answered       = false;
+let selectedMC     = null;
+let hintVisible    = false;
+let mockStartTime  = null;
+let userId         = null;
+let userYear       = 'P6';
+
+/* ══════════════════════════════════════
+   SCREEN MANAGEMENT
+══════════════════════════════════════ */
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + id).classList.add('active');
+  const showProgress = (id === 'question');
+  document.getElementById('mock-progress').style.display = showProgress ? '' : 'none';
+}
+
+/* ══════════════════════════════════════
+   INIT
+══════════════════════════════════════ */
+async function init() {
+  const { data: authData } = await sb.auth.getSession();
+  if (!authData?.session?.user) {
+    window.location.href = 'login.html';
+    return;
+  }
+  userId = authData.session.user.id;
+
+  const { data: profile } = await sb.from('profiles')
+    .select('name, year_group, subscription_status')
+    .eq('id', userId).single();
+
+  const status = profile?.subscription_status;
+  if (status !== 'active' && status !== 'trialing') {
+    window.location.href = 'pricing.html';
+    return;
+  }
+
+  userYear = profile?.year_group || 'P6';
+  const name = profile?.name || 'Student';
+
+  document.getElementById('brief-title').textContent = `Full Coached Mock — ${name}`;
+
+  // Check for saved mock in progress
+  const saved = localStorage.getItem('star_mock_inprogress');
+  if (saved) {
+    try {
+      const s = JSON.parse(saved);
+      if (s.userId === userId && s.questions && s.questions.length > 0) {
+        if (confirm('You have a mock in progress! Continue where you left off?')) {
+          resumeMock(s);
+          return;
+        } else {
+          localStorage.removeItem('star_mock_inprogress');
+        }
+      }
+    } catch(e) { localStorage.removeItem('star_mock_inprogress'); }
+  }
+
+  showScreen('briefing');
+}
+
+/* ══════════════════════════════════════
+   START MOCK
+══════════════════════════════════════ */
+async function startMock(skip) {
+  skipPractice = skip;
+  showScreen('loading');
+  document.getElementById('nav-exit').style.display = 'none';
+
+  try {
+    const response = await fetch('/api/generate-questions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ track: userYear, mode: 'mock' })
+    });
+
+    if (!response.ok) throw new Error('Failed to generate questions');
+    const data = await response.json();
+    if (!data.questions || data.questions.length < 50) throw new Error('Not enough questions generated');
+
+    ALL_QUESTIONS = data.questions;
+    PRACTICE_QS   = ALL_QUESTIONS.slice(0, 10);
+    ENGLISH_QS    = ALL_QUESTIONS.slice(10, 38);
+    MATHS_QS      = ALL_QUESTIONS.slice(38, 66);
+
+    answers       = {};
+    mockStartTime = Date.now();
+
+    saveMockProgress();
+
+    if (skipPractice) {
+      currentSection = 'english';
+      currentIdx     = 0;
+      showScreen('question');
+      renderQuestion();
+    } else {
+      currentSection = 'practice';
+      currentIdx     = 0;
+      showScreen('question');
+      renderQuestion();
+    }
+
+  } catch(err) {
+    console.error('Mock generation error:', err.message);
+    showScreen('briefing');
+    alert('STAR had trouble generating questions — please try again. (' + err.message + ')');
+    document.getElementById('nav-exit').style.display = '';
+  }
+}
+
+/* ══════════════════════════════════════
+   RESUME SAVED MOCK
+══════════════════════════════════════ */
+function resumeMock(saved) {
+  ALL_QUESTIONS  = saved.questions;
+  PRACTICE_QS    = ALL_QUESTIONS.slice(0, 10);
+  ENGLISH_QS     = ALL_QUESTIONS.slice(10, 38);
+  MATHS_QS       = ALL_QUESTIONS.slice(38, 66);
+  answers        = saved.answers || {};
+  currentSection = saved.currentSection || 'practice';
+  currentIdx     = saved.currentIdx || 0;
+  skipPractice   = saved.skipPractice || false;
+  mockStartTime  = saved.mockStartTime || Date.now();
+  document.getElementById('nav-exit').style.display = 'none';
+  showScreen('question');
+  renderQuestion();
+}
+
+/* ══════════════════════════════════════
+   SAVE PROGRESS
+══════════════════════════════════════ */
+function saveMockProgress() {
+  localStorage.setItem('star_mock_inprogress', JSON.stringify({
+    userId, questions: ALL_QUESTIONS, answers,
+    currentSection, currentIdx, skipPractice, mockStartTime
+  }));
+}
+
+/* ══════════════════════════════════════
+   GET CURRENT QUESTION
+══════════════════════════════════════ */
+function getCurrentQuestion() {
+  if (currentSection === 'practice') return PRACTICE_QS[currentIdx];
+  if (currentSection === 'english')  return ENGLISH_QS[currentIdx];
+  if (currentSection === 'maths')    return MATHS_QS[currentIdx];
+  return null;
+}
+
+function getGlobalIdx() {
+  if (currentSection === 'practice') return currentIdx;
+  if (currentSection === 'english')  return 10 + currentIdx;
+  if (currentSection === 'maths')    return 38 + currentIdx;
+  return 0;
+}
+
+function getSectionLength() {
+  if (currentSection === 'practice') return PRACTICE_QS.length;
+  if (currentSection === 'english')  return ENGLISH_QS.length;
+  if (currentSection === 'maths')    return MATHS_QS.length;
+  return 0;
+}
+
+/* ══════════════════════════════════════
+   RENDER QUESTION
+══════════════════════════════════════ */
+function renderQuestion() {
+  const q = getCurrentQuestion();
+  if (!q) return;
+
+  answered   = false;
+  selectedMC = null;
+  hintVisible = false;
+
+  // Update nav section label
+  const sectionLabels = { practice:'Practice Section', english:'English Main Test', maths:'Maths Main Test' };
+  document.getElementById('nav-section-label').textContent = sectionLabels[currentSection] || '';
+
+  // Update section badges
+  ['practice','english','maths'].forEach(s => {
+    document.getElementById('badge-' + s).style.display = s === currentSection ? '' : 'none';
+  });
+
+  // Progress bar
+  const sectionLen = getSectionLength();
+  const pct = Math.round(((currentIdx + 1) / sectionLen) * 100);
+  document.getElementById('progress-fill').style.width = pct + '%';
+
+  // Q counter (within section)
+  document.getElementById('q-current').textContent = currentIdx + 1;
+  document.getElementById('q-total').textContent   = sectionLen;
+
+  // Score
+  const correct = Object.values(answers).filter(v => v === 'correct').length;
+  const wrong   = Object.values(answers).filter(v => v === 'wrong').length;
+  document.getElementById('score-correct').textContent = correct + ' correct';
+  document.getElementById('score-wrong').textContent   = wrong + ' wrong';
+
+  // Q number label
+  if (currentSection === 'practice') {
+    document.getElementById('q-number-label').textContent = 'Practice Question ' + (currentIdx + 1);
+  } else if (currentSection === 'english') {
+    document.getElementById('q-number-label').textContent = 'Question ' + (currentIdx + 1);
+  } else {
+    document.getElementById('q-number-label').textContent = 'Question ' + (29 + currentIdx);
+  }
+
+  // Type badge
+  const badge = document.getElementById('card-type-badge');
+  if (q.type === 'english') {
+    badge.className = 'card-type-badge badge-eng';
+    badge.textContent = '📖 English';
+  } else {
+    badge.className = 'card-type-badge badge-mat';
+    badge.textContent = '📐 Maths';
+  }
+  document.getElementById('card-topic').textContent = q.topic || '';
+  document.getElementById('card-marks').textContent = q.marks || '1 mark';
+
+  // Question text
+  document.getElementById('q-text').textContent = q.text || '';
+
+  // Context
+  const ctxEl = document.getElementById('q-context');
+  if (q.context) { ctxEl.textContent = q.context; ctxEl.style.display = ''; }
+  else ctxEl.style.display = 'none';
+
+  // Segments
+  const segRow = document.getElementById('segments-row');
+  segRow.innerHTML = '';
+  if (q.segments && q.segments.length > 0) {
+    segRow.style.display = '';
+    const letters = ['A','B','C','D','N'];
+    q.segments.forEach((seg, i) => {
+      const block = document.createElement('div');
+      block.className = 'segment-block';
+      block.innerHTML = `<div class="segment-text">${seg}</div><div class="segment-label">${letters[i] || i+1}</div>`;
+      segRow.appendChild(block);
+    });
+  } else {
+    segRow.style.display = 'none';
+  }
+
+  // Options
+  const mcWrap = document.getElementById('mc-options');
+  const frWrap = document.getElementById('fr-wrap');
+  mcWrap.innerHTML = '';
+
+  if (q.options && q.options.length > 0) {
+    mcWrap.style.display = '';
+    frWrap.style.display = 'none';
+    q.options.forEach((opt, i) => {
+      const letter = opt.split('.')[0].trim();
+      const text   = opt.split('.').slice(1).join('.').trim();
+      const btn = document.createElement('button');
+      btn.className = 'mc-btn';
+      btn.dataset.letter = letter;
+      btn.innerHTML = `<div class="mc-letter">${letter}</div><span>${text}</span>`;
+      btn.addEventListener('click', () => selectMC(letter, btn));
+      mcWrap.appendChild(btn);
+    });
+  } else {
+    mcWrap.style.display = 'none';
+    frWrap.style.display = '';
+    const frInput = document.getElementById('fr-input');
+    frInput.value = '';
+    frInput.disabled = false;
+    frInput.addEventListener('input', () => {
+      document.getElementById('btn-submit').disabled = frInput.value.trim().length === 0;
+    });
+  }
+
+  // Feedback
+  const fbPanel = document.getElementById('feedback-panel');
+  fbPanel.className = 'feedback-panel';
+
+  // Hint — practice section only
+  const hintBtn = document.getElementById('hint-btn');
+  const hintPanel = document.getElementById('hint-panel');
+  hintPanel.classList.remove('visible');
+  if (currentSection === 'practice') {
+    hintBtn.style.display = '';
+    document.getElementById('hint-text').textContent = q.hint || 'Think carefully about what the question is asking.';
+  } else {
+    hintBtn.style.display = 'none';
+  }
+
+  // Buttons
+  document.getElementById('btn-submit').disabled = true;
+  document.getElementById('btn-submit').style.display = '';
+  document.getElementById('btn-next').style.display = 'none';
+}
+
+/* ══════════════════════════════════════
+   SELECT MC
+══════════════════════════════════════ */
+function selectMC(letter, btnEl) {
+  if (answered) return;
+  selectedMC = letter;
+  document.querySelectorAll('#mc-options .mc-btn').forEach(b => b.classList.remove('selected'));
+  btnEl.classList.add('selected');
+  document.getElementById('btn-submit').disabled = false;
+}
+
+/* ══════════════════════════════════════
+   TOGGLE HINT
+══════════════════════════════════════ */
+function toggleHint() {
+  hintVisible = !hintVisible;
+  document.getElementById('hint-panel').classList.toggle('visible', hintVisible);
+}
+
+/* ══════════════════════════════════════
+   SUBMIT ANSWER
+══════════════════════════════════════ */
+function submitAnswer() {
+  const q = getCurrentQuestion();
+  if (!q || answered) return;
+  answered = true;
+
+  const frInput = document.getElementById('fr-input');
+  const isFR    = q.options.length === 0;
+  let userAnswer, isCorrect;
+
+  if (isFR) {
+    userAnswer = frInput.value.trim();
+    const correct = (q.answer || '').toString().toLowerCase().trim();
+    isCorrect = userAnswer.toLowerCase() === correct ||
+                userAnswer.toLowerCase().replace(/\s/g,'') === correct.replace(/\s/g,'');
+    frInput.disabled = true;
+  } else {
+    userAnswer = selectedMC;
+    isCorrect  = selectedMC === q.answer;
+
+    // Colour options
+    document.querySelectorAll('#mc-options .mc-btn').forEach(btn => {
+      btn.disabled = true;
+      if (btn.dataset.letter === q.answer) btn.classList.add('correct-ans');
+      else if (btn.dataset.letter === selectedMC && !isCorrect) btn.classList.add('wrong-ans');
+    });
+  }
+
+  const globalIdx = getGlobalIdx();
+  answers[globalIdx] = isCorrect ? 'correct' : 'wrong';
+  saveMockProgress();
+
+  // Practice section — show feedback
+  // Main test — show feedback only if wrong (so they learn)
+  const showFeedback = currentSection === 'practice' || !isCorrect;
+
+  if (showFeedback) {
+    const fbPanel = document.getElementById('feedback-panel');
+    const fbIcon  = document.getElementById('feedback-icon');
+    const fbTitle = document.getElementById('feedback-title');
+    const fbExpl  = document.getElementById('feedback-explanation');
+    const fbSteps = document.getElementById('feedback-steps');
+
+    fbPanel.className = 'feedback-panel visible ' + (isCorrect ? 'correct-fb' : 'wrong-fb');
+    fbIcon.className  = 'feedback-icon ' + (isCorrect ? 'ok' : 'no');
+    fbIcon.textContent = isCorrect ? '✓' : '✗';
+    fbTitle.textContent = isCorrect ? 'Well done! ⭐' : 'Not quite — here\'s how:';
+    fbExpl.textContent  = q.explanation || '';
+
+    fbSteps.innerHTML = '';
+    if (q.steps && q.steps.length > 0) {
+      q.steps.forEach(step => {
+        const li = document.createElement('li');
+        li.textContent = step;
+        fbSteps.appendChild(li);
+      });
+    }
+  }
+
+  // Score update
+  const correct = Object.values(answers).filter(v => v === 'correct').length;
+  const wrong   = Object.values(answers).filter(v => v === 'wrong').length;
+  document.getElementById('score-correct').textContent = correct + ' correct';
+  document.getElementById('score-wrong').textContent   = wrong + ' wrong';
+
+  document.getElementById('btn-submit').style.display = 'none';
+  document.getElementById('btn-next').style.display   = '';
+
+  // Update next button label at end of sections
+  const isLastInSection = currentIdx === getSectionLength() - 1;
+  const btn = document.getElementById('btn-next');
+  if (isLastInSection) {
+    if (currentSection === 'practice')  btn.textContent = 'Finish Practice Section →';
+    else if (currentSection === 'english') btn.textContent = 'Finish English Section →';
+    else btn.textContent = 'Finish Mock →';
+  } else {
+    btn.textContent = 'Next →';
+  }
+}
+
+/* ══════════════════════════════════════
+   NEXT QUESTION
+══════════════════════════════════════ */
+function nextQuestion() {
+  const isLastInSection = currentIdx === getSectionLength() - 1;
+
+  if (!isLastInSection) {
+    currentIdx++;
+    showScreen('question');
+    renderQuestion();
+    return;
+  }
+
+  // End of section
+  if (currentSection === 'practice') {
+    showScreen('practice-done');
+  } else if (currentSection === 'english') {
+    showScreen('english-done');
+  } else if (currentSection === 'maths') {
+    completeMock();
+  }
+}
+
+/* ══════════════════════════════════════
+   SECTION TRANSITIONS
+══════════════════════════════════════ */
+function startMainTest() {
+  currentSection = 'english';
+  currentIdx     = 0;
+  showScreen('question');
+  renderQuestion();
+}
+
+function startMathsTest() {
+  currentSection = 'maths';
+  currentIdx     = 0;
+  showScreen('question');
+  renderQuestion();
+}
+
+/* ══════════════════════════════════════
+   COMPLETE MOCK
+══════════════════════════════════════ */
+async function completeMock() {
+  localStorage.removeItem('star_mock_inprogress');
+  document.getElementById('nav-exit').style.display = '';
+
+  // Calculate scores (main test only — not practice)
+  const mainAnswers = {};
+  for (let i = 10; i < 66; i++) mainAnswers[i] = answers[i];
+
+  const totalCorrect   = Object.values(mainAnswers).filter(v => v === 'correct').length;
+  const totalQ         = 56;
+  const englishCorrect = [...Array(28).keys()].filter(i => mainAnswers[10 + i] === 'correct').length;
+  const mathsCorrect   = [...Array(28).keys()].filter(i => mainAnswers[38 + i] === 'correct').length;
+  const pct            = Math.round((totalCorrect / totalQ) * 100);
+
+  // Build results screen
+  document.getElementById('results-title').textContent =
+    pct >= 80 ? '🌟 Outstanding performance!' :
+    pct >= 60 ? '⭐ Solid effort!' :
+    '💪 Keep going — you\'re building stamina!';
+
+  document.getElementById('results-sub').textContent =
+    `You scored ${totalCorrect} out of ${totalQ} (${pct}%) on the main test`;
+
+  document.getElementById('res-total').textContent   = pct + '%';
+  document.getElementById('res-english').textContent = englishCorrect + '/28';
+  document.getElementById('res-maths').textContent   = mathsCorrect + '/28';
+
+  // Wrong answers breakdown
+  buildWrongAnswers(mainAnswers);
+
+  showScreen('results');
+
+  // Save to Supabase
+  await saveMockToSupabase(totalCorrect, totalQ, englishCorrect, mathsCorrect, pct);
+}
+
+/* ══════════════════════════════════════
+   BUILD WRONG ANSWERS
+══════════════════════════════════════ */
+function buildWrongAnswers(mainAnswers) {
+  const wrongSection = document.getElementById('wrong-section');
+  const wrongQs = [];
+
+  for (let i = 10; i < 66; i++) {
+    if (mainAnswers[i] === 'wrong') {
+      wrongQs.push({ q: ALL_QUESTIONS[i], globalIdx: i });
+    }
+  }
+
+  if (wrongQs.length === 0) {
+    wrongSection.innerHTML = '<div style="text-align:center;padding:20px;color:rgba(255,255,255,.5);font-size:.88rem;">🎉 You got every question right on the main test!</div>';
+    return;
+  }
+
+  wrongSection.innerHTML = `<div class="wrong-section-title">Questions to Review (${wrongQs.length})</div>`;
+
+  wrongQs.forEach((item, idx) => {
+    const q   = item.q;
+    const div = document.createElement('div');
+    div.className = 'wrong-item';
+
+    const qText = q.segments && q.segments.length > 0
+      ? q.segments.join(' | ')
+      : (q.context || q.text || '');
+
+    div.innerHTML = `
+      <div class="wrong-item-header">
+        <div class="wrong-item-num">${idx + 1}</div>
+        <div class="wrong-item-topic">${q.topic || ''}</div>
+      </div>
+      <div class="wrong-item-q">${qText.substring(0, 120)}${qText.length > 120 ? '…' : ''}</div>
+      <div class="wrong-item-answer">
+        <span style="color:rgba(255,255,255,.4);font-size:.75rem;">Correct answer:</span>
+        <span class="correct-answer-tag">${q.answer}</span>
+      </div>
+      <div class="wrong-item-explanation">${q.explanation || ''}</div>
+    `;
+    wrongSection.appendChild(div);
+  });
+}
+
+/* ══════════════════════════════════════
+   SAVE TO SUPABASE
+══════════════════════════════════════ */
+async function saveMockToSupabase(totalCorrect, totalQ, englishCorrect, mathsCorrect, pct) {
+  try {
+    const timeTaken = mockStartTime ? Math.round((Date.now() - mockStartTime) / 1000) : null;
+
+    const { data: sessionData, error } = await sb.from('sessions').insert({
+      user_id:         userId,
+      session_type:    'full_mock',
+      track:           userYear,
+      score:           totalCorrect,
+      total_questions: totalQ,
+      english_score:   englishCorrect,
+      maths_score:     mathsCorrect,
+      time_taken_secs: timeTaken,
+    }).select().single();
+
+    if (error) { console.error('Supabase save error:', error.message); return; }
+
+    if (sessionData?.id) {
+      const results = ALL_QUESTIONS.slice(10, 66).map((q, i) => ({
+        session_id:    sessionData.id,
+        user_id:       userId,
+        topic:         q.topic,
+        question_type: q.type,
+        correct:       answers[10 + i] === 'correct'
+      }));
+      await sb.from('question_results').insert(results);
+    }
+
+    await sb.from('progress_summary').upsert({
+      user_id:         userId,
+      last_score:      totalCorrect,
+      last_total:      totalQ,
+      last_session_at: new Date().toISOString(),
+      updated_at:      new Date().toISOString()
+    }, { onConflict: 'user_id' });
+
+    // Update localStorage for dashboard
+    localStorage.setItem('star_last_score', pct);
+    localStorage.setItem('star_last_track', userYear);
+
+    console.log('✅ Mock saved to Supabase!');
+  } catch(err) {
+    console.error('Save error:', err.message);
+  }
+}
+
+/* ══════════════════════════════════════
+   START
+══════════════════════════════════════ */
+window.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
