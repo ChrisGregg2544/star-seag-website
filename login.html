@@ -7,158 +7,65 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-
     body {
       min-height: 100vh;
       background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-family: system-ui, -apple-system, sans-serif;
-      padding: 20px;
+      display: flex; align-items: center; justify-content: center;
+      font-family: system-ui, -apple-system, sans-serif; padding: 20px;
     }
-
     .card {
-      background: white;
-      border-radius: 20px;
-      padding: 40px;
-      width: 100%;
-      max-width: 440px;
-      box-shadow: 0 25px 50px rgba(0,0,0,0.4);
+      background: white; border-radius: 20px; padding: 40px;
+      width: 100%; max-width: 440px; box-shadow: 0 25px 50px rgba(0,0,0,0.4);
     }
-
-    .logo {
-      text-align: center;
-      margin-bottom: 30px;
-    }
-
+    .logo { text-align: center; margin-bottom: 30px; }
     .logo h1 {
-      font-size: 48px;
-      font-weight: 900;
+      font-size: 48px; font-weight: 900;
       background: linear-gradient(135deg, #667eea, #764ba2);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
     }
-
-    .logo p {
-      color: #666;
-      margin-top: 8px;
-      font-size: 15px;
-    }
-
+    .logo p { color: #666; margin-top: 8px; font-size: 15px; }
     .google-btn {
-      width: 100%;
-      padding: 14px;
-      border: 2px solid #e0e0e0;
-      border-radius: 12px;
-      background: white;
-      cursor: pointer;
-      font-size: 16px;
-      font-weight: 600;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      margin-bottom: 20px;
-      transition: border-color 0.2s;
+      width: 100%; padding: 14px; border: 2px solid #e0e0e0; border-radius: 12px;
+      background: white; cursor: pointer; font-size: 16px; font-weight: 600;
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      margin-bottom: 20px; transition: border-color 0.2s;
     }
-
     .google-btn:hover { border-color: #667eea; }
-
-    .divider {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 20px;
-    }
-
-    .divider hr {
-      flex: 1;
-      border: none;
-      border-top: 1px solid #e0e0e0;
-    }
-
+    .divider { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+    .divider hr { flex: 1; border: none; border-top: 1px solid #e0e0e0; }
     .divider span { color: #999; font-size: 13px; }
-
     input, select {
-      width: 100%;
-      padding: 13px 16px;
-      border: 2px solid #e0e0e0;
-      border-radius: 10px;
-      font-size: 15px;
-      margin-bottom: 12px;
-      outline: none;
-      font-family: inherit;
-      transition: border-color 0.2s;
+      width: 100%; padding: 13px 16px; border: 2px solid #e0e0e0;
+      border-radius: 10px; font-size: 15px; margin-bottom: 12px;
+      outline: none; font-family: inherit; transition: border-color 0.2s;
     }
-
     input:focus, select:focus { border-color: #667eea; }
-
     .submit-btn {
-      width: 100%;
-      padding: 14px;
+      width: 100%; padding: 14px;
       background: linear-gradient(135deg, #667eea, #764ba2);
-      color: white;
-      border: none;
-      border-radius: 12px;
-      font-size: 16px;
-      font-weight: 700;
-      cursor: pointer;
-      margin-bottom: 16px;
-      transition: opacity 0.2s;
+      color: white; border: none; border-radius: 12px;
+      font-size: 16px; font-weight: 700; cursor: pointer;
+      margin-bottom: 16px; transition: opacity 0.2s;
     }
-
     .submit-btn:disabled { opacity: 0.6; cursor: not-allowed; }
     .submit-btn:hover:not(:disabled) { opacity: 0.9; }
-
-    .toggle-text {
-      text-align: center;
-      color: #666;
-      font-size: 14px;
-    }
-
-    .toggle-text a {
-      color: #667eea;
-      font-weight: 600;
-      cursor: pointer;
-      text-decoration: none;
-    }
-
-    .message {
-      border-radius: 8px;
-      padding: 12px;
-      font-size: 14px;
-      margin-bottom: 16px;
-    }
-
-    .message.error {
-      background: #fff3f3;
-      border: 1px solid #ffcdd2;
-      color: #c62828;
-    }
-
-    .message.success {
-      background: #f0fff4;
-      border: 1px solid #c6f6d5;
-      color: #276749;
-    }
-
+    .toggle-text { text-align: center; color: #666; font-size: 14px; }
+    .toggle-text a { color: #667eea; font-weight: 600; cursor: pointer; text-decoration: none; }
+    .message { border-radius: 8px; padding: 12px; font-size: 14px; margin-bottom: 16px; }
+    .message.error { background: #fff3f3; border: 1px solid #ffcdd2; color: #c62828; }
+    .message.success { background: #f0fff4; border: 1px solid #c6f6d5; color: #276749; }
     .signup-fields { display: none; }
     .signup-fields.visible { display: block; }
   </style>
 </head>
 <body>
-
 <div class="card">
 
-  <!-- Logo -->
   <div class="logo">
     <h1>⭐ STAR</h1>
     <p>SEAG Transfer Test Coach</p>
   </div>
 
-  <!-- Google Login -->
   <button class="google-btn" onclick="loginWithGoogle()">
     <svg width="20" height="20" viewBox="0 0 24 24">
       <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -169,15 +76,10 @@
     Continue with Google
   </button>
 
-  <!-- Divider -->
-  <div class="divider">
-    <hr><span>or</span><hr>
-  </div>
+  <div class="divider"><hr><span>or</span><hr></div>
 
-  <!-- Message area -->
   <div id="message" class="message" style="display:none"></div>
 
-  <!-- Sign up extra fields -->
   <div class="signup-fields" id="signupFields">
     <input type="text" id="nameInput" placeholder="Your first name" />
     <select id="yearGroup">
@@ -186,25 +88,18 @@
     </select>
   </div>
 
-  <!-- Email + Password -->
   <input type="email" id="emailInput" placeholder="Email address" />
   <input type="password" id="passwordInput" placeholder="Password (min 6 characters)" />
 
-  <!-- Submit button -->
-  <button class="submit-btn" id="submitBtn" onclick="handleSubmit()">
-    🔐 Log In
-  </button>
+  <button class="submit-btn" id="submitBtn" onclick="handleSubmit()">🔐 Log In</button>
 
-  <!-- Toggle -->
   <p class="toggle-text">
-    Don't have an account?
-    <a onclick="toggleMode()">Sign up free</a>
+    Don't have an account? <a onclick="toggleMode()">Sign up free</a>
   </p>
 
 </div>
 
 <script>
-  // ── Supabase setup ────────────────────────────
   const { createClient } = supabase
   const client = createClient(
     'https://iutcgogmxhaqgaxkznxu.supabase.co',
@@ -213,7 +108,34 @@
 
   let isSignUp = false
 
-  // ── Toggle between login and signup ──────────
+  /* ══════════════════════════════════════
+     SMART REDIRECT
+     New users → onboarding.html
+     Returning users → dashboard.html
+  ══════════════════════════════════════ */
+  async function smartRedirect(userId) {
+    try {
+      const { data: profile } = await client
+        .from('profiles')
+        .select('onboarded')
+        .eq('id', userId)
+        .single()
+
+      if (profile?.onboarded === true) {
+        window.location.href = 'dashboard.html'
+      } else {
+        window.location.href = 'onboarding.html'
+      }
+    } catch (err) {
+      // If check fails, send to onboarding to be safe
+      console.error('Redirect check error:', err.message)
+      window.location.href = 'onboarding.html'
+    }
+  }
+
+  /* ══════════════════════════════════════
+     TOGGLE LOGIN / SIGNUP
+  ══════════════════════════════════════ */
   function toggleMode() {
     isSignUp = !isSignUp
     document.getElementById('signupFields').classList.toggle('visible', isSignUp)
@@ -224,17 +146,25 @@
     clearMessage()
   }
 
-  // ── Google login ──────────────────────────────
+  /* ══════════════════════════════════════
+     GOOGLE LOGIN
+     Redirects back to login.html after OAuth
+     so smartRedirect can run here
+  ══════════════════════════════════════ */
   async function loginWithGoogle() {
     showMessage('⏳ Redirecting to Google...', 'success')
     const { error } = await client.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: window.location.origin + '/study.html' }
+      options: {
+        redirectTo: window.location.origin + '/login.html'
+      }
     })
     if (error) showMessage('⚠️ ' + error.message, 'error')
   }
 
-  // ── Email submit ──────────────────────────────
+  /* ══════════════════════════════════════
+     EMAIL LOGIN / SIGNUP
+  ══════════════════════════════════════ */
   async function handleSubmit() {
     const email    = document.getElementById('emailInput').value.trim()
     const password = document.getElementById('passwordInput').value
@@ -253,34 +183,26 @@
       const name      = document.getElementById('nameInput').value.trim()
       const yearGroup = document.getElementById('yearGroup').value
 
-      const { data, error } = await client.auth.signUp({
-        email,
-        password,
+      const { error } = await client.auth.signUp({
+        email, password,
         options: {
           data: { full_name: name, year_group: yearGroup },
-          emailRedirectTo: window.location.origin + '/study.html'
+          emailRedirectTo: window.location.origin + '/login.html'
         }
       })
 
       if (error) {
         showMessage('⚠️ ' + error.message, 'error')
       } else {
-        // Save name and year group to profile
-        if (data?.user) {
-          await client.from('profiles').update({
-            name,
-            year_group: yearGroup
-          }).eq('id', data.user.id)
-        }
         showMessage('✅ Check your email to confirm your account, then come back to log in!', 'success')
       }
 
     } else {
-      const { error } = await client.auth.signInWithPassword({ email, password })
+      const { data, error } = await client.auth.signInWithPassword({ email, password })
       if (error) {
         showMessage('⚠️ ' + error.message, 'error')
-      } else {
-        window.location.href = '/study.html'
+      } else if (data?.user) {
+        await smartRedirect(data.user.id)
       }
     }
 
@@ -288,7 +210,9 @@
     btn.textContent = isSignUp ? '🚀 Create Account' : '🔐 Log In'
   }
 
-  // ── Helpers ───────────────────────────────────
+  /* ══════════════════════════════════════
+     HELPERS
+  ══════════════════════════════════════ */
   function showMessage(text, type) {
     const el = document.getElementById('message')
     el.textContent = text
@@ -297,15 +221,19 @@
   }
 
   function clearMessage() {
-    const el = document.getElementById('message')
-    el.style.display = 'none'
+    document.getElementById('message').style.display = 'none'
   }
 
-  // ── If already logged in, redirect to study ──
-  client.auth.getSession().then(({ data }) => {
-    if (data?.session) window.location.href = '/study.html'
+  /* ══════════════════════════════════════
+     ALREADY LOGGED IN CHECK
+     Runs on page load — do smart redirect
+     if user already has a session
+  ══════════════════════════════════════ */
+  client.auth.getSession().then(async ({ data }) => {
+    if (data?.session?.user) {
+      await smartRedirect(data.session.user.id)
+    }
   })
 </script>
-
 </body>
 </html>
