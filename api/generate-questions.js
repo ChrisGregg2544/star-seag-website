@@ -220,8 +220,12 @@ export default async function handler(req, res) {
 
   const { track, topic, mode } = req.body || {};
   const level = track === 'P7' ? 'P7' : 'P6';
-  const topicMode = mode === 'topic' && topic;
-  const mockMode  = mode === 'mock';
+  const topicMode     = mode === 'topic' && topic;
+  const mockMode      = mode === 'mock';
+  const mockPractice  = mode === 'mock_practice';
+  const mockEnglish   = mode === 'mock_english';
+  const mockMaths     = mode === 'mock_maths';
+  const anyMockMode   = mockMode || mockPractice || mockEnglish || mockMaths;
 
   if (!process.env.ANTHROPIC_API_KEY) {
     console.error('ANTHROPIC_API_KEY is not set');
@@ -382,11 +386,7 @@ The root element MUST be an object with a "questions" key containing an array.
 
 videoTopic field: 3-4 word phrase matching a topic key e.g. "apostrophes contractions", "fractions of amounts", "bar charts".
 
-${mockMode ? `Generate exactly 66 questions in this EXACT structure:
-- Questions 1-10: PRACTICE SECTION (5 English + 5 Maths, simpler warm-up questions, suitable for building confidence)
-- Questions 11-38: ENGLISH MAIN TEST (28 questions: 5 Punctuation, 5 Grammar, 5 Spelling, 8 Comprehension multiple choice, 5 Comprehension free response)
-- Questions 39-66: MATHS MAIN TEST (22 multiple choice + 6 free response, full SEAG specification difficulty)
-Label each question with a "section" field: "practice", "english", or "maths".` : topicMode ? `Generate exactly 10 questions ALL focused on the topic: "${topic}". Mix question types appropriately for this topic — if it is a Maths topic, generate 10 Maths questions on that specific topic; if it is an English topic, generate 10 English questions on that specific topic. Vary the question style and difficulty within the topic.` : 'Generate exactly 10 questions: 2 Punctuation, 1 Grammar, 2 Spelling, 5 Maths (varied topics).'}
+${mockPractice ? 'Generate exactly 10 PRACTICE SECTION questions: 5 English (mix of punctuation, grammar, spelling — simpler warm-up level) and 5 Maths (basic, confidence-building). These are warm-up questions — slightly easier than the main test.' : mockEnglish ? 'Generate exactly 28 ENGLISH MAIN TEST questions in this exact order: 5 Punctuation, 5 Grammar, 5 Spelling, 8 Comprehension multiple choice (A/B/C/D/E), 5 Comprehension free response (short written answers). Full SEAG difficulty.' : mockMaths ? 'Generate exactly 28 MATHS MAIN TEST questions: 22 multiple choice (A/B/C/D/E) followed by 6 free response questions (written answers, units provided). Full SEAG difficulty — varied topics.' : topicMode ? `Generate exactly 10 questions ALL focused on the topic: "${topic}". Mix question types appropriately for this topic — if it is a Maths topic, generate 10 Maths questions on that specific topic; if it is an English topic, generate 10 English questions on that specific topic. Vary the question style and difficulty within the topic.` : 'Generate exactly 10 questions: 2 Punctuation, 1 Grammar, 2 Spelling, 5 Maths (varied topics).'}
 
 PUNCTUATION EXAMPLE — capital letter error:
 {
@@ -461,11 +461,11 @@ MATHS EXAMPLE:
       },
       body: JSON.stringify({
         model: 'claude-sonnet-4-6',
-        max_tokens: mockMode ? 12000 : 4000,
+        max_tokens: (anyMockMode && !mockPractice) ? 8000 : 4000,
         system: systemPrompt,
         messages: [{
           role: 'user',
-          content: `Generate ${mockMode ? '66' : '10'} fresh original SEAG questions for ${level}${topicMode ? ` focused ONLY on the topic: "${topic}"` : ''}${mockMode ? ' in full mock format' : ''}.
+          content: `Generate ${mockPractice ? '10' : mockEnglish ? '28' : mockMaths ? '28' : '10'} fresh original SEAG questions for ${level}${topicMode ? ` focused ONLY on the topic: "${topic}"` : ''}${anyMockMode ? ' for the mock exam' : ''}.
 
 ${topicMode ? `TOPIC SPRINT RULES:
 - ALL 10 questions must be about "${topic}" — no other topics allowed
