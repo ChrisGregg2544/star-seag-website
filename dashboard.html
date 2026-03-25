@@ -583,9 +583,9 @@ async function init() {
   const subscribed = status === 'active' || status === 'trialing';
 
   if (!subscribed) {
-    const dbFreeUsed = profile?.free_sprints_used ?? null;
+    const dbFreeUsed = profile?.free_sprints_used ?? 0;
     const lsFreeUsed = parseInt(localStorage.getItem('star_free_sprints_used') || '0', 10);
-    const freeUsed = dbFreeUsed !== null ? dbFreeUsed : lsFreeUsed;
+    const freeUsed = Math.max(dbFreeUsed, lsFreeUsed);
     const freeLeft = Math.max(0, 2 - freeUsed);
     const banner = document.getElementById('upgrade-banner');
     const msg = document.getElementById('upgrade-banner-msg');

@@ -931,7 +931,8 @@ function showResults() {
     // Increment free sprint counter for non-subscribed users
     if (!window._starAccess?.subscribed) {
       const newCount = (window._starAccess?.freeUsed || 0) + 1;
-      await sb.from('profiles').update({ free_sprints_used: newCount }).eq('id', userId);
+      const { error: fsuError } = await sb.from('profiles').update({ free_sprints_used: newCount }).eq('id', userId);
+      if (fsuError) console.error('free_sprints_used update failed:', fsuError.message);
       localStorage.setItem('star_free_sprints_used', String(newCount));
       if (window._starAccess) window._starAccess.freeUsed = newCount;
     }
@@ -940,12 +941,13 @@ function showResults() {
   });
 }
 
-function restartSession() {
+async function restartSession() {
   document.getElementById('results-panel').classList.remove('visible');
   document.getElementById('complete-screen').classList.remove('visible');
   document.getElementById('question-card').style.display    = '';
   document.getElementById('progress-section').style.display = '';
-  init();
+  const allowed = await checkAccess();
+  if (allowed) init();
 }
 function goToSignup() {
   const pct = Math.round(score.correct / QUESTIONS.length * 100);
@@ -1025,10 +1027,11 @@ async function checkAccess() {
       }
 
       // No subscription — check free sprint allowance
-      // Fall back to localStorage if the column doesn't exist yet
-      const dbFreeUsed = profile?.free_sprints_used ?? null;
+      // Use Math.max so localStorage is always a real safety net,
+      // not just a fallback when the column is absent
+      const dbFreeUsed = profile?.free_sprints_used ?? 0;
       const lsFreeUsed = parseInt(localStorage.getItem('star_free_sprints_used') || '0', 10);
-      const freeUsed = dbFreeUsed !== null ? dbFreeUsed : lsFreeUsed;
+      const freeUsed = Math.max(dbFreeUsed, lsFreeUsed);
 
       if (freeUsed < 2) {
         window._starAccess = { subscribed: false, freeUsed, userId };
