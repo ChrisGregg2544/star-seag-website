@@ -838,7 +838,7 @@ function showResults() {
     });
   }
 
-  document.getElementById('upgrade-banner').style.display = (!localStorage.getItem('star_signed_up') && sprintCount === 1) ? 'block' : 'none';
+  document.getElementById('upgrade-banner').style.display = 'none';
 
   /* Update localStorage */
   const toReview = missedQuestions
@@ -907,12 +907,17 @@ function showResults() {
       await sb.from('question_results').insert(results);
     }
 
+    const toReviewForDb = missedQuestions
+      .map(q => ({ topic: q.topic, videoTitle: q.videoTopic || q.topic, videoUrl: q.videoUrl, videoSource: q.videoSource, questionText: q.text }))
+      .filter((item, idx, arr) => arr.findIndex(x => x.topic === item.topic) === idx);
+
     await sb.from('progress_summary').upsert({
-      user_id:         userId,
-      last_score:      score.correct,
-      last_total:      QUESTIONS.length,
-      last_session_at: new Date().toISOString(),
-      updated_at:      new Date().toISOString()
+      user_id:          userId,
+      last_score:       score.correct,
+      last_total:       QUESTIONS.length,
+      topics_to_review: toReviewForDb,
+      last_session_at:  new Date().toISOString(),
+      updated_at:       new Date().toISOString()
     }, { onConflict: 'user_id' });
 
     console.log('✅ Saved to Supabase!');
@@ -932,9 +937,7 @@ function goToSignup() {
   window.location.href = 'signup.html?score=' + pct;
 }
 function goToDashboard() {
-  const pct = Math.round(score.correct / QUESTIONS.length * 100);
-  sessionStorage.setItem('star_last_score', pct);
-  window.location.href = 'signup.html?score=' + pct;
+  window.location.href = 'dashboard.html';
 }
 
 async function signOut() {

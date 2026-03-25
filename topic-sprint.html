@@ -343,9 +343,15 @@
     // Load profile
     const { data: profile } = await sb
       .from('profiles')
-      .select('name, year_group')
+      .select('name, year_group, subscription_status')
       .eq('id', userId)
       .single();
+
+    const status = profile?.subscription_status;
+    if (status !== 'active' && status !== 'trialing') {
+      window.location.href = 'pricing.html';
+      return;
+    }
 
     const name      = profile?.name      || 'Student';
     const yearGroup = profile?.year_group || 'P6';

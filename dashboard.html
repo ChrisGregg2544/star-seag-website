@@ -445,6 +445,12 @@ async function init() {
     .select('name,year_group,exam_year,subscription_status')
     .eq('id', userId).single();
 
+  const status = profile?.subscription_status;
+  if (status !== 'active' && status !== 'trialing') {
+    window.location.href = 'pricing.html';
+    return;
+  }
+
   const name      = profile?.name      || sessionStorage.getItem('star_name') || 'Student';
   const yearGroup = profile?.year_group || sessionStorage.getItem('star_year') || 'P6';
   const examYear  = profile?.exam_year  || parseInt(sessionStorage.getItem('star_examYear')) || null;
@@ -452,9 +458,13 @@ async function init() {
   const { count: sessionsCount } = await sb.from('sessions')
     .select('*', {count:'exact',head:true}).eq('user_id', userId);
 
-  const toReview  = JSON.parse(localStorage.getItem('star_toReview')) || [];
-  const lastScore = parseInt(localStorage.getItem('star_last_score'), 10);
-  const hasData   = !isNaN(lastScore);
+  const { data: progressData } = await sb.from('progress_summary')
+    .select('last_score, last_total, topics_to_review')
+    .eq('user_id', userId).single();
+
+  const toReview  = progressData?.topics_to_review || JSON.parse(localStorage.getItem('star_toReview')) || [];
+  const lastScore = progressData?.last_score       ?? parseInt(localStorage.getItem('star_last_score'), 10);
+  const hasData   = lastScore !== null && lastScore !== undefined && !isNaN(lastScore);
 
   // Personalise
   document.getElementById('nav-hi').textContent     = 'Hi, ' + name + '!';
