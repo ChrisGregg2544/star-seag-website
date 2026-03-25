@@ -30,8 +30,10 @@
     /* NAV */
     .top-nav{position:relative;z-index:10;width:100%;max-width:860px;display:flex;align-items:center;justify-content:space-between;padding:22px 0 18px;}
     .nav-logo{display:flex;align-items:center;gap:9px;text-decoration:none;}
-    .nav-logo-star{width:32px;height:32px;background:linear-gradient(135deg,rgba(201,168,76,.2),rgba(201,168,76,.06));border:1.5px solid rgba(201,168,76,.4);border-radius:50%;display:flex;align-items:center;justify-content:center;}
-    .nav-logo-text{font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:700;color:var(--gold);letter-spacing:.04em;}
+    .nav-logo-mark{flex-shrink:0;}
+    .nav-logo-wordmark{display:flex;flex-direction:column;line-height:1;gap:2px;}
+    .nav-logo-name{font-family:Georgia,'Times New Roman',serif;font-size:1.05rem;font-weight:700;color:var(--gold);letter-spacing:.06em;}
+    .nav-logo-sub{font-family:'Lato',sans-serif;font-size:.52rem;font-weight:700;color:rgba(201,168,76,.65);letter-spacing:.2em;text-transform:uppercase;}
     .nav-right{display:flex;align-items:center;gap:10px;}
     .nav-btn{font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:7px 14px;border-radius:8px;cursor:pointer;border:none;font-family:'Lato',sans-serif;transition:all .2s;text-decoration:none;display:inline-block;}
     .nav-back{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.5);}
@@ -109,7 +111,6 @@
       .page-title{font-size:1.6rem;}
       .topic-grid{grid-template-columns:repeat(2,1fr);}
       .rec-banner{flex-direction:column;align-items:flex-start;}
-      .nav-logo-text{display:none;}
     }
   </style>
 </head>
@@ -125,10 +126,8 @@
 <!-- NAV -->
 <nav class="top-nav">
   <a class="nav-logo" href="dashboard.html">
-    <div class="nav-logo-star">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="#C9A84C"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
-    </div>
-    <span class="nav-logo-text">STAR AI Tutor</span>
+    <svg class="nav-logo-mark" width="36" height="36" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><circle cx="20" cy="20" r="19" fill="#0B1F3A" stroke="#C9A84C" stroke-width="1.5"/><circle cx="20" cy="20" r="15" fill="none" stroke="#C9A84C" stroke-width="0.7" stroke-opacity="0.45"/><circle cx="20" cy="20" r="10.5" fill="none" stroke="#C9A84C" stroke-width="0.7" stroke-opacity="0.28"/><polygon points="20,12 22.06,17.17 27.61,17.53 23.33,21.08 24.70,26.47 20,23.5 15.30,26.47 16.67,21.08 12.39,17.53 17.94,17.17" fill="#C9A84C"/></svg>
+    <div class="nav-logo-wordmark"><span class="nav-logo-name">STAR</span><span class="nav-logo-sub">AI&nbsp;TUTOR</span></div>
   </a>
   <div class="nav-right">
     <a class="nav-btn nav-back" href="dashboard.html">← Dashboard</a>
