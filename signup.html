@@ -7,6 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,400&family=Lato:wght@300;400;700;900&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <!-- Cookie Consent + GA4 (loads GA only if accepted) -->
   <script src="cookie-consent.js"></script>
   <style>
@@ -713,6 +714,9 @@
           Joined by 200+ NI families this term
         </div>
 
+        <!-- Error message -->
+        <div id="signup-error" style="display:none;color:#ef4444;font-size:.85rem;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);border-radius:10px;padding:12px 14px;margin-bottom:14px;"></div>
+
         <!-- CTA -->
         <button class="btn-cta" id="btn-cta" disabled onclick="handleSignup()">
           🌟 &nbsp;Create My STAR Profile
@@ -727,14 +731,13 @@
 
       <!-- Success state (shown after submit) -->
       <div class="success-screen" id="success-screen">
-        <div class="success-orb">🎉</div>
-        <div class="success-title">You're in!</div>
-        <p class="success-sub">
+        <div class="success-orb" id="success-orb">🎉</div>
+        <div class="success-title" id="success-title">You're in!</div>
+        <p class="success-sub" id="success-sub">
           Your STAR profile has been created.<br>
-          Your score and badges have been saved.<br>
-          Time to keep climbing! 🚀
+          Setting up your dashboard now… 🚀
         </p>
-        <a href="study.html" class="btn-go-study">Continue Training →</a>
+        <a href="onboarding.html" class="btn-go-study" id="success-btn">Continue to Setup →</a>
       </div>
 
     </div><!-- /form-card -->
@@ -824,18 +827,64 @@ function updateCTA() {
 }
 
 /* ════════════════════════════════════════════════════
-   HANDLE SIGNUP (placeholder — wire to your backend)
+   SUPABASE CLIENT
 ════════════════════════════════════════════════════ */
-function handleSignup() {
-  const btn = document.getElementById('btn-cta');
-  btn.textContent = 'Creating your profile…';
-  btn.disabled = true;
+const SUPABASE_URL = 'https://iutcgogmxhaqgaxkznxu.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml1dGNnb2dteGhhcWdheGt6bnh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM3NjE4MTQsImV4cCI6MjA4OTMzNzgxNH0.o0plRQzH8ezfttG_sEeWu3F4IUtKnyzcXtPEGJ9xRF0';
+const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-  // Simulate API call — replace with your real auth call
-  setTimeout(() => {
+/* ════════════════════════════════════════════════════
+   HANDLE SIGNUP
+════════════════════════════════════════════════════ */
+async function handleSignup() {
+  const btn   = document.getElementById('btn-cta');
+  const errEl = document.getElementById('signup-error');
+  const email    = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+
+  btn.textContent = 'Creating your profile…';
+  btn.disabled    = true;
+  errEl.style.display = 'none';
+
+  const { data, error } = await client.auth.signUp({ email, password });
+
+  if (error) {
+    errEl.textContent    = '⚠️ ' + error.message;
+    errEl.style.display  = 'block';
+    btn.textContent      = '🌟 \u00a0Create My STAR Profile';
+    btn.disabled         = false;
+    return;
+  }
+
+  const user    = data?.user;
+  const session = data?.session;
+
+  if (session && user) {
+    // Auto-confirm is on — we have a live session, create profile and go
+    await client.from('profiles').upsert({
+      id:           user.id,
+      parent_email: email,
+      onboarded:    false,
+      subject:      'SEAG',
+      updated_at:   new Date().toISOString()
+    }, { onConflict: 'id' });
+
     document.getElementById('signup-form').style.display = 'none';
     document.getElementById('success-screen').classList.add('visible');
-  }, 1400);
+    setTimeout(() => { window.location.href = 'onboarding.html'; }, 1200);
+  } else {
+    // Email confirmation required — show "check your email" message
+    document.getElementById('success-orb').textContent   = '📧';
+    document.getElementById('success-title').textContent = 'Check your email!';
+    document.getElementById('success-sub').innerHTML =
+      'We\'ve sent a confirmation link to <strong>' + email + '</strong>.<br>' +
+      'Click it to activate your account, then log in to continue.';
+    document.getElementById('success-btn').href        = 'login.html';
+    document.getElementById('success-btn').textContent = 'Go to Login →';
+
+    document.getElementById('signup-form').style.display = 'none';
+    document.getElementById('success-screen').classList.add('visible');
+  }
 }
 
 /* ════════════════════════════════════════════════════
