@@ -96,3 +96,13 @@ See build plan below.
 - Do not remove the 4 validation layers from generate-questions.js
 - Do not build Stage 2 features before Stage 1 is complete
 - Do not add complexity that isn't needed yet
+
+- ## What needs building next (Phase 1)
+1. Comprehension passage display in mock.html — when student reaches Q16, show the reading passage in a scrollable panel above the questions for Q16-28
+2. Redesigned dashboard — weekly schedule cards, sessions completed this week vs target, today's recommended session as main CTA
+3. Parent section — migrate from localStorage to Supabase so data persists properly
+4. End-to-end flow audit — test full signup → onboarding → sprint → dashboard flow with a fresh account and fix anything broken
+
+## What NOT to build yet (Stage 2)
+STAR Chat, Premium tier, Real Life Test printable papers, Progress Report, AI Study Strategy Engine.
+Do not start these until Stage 1 is fully working and tested.
