@@ -928,6 +928,14 @@ function showResults() {
       updated_at:       new Date().toISOString()
     }, { onConflict: 'user_id' });
 
+    // Increment free sprint counter for non-subscribed users
+    if (!window._starAccess?.subscribed) {
+      const newCount = (window._starAccess?.freeUsed || 0) + 1;
+      await sb.from('profiles').update({ free_sprints_used: newCount }).eq('id', userId);
+      localStorage.setItem('star_free_sprints_used', String(newCount));
+      if (window._starAccess) window._starAccess.freeUsed = newCount;
+    }
+
     console.log('✅ Saved to Supabase!');
   });
 }
@@ -955,8 +963,13 @@ async function signOut() {
 
 /* ════════════════════════════════
    SUBSCRIPTION GATE
-   Checks login + subscription before allowing access
+   Checks login + subscription before allowing access.
+   Free users get 2 mini sprints before paywall kicks in.
 ════════════════════════════════ */
+
+// Module-level access state — read by the session save block
+window._starAccess = { subscribed: false, freeUsed: 0, userId: null };
+
 async function checkAccess() {
   try {
     const { data } = await sb.auth.getSession();
@@ -981,7 +994,7 @@ async function checkAccess() {
 
       const { data: profile, error } = await sb
         .from('profiles')
-        .select('subscription_status')
+        .select('subscription_status, free_sprints_used')
         .eq('id', userId)
         .single();
 
@@ -994,6 +1007,7 @@ async function checkAccess() {
       console.log('Access check attempt ' + attempt + ': status = ' + status);
 
       if (status === 'active' || status === 'trialing') {
+        window._starAccess = { subscribed: true, freeUsed: 0, userId };
         return true;
       }
 
@@ -1006,11 +1020,23 @@ async function checkAccess() {
       // Stripe confirmed payment — webhook will catch up
       if (justPaid) {
         console.log('Letting in post-checkout user — webhook pending');
+        window._starAccess = { subscribed: true, freeUsed: 0, userId };
         return true;
       }
 
-      // No subscription and did not just pay — send to pricing
-      window.location.href = 'pricing.html';
+      // No subscription — check free sprint allowance
+      // Fall back to localStorage if the column doesn't exist yet
+      const dbFreeUsed = profile?.free_sprints_used ?? null;
+      const lsFreeUsed = parseInt(localStorage.getItem('star_free_sprints_used') || '0', 10);
+      const freeUsed = dbFreeUsed !== null ? dbFreeUsed : lsFreeUsed;
+
+      if (freeUsed < 2) {
+        window._starAccess = { subscribed: false, freeUsed, userId };
+        return true;
+      }
+
+      // Free limit reached — send to pricing
+      window.location.href = 'pricing.html?reason=free_limit';
       return false;
     }
 

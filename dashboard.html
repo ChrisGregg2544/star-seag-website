@@ -193,6 +193,16 @@
     .week-card-next-badge{font-size:.58rem;font-weight:900;letter-spacing:.07em;text-transform:uppercase;color:var(--gold);margin-top:1px;}
     .week-card.upcoming{opacity:.38;}
 
+    /* UPGRADE BANNER */
+    .upgrade-banner{display:none;position:relative;z-index:10;width:100%;max-width:860px;background:linear-gradient(135deg,rgba(201,168,76,.12) 0%,rgba(201,168,76,.06) 100%);border:1px solid rgba(201,168,76,.35);border-radius:16px;padding:16px 20px;margin-bottom:16px;animation:fadeUp .4s cubic-bezier(.22,1,.36,1) both;}
+    .upgrade-banner.visible{display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
+    .upgrade-banner-icon{font-size:1.5rem;flex-shrink:0;}
+    .upgrade-banner-text{flex:1;min-width:180px;}
+    .upgrade-banner-text strong{display:block;font-size:.9rem;font-weight:700;color:#fff;margin-bottom:2px;}
+    .upgrade-banner-text span{font-size:.78rem;color:rgba(255,255,255,.55);}
+    .upgrade-banner-btn{background:var(--gold);color:var(--navy);font-family:'Lato',sans-serif;font-size:.78rem;font-weight:900;letter-spacing:.06em;text-transform:uppercase;padding:9px 18px;border-radius:10px;border:none;cursor:pointer;white-space:nowrap;text-decoration:none;transition:opacity .2s;}
+    .upgrade-banner-btn:hover{opacity:.85;}
+
     @media(max-width:680px){
       .hero{grid-template-columns:1fr;padding:24px 20px;}
       .score-ring-wrap{flex-direction:row;gap:14px;}
@@ -226,6 +236,16 @@
     <button class="nav-btn nav-signout" onclick="signOut()">Sign Out</button>
   </div>
 </nav>
+
+<!-- UPGRADE BANNER (shown for free/unsubscribed users) -->
+<div class="upgrade-banner" id="upgrade-banner">
+  <div class="upgrade-banner-icon">⭐</div>
+  <div class="upgrade-banner-text">
+    <strong id="upgrade-banner-msg">Unlock unlimited practice</strong>
+    <span>Subscribe to access Topic Sprints, Full Mocks, and unlimited Mini Sprints.</span>
+  </div>
+  <a href="pricing.html" class="upgrade-banner-btn">Start Free Trial →</a>
+</div>
 
 <!-- HERO -->
 <div class="hero">
@@ -556,13 +576,27 @@ async function init() {
   const userId = authData.session.user.id;
 
   const { data: profile } = await sb.from('profiles')
-    .select('name,year_group,exam_year,subscription_status,sessions_per_week')
+    .select('name,year_group,exam_year,subscription_status,sessions_per_week,free_sprints_used')
     .eq('id', userId).single();
 
   const status = profile?.subscription_status;
-  if (status !== 'active' && status !== 'trialing') {
-    window.location.href = 'pricing.html';
-    return;
+  const subscribed = status === 'active' || status === 'trialing';
+
+  if (!subscribed) {
+    const dbFreeUsed = profile?.free_sprints_used ?? null;
+    const lsFreeUsed = parseInt(localStorage.getItem('star_free_sprints_used') || '0', 10);
+    const freeUsed = dbFreeUsed !== null ? dbFreeUsed : lsFreeUsed;
+    const freeLeft = Math.max(0, 2 - freeUsed);
+    const banner = document.getElementById('upgrade-banner');
+    const msg = document.getElementById('upgrade-banner-msg');
+    if (freeLeft > 0) {
+      msg.textContent = freeLeft === 1
+        ? 'You have 1 free Mini Sprint remaining'
+        : 'You have ' + freeLeft + ' free Mini Sprints remaining';
+    } else {
+      msg.textContent = 'Your 2 free Mini Sprints are used up';
+    }
+    banner.classList.add('visible');
   }
 
   const name           = profile?.name           || sessionStorage.getItem('star_name') || 'Student';

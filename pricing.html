@@ -118,6 +118,17 @@
       animation: fadeUp .5s .05s cubic-bezier(.22,1,.36,1) both;
     }
 
+    .free-limit-banner {
+      display: none; position: relative; z-index: 10;
+      width: 100%; max-width: 440px;
+      background: rgba(239,68,68,.08); border: 1px solid rgba(239,68,68,.3);
+      border-radius: 14px; padding: 14px 18px; margin-bottom: 20px; text-align: center;
+      animation: fadeUp .45s cubic-bezier(.22,1,.36,1) both;
+    }
+    .free-limit-banner.visible { display: block; }
+    .free-limit-banner strong { display: block; font-size: .9rem; color: #ef4444; margin-bottom: 4px; }
+    .free-limit-banner span { font-size: .8rem; color: rgba(255,255,255,.55); }
+
     /* ── Pricing card ── */
     .pricing-wrap {
       position: relative; z-index: 10;
@@ -329,6 +340,12 @@
   ✅ 7-day free trial — cancel anytime, no charge today
 </div>
 
+<!-- Free trial exhausted message -->
+<div class="free-limit-banner" id="free-limit-banner">
+  <strong>You've used your 2 free Mini Sprints</strong>
+  <span>Subscribe to keep practising — your first 7 days are completely free.</span>
+</div>
+
 <!-- PRICING CARD -->
 <div class="pricing-wrap">
 
@@ -405,6 +422,11 @@
   const SUPABASE_URL = 'https://iutcgogmxhaqgaxkznxu.supabase.co';
   const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml1dGNnb2dteGhhcWdheGt6bnh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM3NjE4MTQsImV4cCI6MjA4OTMzNzgxNH0.o0plRQzH8ezfttG_sEeWu3F4IUtKnyzcXtPEGJ9xRF0';
   const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  // Show free-limit banner if redirected after using 2 free sprints
+  if (new URLSearchParams(window.location.search).get('reason') === 'free_limit') {
+    document.getElementById('free-limit-banner').classList.add('visible');
+  }
 
   // Check if already subscribed
   window.addEventListener('DOMContentLoaded', async () => {
