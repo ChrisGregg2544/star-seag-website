@@ -158,15 +158,41 @@
     .star-footer-bottom-links a{font-size:.72rem;color:rgba(255,255,255,.22);text-decoration:none;transition:color .18s;}
     .star-footer-bottom-links a:hover{color:rgba(255,255,255,.5);}
 
+    /* WEEKLY SCHEDULE */
+    .week-section{position:relative;z-index:10;width:100%;max-width:860px;margin-bottom:20px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:22px 24px;animation:fadeUp .54s .08s cubic-bezier(.22,1,.36,1) both;}
+    .week-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:3px;}
+    .week-title{font-size:.75rem;font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.4);}
+    .week-count{font-family:'Playfair Display',serif;font-size:1rem;font-weight:900;color:#fff;}
+    .week-count em{color:var(--gold);font-style:normal;}
+    .week-target-label{font-size:.78rem;color:rgba(255,255,255,.35);margin-bottom:14px;line-height:1.5;}
+    .week-target-label.complete{color:rgba(34,197,94,.75);}
+    .week-progress-track{height:4px;background:rgba(255,255,255,.08);border-radius:99px;overflow:hidden;margin-bottom:18px;}
+    .week-progress-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold-light));border-radius:99px;transition:width .9s cubic-bezier(.34,1.56,.64,1);}
+    .week-progress-fill.full{background:linear-gradient(90deg,var(--green),#4ade80);}
+    .week-cards{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;-webkit-overflow-scrolling:touch;}
+    .week-cards::-webkit-scrollbar{display:none;}
+    .week-card{flex-shrink:0;width:100px;background:rgba(255,255,255,.04);border:1.5px solid rgba(255,255,255,.1);border-radius:14px;padding:14px 8px 12px;display:flex;flex-direction:column;align-items:center;gap:5px;text-decoration:none;transition:all .2s;position:relative;overflow:hidden;}
+    .week-card-day{font-size:.63rem;font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.3);}
+    .week-card-icon{font-size:1.45rem;line-height:1;margin:2px 0;}
+    .week-card-name{font-size:.67rem;font-weight:700;color:rgba(255,255,255,.45);text-align:center;line-height:1.35;}
+    .week-card.done{background:rgba(34,197,94,.08);border-color:rgba(34,197,94,.25);cursor:default;}
+    .week-card.done .week-card-day{color:rgba(34,197,94,.5);}
+    .week-card.done .week-card-name{color:rgba(34,197,94,.6);}
+    .week-card-tick{position:absolute;top:7px;right:9px;font-size:.72rem;color:rgba(34,197,94,.8);}
+    .week-card.today{border-color:rgba(201,168,76,.55);background:rgba(201,168,76,.1);box-shadow:0 0 0 1px rgba(201,168,76,.15),0 4px 20px rgba(201,168,76,.15);}
+    .week-card.today .week-card-day{color:rgba(201,168,76,.8);}
+    .week-card.today .week-card-name{color:rgba(255,255,255,.85);}
+    .week-card-next-badge{font-size:.58rem;font-weight:900;letter-spacing:.07em;text-transform:uppercase;color:var(--gold);margin-top:1px;}
+    .week-card.upcoming{opacity:.38;}
+
     @media(max-width:680px){
       .hero{grid-template-columns:1fr;padding:24px 20px;}
       .score-ring-wrap{flex-direction:row;gap:14px;}
       .modes-grid{grid-template-columns:repeat(2,1fr);}
-      .stat-strip{grid-template-columns:1fr 1fr;}
-      .stat-strip .stat-tile:last-child{grid-column:span 2;}
       .star-footer-grid{grid-template-columns:1fr;gap:20px;}
       .topic-preview{max-width:100%;white-space:normal;}
       .nav-hi{display:none;}
+      .week-card{width:88px;}
     }
   </style>
 </head>
@@ -269,20 +295,17 @@
   </div>
 </div>
 
-<!-- STATS -->
-<div class="stat-strip">
-  <div class="stat-tile">
-    <div class="stat-icon gold">⭐</div>
-    <div><div class="stat-num" id="stat-score">—</div><div class="stat-label">Last Score</div></div>
+<!-- WEEKLY SCHEDULE -->
+<div class="week-section">
+  <div class="week-header">
+    <span class="week-title">📅 This Week</span>
+    <div class="week-count"><em id="week-done-num">0</em> of <em id="week-target-num">—</em> sessions</div>
   </div>
-  <div class="stat-tile">
-    <div class="stat-icon blue">📚</div>
-    <div><div class="stat-num" id="stat-topics">—</div><div class="stat-label">Topics to Review</div></div>
+  <div class="week-target-label" id="week-target-label">Loading your schedule…</div>
+  <div class="week-progress-track">
+    <div class="week-progress-fill" id="week-progress-fill" style="width:0%"></div>
   </div>
-  <div class="stat-tile">
-    <div class="stat-icon green">🏅</div>
-    <div><div class="stat-num" id="stat-badge">—</div><div class="stat-label">Badge Earned</div></div>
-  </div>
+  <div class="week-cards" id="week-cards"></div>
 </div>
 
 <!-- SKILLS MAP -->
@@ -362,14 +385,49 @@ function weeksUntil(examYear) {
   return diff > 0 ? Math.ceil(diff / 604800000) : 0;
 }
 
-function getTodayRec(yearGroup, weeks) {
+const SESSION_ROTATION = [
+  { icon: '⚡', name: 'Quick Sprint',  href: 'study.html' },
+  { icon: '🎯', name: 'Topic Sprint',  href: 'topic-sprint.html' },
+  { icon: '⚡', name: 'Quick Sprint',  href: 'study.html' },
+  { icon: '📝', name: 'Full Mock',     href: 'mock.html' },
+  { icon: '🎯', name: 'Topic Sprint',  href: 'topic-sprint.html' },
+  { icon: '⚡', name: 'Quick Sprint',  href: 'study.html' },
+  { icon: '📝', name: 'Full Mock',     href: 'mock.html' },
+];
+
+const DAY_MAPS = {
+  1: ['Wed'],
+  2: ['Tue','Thu'],
+  3: ['Mon','Wed','Fri'],
+  4: ['Mon','Tue','Thu','Fri'],
+  5: ['Mon','Tue','Wed','Thu','Fri'],
+  6: ['Mon','Tue','Wed','Thu','Fri','Sat'],
+  7: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],
+};
+
+function getTodayRec(yearGroup, weeks, sessionsPerWeek, weekDone) {
+  const target = Math.max(1, Math.min(7, sessionsPerWeek || 3));
+  const done   = weekDone || 0;
+
+  // Final stretch override for P7
   if (yearGroup === 'P7' && weeks !== null && weeks <= 8) {
-    return { title:'Full Coached Mock', sub:'You\'re in the final stretch — a full 56-question mock is the best prep now.', href:'#' };
+    return { title: 'Full Coached Mock', sub: 'Final stretch — a full 56-question mock is the best prep right now. Give it everything!', href: 'mock.html' };
   }
-  if (yearGroup === 'P7' && weeks !== null && weeks <= 16) {
-    return { title:'Topic Sprint', sub:'Focus on your weakest areas — a targeted sprint will make the biggest difference.', href:'study.html' };
+
+  // Week complete
+  if (done >= target) {
+    return { title: 'Bonus Sprint — Keep the Streak!', sub: 'You\'ve hit your weekly target. A bonus sprint keeps the momentum going!', href: 'study.html' };
   }
-  return { title:'Quick Sprint', sub:'10 fresh questions — the best way to build your skills today. Ready? Let\'s go!', href:'study.html' };
+
+  // Next session in rotation
+  const next = SESSION_ROTATION[done % SESSION_ROTATION.length];
+  const remaining = target - done;
+  const subs = {
+    'Quick Sprint':  `Session ${done + 1} of ${target} this week — 10 questions, instant feedback. Let's go!`,
+    'Topic Sprint':  `Session ${done + 1} of ${target} — focus on your weakest topic for the fastest improvement.`,
+    'Full Mock':     `Session ${done + 1} of ${target} — 56 questions in full exam format. Give it your best shot!`,
+  };
+  return { title: next.name, sub: subs[next.name] || `${remaining} session${remaining !== 1 ? 's' : ''} left this week.`, href: next.href };
 }
 
 function buildSkillsMap(count) {
@@ -436,13 +494,61 @@ function buildTopics(toReview, hasData) {
   });
 }
 
+function buildWeeklySchedule(sessionsPerWeek, weekDone) {
+  const target = Math.max(1, Math.min(7, sessionsPerWeek || 3));
+  const done   = Math.min(weekDone || 0, target);
+  const pct    = Math.round((done / target) * 100);
+
+  document.getElementById('week-done-num').textContent    = done;
+  document.getElementById('week-target-num').textContent  = target;
+
+  const fill  = document.getElementById('week-progress-fill');
+  fill.style.width = pct + '%';
+  if (done >= target) fill.classList.add('full');
+
+  const label = document.getElementById('week-target-label');
+  if (done >= target) {
+    label.textContent = '🎉 Week complete — amazing work! Rest up or do a bonus sprint.';
+    label.classList.add('complete');
+  } else {
+    const left = target - done;
+    label.textContent = `${left} session${left !== 1 ? 's' : ''} left to hit your weekly target`;
+  }
+
+  const days      = DAY_MAPS[target] || DAY_MAPS[3];
+  const container = document.getElementById('week-cards');
+  container.innerHTML = '';
+  let nextFlagged = false;
+
+  for (let i = 0; i < target; i++) {
+    const sess     = SESSION_ROTATION[i % SESSION_ROTATION.length];
+    const isDone   = i < done;
+    const isNext   = !isDone && !nextFlagged;
+    if (isNext) nextFlagged = true;
+    const isUpcoming = !isDone && !isNext;
+
+    const card = document.createElement(isDone ? 'div' : 'a');
+    if (!isDone) card.href = sess.href;
+    card.className = 'week-card' + (isDone ? ' done' : isNext ? ' today' : ' upcoming');
+
+    card.innerHTML =
+      (isDone ? '<span class="week-card-tick">✓</span>' : '') +
+      `<div class="week-card-day">${days[i]}</div>` +
+      `<div class="week-card-icon">${sess.icon}</div>` +
+      `<div class="week-card-name">${sess.name}</div>` +
+      (isNext ? '<div class="week-card-next-badge">Up next</div>' : '');
+
+    container.appendChild(card);
+  }
+}
+
 async function init() {
   const { data: authData } = await sb.auth.getSession();
   if (!authData?.session?.user) { window.location.href = 'login.html'; return; }
   const userId = authData.session.user.id;
 
   const { data: profile } = await sb.from('profiles')
-    .select('name,year_group,exam_year,subscription_status')
+    .select('name,year_group,exam_year,subscription_status,sessions_per_week')
     .eq('id', userId).single();
 
   const status = profile?.subscription_status;
@@ -451,12 +557,22 @@ async function init() {
     return;
   }
 
-  const name      = profile?.name      || sessionStorage.getItem('star_name') || 'Student';
-  const yearGroup = profile?.year_group || sessionStorage.getItem('star_year') || 'P6';
-  const examYear  = profile?.exam_year  || parseInt(sessionStorage.getItem('star_examYear')) || null;
+  const name           = profile?.name           || sessionStorage.getItem('star_name') || 'Student';
+  const yearGroup      = profile?.year_group     || sessionStorage.getItem('star_year') || 'P6';
+  const examYear       = profile?.exam_year      || parseInt(sessionStorage.getItem('star_examYear')) || null;
+  const sessionsPerWeek = profile?.sessions_per_week || 3;
 
-  const { count: sessionsCount } = await sb.from('sessions')
-    .select('*', {count:'exact',head:true}).eq('user_id', userId);
+  // Sessions this week (since Monday 00:00)
+  const now = new Date();
+  const daysFromMonday = now.getDay() === 0 ? 6 : now.getDay() - 1;
+  const weekStart = new Date(now);
+  weekStart.setDate(now.getDate() - daysFromMonday);
+  weekStart.setHours(0, 0, 0, 0);
+
+  const [{ count: sessionsCount }, { count: weekDoneCount }] = await Promise.all([
+    sb.from('sessions').select('*', {count:'exact',head:true}).eq('user_id', userId),
+    sb.from('sessions').select('*', {count:'exact',head:true}).eq('user_id', userId).gte('created_at', weekStart.toISOString()),
+  ]);
 
   const { data: progressData } = await sb.from('progress_summary')
     .select('last_score, last_total, topics_to_review')
@@ -490,8 +606,9 @@ async function init() {
     document.getElementById('countdown-sub').textContent   = 'Complete onboarding';
   }
 
-  // Today's rec
-  const rec = getTodayRec(yearGroup, weeks);
+  // Today's rec — driven by weekly schedule position
+  const weekDone = weekDoneCount || 0;
+  const rec = getTodayRec(yearGroup, weeks, sessionsPerWeek, weekDone);
   document.getElementById('today-title').textContent = rec.title;
   document.getElementById('today-sub').textContent   = rec.sub;
   document.getElementById('today-card').href         = rec.href;
@@ -506,13 +623,9 @@ async function init() {
     if (pct >= 80) fill.classList.add('green');
     else if (pct < 50) fill.classList.add('amber');
     requestAnimationFrame(() => setTimeout(() => { fill.style.strokeDashoffset = off; }, 80));
-    document.getElementById('stat-score').textContent  = pct + '%';
-    document.getElementById('stat-topics').textContent = toReview.length;
-    document.getElementById('stat-badge').textContent  = pct >= 80 ? '🥇 Gold' : pct >= 60 ? '🥈 Silver' : '🥉 Bronze';
-  } else {
-    ['stat-score','stat-topics','stat-badge'].forEach(id => document.getElementById(id).textContent = '—');
   }
 
+  buildWeeklySchedule(sessionsPerWeek, weekDone);
   buildSkillsMap(sessionsCount || 0);
   buildTopics(toReview, hasData);
 }
