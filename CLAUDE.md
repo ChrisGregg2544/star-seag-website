@@ -1,5 +1,10 @@
 # STAR AI Tutor — Project Briefing for Claude Code
 
+## SEAG Reference Papers
+Official SEAG practice papers are in the root of the repo.
+Read these to understand the exact exam format before building any question-related features.
+The Specification.pdf and The_Format.pdf are the most important.
+
 ## What this is
 An AI-powered tutoring platform for Northern Ireland P6/P7 students 
 preparing for the SEAG Transfer Test (grammar school entrance exam, November).
