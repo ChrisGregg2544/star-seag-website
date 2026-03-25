@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node -e \":*)",
+      "Bash(node:*)",
+      "Bash(git config:*)"
+    ]
+  }
+}
