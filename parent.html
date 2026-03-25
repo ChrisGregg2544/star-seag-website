@@ -7,6 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,400&family=Lato:wght@300;400;700;900&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     :root {
       --gold:       #C9A84C;
@@ -538,8 +539,15 @@
    PARENT PORTAL
 ════════════════════════════════════════════════════ */
 
-const CORRECT_PIN = '1234'; // ← change this to your preferred PIN
+const { createClient } = supabase;
+const sb = createClient(
+  'https://iutcgogmxhaqgaxkznxu.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml1dGNnb2dteGhhcWdheGt6bnh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM3NjE4MTQsImV4cCI6MjA4OTMzNzgxNH0.o0plRQzH8ezfttG_sEeWu3F4IUtKnyzcXtPEGJ9xRF0'
+);
+
+const CORRECT_PIN = '1234';
 let pinEntry = '';
+let currentUserId = null;
 
 /* ── PIN logic ── */
 function pinPress(digit) {
@@ -552,10 +560,10 @@ function pinPress(digit) {
 function pinBackspace() {
   pinEntry = pinEntry.slice(0, -1);
   document.getElementById('pin-error').textContent = '';
-  updateDots(false);
+  updateDots();
 }
 
-function updateDots(shake) {
+function updateDots() {
   for (let i = 0; i < 4; i++) {
     const dot = document.getElementById('dot-' + i);
     dot.classList.toggle('filled', i < pinEntry.length);
@@ -568,22 +576,16 @@ function checkPin() {
     document.getElementById('pin-overlay').classList.add('hidden');
     buildDashboard();
   } else {
-    // Flash dots red, shake
     for (let i = 0; i < 4; i++) {
       const dot = document.getElementById('dot-' + i);
       dot.classList.remove('filled');
       dot.classList.add('error');
     }
     document.getElementById('pin-error').textContent = 'Incorrect PIN — please try again';
-    setTimeout(() => {
-      pinEntry = '';
-      updateDots();
-      document.getElementById('pin-error').textContent = '';
-    }, 900);
+    setTimeout(() => { pinEntry = ''; updateDots(); document.getElementById('pin-error').textContent = ''; }, 900);
   }
 }
 
-// Also support keyboard entry
 document.addEventListener('keydown', e => {
   if (!document.getElementById('pin-overlay').classList.contains('hidden')) {
     if (e.key >= '0' && e.key <= '9') pinPress(e.key);
@@ -591,40 +593,76 @@ document.addEventListener('keydown', e => {
   }
 });
 
-/* ── Main build ── */
-function buildDashboard() {
-  const mastery   = JSON.parse(localStorage.getItem('star_mastery'))   || {};
-  const videoLog  = JSON.parse(localStorage.getItem('star_video_log')) || [];
-  const sessions  = JSON.parse(localStorage.getItem('star_sessions'))  || [];
-  const lastName  = localStorage.getItem('star_last_name')  || 'your child';
-  const lastTrack = localStorage.getItem('star_last_track') || 'P6';
+/* ── Main build — reads from Supabase ── */
+async function buildDashboard() {
+  if (!currentUserId) return;
 
-  // Page header personalisation
+  document.getElementById('ph-sub').textContent = 'Loading progress data…';
+
+  const [
+    { data: profile },
+    { data: sessions },
+    { data: qResults },
+    { data: progress },
+  ] = await Promise.all([
+    sb.from('profiles')
+      .select('name, year_group')
+      .eq('id', currentUserId).single(),
+    sb.from('sessions')
+      .select('score, total_questions, track, session_type, created_at')
+      .eq('user_id', currentUserId)
+      .order('created_at', { ascending: false })
+      .limit(50),
+    sb.from('question_results')
+      .select('topic, question_type, correct')
+      .eq('user_id', currentUserId),
+    sb.from('progress_summary')
+      .select('topics_to_review, last_session_at')
+      .eq('user_id', currentUserId).single(),
+  ]);
+
+  const name        = profile?.name      || 'your child';
+  const yearGroup   = profile?.year_group || 'P6';
+  const allSessions = sessions  || [];
+  const mastery     = aggregateMastery(qResults || []);
+  const toReview    = progress?.topics_to_review || [];
+
   document.getElementById('ph-sub').textContent =
-    'Viewing progress for ' + lastName + ' · ' +
-    (lastTrack === 'P7' ? 'P7 Executor Track' : 'P6 Builder Track') +
-    ' · Data from ' + sessions.length + ' sprint' + (sessions.length !== 1 ? 's' : '');
+    'Viewing progress for ' + name + ' · ' +
+    (yearGroup === 'P7' ? 'P7 Executor Track' : 'P6 Builder Track') +
+    ' · ' + allSessions.length + ' sprint' + (allSessions.length !== 1 ? 's' : '') + ' completed';
 
-  buildSummary(mastery, sessions);
+  buildSummary(mastery, allSessions, toReview);
   buildMasteryTable(mastery);
-  buildVideoLog(videoLog);
-  buildHistory(sessions);
+  buildVideoLog(toReview, progress?.last_session_at);
+  buildHistory(allSessions);
+}
+
+/* ── Aggregate question_results by topic ── */
+function aggregateMastery(qResults) {
+  const mastery = {};
+  qResults.forEach(r => {
+    if (!mastery[r.topic]) mastery[r.topic] = { correct: 0, wrong: 0, type: r.question_type };
+    if (r.correct) mastery[r.topic].correct++;
+    else           mastery[r.topic].wrong++;
+  });
+  return mastery;
 }
 
 /* ── Summary strip ── */
-function buildSummary(mastery, sessions) {
+function buildSummary(mastery, sessions, toReview) {
   document.getElementById('sum-sprints').textContent = sessions.length || '—';
 
   if (sessions.length) {
-    const avg = Math.round(sessions.reduce((s, x) => s + x.score, 0) / sessions.length);
+    const scores = sessions.map(s => Math.round((s.score / s.total_questions) * 100));
+    const avg = Math.round(scores.reduce((a, b) => a + b, 0) / scores.length);
     document.getElementById('sum-avg').textContent = avg + '%';
   }
 
-  const topics    = Object.values(mastery);
-  const mastered  = topics.filter(t => t.correct > 0 && t.wrong === 0).length;
-  const toReview  = topics.filter(t => t.wrong > 0).length;
+  const topics   = Object.values(mastery);
+  const mastered = topics.filter(t => t.correct > 0 && t.wrong === 0).length;
   document.getElementById('sum-mastered').textContent = mastered || '—';
-  document.getElementById('sum-review').textContent   = toReview || '—';
+  document.getElementById('sum-review').textContent   = toReview.length || '—';
 }
 
 /* ── Mastery table ── */
@@ -633,20 +671,15 @@ function buildMasteryTable(mastery) {
   const topics = Object.entries(mastery);
 
   if (topics.length === 0) {
-    table.innerHTML = '<div style="padding:28px;text-align:center;color:var(--text-light);font-size:.88rem;">No data yet — complete a sprint to see topic breakdown.</div>';
+    table.innerHTML = '<div style="padding:28px;text-align:center;color:var(--text-light);font-size:.88rem;">No data yet — complete a sprint to see the topic breakdown.</div>';
     return;
   }
 
-  // Header row
   table.innerHTML = `
     <div class="mt-row header">
-      <span>Topic</span>
-      <span>Correct</span>
-      <span>To Review</span>
-      <span>Accuracy</span>
+      <span>Topic</span><span>Correct</span><span>To Review</span><span>Accuracy</span>
     </div>`;
 
-  // Sort: most attempted first
   topics.sort((a, b) => (b[1].correct + b[1].wrong) - (a[1].correct + a[1].wrong));
 
   topics.forEach(([topic, data]) => {
@@ -654,7 +687,6 @@ function buildMasteryTable(mastery) {
     const pct     = total ? Math.round(data.correct / total * 100) : 0;
     const fillCls = pct >= 75 ? 'fill-great' : pct >= 40 ? 'fill-ok' : 'fill-poor';
     const dotCls  = data.type === 'maths' ? 'dot-maths' : 'dot-english';
-
     const row = document.createElement('div');
     row.className = 'mt-row';
     row.innerHTML = `
@@ -673,36 +705,34 @@ function buildMasteryTable(mastery) {
     table.appendChild(row);
   });
 
-  // Animate bars after paint
   requestAnimationFrame(() => setTimeout(() => {
-    table.querySelectorAll('.mt-bar-fill').forEach(el => {
-      el.style.width = el.dataset.w;
-    });
+    table.querySelectorAll('.mt-bar-fill').forEach(el => { el.style.width = el.dataset.w; });
   }, 100));
 }
 
-/* ── Video log ── */
-function buildVideoLog(videoLog) {
+/* ── Video log — from topics_to_review in progress_summary ── */
+function buildVideoLog(toReview, lastSessionAt) {
   const container = document.getElementById('video-log');
-  if (videoLog.length === 0) {
-    container.innerHTML = '<div class="vl-empty"><p>No videos prompted yet — errors during a sprint will appear here.</p></div>';
+  const items     = (toReview || []).filter(item => item.videoUrl);
+
+  if (items.length === 0) {
+    container.innerHTML = '<div class="vl-empty"><p>No topics to review yet — errors during a sprint will appear here.</p></div>';
     return;
   }
 
-  videoLog.forEach(item => {
+  const dateStr = lastSessionAt ? formatDate(lastSessionAt) : '';
+  items.forEach(item => {
     const isCorbett = (item.videoSource || '').toLowerCase().includes('corbett');
     const srcCls    = isCorbett ? 'src-corbett'   : 'src-bitesize';
     const btnCls    = isCorbett ? 'vl-btn-corbett' : 'vl-btn-bitesize';
     const srcLabel  = isCorbett ? 'CorbettMaths'   : 'BBC Bitesize';
-    const dateStr   = item.date ? formatDate(item.date) : '';
-
     const card = document.createElement('div');
     card.className = 'vl-card';
     card.innerHTML = `
       <span class="vl-source-badge ${srcCls}">${srcLabel}</span>
       <div class="vl-info">
         <div class="vl-topic">${item.topic}</div>
-        <div class="vl-title">${item.videoTitle}</div>
+        <div class="vl-title">${item.videoTitle || item.topic}</div>
       </div>
       <div class="vl-date">${dateStr}</div>
       <a class="vl-btn ${btnCls}" href="${item.videoUrl}" target="_blank" rel="noopener">▶ Watch</a>`;
@@ -722,38 +752,44 @@ function buildHistory(sessions) {
   }
 
   sessions.forEach(s => {
-    const circleCls = s.score >= 80 ? 'hsc-gold' : s.score >= 60 ? 'hsc-silver' : 'hsc-bronze';
+    const pct       = Math.round((s.score / s.total_questions) * 100);
+    const circleCls = pct >= 80 ? 'hsc-gold' : pct >= 60 ? 'hsc-silver' : 'hsc-bronze';
     const track     = s.track === 'P7' ? 'P7 Executor' : 'P6 Builder';
+    const typeLabel = s.session_type === 'mock' ? 'Full Mock' : s.session_type === 'topic_sprint' ? 'Topic Sprint' : 'Quick Sprint';
     const row = document.createElement('div');
     row.className = 'hist-row';
     row.innerHTML = `
-      <div class="hist-score-circle ${circleCls}">${s.score}%</div>
+      <div class="hist-score-circle ${circleCls}">${pct}%</div>
       <div class="hist-info">
-        <div class="hist-track">${track} Track</div>
-        <div class="hist-score">${s.correct}/${s.total} correct</div>
+        <div class="hist-track">${track} · ${typeLabel}</div>
+        <div class="hist-score">${s.score} of ${s.total_questions} correct</div>
       </div>
-      <div class="hist-date">${s.date ? formatDate(s.date) : ''}</div>`;
+      <div class="hist-date">${s.created_at ? formatDate(s.created_at) : ''}</div>`;
     list.appendChild(row);
   });
 }
 
 /* ── Reset ── */
 function confirmReset() {
-  if (!confirm('Are you sure? This will permanently clear all mastery data, video logs and sprint history.')) return;
-  ['star_mastery','star_video_log','star_sessions'].forEach(k => localStorage.removeItem(k));
-  alert('Progress data cleared. The page will now reload.');
-  location.reload();
+  alert('Progress data is now stored securely in STAR\'s database and cannot be cleared from this screen. Please contact support if you need to reset your child\'s progress.');
 }
 
 /* ── Helpers ── */
 function formatDate(iso) {
   try {
-    return new Date(iso).toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' });
+    return new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
   } catch { return ''; }
 }
 
-window.addEventListener('DOMContentLoaded', () => {
-  // Show PIN overlay; buildDashboard() called on success
+/* ── Init: check auth, then wait for PIN ── */
+window.addEventListener('DOMContentLoaded', async () => {
+  const { data } = await sb.auth.getSession();
+  if (!data?.session?.user) {
+    window.location.href = 'login.html';
+    return;
+  }
+  currentUserId = data.session.user.id;
+  // PIN overlay already showing — buildDashboard() called on correct PIN
 });
 </script>
 </body>
