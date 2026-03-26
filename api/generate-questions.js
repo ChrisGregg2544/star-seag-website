@@ -392,17 +392,17 @@ CHECKS: Q1-5 and Q11-15 fifth option exactly "N. No mistake". No-mistake answers
 Return {"questions": [...15 questions...]}`;
 
       const pComp = `Generate exactly 13 COMPREHENSION questions for ${level} based on ONE original reading passage.
-First write ONE original passage ~400 words (prose fiction or non-fiction, suitable for ages 10-12).
-passage field: full passage text in EVERY question.
+Write ONE original passage ~300 words (prose fiction or non-fiction, suitable for ages 10-12).
+IMPORTANT: Include the full passage text in the passage field of Q1 ONLY. For Q2-13 set passage to empty string "". The server will copy it automatically.
 Q1-7: 7 multiple choice A/B/C/D/E (literal, inferential, language effect questions).
 Q8-13: 6 free response — options: [] — answer: exact short expected word/phrase from passage.
 Types for FR: word extraction, phrase extraction, counting, grammar identification.
-CHECKS: all 13 questions reference the SAME passage. FR answers are exact expected values.
+FR answers are exact expected values found in the passage.
 Return {"questions": [...13 questions...]}`;
 
       const [partLang, partComp] = await Promise.all([
-        callClaude(apiKey, systemPrompt, pLang, 3000, 'english-language'),
-        callClaude(apiKey, systemPrompt, pComp, 4000, 'english-comprehension')
+        callClaude(apiKey, systemPrompt, pLang, 3500, 'english-language'),
+        callClaude(apiKey, systemPrompt, pComp, 2500, 'english-comprehension')
       ]);
       allQuestions = [...partLang, ...partComp];
       console.log(`[generate-questions] mock_english merged: ${allQuestions.length} questions`);
@@ -477,6 +477,22 @@ Return {"questions": [...13 questions...]}`;
       if (!q.context)  q.context  = '';
       if (!q.passage)  q.passage  = '';
     });
+
+    // Propagate comprehension passage from first question that has one to all others
+    let sharedPassage = '';
+    parsed.questions.forEach(q => {
+      if ((q.topic || '').toLowerCase().includes('comprehension') && q.passage && !sharedPassage) {
+        sharedPassage = q.passage;
+      }
+    });
+    if (sharedPassage) {
+      parsed.questions.forEach(q => {
+        if ((q.topic || '').toLowerCase().includes('comprehension') && !q.passage) {
+          q.passage = sharedPassage;
+        }
+      });
+      console.log(`[generate-questions] Propagated passage to comprehension questions (${sharedPassage.length} chars)`);
+    }
 
     console.log(`[generate-questions] DONE mode=${mode} level=${level} questions=${parsed.questions.length}`);
     return res.status(200).json(parsed);
