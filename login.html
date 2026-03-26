@@ -227,13 +227,35 @@
   }
 
   /* ══════════════════════════════════════
-     ALREADY LOGGED IN CHECK
-     Runs on page load — do smart redirect
-     if user already has a session
+     OAUTH ERROR SURFACE
+     When Google/Supabase redirect back with
+     an error in the URL hash, show it rather
+     than leaving the user on a blank page.
   ══════════════════════════════════════ */
-  client.auth.getSession().then(async ({ data }) => {
-    if (data?.session?.user) {
-      await smartRedirect(data.session.user.id)
+  ;(function checkOAuthError() {
+    const hash = new URLSearchParams(window.location.hash.slice(1))
+    const msg  = hash.get('error_description') || hash.get('error')
+    if (msg) showMessage('⚠️ Sign-in failed: ' + msg, 'error')
+  })()
+
+  /* ══════════════════════════════════════
+     SESSION DETECTION
+     onAuthStateChange is used instead of a
+     one-shot getSession() call so that the
+     OAuth callback session (which is set
+     asynchronously from the URL hash) is
+     reliably detected.
+
+     SIGNED_IN   — fires after OAuth return or email login
+     INITIAL_SESSION — fires on page load when a session
+                       already exists in storage
+  ══════════════════════════════════════ */
+  let _redirecting = false
+  client.auth.onAuthStateChange(async (event, session) => {
+    if (_redirecting) return
+    if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session?.user) {
+      _redirecting = true
+      await smartRedirect(session.user.id)
     }
   })
 </script>
