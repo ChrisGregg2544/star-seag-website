@@ -884,6 +884,12 @@ function nextQuestion() {
 
   // End of section — move to transition screen
   if (currentSection === 'practice') {
+    const btn = document.getElementById('trans-btn-english');
+    if (startOrder === 'maths') {
+      btn.innerHTML = '📐 Begin Maths Main Test →';
+    } else {
+      btn.innerHTML = '📖 Begin English Main Test →';
+    }
     showScreen('practice-done');
   } else if (currentSection === 'english') {
     if (startOrder === 'english') {
@@ -921,10 +927,14 @@ async function startMainTest() {
 
   try {
     if (firstSection === 'english') {
+      // Ensure promise exists (may be null if resuming a saved mock)
+      if (!englishFetchPromise) englishFetchPromise = fetchSection('mock_english', 28);
       ENGLISH_QS = await englishFetchPromise;
       // Kick off Maths now — student has 20+ mins of English ahead
       if (!mathsFetchPromise) mathsFetchPromise = fetchSection('mock_maths', 28);
     } else {
+      // Ensure promise exists (may be null if resuming a saved mock)
+      if (!mathsFetchPromise) mathsFetchPromise = fetchSection('mock_maths', 28);
       MATHS_QS = await mathsFetchPromise;
       // Kick off English now — student has 20+ mins of Maths ahead
       if (!englishFetchPromise) englishFetchPromise = fetchSection('mock_english', 28);
