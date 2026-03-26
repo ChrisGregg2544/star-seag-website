@@ -170,6 +170,8 @@
     .missed-topic-tag { font-size: .7rem; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--text-light); margin-bottom: 6px; }
     .missed-video-link { display: inline-flex; align-items: center; gap: 6px; font-size: .78rem; font-weight: 700; color: var(--blue-hint); text-decoration: none; margin-top: 8px; }
     .missed-video-link:hover { text-decoration: underline; }
+    .missed-context { font-size: .82rem; color: var(--text-mid); line-height: 1.6; background: rgba(11,31,58,.04); border-left: 3px solid rgba(201,168,76,.35); padding: 8px 12px; border-radius: 0 6px 6px 0; margin-bottom: 10px; font-weight: 700; }
+    .missed-segments { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; align-items: flex-end; }
     .all-correct-msg { text-align: center; padding: 28px; background: var(--green-bg); border: 1px solid rgba(34,197,94,.2); border-radius: 12px; margin-bottom: 32px; }
     .all-correct-msg .ace { font-size: 2rem; margin-bottom: 8px; }
     .all-correct-msg p { color: #16a34a; font-weight: 700; font-size: .95rem; }
@@ -652,9 +654,10 @@ function loadQuestion(idx) {
   document.getElementById('btn-next').style.display = 'none';
 
   const vl = document.getElementById('video-link');
+  const effVid = getEffectiveVideo(q);
   document.getElementById('video-title').textContent  = q.videoTitle  || (q.videoTopic ? `Search: ${q.videoTopic}` : 'Watch Tutorial');
-  document.getElementById('video-source').textContent = q.videoSource || (isEnglish ? 'BBC Bitesize' : 'CorbettMaths');
-  vl.setAttribute('href',   q.videoUrl || '#');
+  document.getElementById('video-source').textContent = effVid.source;
+  vl.setAttribute('href',   effVid.url);
   vl.setAttribute('target', '_blank');
   vl.setAttribute('rel',    'noopener noreferrer');
 }
@@ -790,6 +793,25 @@ function nextQuestion() {
 }
 
 /* ════════════════════════════════
+   VIDEO SOURCE HELPER
+════════════════════════════════ */
+function getEffectiveVideo(q) {
+  const typeLower  = (q.type  || '').toLowerCase();
+  const topicLower = (q.topic || '').toLowerCase();
+  const isEng = typeLower.includes('english') ||
+    ['punctuation', 'grammar', 'spelling', 'comprehension'].some(t => topicLower.includes(t));
+  const source = q.videoSource || (isEng ? 'BBC Bitesize' : 'CorbettMaths');
+  let url = q.videoUrl || '';
+  // Re-derive URL if the stored URL doesn't match the correct source
+  if (source === 'CorbettMaths' && !url.includes('corbett')) {
+    url = 'https://corbettmathsprimary.com/?s=' + encodeURIComponent(q.videoTopic || q.topic || '');
+  } else if (source !== 'CorbettMaths' && !url.includes('bbc.co.uk')) {
+    url = 'https://www.bbc.co.uk/bitesize/search?q=' + encodeURIComponent(q.videoTopic || q.topic || '');
+  }
+  return { source, url };
+}
+
+/* ════════════════════════════════
    SHOW RESULTS
    Supabase save happens HERE — once, at end of sprint only
 ════════════════════════════════ */
@@ -859,16 +881,40 @@ function showResults() {
           if (idx >= 0 && q.options[idx]) correctAns = q.options[idx].replace(/^[A-EN]\.\s*/i, '');
         }
       }
+      const qTypeLower  = (q.type  || '').toLowerCase();
+      const qTopicLower = (q.topic || '').toLowerCase();
+      const qIsEnglish  = qTypeLower.includes('english') ||
+        ['punctuation', 'grammar', 'spelling', 'comprehension'].some(t => qTopicLower.includes(t));
+      const qIsSegmented = qTopicLower.includes('punctuation') || qTopicLower.includes('spelling');
+
+      // Build segments HTML for punctuation/spelling questions
+      let segmentsHtml = '';
+      if (qIsSegmented && q.segments && q.segments.length) {
+        const letters = ['A','B','C','D'];
+        const segs = q.segments.map((seg, i) => `
+          <div class="segment-block">
+            <div class="segment-text">${seg}</div>
+            <div class="segment-label">${letters[i] || ''}</div>
+          </div>`).join('');
+        segmentsHtml = `<div class="missed-segments">${segs}</div>`;
+      }
+
+      // Build context HTML for maths/other questions that have context
+      const contextHtml = (!qIsSegmented && q.context)
+        ? `<div class="missed-context">${q.context}</div>` : '';
+
+      const vid = getEffectiveVideo(q);
       const card = document.createElement('div');
       card.className = 'missed-card';
       card.innerHTML = `
-        <div class="missed-topic-tag">${q.type === 'maths' ? '📐' : '📖'} ${q.topic}</div>
+        <div class="missed-topic-tag">${qIsEnglish ? '📖' : '📐'} ${q.topic}</div>
         <div class="missed-q-text">${q.text}</div>
+        ${segmentsHtml}${contextHtml}
         <div class="missed-answers">
           <span class="missed-chip yours">✗ Your answer: ${studentAns}</span>
           <span class="missed-chip correct">✓ Correct: ${correctAns}</span>
         </div>
-        <a class="missed-video-link" href="${q.videoUrl}" target="_blank" rel="noopener">🔍 Search: ${q.videoTopic || q.topic} on ${q.videoSource}</a>`;
+        <a class="missed-video-link" href="${vid.url}" target="_blank" rel="noopener">🔍 Search: ${q.videoTopic || q.topic} on ${vid.source}</a>`;
       missedList.appendChild(card);
     });
   }
