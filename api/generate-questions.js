@@ -391,18 +391,18 @@ Q11-15 SPELLING: same segment format as punctuation, text "Find the section with
 CHECKS: Q1-5 and Q11-15 fifth option exactly "N. No mistake". No-mistake answers exactly "N".
 Return {"questions": [...15 questions...]}`;
 
-      const pComp = `Generate exactly 13 COMPREHENSION questions for ${level} based on ONE original reading passage.
-Write ONE original passage ~300 words (prose fiction or non-fiction, suitable for ages 10-12).
-IMPORTANT: Include the full passage text in the passage field of Q1 ONLY. For Q2-13 set passage to empty string "". The server will copy it automatically.
-Q1-7: 7 multiple choice A/B/C/D/E (literal, inferential, language effect questions).
-Q8-13: 6 free response — options: [] — answer: exact short expected word/phrase from passage.
+      const pComp = `Generate exactly 9 COMPREHENSION questions for ${level} based on ONE original reading passage.
+Write ONE original passage ~200 words (prose fiction or non-fiction, suitable for ages 10-12).
+IMPORTANT: Include the full passage text in the passage field of Q1 ONLY. For Q2-9 set passage to empty string "". The server will copy it automatically.
+Q1-5: 5 multiple choice A/B/C/D/E (literal, inferential, language effect questions).
+Q6-9: 4 free response — options: [] — answer: exact short expected word/phrase from passage.
 Types for FR: word extraction, phrase extraction, counting, grammar identification.
 FR answers are exact expected values found in the passage.
-Return {"questions": [...13 questions...]}`;
+Return {"questions": [...9 questions...]}`;
 
       const [partLang, partComp] = await Promise.all([
         callClaude(apiKey, systemPrompt, pLang, 3500, 'english-language'),
-        callClaude(apiKey, systemPrompt, pComp, 2500, 'english-comprehension')
+        callClaude(apiKey, systemPrompt, pComp, 3000, 'english-comprehension')
       ]);
       allQuestions = [...partLang, ...partComp];
       console.log(`[generate-questions] mock_english merged: ${allQuestions.length} questions`);
