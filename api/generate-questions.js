@@ -150,6 +150,48 @@ function getBBCUrl(topic) {
 }
 
 /* ══════════════════════════════════════════════════════
+   ANTHROPIC HELPER — one prompt → array of question objects
+   Kept separate so mock_maths / mock_english can fire two
+   calls in parallel via Promise.all instead of one slow call.
+══════════════════════════════════════════════════════ */
+async function callClaude(apiKey, systemPrompt, userPrompt, maxTokens, label) {
+  console.log(`[generate-questions] callClaude(${label}) maxTokens=${maxTokens}`);
+  const response = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01'
+    },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-6',
+      max_tokens: maxTokens,
+      system: systemPrompt,
+      messages: [{ role: 'user', content: userPrompt }]
+    })
+  });
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error(`[generate-questions] ${label} HTTP ${response.status}:`, errorText.slice(0, 300));
+    throw new Error(`Anthropic HTTP ${response.status} for ${label}`);
+  }
+  const data = await response.json();
+  console.log(`[generate-questions] ${label} stop_reason=${data.stop_reason} output_tokens=${data.usage?.output_tokens}`);
+  if (!data.content || !data.content.length) throw new Error(`Empty response for ${label}`);
+  const text = data.content.filter(b => b.type === 'text').map(b => b.text).join('');
+  const clean = text.replace(/```json|```/g, '').trim();
+  let parsed;
+  try { parsed = JSON.parse(clean); } catch(e) {
+    console.error(`[generate-questions] ${label} JSON parse error:`, e.message, 'preview:', clean.slice(0, 200));
+    throw new Error(`JSON parse failed for ${label}`);
+  }
+  if (Array.isArray(parsed)) parsed = { questions: parsed };
+  if (!parsed.questions || !Array.isArray(parsed.questions)) throw new Error(`Invalid format for ${label}`);
+  console.log(`[generate-questions] ${label} → ${parsed.questions.length} questions`);
+  return parsed.questions;
+}
+
+/* ══════════════════════════════════════════════════════
    MAIN HANDLER
 ══════════════════════════════════════════════════════ */
 export default async function handler(req, res) {
@@ -283,69 +325,14 @@ CHECKS: 5th option on Punctuation/Spelling = exactly "N. No mistake". Answer = "
 Return {"questions": [...10 questions...]}`;
 
   } else if (mockEnglish) {
-    maxTokens = 8000;
-    userPrompt = `Generate exactly 28 ENGLISH MAIN TEST questions for ${level} in exact SEAG format order:
-
-Q1-5 PUNCTUATION (5 questions):
-- Sentence split into 4 segments labelled A/B/C/D
-- options: ["A. segment1", "B. segment2", "C. segment3", "D. segment4", "N. No mistake"]
-- answer: A/B/C/D/N
-- segments array: 4 items
-- Vary the errors: mix of apostrophes, capital letters, missing punctuation, no-mistake questions
-
-Q6-10 GRAMMAR (5 questions):
-- context: sentence with _____ gap
-- options: 5 single words or short phrases A/B/C/D/E
-- segments: []
-- text: "Choose the best word to complete the sentence."
-- Vary: prepositions, conjunctions, pronouns, verb tenses, comparatives
-
-Q11-15 SPELLING (5 questions):
-- Same segment format as Punctuation
-- text: "Find the section with the spelling mistake. If there is no mistake, mark N."
-- Use real UK English spelling errors (suffixes, silent letters, double consonants, homophones)
-
-Q16-28 COMPREHENSION (13 questions on ONE passage):
-- First write ONE original reading passage ~450 words (prose fiction or non-fiction, suitable for P6/P7 ages 10-12)
-- passage field: full text in EVERY comprehension question
-- Q16-22: 7 multiple choice A/B/C/D/E (literal, inferential, language effect questions)
-- Q23-28: 6 free response — options: [] — answer: exact short expected phrase
-  Types: word extraction ("Which word in the passage means X?"), phrase extraction, counting, grammar identification
-
-MANDATORY CHECKS:
-1. Q1-5 and Q11-15: 5th option exactly "N. No mistake" — answers: A/B/C/D/N only
-2. No-mistake answers exactly "N"  
-3. Exactly 5+5+5+7+6 = 28 questions total
-4. All 13 comprehension questions reference the SAME passage
-5. Free response answer fields contain the exact expected answer word/phrase
-
-Return {"questions": [...28 questions...]}`;
+    // Split into 2 parallel calls: language (15 q) + comprehension (13 q)
+    // Each call ~3000 tokens — much faster than one 8000-token call
+    userPrompt = '__split_english__';
 
   } else if (mockMaths) {
-    maxTokens = 8000;
-    userPrompt = `Generate exactly 28 MATHS MAIN TEST questions for ${level} in exact SEAG format order:
-
-Q1-22 MULTIPLE CHOICE (22 questions):
-- Each has exactly 5 options A/B/C/D/E
-- Spread across all topics — do not cluster same topic
-- Full SEAG difficulty — genuinely challenging for P6/P7
-- Include: number operations, fractions/decimals/percentages, measurement, shape, data, word problems, sequences, probability
-
-Q23-28 FREE RESPONSE (6 questions):
-- options array: EMPTY []
-- Units provided in the question text
-- Multi-step problems
-- answer field: exact numeric or short answer
-
-Topic spread across all 28:
-Number ops ~5, Fractions/decimals/% ~4, Measurement ~5, Shape/space ~3, Data ~3, Word problems ~4, Other ~4
-
-MANDATORY CHECKS:
-1. Every MC question: correct answer MUST appear in A/B/C/D/E options
-2. Pre-calculate all answers twice
-3. Free response answers are exact expected values
-
-Return {"questions": [...28 questions...]}`;
+    // Split into 2 parallel calls of 14 questions each — ~3000 tokens per call
+    // Parallel execution means total time ≈ one call, not two
+    userPrompt = '__split_maths__';
 
   } else if (topicMode) {
     userPrompt = `Generate exactly 10 questions ALL focused on: "${topic}" for ${level}.
@@ -367,68 +354,66 @@ Return {"questions": [...10 questions...]}`;
   }
 
   /* ══════════════════════════════════════
-     API CALL
+     API CALL(S)
   ══════════════════════════════════════ */
   try {
-    console.log(`[generate-questions] START mode=${mode} level=${level} maxTokens=${maxTokens}`);
+    console.log(`[generate-questions] START mode=${mode} level=${level}`);
+    const apiKey = process.env.ANTHROPIC_API_KEY;
 
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': process.env.ANTHROPIC_API_KEY,
-        'anthropic-version': '2023-06-01'
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
-        max_tokens: maxTokens,
-        system: systemPrompt,
-        messages: [{ role: 'user', content: userPrompt }]
-      })
-    });
+    let allQuestions;
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error(`[generate-questions] Anthropic HTTP ${response.status}:`, errorText.slice(0, 300));
-      return res.status(500).json({ error: 'Failed to generate questions — please try again', detail: response.status });
+    if (mockMaths) {
+      // Two parallel calls of 14 questions each — each ~3000 tokens, done concurrently
+      const p1 = `Generate exactly 14 MATHS MULTIPLE CHOICE questions for ${level}.
+Each has exactly 5 options A/B/C/D/E. Topics: number operations ×3, fractions/decimals/percentages ×3, measurement/metric units ×3, sequences/patterns ×2, 2D/3D shapes ×3.
+Full SEAG difficulty. Pre-calculate every answer twice. Correct answer MUST appear in A/B/C/D/E.
+Return {"questions": [...14 questions...]}`;
+
+      const p2 = `Generate exactly 14 MATHS questions for ${level}: 8 multiple choice then 6 free response.
+8 MC (options A/B/C/D/E): data/graphs ×2, word problems ×3, probability ×1, area/perimeter ×2.
+6 FR (options: []): exact numeric answer, units stated in question. Topics: money calculations, time problems, multi-step.
+Pre-calculate every answer twice. MC correct answers must appear in options.
+Return {"questions": [...14 questions...]}`;
+
+      const [part1, part2] = await Promise.all([
+        callClaude(apiKey, systemPrompt, p1, 3000, 'maths-part1'),
+        callClaude(apiKey, systemPrompt, p2, 3000, 'maths-part2')
+      ]);
+      allQuestions = [...part1, ...part2];
+      console.log(`[generate-questions] mock_maths merged: ${allQuestions.length} questions`);
+
+    } else if (mockEnglish) {
+      // Two parallel calls: language skills (15 q) + comprehension (13 q)
+      const pLang = `Generate exactly 15 ENGLISH questions for ${level} in SEAG format:
+Q1-5 PUNCTUATION: sentence split into 4 segments A/B/C/D, options ["A. seg","B. seg","C. seg","D. seg","N. No mistake"], answer A/B/C/D/N. Vary: apostrophes, capitals, missing punctuation, no-mistake questions.
+Q6-10 GRAMMAR: context field has sentence with _____ gap, 5 word options A/B/C/D/E, text "Choose the best word to complete the sentence." Vary: prepositions, conjunctions, pronouns, verb tenses.
+Q11-15 SPELLING: same segment format as punctuation, text "Find the section with the spelling mistake. If there is no mistake, mark N." Use real UK English spelling errors.
+CHECKS: Q1-5 and Q11-15 fifth option exactly "N. No mistake". No-mistake answers exactly "N".
+Return {"questions": [...15 questions...]}`;
+
+      const pComp = `Generate exactly 13 COMPREHENSION questions for ${level} based on ONE original reading passage.
+First write ONE original passage ~400 words (prose fiction or non-fiction, suitable for ages 10-12).
+passage field: full passage text in EVERY question.
+Q1-7: 7 multiple choice A/B/C/D/E (literal, inferential, language effect questions).
+Q8-13: 6 free response — options: [] — answer: exact short expected word/phrase from passage.
+Types for FR: word extraction, phrase extraction, counting, grammar identification.
+CHECKS: all 13 questions reference the SAME passage. FR answers are exact expected values.
+Return {"questions": [...13 questions...]}`;
+
+      const [partLang, partComp] = await Promise.all([
+        callClaude(apiKey, systemPrompt, pLang, 3000, 'english-language'),
+        callClaude(apiKey, systemPrompt, pComp, 4000, 'english-comprehension')
+      ]);
+      allQuestions = [...partLang, ...partComp];
+      console.log(`[generate-questions] mock_english merged: ${allQuestions.length} questions`);
+
+    } else {
+      // Single call for all other modes (practice, topic sprint, mini sprint)
+      allQuestions = await callClaude(apiKey, systemPrompt, userPrompt, maxTokens, mode);
     }
 
-    const data = await response.json();
-    console.log(`[generate-questions] Anthropic stop_reason=${data.stop_reason} input_tokens=${data.usage?.input_tokens} output_tokens=${data.usage?.output_tokens}`);
-
-    if (!data.content || !data.content.length) {
-      return res.status(500).json({ error: 'Empty response — please try again' });
-    }
-
-    const text = data.content
-      .filter(block => block.type === 'text')
-      .map(block => block.text)
-      .join('');
-
-    if (!text) {
-      return res.status(500).json({ error: 'No content returned — please try again' });
-    }
-
-    const clean = text.replace(/```json|```/g, '').trim();
-
-    let parsed;
-    try {
-      parsed = JSON.parse(clean);
-    } catch (parseErr) {
-      console.error('JSON parse error:', parseErr.message);
-      console.error('Raw text preview:', clean.substring(0, 500));
-      return res.status(500).json({ error: 'Could not parse questions — please try again' });
-    }
-
-    if (Array.isArray(parsed)) {
-      parsed = { questions: parsed };
-    }
-
-    if (!parsed.questions || !Array.isArray(parsed.questions)) {
-      return res.status(500).json({ error: 'Invalid question format — please try again' });
-    }
-
-    console.log(`[generate-questions] Parsed ${parsed.questions.length} questions for mode=${mode}`);
+    const parsed = { questions: allQuestions };
+    console.log(`[generate-questions] Total questions: ${parsed.questions.length} for mode=${mode}`);
 
     /* ══════════════════════════════════════
        SERVER-SIDE SAFETY VALIDATION
