@@ -126,8 +126,8 @@
     .btn-submit{flex:1;background:linear-gradient(135deg,var(--gold),var(--gold-light));color:var(--navy);border:none;border-radius:var(--radius-btn);padding:16px 24px;font-family:'Lato',sans-serif;font-size:.9rem;font-weight:900;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;transition:all .22s;box-shadow:0 4px 20px rgba(201,168,76,.35);}
     .btn-submit:disabled{opacity:.35;cursor:not-allowed;box-shadow:none;}
     .btn-submit:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 8px 32px rgba(201,168,76,.55);}
-    .btn-next{flex:1;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);border-radius:var(--radius-btn);padding:16px 24px;font-family:'Lato',sans-serif;font-size:.9rem;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:#fff;cursor:pointer;transition:all .22s;display:none;}
-    .btn-next:hover{background:rgba(255,255,255,.14);}
+    .btn-next{flex:1;background:var(--green);border:none;border-radius:var(--radius-btn);padding:16px 24px;font-family:'Lato',sans-serif;font-size:.9rem;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:#fff;cursor:pointer;transition:all .22s;display:none;box-shadow:0 4px 20px rgba(34,197,94,.35);}
+    .btn-next:hover{background:#16a34a;box-shadow:0 8px 32px rgba(34,197,94,.5);transform:translateY(-2px);}
 
     /* SCREENS */
     .screen{position:relative;z-index:10;width:100%;max-width:680px;display:none;}
@@ -509,13 +509,20 @@ async function init() {
 /* ════════════════════════════════════════
    FETCH SECTION QUESTIONS
 ════════════════════════════════════════ */
-async function fetchSection(sectionMode, count) {
+async function fetchSection(sectionMode, count, attempt = 0) {
   const response = await fetch('/api/generate-questions', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ track: userYear, mode: sectionMode, count })
   });
-  if (!response.ok) throw new Error('Failed to generate ' + sectionMode + ' questions');
+  if (!response.ok) {
+    // Retry once after a short delay (handles transient rate-limit errors)
+    if (attempt === 0) {
+      await new Promise(r => setTimeout(r, 3000));
+      return fetchSection(sectionMode, count, 1);
+    }
+    throw new Error('Failed to generate ' + sectionMode + ' questions');
+  }
   const data = await response.json();
   if (!data.questions || data.questions.length === 0) throw new Error('No questions returned for ' + sectionMode);
   return data.questions;
@@ -542,10 +549,17 @@ async function startMock(order, skip) {
     // Step 1: Fetch practice (10 questions) — fast, well under 10s
     PRACTICE_QS = await fetchSection('mock_practice', 10);
 
-    // Step 2: Immediately kick off background fetches for BOTH main sections
-    // These run in parallel while the student does practice (5-10 minutes)
-    englishFetchPromise = fetchSection('mock_english', 28);
-    mathsFetchPromise   = fetchSection('mock_maths', 28);
+    // Step 2: Kick off ONLY the first section's background fetch to avoid
+    // concurrent Anthropic requests that can trigger rate limits.
+    // The second section's fetch starts at the section transition, giving
+    // it 15-20 minutes to complete while the student works through the first.
+    if (startOrder === 'english') {
+      englishFetchPromise = fetchSection('mock_english', 28);
+      mathsFetchPromise   = null; // started at English→Maths transition
+    } else {
+      mathsFetchPromise   = fetchSection('mock_maths', 28);
+      englishFetchPromise = null; // started at Maths→English transition
+    }
 
     ALL_QUESTIONS = [...PRACTICE_QS];
     answers       = {};
@@ -557,11 +571,13 @@ async function startMock(order, skip) {
         `Generating ${startOrder === 'english' ? 'English' : 'Maths'} questions…`;
 
       if (startOrder === 'english') {
-        ENGLISH_QS    = await englishFetchPromise;
-        currentSection = 'english';
+        ENGLISH_QS     = await englishFetchPromise;
+        currentSection  = 'english';
+        if (!mathsFetchPromise) mathsFetchPromise = fetchSection('mock_maths', 28);
       } else {
-        MATHS_QS      = await mathsFetchPromise;
-        currentSection = 'maths';
+        MATHS_QS       = await mathsFetchPromise;
+        currentSection  = 'maths';
+        if (!englishFetchPromise) englishFetchPromise = fetchSection('mock_english', 28);
       }
       currentIdx = 0;
     } else {
@@ -906,8 +922,12 @@ async function startMainTest() {
   try {
     if (firstSection === 'english') {
       ENGLISH_QS = await englishFetchPromise;
+      // Kick off Maths now — student has 20+ mins of English ahead
+      if (!mathsFetchPromise) mathsFetchPromise = fetchSection('mock_maths', 28);
     } else {
       MATHS_QS = await mathsFetchPromise;
+      // Kick off English now — student has 20+ mins of Maths ahead
+      if (!englishFetchPromise) englishFetchPromise = fetchSection('mock_english', 28);
     }
     currentSection = firstSection;
     currentIdx     = 0;
