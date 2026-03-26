@@ -840,7 +840,7 @@ function submitAnswer() {
   document.getElementById('score-wrong').textContent   = wrong + ' wrong';
 
   document.getElementById('btn-submit').style.display = 'none';
-  document.getElementById('btn-next').style.display   = '';
+  document.getElementById('btn-next').style.display   = 'block';
 
   const isLastInSection = currentIdx === getSectionLength() - 1;
   const btn = document.getElementById('btn-next');
