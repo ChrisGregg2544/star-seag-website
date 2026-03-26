@@ -204,6 +204,8 @@
     .loading-icon{width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,rgba(201,168,76,.25),rgba(201,168,76,.08));border:2px solid rgba(201,168,76,.55);display:flex;align-items:center;justify-content:center;margin:0 auto 24px;font-size:2rem;animation:avatarPulse 1.5s ease-in-out infinite;}
     .loading-title{font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:700;color:#fff;margin-bottom:8px;}
     .loading-sub{font-size:.86rem;color:rgba(255,255,255,.5);}
+    .loading-tip{font-size:.82rem;color:rgba(255,255,255,.45);margin-top:22px;min-height:1.4em;line-height:1.6;padding:0 12px;transition:opacity .4s;}
+    .waiting-tip{font-size:.82rem;color:rgba(255,255,255,.45);margin-top:16px;min-height:1.4em;line-height:1.6;padding:0 12px;transition:opacity .4s;}
 
     /* PASSAGE PANEL */
     .passage-panel{position:relative;z-index:10;width:100%;max-width:860px;background:var(--card-bg);border-radius:var(--radius-card);border:1px solid var(--card-border);box-shadow:0 4px 6px rgba(0,0,0,.04),0 20px 60px rgba(0,0,0,.3);margin-bottom:12px;overflow:hidden;animation:cardIn .45s cubic-bezier(.22,1,.36,1) forwards;}
@@ -290,6 +292,7 @@
     <div class="loading-icon">⭐</div>
     <div class="loading-title">STAR is building your mock…</div>
     <div class="loading-sub" id="loading-sub">Preparing your questions — this only takes a moment</div>
+    <div class="loading-tip" id="loading-tip"></div>
   </div>
 </div>
 
@@ -299,6 +302,7 @@
     <div class="waiting-spinner"></div>
     <div class="waiting-title" id="waiting-title">Almost ready…</div>
     <div class="waiting-sub" id="waiting-sub">STAR is finishing the next section. Just a few more seconds!</div>
+    <div class="waiting-tip" id="waiting-tip"></div>
   </div>
 </div>
 
@@ -443,6 +447,73 @@ let MATHS_QS       = [];
 let englishFetchPromise = null;
 let mathsFetchPromise   = null;
 
+/* ════════════════════════════════════════
+   LOADING TIPS
+════════════════════════════════════════ */
+const TIPS_GENERAL = [
+  'The SEAG has 56 main questions — 28 English and 28 Maths.',
+  'You can start with English or Maths — choose whichever feels stronger!',
+  'The full test is 60 minutes — that\'s about 64 seconds per question.',
+  'STAR generates brand-new questions every session — no repeats!',
+  'Always attempt every question. There\'s no penalty for wrong answers.',
+  'Top tip: stay calm and work steadily — rushing causes more mistakes.',
+  'Grammar school students who do regular mocks score much higher on the day.',
+  'STAR\'s questions follow the exact same format as the real SEAG paper.',
+  'You\'ll get detailed feedback for every wrong answer in this mock.',
+  'A little practice every day beats one big cramming session every time!',
+];
+const TIPS_MATHS = [
+  'SEAG Maths: 22 multiple choice (Q29–50) then 6 written answers (Q51–56).',
+  'Always include units in written answers — e.g. cm, kg, ml, £.',
+  'Stuck? Estimate the answer first — it rules out impossible options.',
+  'Times tables up to 12×12 are key for SEAG Maths. Keep practising!',
+  'For word problems: underline the key numbers, then calculate step by step.',
+  'Fractions, decimals and percentages are linked — 50% = ½ = 0.5.',
+  'Perimeter = add all sides. Area = length × width. Don\'t mix them up!',
+  'Mean = total ÷ number of values. Range = largest − smallest.',
+  'SEAG data questions use bar charts, pictograms, line graphs and pie charts.',
+  'Check your answer makes sense — if you\'re adding, the answer should be bigger!',
+  'Prime numbers have exactly two factors: 1 and themselves. 2, 3, 5, 7, 11…',
+];
+const TIPS_ENGLISH = [
+  'SEAG English: Punctuation (Q1–5), Grammar (Q6–10), Spelling (Q11–15), Comprehension (Q16–28).',
+  '"N. No mistake" means every segment in that question is correct.',
+  'Skim the comprehension passage before diving into the questions.',
+  'Grammar: the verb must agree with the subject — "she runs" not "she run".',
+  'Apostrophes mark contractions (can\'t, don\'t) and possession (Jamie\'s bag).',
+  'Spelling: i before e, except after c — believe, achieve, receive.',
+  'Proper nouns (names, places, days, months) always need a capital letter.',
+  'For free-response comprehension, your answer is usually in the passage itself.',
+  'Inference questions ask what the author implies — read between the lines!',
+  'Always use British English spelling: colour, favourite, organised, practise.',
+  'For grammar gap-fill, read the whole sentence before picking your word.',
+];
+
+let loadingTipInterval = null;
+
+function startTips(elementId, tips) {
+  const el = document.getElementById(elementId);
+  if (!el) return;
+  el.textContent = tips[0];
+  el.style.opacity = '1';
+  let idx = 1;
+  if (loadingTipInterval) clearInterval(loadingTipInterval);
+  loadingTipInterval = setInterval(() => {
+    const tipEl = document.getElementById(elementId);
+    if (!tipEl) { clearInterval(loadingTipInterval); loadingTipInterval = null; return; }
+    tipEl.style.opacity = '0';
+    setTimeout(() => {
+      tipEl.textContent = tips[idx % tips.length];
+      tipEl.style.opacity = '1';
+      idx++;
+    }, 400);
+  }, 2500);
+}
+
+function stopTips() {
+  if (loadingTipInterval) { clearInterval(loadingTipInterval); loadingTipInterval = null; }
+}
+
 let startOrder     = 'english'; // 'english' | 'maths' — which main section comes first
 let currentSection = 'practice'; // 'practice' | 'english' | 'maths'
 let currentIdx     = 0;
@@ -542,6 +613,7 @@ async function startMock(order, skip) {
   startOrder   = order || 'english';
   showScreen('loading');
   document.getElementById('nav-exit').style.display = 'none';
+  startTips('loading-tip', TIPS_GENERAL);
 
   try {
     document.getElementById('loading-sub').textContent = 'Preparing your warm-up questions…';
@@ -569,6 +641,7 @@ async function startMock(order, skip) {
       // Need first main section ready — wait for it
       document.getElementById('loading-sub').textContent =
         `Generating ${startOrder === 'english' ? 'English' : 'Maths'} questions…`;
+      startTips('loading-tip', startOrder === 'english' ? TIPS_ENGLISH : TIPS_MATHS);
 
       if (startOrder === 'english') {
         ENGLISH_QS     = await englishFetchPromise;
@@ -585,11 +658,13 @@ async function startMock(order, skip) {
       currentIdx     = 0;
     }
 
+    stopTips();
     saveMockProgress();
     showScreen('question');
     renderQuestion();
 
   } catch(err) {
+    stopTips();
     console.error('Mock generation error:', err.message);
     showScreen('briefing');
     alert('STAR had trouble generating questions — please try again. (' + err.message + ')');
@@ -924,6 +999,7 @@ async function startMainTest() {
   showScreen('waiting');
   document.getElementById('waiting-title').textContent = `Preparing ${firstSection === 'english' ? 'English' : 'Maths'} questions…`;
   document.getElementById('waiting-sub').textContent = 'Almost ready — just a moment!';
+  startTips('waiting-tip', firstSection === 'english' ? TIPS_ENGLISH : TIPS_MATHS);
 
   try {
     if (firstSection === 'english') {
@@ -939,11 +1015,13 @@ async function startMainTest() {
       // Kick off English now — student has 20+ mins of Maths ahead
       if (!englishFetchPromise) englishFetchPromise = fetchSection('mock_english', 28);
     }
+    stopTips();
     currentSection = firstSection;
     currentIdx     = 0;
     showScreen('question');
     renderQuestion();
   } catch(err) {
+    stopTips();
     alert('Error loading questions: ' + err.message + '. Please try again.');
     window.location.href = 'mock.html';
   }
@@ -954,17 +1032,20 @@ async function startMathsTest() {
   showScreen('waiting');
   document.getElementById('waiting-title').textContent = 'Preparing Maths questions…';
   document.getElementById('waiting-sub').textContent = 'Almost ready!';
+  startTips('waiting-tip', TIPS_MATHS);
 
   try {
     MATHS_QS = await mathsFetchPromise;
     // Update ALL_QUESTIONS for save
     ALL_QUESTIONS = [...PRACTICE_QS, ...ENGLISH_QS, ...MATHS_QS];
+    stopTips();
     currentSection = 'maths';
     currentIdx     = 0;
     saveMockProgress();
     showScreen('question');
     renderQuestion();
   } catch(err) {
+    stopTips();
     alert('Error loading Maths questions: ' + err.message + '. Please try again.');
     window.location.href = 'mock.html';
   }
@@ -975,16 +1056,19 @@ async function startEnglishTest() {
   showScreen('waiting');
   document.getElementById('waiting-title').textContent = 'Preparing English questions…';
   document.getElementById('waiting-sub').textContent = 'Almost ready!';
+  startTips('waiting-tip', TIPS_ENGLISH);
 
   try {
     ENGLISH_QS = await englishFetchPromise;
     ALL_QUESTIONS = [...PRACTICE_QS, ...MATHS_QS, ...ENGLISH_QS];
+    stopTips();
     currentSection = 'english';
     currentIdx     = 0;
     saveMockProgress();
     showScreen('question');
     renderQuestion();
   } catch(err) {
+    stopTips();
     alert('Error loading English questions: ' + err.message + '. Please try again.');
     window.location.href = 'mock.html';
   }
