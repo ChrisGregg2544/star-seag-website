@@ -507,7 +507,7 @@ function startTips(elementId, tips) {
       tipEl.style.opacity = '1';
       idx++;
     }, 400);
-  }, 2500);
+  }, 5000);
 }
 
 function stopTips() {
@@ -581,22 +581,39 @@ async function init() {
    FETCH SECTION QUESTIONS
 ════════════════════════════════════════ */
 async function fetchSection(sectionMode, count, attempt = 0) {
-  const response = await fetch('/api/generate-questions', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ track: userYear, mode: sectionMode, count })
-  });
-  if (!response.ok) {
-    // Retry once after a short delay (handles transient rate-limit errors)
-    if (attempt === 0) {
-      await new Promise(r => setTimeout(r, 3000));
+  console.log(`[mock] fetchSection: ${sectionMode} attempt ${attempt + 1}`);
+  try {
+    const response = await fetch('/api/generate-questions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ track: userYear, mode: sectionMode, count })
+    });
+    if (!response.ok) {
+      console.warn(`[mock] ${sectionMode} HTTP ${response.status} on attempt ${attempt + 1}`);
+      if (attempt === 0) {
+        console.log(`[mock] Retrying ${sectionMode} in 4s…`);
+        await new Promise(r => setTimeout(r, 4000));
+        return fetchSection(sectionMode, count, 1);
+      }
+      throw new Error('Failed to generate ' + sectionMode + ' questions (HTTP ' + response.status + ')');
+    }
+    const data = await response.json();
+    if (!data.questions || data.questions.length === 0) {
+      throw new Error('No questions returned for ' + sectionMode);
+    }
+    console.log(`[mock] ${sectionMode} succeeded: ${data.questions.length} questions`);
+    return data.questions;
+  } catch(err) {
+    // Also retry on network errors (e.g. fetch throws before we get a response)
+    const isOurError = err.message.startsWith('Failed to generate') || err.message.startsWith('No questions');
+    if (attempt === 0 && !isOurError) {
+      console.warn(`[mock] ${sectionMode} network error: "${err.message}" — retrying in 4s`);
+      await new Promise(r => setTimeout(r, 4000));
       return fetchSection(sectionMode, count, 1);
     }
-    throw new Error('Failed to generate ' + sectionMode + ' questions');
+    console.error(`[mock] ${sectionMode} failed permanently: ${err.message}`);
+    throw err;
   }
-  const data = await response.json();
-  if (!data.questions || data.questions.length === 0) throw new Error('No questions returned for ' + sectionMode);
-  return data.questions;
 }
 
 /* ════════════════════════════════════════
@@ -1003,16 +1020,22 @@ async function startMainTest() {
 
   try {
     if (firstSection === 'english') {
-      // Ensure promise exists (may be null if resuming a saved mock)
       if (!englishFetchPromise) englishFetchPromise = fetchSection('mock_english', 28);
-      ENGLISH_QS = await englishFetchPromise;
-      // Kick off Maths now — student has 20+ mins of English ahead
+      console.log('[mock] startMainTest: awaiting mock_english');
+      try { ENGLISH_QS = await englishFetchPromise; }
+      catch(bgErr) {
+        console.warn('[mock] Background mock_english rejected, re-fetching:', bgErr.message);
+        ENGLISH_QS = await fetchSection('mock_english', 28);
+      }
       if (!mathsFetchPromise) mathsFetchPromise = fetchSection('mock_maths', 28);
     } else {
-      // Ensure promise exists (may be null if resuming a saved mock)
       if (!mathsFetchPromise) mathsFetchPromise = fetchSection('mock_maths', 28);
-      MATHS_QS = await mathsFetchPromise;
-      // Kick off English now — student has 20+ mins of Maths ahead
+      console.log('[mock] startMainTest: awaiting mock_maths');
+      try { MATHS_QS = await mathsFetchPromise; }
+      catch(bgErr) {
+        console.warn('[mock] Background mock_maths rejected, re-fetching:', bgErr.message);
+        MATHS_QS = await fetchSection('mock_maths', 28);
+      }
       if (!englishFetchPromise) englishFetchPromise = fetchSection('mock_english', 28);
     }
     stopTips();
@@ -1022,6 +1045,7 @@ async function startMainTest() {
     renderQuestion();
   } catch(err) {
     stopTips();
+    console.error('[mock] startMainTest failed:', err.message);
     alert('Error loading questions: ' + err.message + '. Please try again.');
     window.location.href = 'mock.html';
   }
@@ -1035,7 +1059,13 @@ async function startMathsTest() {
   startTips('waiting-tip', TIPS_MATHS);
 
   try {
-    MATHS_QS = await mathsFetchPromise;
+    if (!mathsFetchPromise) mathsFetchPromise = fetchSection('mock_maths', 28);
+    console.log('[mock] startMathsTest: awaiting mock_maths');
+    try { MATHS_QS = await mathsFetchPromise; }
+    catch(bgErr) {
+      console.warn('[mock] Background mock_maths rejected, re-fetching:', bgErr.message);
+      MATHS_QS = await fetchSection('mock_maths', 28);
+    }
     // Update ALL_QUESTIONS for save
     ALL_QUESTIONS = [...PRACTICE_QS, ...ENGLISH_QS, ...MATHS_QS];
     stopTips();
@@ -1046,6 +1076,7 @@ async function startMathsTest() {
     renderQuestion();
   } catch(err) {
     stopTips();
+    console.error('[mock] startMathsTest failed:', err.message);
     alert('Error loading Maths questions: ' + err.message + '. Please try again.');
     window.location.href = 'mock.html';
   }
@@ -1059,7 +1090,13 @@ async function startEnglishTest() {
   startTips('waiting-tip', TIPS_ENGLISH);
 
   try {
-    ENGLISH_QS = await englishFetchPromise;
+    if (!englishFetchPromise) englishFetchPromise = fetchSection('mock_english', 28);
+    console.log('[mock] startEnglishTest: awaiting mock_english');
+    try { ENGLISH_QS = await englishFetchPromise; }
+    catch(bgErr) {
+      console.warn('[mock] Background mock_english rejected, re-fetching:', bgErr.message);
+      ENGLISH_QS = await fetchSection('mock_english', 28);
+    }
     ALL_QUESTIONS = [...PRACTICE_QS, ...MATHS_QS, ...ENGLISH_QS];
     stopTips();
     currentSection = 'english';

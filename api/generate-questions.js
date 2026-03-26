@@ -370,7 +370,7 @@ Return {"questions": [...10 questions...]}`;
      API CALL
   ══════════════════════════════════════ */
   try {
-    console.log(`Anthropic API call — mode: ${mode}, level: ${level}`);
+    console.log(`[generate-questions] START mode=${mode} level=${level} maxTokens=${maxTokens}`);
 
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -389,11 +389,12 @@ Return {"questions": [...10 questions...]}`;
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Anthropic API error:', response.status, errorText);
+      console.error(`[generate-questions] Anthropic HTTP ${response.status}:`, errorText.slice(0, 300));
       return res.status(500).json({ error: 'Failed to generate questions — please try again', detail: response.status });
     }
 
     const data = await response.json();
+    console.log(`[generate-questions] Anthropic stop_reason=${data.stop_reason} input_tokens=${data.usage?.input_tokens} output_tokens=${data.usage?.output_tokens}`);
 
     if (!data.content || !data.content.length) {
       return res.status(500).json({ error: 'Empty response — please try again' });
@@ -427,7 +428,7 @@ Return {"questions": [...10 questions...]}`;
       return res.status(500).json({ error: 'Invalid question format — please try again' });
     }
 
-    console.log('Questions count:', parsed.questions.length);
+    console.log(`[generate-questions] Parsed ${parsed.questions.length} questions for mode=${mode}`);
 
     /* ══════════════════════════════════════
        SERVER-SIDE SAFETY VALIDATION
@@ -467,7 +468,6 @@ Return {"questions": [...10 questions...]}`;
       const videoTopic = (q.videoTopic || q.topic || '').toLowerCase().trim();
       const source     = (q.videoSource || '').trim();
       q.videoUrl = source === 'CorbettMaths' ? getCorbettUrl(videoTopic) : getBBCUrl(videoTopic);
-      console.log(`Q${idx+1} [${q.topic}] → ${q.videoUrl}`);
 
       // Layer 4: Fix instruction text for capital letter questions
       if (q.topic === 'Punctuation') {
@@ -493,7 +493,7 @@ Return {"questions": [...10 questions...]}`;
       if (!q.passage)  q.passage  = '';
     });
 
-    console.log(`Done — ${parsed.questions.length} questions, mode: ${mode}, level: ${level}`);
+    console.log(`[generate-questions] DONE mode=${mode} level=${level} questions=${parsed.questions.length}`);
     return res.status(200).json(parsed);
 
   } catch (error) {
