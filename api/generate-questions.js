@@ -1,6 +1,7 @@
 /* ══════════════════════════════════════════════════════
    RESOURCE LOOKUP TABLES
 ══════════════════════════════════════════════════════ */
+export const config = { maxDuration: 60 };
 const corbettLookup = {
   'addition':                    'https://corbettmathsprimary.com/2018/07/17/addition-video/',
   'subtraction':                 'https://corbettmathsprimary.com/2018/07/17/subtraction-video/',
