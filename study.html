@@ -182,6 +182,7 @@
     .upgrade-banner h3 { font-family: 'Playfair Display', serif; font-size: 1.2rem; font-weight: 700; color: var(--text-dark); margin-bottom: 8px; }
     .upgrade-banner p { font-size: .88rem; color: var(--text-mid); margin-bottom: 18px; line-height: 1.6; }
     @keyframes pulse-gold { 0% { box-shadow: 0 0 0 0 rgba(255,191,0,0.7); } 70% { box-shadow: 0 0 0 15px rgba(255,191,0,0); } 100% { box-shadow: 0 0 0 0 rgba(255,191,0,0); } }
+    @keyframes avatarPulse { 0%,100% { transform: scale(1); opacity: .85; } 50% { transform: scale(1.12); opacity: 1; } }
     .tutorial-glow { animation: pulse-gold 2s infinite; border: 2px solid #ffbf00 !important; transform: scale(1.05); transition: all 0.3s ease; }
     @media (max-width: 600px) { .card-header { padding: 14px 18px 12px; } .card-body { padding: 20px 18px 0; } .card-footer { padding: 16px 18px 22px; } .question-text { font-size: 1.12rem; } .segments-row { gap: 6px; } .segment-text { font-size: .82rem; padding: 8px 10px; background: rgba(11,31,58,.09); border-color: rgba(11,31,58,.22); } .mc-btn { background: rgba(11,31,58,.07); border-color: rgba(11,31,58,.22); min-height: 52px; } .results-panel { padding: 28px 20px 24px; } }
     @media (min-width: 768px) { .mc-btn { padding: 18px 20px; } .btn-submit, .btn-next { padding: 20px 28px; font-size: 1rem; } .btn-hint { padding: 15px 20px; font-size: .85rem; } }
@@ -371,10 +372,24 @@ let hintVisible = false;
 let answered    = false;
 let selectedMC  = null;
 let sprintCount = 0;
+let loadingTipInterval = null;
 
 /* ════════════════════════════════
    LOADING STATE
 ════════════════════════════════ */
+const LOADING_TIPS = [
+  'Each sprint uses brand-new questions — no repeats!',
+  'Your weak topics get more questions automatically.',
+  'Short daily sprints beat one long cramming session.',
+  'STAR checks your answers against real SEAG mark schemes.',
+  'The more you practise, the smarter your hints get.',
+  'Grammar, spelling, punctuation AND maths — all covered.',
+  'Top grammar school students do a little every day.',
+  'Your results are saved so you can track your progress.',
+  'Every wrong answer is a step closer to getting it right.',
+  'P7 students who practise daily improve by 2+ grades.',
+];
+
 function showLoadingState() {
   const card = document.getElementById('question-card');
   card.style.display    = '';
@@ -386,8 +401,22 @@ function showLoadingState() {
       <div style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,rgba(201,168,76,.25),rgba(201,168,76,.08));border:2px solid rgba(201,168,76,.55);display:flex;align-items:center;justify-content:center;margin:0 auto 28px;font-size:2.2rem;animation:avatarPulse 1.5s ease-in-out infinite;">⭐</div>
       <div style="font-family:'Playfair Display',serif;font-size:1.45rem;font-weight:700;color:#ffffff;margin-bottom:10px;">STAR is building your sprint…</div>
       <div style="font-size:.92rem;color:rgba(255,255,255,.7);margin-bottom:6px;">Generating 10 tailored questions just for you</div>
-      <div style="font-size:.75rem;color:rgba(201,168,76,.8);margin-top:20px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;">✦ &nbsp;Fresh questions every sprint&nbsp; ✦</div>
+      <div id="loading-tip" style="font-size:.84rem;color:rgba(255,255,255,.55);margin-top:24px;min-height:1.4em;line-height:1.5;padding:0 16px;transition:opacity .4s;">${LOADING_TIPS[0]}</div>
+      <div style="font-size:.75rem;color:rgba(201,168,76,.8);margin-top:16px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;">✦ &nbsp;Fresh questions every sprint&nbsp; ✦</div>
     </div>`;
+
+  let tipIdx = 1;
+  if (loadingTipInterval) clearInterval(loadingTipInterval);
+  loadingTipInterval = setInterval(() => {
+    const el = document.getElementById('loading-tip');
+    if (!el) { clearInterval(loadingTipInterval); return; }
+    el.style.opacity = '0';
+    setTimeout(() => {
+      el.textContent = LOADING_TIPS[tipIdx % LOADING_TIPS.length];
+      el.style.opacity = '1';
+      tipIdx++;
+    }, 400);
+  }, 3500);
 }
 
 function showErrorState(message) {
@@ -405,6 +434,7 @@ function showErrorState(message) {
 }
 
 function rebuildQuestionCard() {
+  if (loadingTipInterval) { clearInterval(loadingTipInterval); loadingTipInterval = null; }
   const card = document.getElementById('question-card');
   card.style.background = '';
   card.style.border     = '';
@@ -566,8 +596,10 @@ function loadQuestion(idx) {
   }
 
   const badge = document.getElementById('card-type-badge');
-  const isEnglish = (q.type || '').toLowerCase() === 'english' ||
-    ['punctuation', 'grammar', 'spelling', 'comprehension'].includes((q.topic || '').toLowerCase());
+  const typeLower  = (q.type  || '').toLowerCase();
+  const topicLower = (q.topic || '').toLowerCase();
+  const isEnglish  = typeLower.includes('english') ||
+    ['punctuation', 'grammar', 'spelling', 'comprehension'].some(t => topicLower.includes(t));
   if (isEnglish) { badge.className = 'card-type-badge badge-english'; badge.textContent = '📖 English'; }
   else           { badge.className = 'card-type-badge badge-maths';   badge.textContent = '📐 Maths'; }
 
@@ -621,7 +653,7 @@ function loadQuestion(idx) {
 
   const vl = document.getElementById('video-link');
   document.getElementById('video-title').textContent  = q.videoTitle  || (q.videoTopic ? `Search: ${q.videoTopic}` : 'Watch Tutorial');
-  document.getElementById('video-source').textContent = q.videoSource || 'BBC Bitesize';
+  document.getElementById('video-source').textContent = q.videoSource || (isEnglish ? 'BBC Bitesize' : 'CorbettMaths');
   vl.setAttribute('href',   q.videoUrl || '#');
   vl.setAttribute('target', '_blank');
   vl.setAttribute('rel',    'noopener noreferrer');
