@@ -615,7 +615,9 @@ async function init() {
     .eq('user_id', userId).single();
 
   const toReview  = progressData?.topics_to_review || JSON.parse(localStorage.getItem('star_toReview')) || [];
-  const lastScore = progressData?.last_score       ?? parseInt(localStorage.getItem('star_last_score'), 10);
+  const lastScore = progressData?.last_score != null
+    ? Math.round(progressData.last_score / (progressData.last_total || 10) * 100)
+    : parseInt(localStorage.getItem('star_last_score'), 10);
   const hasData   = lastScore !== null && lastScore !== undefined && !isNaN(lastScore);
 
   // Personalise

@@ -183,7 +183,7 @@
     .upgrade-banner p { font-size: .88rem; color: var(--text-mid); margin-bottom: 18px; line-height: 1.6; }
     @keyframes pulse-gold { 0% { box-shadow: 0 0 0 0 rgba(255,191,0,0.7); } 70% { box-shadow: 0 0 0 15px rgba(255,191,0,0); } 100% { box-shadow: 0 0 0 0 rgba(255,191,0,0); } }
     .tutorial-glow { animation: pulse-gold 2s infinite; border: 2px solid #ffbf00 !important; transform: scale(1.05); transition: all 0.3s ease; }
-    @media (max-width: 600px) { .card-header { padding: 14px 18px 12px; } .card-body { padding: 20px 18px 0; } .card-footer { padding: 16px 18px 22px; } .question-text { font-size: 1.12rem; } .segments-row { gap: 6px; } .segment-text { font-size: .82rem; padding: 8px 10px; } .results-panel { padding: 28px 20px 24px; } }
+    @media (max-width: 600px) { .card-header { padding: 14px 18px 12px; } .card-body { padding: 20px 18px 0; } .card-footer { padding: 16px 18px 22px; } .question-text { font-size: 1.12rem; } .segments-row { gap: 6px; } .segment-text { font-size: .82rem; padding: 8px 10px; background: rgba(11,31,58,.09); border-color: rgba(11,31,58,.22); } .mc-btn { background: rgba(11,31,58,.07); border-color: rgba(11,31,58,.22); min-height: 52px; } .results-panel { padding: 28px 20px 24px; } }
     @media (min-width: 768px) { .mc-btn { padding: 18px 20px; } .btn-submit, .btn-next { padding: 20px 28px; font-size: 1rem; } .btn-hint { padding: 15px 20px; font-size: .85rem; } }
   </style>
   <style>
@@ -566,8 +566,10 @@ function loadQuestion(idx) {
   }
 
   const badge = document.getElementById('card-type-badge');
-  if (q.type === 'english') { badge.className = 'card-type-badge badge-english'; badge.textContent = '📖 English'; }
-  else                      { badge.className = 'card-type-badge badge-maths';   badge.textContent = '📐 Maths'; }
+  const isEnglish = (q.type || '').toLowerCase() === 'english' ||
+    ['punctuation', 'grammar', 'spelling', 'comprehension'].includes((q.topic || '').toLowerCase());
+  if (isEnglish) { badge.className = 'card-type-badge badge-english'; badge.textContent = '📖 English'; }
+  else           { badge.className = 'card-type-badge badge-maths';   badge.textContent = '📐 Maths'; }
 
   document.getElementById('card-topic').textContent     = q.topic;
   document.getElementById('card-marks').textContent     = q.marks || '1 mark';

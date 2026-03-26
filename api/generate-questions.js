@@ -479,6 +479,11 @@ Return {"questions": [...10 questions...]}`;
         }
       }
 
+      // Normalise type to 'english' | 'maths' based on topic
+      const topicLc = (q.topic || '').toLowerCase();
+      q.type = ['punctuation', 'grammar', 'spelling', 'comprehension'].some(t => topicLc.includes(t))
+        ? 'english' : 'maths';
+
       // Ensure required fields
       if (!q.hint)     q.hint     = 'Think carefully about each option.';
       if (!q.steps)    q.steps    = [];

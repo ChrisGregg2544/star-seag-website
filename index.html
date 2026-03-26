@@ -174,6 +174,21 @@
       .hero-title { font-size: 2rem !important; }
       nav { padding: 0 16px; }
     }
+
+    /* Hamburger nav */
+    .nav-hamburger { display: none; background: none; border: 1px solid rgba(255,255,255,.2); border-radius: 7px; padding: 7px 10px; cursor: pointer; flex-direction: column; gap: 4px; }
+    .nav-hamburger span { display: block; width: 20px; height: 2px; background: rgba(255,255,255,.7); border-radius: 2px; transition: all .25s; }
+    @media (max-width: 640px) {
+      .nav-links-group { display: none !important; }
+      .nav-hamburger { display: flex; }
+      .nav-mobile-open .nav-links-group {
+        display: flex !important; flex-direction: column; align-items: flex-start;
+        position: absolute; top: 68px; left: 0; right: 0;
+        background: rgba(11,31,58,.97); backdrop-filter: blur(14px);
+        border-bottom: 1px solid rgba(201,168,76,.15);
+        padding: 18px 20px 22px; gap: 16px;
+      }
+    }
   </style>
 </head>
 <body>
@@ -192,14 +207,18 @@
       </div>
     </div>
     <!-- Links -->
-    <div style="display:flex;align-items:center;gap:28px;">
-      <div style="display:flex;gap:26px;">
+    <div id="nav-links-wrap" style="display:flex;align-items:center;gap:28px;">
+      <div class="nav-links-group" style="display:flex;gap:26px;">
         <a class="nav-link" href="#tracks">Tracks</a>
         <a class="nav-link" href="#dashboard">Dashboard</a>
         <a class="nav-link" href="#accuracy">Accuracy</a>
+        <a href="onboarding.html" class="nav-link" style="display:none;" id="nav-cta-mobile">Start Free Trial</a>
       </div>
-      <a href="onboarding.html"><button class="cta-btn" style="padding:9px 22px;border-radius:7px;font-size:.7rem;">Start Free Trial</button></a>
+      <a href="onboarding.html" id="nav-cta-desktop"><button class="cta-btn" style="padding:9px 22px;border-radius:7px;font-size:.7rem;">Start Free Trial</button></a>
     </div>
+    <button class="nav-hamburger" id="nav-hamburger" aria-label="Toggle menu" onclick="toggleMobileNav()">
+      <span></span><span></span><span></span>
+    </button>
   </div>
 </nav>
 
@@ -818,6 +837,25 @@
     });
   }, { threshold: 0.3 });
   bars.forEach(b => barObserver.observe(b));
+
+  // ── Mobile nav toggle ──
+  function toggleMobileNav() {
+    const wrap = document.getElementById('nav-links-wrap');
+    const open = nav.classList.toggle('nav-mobile-open');
+    // Show/hide desktop CTA alongside mobile menu
+    document.getElementById('nav-cta-desktop').style.display = open ? 'none' : '';
+    document.getElementById('nav-cta-mobile').style.display  = open ? 'inline' : 'none';
+  }
+  // Close mobile nav when a link is clicked
+  document.querySelectorAll('.nav-links-group .nav-link').forEach(link => {
+    link.addEventListener('click', () => {
+      if (nav.classList.contains('nav-mobile-open')) {
+        nav.classList.remove('nav-mobile-open');
+        document.getElementById('nav-cta-desktop').style.display = '';
+        document.getElementById('nav-cta-mobile').style.display  = 'none';
+      }
+    });
+  });
 </script>
 
 </body>
