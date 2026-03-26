@@ -330,8 +330,8 @@ Return {"questions": [...10 questions...]}`;
     userPrompt = '__split_english__';
 
   } else if (mockMaths) {
-    // Split into 2 parallel calls of 14 questions each — ~3000 tokens per call
-    // Parallel execution means total time ≈ one call, not two
+    // Split into 3 parallel calls: part1 (14 MC), part2 (6 MC), part3 (5 FR)
+    // Each call well under 3000 tokens — avoids truncation on part2
     userPrompt = '__split_maths__';
 
   } else if (topicMode) {
@@ -363,23 +363,29 @@ Return {"questions": [...10 questions...]}`;
     let allQuestions;
 
     if (mockMaths) {
-      // Two parallel calls of 14 questions each — each ~3000 tokens, done concurrently
+      // Three parallel calls — each well under 3000 tokens, done concurrently
       const p1 = `Generate exactly 14 MATHS MULTIPLE CHOICE questions for ${level}.
 Each has exactly 5 options A/B/C/D/E. Topics: number operations ×3, fractions/decimals/percentages ×3, measurement/metric units ×3, sequences/patterns ×2, 2D/3D shapes ×3.
 Full SEAG difficulty. Pre-calculate every answer twice. Correct answer MUST appear in A/B/C/D/E.
 Return {"questions": [...14 questions...]}`;
 
-      const p2 = `Generate exactly 14 MATHS questions for ${level}: 8 multiple choice then 6 free response.
-8 MC (options A/B/C/D/E): data/graphs ×2, word problems ×3, probability ×1, area/perimeter ×2.
-6 FR (options: []): exact numeric answer, units stated in question. Topics: money calculations, time problems, multi-step.
-Pre-calculate every answer twice. MC correct answers must appear in options.
-Return {"questions": [...14 questions...]}`;
+      const p2 = `Generate exactly 6 MATHS MULTIPLE CHOICE questions for ${level}.
+Each has exactly 5 options A/B/C/D/E. Topics: data/graphs ×2, word problems ×2, area/perimeter ×1, probability ×1.
+Full SEAG difficulty. Pre-calculate every answer twice. Correct answer MUST appear in A/B/C/D/E.
+Return {"questions": [...6 questions...]}`;
 
-      const [part1, part2] = await Promise.all([
+      const p3 = `Generate exactly 5 MATHS FREE RESPONSE questions for ${level}.
+options field must be exactly []. Each question requires an exact numeric answer; state units clearly in the question text.
+Topics: money calculations ×2, time problems ×1, multi-step word problem ×2.
+Pre-calculate every answer twice. No multiple choice — free response only.
+Return {"questions": [...5 questions...]}`;
+
+      const [part1, part2, part3] = await Promise.all([
         callClaude(apiKey, systemPrompt, p1, 3000, 'maths-part1'),
-        callClaude(apiKey, systemPrompt, p2, 3000, 'maths-part2')
+        callClaude(apiKey, systemPrompt, p2, 3000, 'maths-part2'),
+        callClaude(apiKey, systemPrompt, p3, 2000, 'maths-part3')
       ]);
-      allQuestions = [...part1, ...part2];
+      allQuestions = [...part1, ...part2, ...part3];
       console.log(`[generate-questions] mock_maths merged: ${allQuestions.length} questions`);
 
     } else if (mockEnglish) {
