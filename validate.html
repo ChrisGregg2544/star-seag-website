@@ -595,7 +595,7 @@ function renderCurrent() {
     // FIX: handle numeric keys (0,1,2,3,4) by mapping to letters
     const keys = Object.keys(q.options);
     const isNumeric = keys.every(k => !isNaN(k));
-    const isPunctuation = q.topic === 'punctuation';
+    const isPunctuation = ['punctuation', 'spelling'].includes((q.topic || '').toLowerCase());
     const letterMap = isPunctuation ? ['A','B','C','D','N'] : ['A','B','C','D','E'];
 
     optionsHtml = '<div class="options-grid">';
