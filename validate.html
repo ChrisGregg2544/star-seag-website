@@ -592,23 +592,27 @@ function renderCurrent() {
 
   let optionsHtml = '';
   if (hasOptions) {
+    const entries = Object.entries(q.options);
     const keys = Object.keys(q.options);
     const isNumeric = keys.every(k => !isNaN(k));
-    const isPunctSpell = ['punctuation', 'spelling'].includes((q.topic || '').toLowerCase());
-    const letterMap = isPunctSpell ? ['A','B','C','D','N'] : ['A','B','C','D','E'];
-    // String key remap: if topic is punctuation/spelling and last key is E, remap to N
-    const strKeyRemap = { 'A':'A','B':'B','C':'C','D':'D','E': isPunctSpell ? 'N' : 'E' };
+    const baseLetters = ['A','B','C','D','E'];
 
     optionsHtml = '<div class="options-grid">';
-    for (const [key, val] of Object.entries(q.options)) {
-      const displayKey = isNumeric ? (letterMap[parseInt(key)] ?? key) : (strKeyRemap[key] ?? key);
+    entries.forEach(([key, val]) => {
+      const cleanVal = String(val).replace(/^[A-N]\.\s*/, '');
+      const isNoMistake = /no mistake/i.test(cleanVal);
+      let displayKey;
+      if (isNumeric) {
+        displayKey = isNoMistake ? 'N' : (baseLetters[parseInt(key)] ?? key);
+      } else {
+        displayKey = (key === 'E' && isNoMistake) ? 'N' : key;
+      }
       const isCorrect = displayKey === q.correct_answer || key === q.correct_answer;
-      const displayVal = String(val).replace(/^[A-N]\.\s*/, '');
       optionsHtml += `<div class="option ${isCorrect ? 'correct' : ''}">
         <span class="option-key">${displayKey}</span>
-        <span>${displayVal}</span>
+        <span>${cleanVal}</span>
       </div>`;
-    }
+    });
     optionsHtml += '</div>';
   } else {
     optionsHtml = `<div class="q-answer">✓ Answer: ${q.correct_answer}</div>`;
