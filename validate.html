@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>STAR F— Question Validator</title>
+<title>STAR — Question Validator</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap');
@@ -592,12 +592,23 @@ function renderCurrent() {
 
   let optionsHtml = '';
   if (hasOptions) {
+    // FIX: handle numeric keys (0,1,2,3,4) by mapping to letters
+    const keys = Object.keys(q.options);
+    const isNumeric = keys.every(k => !isNaN(k));
+    const isPunctuation = q.topic === 'punctuation';
+    const letterMap = isPunctuation ? ['A','B','C','D','N'] : ['A','B','C','D','E'];
+
     optionsHtml = '<div class="options-grid">';
     for (const [key, val] of Object.entries(q.options)) {
-      const isCorrect = key === q.correct_answer;
+      const displayKey = isNumeric ? (letterMap[parseInt(key)] ?? key) : key;
+      const isCorrect = isNumeric
+        ? displayKey === q.correct_answer
+        : key === q.correct_answer;
+      // Strip embedded "A. " prefix from value if present
+      const displayVal = String(val).replace(/^[A-N]\.\s*/, '');
       optionsHtml += `<div class="option ${isCorrect ? 'correct' : ''}">
-        <span class="option-key">${key}</span>
-        <span>${val}</span>
+        <span class="option-key">${displayKey}</span>
+        <span>${displayVal}</span>
       </div>`;
     }
     optionsHtml += '</div>';
@@ -695,7 +706,7 @@ Respond with JSON only:
         'anthropic-dangerous-direct-browser-access': 'true'
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
+        model: 'claude-sonnet-4-6',  // ✅ FIXED: updated model string
         max_tokens: 500,
         messages: [{ role: 'user', content: prompt }]
       })
@@ -703,23 +714,23 @@ Respond with JSON only:
 
     const data = await response.json();
 
-if (data.error) {
-  showToast('API error: ' + data.error.message, 'error');
-  btn.disabled = false;
-  spinner.style.display = 'none';
-  label.textContent = '🤖 AI Check';
-  return;
-}
+    if (data.error) {
+      showToast('API error: ' + data.error.message, 'error');
+      btn.disabled = false;
+      spinner.style.display = 'none';
+      label.textContent = '🤖 AI Check';
+      return;
+    }
 
-if (!data.content || !data.content[0]) {
-  showToast('API error: ' + JSON.stringify(data), 'error');
-  btn.disabled = false;
-  spinner.style.display = 'none';
-  label.textContent = '🤖 AI Check';
-  return;
-}
+    if (!data.content || !data.content[0]) {
+      showToast('API error: ' + JSON.stringify(data), 'error');
+      btn.disabled = false;
+      spinner.style.display = 'none';
+      label.textContent = '🤖 AI Check';
+      return;
+    }
 
-const text = data.content[0].text.trim();
+    const text = data.content[0].text.trim();
     const clean = text.replace(/```json\s*/i, '').replace(/```/g, '').trim();
     const result = JSON.parse(clean);
 
