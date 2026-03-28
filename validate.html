@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>STAR — Question Validator</title>
+<title>STAR F— Question Validator</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap');
@@ -702,7 +702,24 @@ Respond with JSON only:
     });
 
     const data = await response.json();
-    const text = data.content[0].text.trim();
+
+if (data.error) {
+  showToast('API error: ' + data.error.message, 'error');
+  btn.disabled = false;
+  spinner.style.display = 'none';
+  label.textContent = '🤖 AI Check';
+  return;
+}
+
+if (!data.content || !data.content[0]) {
+  showToast('API error: ' + JSON.stringify(data), 'error');
+  btn.disabled = false;
+  spinner.style.display = 'none';
+  label.textContent = '🤖 AI Check';
+  return;
+}
+
+const text = data.content[0].text.trim();
     const clean = text.replace(/```json\s*/i, '').replace(/```/g, '').trim();
     const result = JSON.parse(clean);
 
