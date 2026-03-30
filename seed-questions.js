@@ -63,9 +63,10 @@ const TARGETS = [
 const ENGLISH_GUIDE = {
   punctuation: `
 PUNCTUATION QUESTION FORMAT:
+- passage: the FULL sentence shown at the top of the question, with "/" marks dividing it into 4 sections (e.g. "Its raining heavily / outside today, / so we stayed / indoors.")
 - question_text: "Find the section with the punctuation or capital letter mistake. If there are no mistakes, choose N."
-- The sentence is split into 4 sections by "/" marks — put the FULL sentence with slashes in each option
-- Options A, B, C, D each highlight one section as containing the error; N = No mistakes
+- Options A, B, C, D each contain ONLY the text of that one section (no full sentence, no slashes) — e.g. A: "Its raining heavily"  B: "outside today,"  C: "so we stayed"  D: "indoors."
+- N: "No mistakes"
 - Test ONLY: apostrophe for contraction (wasn't, it's, I'll), possessive apostrophe (dog's, everyone's), missing full stop, missing question mark in speech, capital letter for proper nouns (Paris, Monday, Easter)
 - NEVER test comma placement — too ambiguous
 - N = No mistakes should be correct ~20% of time
@@ -177,16 +178,17 @@ function buildPrompt(subject, topic, yearGroup, difficulty, count) {
   const examples = {
     punctuation: `[
   {
+    "passage": "Its raining heavily / outside today, / so we stayed / indoors.",
     "question_text": "Find the section with the punctuation or capital letter mistake. If there are no mistakes, choose N.",
     "question_type": "mc",
     "options": {
-      "A": "The children played / in the garden / all afternoon / without stopping.",
-      "B": "She asked, / 'Can we go / to the park / tomorrow?'",
-      "C": "Its raining heavily / outside today, / so we stayed / indoors.",
-      "D": "The dog barked / loudly at / the postman / every morning.",
+      "A": "Its raining heavily",
+      "B": "outside today,",
+      "C": "so we stayed",
+      "D": "indoors.",
       "N": "No mistakes"
     },
-    "correct_answer": "C",
+    "correct_answer": "A",
     "explanation": "Its should be It's — a contraction of 'it is'. The apostrophe replaces the missing letter i."
   }
 ]`,

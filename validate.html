@@ -444,16 +444,20 @@ function buildCheckPrompt(q) {
 
   const optionsText = q.options ? Object.entries(q.options).map(([k,v]) => `${k}: ${v}`).join('\n') : 'Written answer (no options)';
 
-  // Fix 1: Tell the validator where to find the passage for comprehension questions
+  const isPunctuation = topicKey === 'punctuation';
+
+  // Tell the validator where to find the passage/sentence for comprehension and punctuation questions
   // Passage may be in a separate field (new format) or embedded in question_text (old format)
-  const passageSection = isComprehension && q.passage
-    ? `\nPassage:\n${q.passage}\n`
+  const passageSection = (isComprehension || isPunctuation) && q.passage
+    ? `\n${isPunctuation ? 'Full sentence' : 'Passage'}:\n${q.passage}\n`
     : '';
   const comprehensionNote = isComprehension
     ? q.passage
       ? `\nIMPORTANT FOR COMPREHENSION: The reading passage is provided in the Passage field above. Do NOT reject or warn because "no passage provided" — the passage is present.\n`
       : `\nIMPORTANT FOR COMPREHENSION: The reading passage IS embedded inside question_text above — it appears before the actual question. Do NOT reject or warn because "no passage provided". The passage is present; evaluate it as part of the question.\n`
-    : '';
+    : isPunctuation && q.passage
+      ? `\nIMPORTANT FOR PUNCTUATION: The full sentence (with "/" section dividers) is in the Full sentence field above. Options A/B/C/D each show just one section of that sentence. Evaluate whether the correct section contains a real punctuation or capital letter error.\n`
+      : '';
 
   // Fix 2: Explicit rule against flagging N answers in punctuation/spelling
   const nAnswerRule = isPunctuationOrSpelling
