@@ -262,7 +262,9 @@ Do NOT warn simply because a question tests connectives, prepositions, or conjun
   spelling: `REAL CATAPULT PAPERS SPELLING STANDARD:
 Format: short passage with 4 underlined words, one misspelled. Options A/B/C/D/N.
 Tests: suffix rules (-ment keeps final e: requirement, measurement, achievement; -ful never doubles l: respectful, beautiful, wonderful; -tion: situation, description, disruption; -ance/-ence: excellence, research), i-before-e (believed, achievement, received — long ee sound only; weird breaks the rule), double consonants (beginning doubles n because stressed syllable; opening does NOT), homophones (weather/whether, would/wood, their/there, desert/dessert), commonly misspelled words (tomorrow has one m two r, immediately contains 'media', population has one p).
-N = No mistakes ~20% of time — this is intentional, do NOT warn or fail simply because N is the correct answer.`,
+N = No mistakes ~20% of time — this is intentional, do NOT warn or fail simply because N is the correct answer.
+
+INTERRUPTED SPEECH RULE: When direct speech is split by a reporting clause (e.g. fumed Brody), the comma belongs INSIDE the first speech mark, before the closing quote. Example: 'If I could make any day illegal,' fumed Brody, 'I'd ban Mondays!' — the error is in the section containing the opening speech without the comma inside it. Do NOT say the error is in the reporting clause section.`,
 
   vocabulary: `REAL CATAPULT PAPERS VOCABULARY STANDARD:
 Always based on a short passage extract (3-5 sentences) provided within the question.
@@ -514,7 +516,7 @@ MATHS VERIFICATION RULE: Before marking a maths question FAIL, work out the answ
 - Sequence formulas: verify by substituting n=1,2,3 before rejecting.
 - Coin change: verify by listing actual coins that sum to the change amount.
 
-Respond with JSON only, no markdown:
+Respond with JSON only, no markdown. Keep reason under 20 words. Do not explain your working:
 {"verdict":"PASS|WARN|FAIL","reason":"one or two sentences","issues":[]}`;
 }
 
