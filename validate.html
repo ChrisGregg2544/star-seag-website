@@ -509,15 +509,8 @@ PASS = correct answer is unambiguous, format matches real Catapult Papers, tests
 WARN = minor issues (slightly off format, explanation too long, wording slightly awkward) but question is usable
 FAIL = wrong answer, wrong format (e.g. punctuation question testing comma placement), ambiguous correct answer, wildly wrong difficulty, explanation is wrong
 
-MATHS VERIFICATION RULE: Before marking a maths question FAIL, work out the answer yourself. Only FAIL if your working produces a different answer. Common traps:
-- Negative temperature: 16°C minus 20° = -4°C. Correct.
-- Equivalent fractions: 40/48 divides by 8 to give 5/6. If question asks which equals 5/6 and answer is 40/48, this IS correct.
-- Decimal ordering: 1.31 = 1.310 which is greater than 1.301. 1.31 IS the largest of 1.031, 1.3, 1.013, 1.31, 1.301.
-- Sequence formulas: verify by substituting n=1,2,3 before rejecting.
-- Coin change: verify by listing actual coins that sum to the change amount.
-
-Respond with JSON only, no markdown. Keep reason under 20 words. Do not explain your working:
-{"verdict":"PASS|WARN|FAIL","reason":"one or two sentences","issues":[]}`;
+Do all reasoning silently in your head. Output ONLY the JSON object below — no text before it, no text after it, no working shown. If you write anything outside the JSON your response will be rejected:
+{"verdict":"PASS|WARN|FAIL","reason":"one sentence max 15 words","issues":[]}`;
 }
 
 // ── Run check ──────────────────────────────────────────────────────────────────
@@ -525,7 +518,7 @@ async function runCheck(q) {
   const response = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'x-api-key': anthropicKey, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
-    body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 1000, messages: [{ role: 'user', content: buildCheckPrompt(q) }] })
+    body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 1000, system: "You are a JSON-only API. You must respond with a single valid JSON object and absolutely nothing else — no preamble, no explanation, no working, no text after the closing brace. Think entirely silently.", messages: [{ role: 'user', content: buildCheckPrompt(q) }] })
   });
   if (!response.ok) throw new Error(`API error ${response.status}: ${response.statusText}`);
   const data = await response.json();
