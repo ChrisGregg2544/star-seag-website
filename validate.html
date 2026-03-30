@@ -474,8 +474,12 @@ function buildCheckPrompt(q) {
     ? `\nCRITICAL RULE: Do NOT issue WARN or FAIL solely because the correct answer is N (No mistake). N answers are intentional and valid in real Catapult Papers — they appear ~20% of the time. Only fail a punctuation/spelling question if the grammar/error itself is wrong, not because of the N answer.\n`
     : '';
 
-  // Fix 3: Don't penalise text-only questions for lacking diagrams
-  const diagramNote = `\nIMPORTANT: This platform is TEXT-ONLY — no diagrams, images, or visual aids are used. Do NOT issue WARN or FAIL because a geometry or statistics question lacks a diagram. All data and measurements must be self-contained in the question text, and that is by design.\n`;
+  // Fix 3: Diagram-dependent questions get WARN not FAIL — diagram support is planned
+  const diagramNote = `\nDIAGRAM RULE FOR GEOMETRY AND STATISTICS QUESTIONS:
+Some questions require a visual diagram to be answerable (nets, coordinate grids, bar charts, pie charts, pictograms, scale readings, shaded fractions). These are valid questions — SVG diagram support is planned for a future release.
+If a geometry or statistics question CANNOT be answered from the text alone because it requires a diagram to see (e.g. "which of these nets folds to a cube", "what fraction is shaded", "read the value on this scale"), give WARN with reason "requires diagram — will be resolved when SVG diagram field is implemented". Do NOT give FAIL for this reason.
+If the question IS self-contained in text (all values given, no visual needed), evaluate it normally.
+Only FAIL a geometry or statistics question if the correct answer is mathematically wrong.\n`;
 
   return `You are a quality checker for a Northern Ireland SEAG Transfer Test preparation platform.
 
