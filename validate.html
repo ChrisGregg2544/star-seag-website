@@ -515,11 +515,26 @@ async function runCheck(q) {
     headers: { 'Content-Type': 'application/json', 'x-api-key': anthropicKey, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
     body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 400, messages: [{ role: 'user', content: buildCheckPrompt(q) }] })
   });
+  if (!response.ok) throw new Error(`API error ${response.status}: ${response.statusText}`);
   const data = await response.json();
   if (data.error) throw new Error(data.error.message);
-  if (!data.content?.[0]) throw new Error('No response');
-  const clean = data.content[0].text.trim().replace(/```json\s*/i,'').replace(/```/g,'').trim();
-  return JSON.parse(clean);
+  if (!data.content?.[0]?.text) throw new Error('Empty response from API');
+  const raw = data.content[0].text.trim();
+  // Strip markdown code fences if present
+  const clean = raw.replace(/^```json\s*/i,'').replace(/^```\s*/i,'').replace(/```\s*$/,'').trim();
+  // Extract JSON object if the model added surrounding prose
+  const jsonMatch = clean.match(/\{[\s\S]*\}/);
+  if (!jsonMatch) throw new Error(`No JSON object in response: ${raw.substring(0, 200)}`);
+  let result;
+  try {
+    result = JSON.parse(jsonMatch[0]);
+  } catch(e) {
+    throw new Error(`JSON parse failed: ${e.message} — raw: ${raw.substring(0, 200)}`);
+  }
+  if (!result.verdict || !['PASS','WARN','FAIL'].includes(result.verdict)) {
+    throw new Error(`Invalid verdict "${result.verdict}" — raw: ${raw.substring(0, 200)}`);
+  }
+  return result;
 }
 
 // ── Manual AI check ────────────────────────────────────────────────────────────
