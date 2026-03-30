@@ -196,7 +196,7 @@
   <div class="auto-panel">
     <div class="auto-panel-info">
       <strong>⚡ Auto-Run Mode</strong>
-      <p>Checks every pending question against the Catapult Papers standard.<br>PASS → approve automatically. WARN or FAIL → reject. 1 question every 5 seconds.</p>
+      <p>Checks every pending question against the Catapult Papers standard.<br>PASS or WARN → approve automatically. FAIL only → reject. 1 question every 5 seconds.</p>
     </div>
     <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
       <div class="auto-progress" id="auto-progress"></div>
@@ -437,8 +437,14 @@ function buildCheckPrompt(q) {
   const optionsText = q.options ? Object.entries(q.options).map(([k,v]) => `${k}: ${v}`).join('\n') : 'Written answer (no options)';
 
   // Fix 1: Tell the validator where to find the passage for comprehension questions
+  // Passage may be in a separate field (new format) or embedded in question_text (old format)
+  const passageSection = isComprehension && q.passage
+    ? `\nPassage:\n${q.passage}\n`
+    : '';
   const comprehensionNote = isComprehension
-    ? `\nIMPORTANT FOR COMPREHENSION: The reading passage IS embedded inside question_text above — it appears before the actual question. Do NOT reject or warn because "no passage provided". The passage is present; evaluate it as part of the question.\n`
+    ? q.passage
+      ? `\nIMPORTANT FOR COMPREHENSION: The reading passage is provided in the Passage field above. Do NOT reject or warn because "no passage provided" — the passage is present.\n`
+      : `\nIMPORTANT FOR COMPREHENSION: The reading passage IS embedded inside question_text above — it appears before the actual question. Do NOT reject or warn because "no passage provided". The passage is present; evaluate it as part of the question.\n`
     : '';
 
   // Fix 2: Explicit rule against flagging N answers in punctuation/spelling
@@ -446,18 +452,21 @@ function buildCheckPrompt(q) {
     ? `\nCRITICAL RULE: Do NOT issue WARN or FAIL solely because the correct answer is N (No mistake). N answers are intentional and valid in real Catapult Papers — they appear ~20% of the time. Only fail a punctuation/spelling question if the grammar/error itself is wrong, not because of the N answer.\n`
     : '';
 
+  // Fix 3: Don't penalise text-only questions for lacking diagrams
+  const diagramNote = `\nIMPORTANT: This platform is TEXT-ONLY — no diagrams, images, or visual aids are used. Do NOT issue WARN or FAIL because a geometry or statistics question lacks a diagram. All data and measurements must be self-contained in the question text, and that is by design.\n`;
+
   return `You are a quality checker for a Northern Ireland SEAG Transfer Test preparation platform.
 
 Check this question against the REAL Catapult Papers standard:
 
 ${standard}
-${comprehensionNote}${nAnswerRule}
+${comprehensionNote}${nAnswerRule}${diagramNote}
 QUESTION:
 Subject: ${q.subject} | Topic: ${q.topic} | Year: ${q.year_group} | Difficulty: ${q.difficulty}/5
 
 Question text:
 ${q.question_text}
-
+${passageSection}
 Options:
 ${optionsText}
 
@@ -543,14 +552,15 @@ async function startAutoRun() {
     progress.textContent = `${processed + 1} / ${allPending.length} — ✅ ${approved} approved  ❌ ${rejected} rejected`;
     try {
       const result = await runCheck(question);
-      if (result.verdict === 'PASS') {
-        await sb.from('questions').update({ validated: true }).eq('id', question.id);
-        approved++;
-        addLog(log, `✅ PASS — ${question.year_group} ${question.subject} ${question.topic} — ${question.question_text.substring(0,55)}...`, 'pass');
-      } else {
+      if (result.verdict === 'FAIL') {
         await sb.from('questions').update({ source: 'rejected' }).eq('id', question.id);
         rejected++;
-        addLog(log, `❌ ${result.verdict} — ${question.year_group} ${question.subject} ${question.topic} — ${result.reason.substring(0,70)}`, result.verdict === 'FAIL' ? 'fail' : 'warn');
+        addLog(log, `❌ FAIL — ${question.year_group} ${question.subject} ${question.topic} — ${result.reason.substring(0,70)}`, 'fail');
+      } else {
+        await sb.from('questions').update({ validated: true }).eq('id', question.id);
+        approved++;
+        const icon = result.verdict === 'WARN' ? '⚠️' : '✅';
+        addLog(log, `${icon} ${result.verdict} — ${question.year_group} ${question.subject} ${question.topic} — ${question.question_text.substring(0,55)}...`, result.verdict === 'WARN' ? 'warn' : 'pass');
       }
       processed++;
       await refreshStats();

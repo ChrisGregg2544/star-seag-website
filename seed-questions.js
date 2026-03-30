@@ -98,15 +98,16 @@ VOCABULARY QUESTION FORMAT:
 
   comprehension_mc: `
 COMPREHENSION MC FORMAT:
-- question_text: MUST include 6-8 lines of original passage text (fiction or non-fiction), then ask ONE question about it
-- The passage text goes BEFORE the question, clearly labelled
+- passage: MUST include 6-8 lines of original passage text (fiction or non-fiction) — put the passage here, NOT in question_text
+- question_text: ask ONE question about the passage (no passage text here — just the question)
 - Options A, B, C, D, E — one clearly correct from the passage
 - Ask about: main theme/purpose, character feelings, word meaning in context, literary devices (simile uses like/as, metaphor says IS, alliteration=repeated starting sounds, personification=human traits to non-human)
 - The passage must be self-contained and the answer findable within it`,
 
   comprehension_written: `
 COMPREHENSION WRITTEN FORMAT:
-- question_text: MUST include 6-8 lines of original passage text, then ask ONE written-answer question
+- passage: MUST include 6-8 lines of original passage text — put the passage here, NOT in question_text
+- question_text: ask ONE written-answer question about the passage (no passage text here — just the question)
 - options: null (written answer, no choices)
 - correct_answer: the exact word/phrase from the passage
 - Question types: "Find a word in line X that means [synonym]", "Copy the simile from the passage", "What part of speech is [word]?", "Find a compound word in the passage"
@@ -240,7 +241,8 @@ function buildPrompt(subject, topic, yearGroup, difficulty, count) {
 
     comprehension_mc: `[
   {
-    "question_text": "Read the passage below, then answer the question.\\n\\nThe Arctic tern makes the longest migration of any creature on Earth. Each year, it travels from the Arctic to the Antarctic and back again — a round trip of nearly 90,000 kilometres. This remarkable bird experiences more daylight than any other animal, spending summer in both polar regions. Despite weighing less than 125 grams, the Arctic tern is built for endurance, with long, narrow wings that slice through the air with minimal effort.\\n\\nWhat is the main purpose of this passage?",
+    "passage": "The Arctic tern makes the longest migration of any creature on Earth. Each year, it travels from the Arctic to the Antarctic and back again — a round trip of nearly 90,000 kilometres. This remarkable bird experiences more daylight than any other animal, spending summer in both polar regions. Despite weighing less than 125 grams, the Arctic tern is built for endurance, with long, narrow wings that slice through the air with minimal effort.",
+    "question_text": "What is the main purpose of this passage?",
     "question_type": "mc",
     "options": {
       "A": "To explain why Arctic terns are endangered",
@@ -256,7 +258,8 @@ function buildPrompt(subject, topic, yearGroup, difficulty, count) {
 
     comprehension_written: `[
   {
-    "question_text": "Read the passage below, then answer the question.\\n\\nThe old lighthouse stood at the edge of the cliff, its beam cutting through the dense fog like a silver sword. Every night, the keeper would trudge up the narrow staircase to ensure the light was working. Without it, ships would have no way to navigate the treacherous rocks below. The keeper had tended the light for thirty years, and the sea had become his oldest companion.\\n\\nFind a simile in the passage and copy it exactly.",
+    "passage": "The old lighthouse stood at the edge of the cliff, its beam cutting through the dense fog like a silver sword. Every night, the keeper would trudge up the narrow staircase to ensure the light was working. Without it, ships would have no way to navigate the treacherous rocks below. The keeper had tended the light for thirty years, and the sea had become his oldest companion.",
+    "question_text": "Find a simile in the passage and copy it exactly.",
     "question_type": "written",
     "options": null,
     "correct_answer": "like a silver sword",
@@ -386,7 +389,7 @@ CRITICAL RULES:
 3. P7: full exam difficulty, harder calculations, more complex language
 4. Explanations: 2 lines MAX — brief and parent-friendly
 5. Grammar questions MUST have a sentence with a ___ blank in question_text
-6. Comprehension questions MUST include the passage text inside question_text
+6. Comprehension questions MUST put the passage in the "passage" field, NOT in question_text
 7. Maths questions MUST have 5 options (A,B,C,D,E) with verified correct arithmetic
 8. Punctuation/spelling questions use options A,B,C,D,N
 
@@ -407,6 +410,7 @@ async function insertQuestions(questions, subject, topic, yearGroup, difficulty)
     difficulty,
     question_type: q.question_type || (q.options ? 'mc' : 'written'),
     question_text: q.question_text,
+    passage: q.passage || null,
     options: q.options || null,
     correct_answer: String(q.correct_answer),
     explanation: q.explanation || null,
