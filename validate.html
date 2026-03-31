@@ -519,7 +519,7 @@ async function runCheck(q) {
   const response = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'x-api-key': anthropicKey, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
-    body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 1000, system: "You are a JSON-only API. You must respond with a single valid JSON object and absolutely nothing else — no preamble, no explanation, no working, no text after the closing brace. Think entirely silently.", messages: [{ role: 'user', content: buildCheckPrompt(q) }] })
+    body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 1000, messages: [{ role: 'user', content: buildCheckPrompt(q) }] })
   });
   if (!response.ok) throw new Error(`API error ${response.status}: ${response.statusText}`);
   const data = await response.json();
