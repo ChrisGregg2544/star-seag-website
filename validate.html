@@ -508,9 +508,10 @@ VERDICT CRITERIA:
 PASS = correct answer is unambiguous, format matches real Catapult Papers, tests the right things for this topic, difficulty appropriate for ${q.year_group}, explanation is brief and accurate
 WARN = minor issues (slightly off format, explanation too long, wording slightly awkward) but question is usable
 FAIL = wrong answer, wrong format (e.g. punctuation question testing comma placement), ambiguous correct answer, wildly wrong difficulty, explanation is wrong
+WARN (not FAIL) for topic miscategorisation — a question with the wrong topic tag is still usable and should be WARN with the suggested correct topic in the reason, never FAIL.
 
 Do all reasoning silently in your head. Output ONLY the JSON object below — no text before it, no text after it, no working shown. If you write anything outside the JSON your response will be rejected:
-{"verdict":"PASS|WARN|FAIL","reason":"one sentence max 15 words"}`;
+{"verdict":"PASS|WARN|FAIL","reason":"max 8 words"}`;
 }
 
 // ── Run check ──────────────────────────────────────────────────────────────────
@@ -518,7 +519,7 @@ async function runCheck(q) {
   const response = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'x-api-key': anthropicKey, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
-    body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 1000, system: "You are a JSON-only API. You must respond with a single valid JSON object and absolutely nothing else — no preamble, no explanation, no working, no text after the closing brace. Think entirely silently.", messages: [{ role: 'user', content: buildCheckPrompt(q) }] })
+    body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 1000, system: "You are a JSON-only API. You must respond with a single valid JSON object and absolutely nothing else — no preamble, no explanation, no working, no text after the closing brace. Think entirely silently.", messages: [{ role: 'user', content: buildCheckPrompt(q) }, { role: 'assistant', content: '{"verdict":"' }] })
   });
   if (!response.ok) throw new Error(`API error ${response.status}: ${response.statusText}`);
   const data = await response.json();
@@ -527,9 +528,10 @@ async function runCheck(q) {
   const raw = data.content[0].text.trim();
   // Strip markdown code fences if present
   const clean = raw.replace(/^```json\s*/i,'').replace(/^```\s*/i,'').replace(/```\s*$/,'').trim();
-  // Extract JSON object if the model added surrounding prose
-  const jsonMatch = clean.match(/\{[\s\S]*\}/);
-  if (!jsonMatch) throw new Error(`No JSON object in response: ${raw.substring(0, 200)}`);
+  // Prepend the assistant prefill and extract JSON object
+  const prefilled = '{"verdict":"' + clean;
+  const jsonMatch = prefilled.match(/\{[\s\S]*\}/);
+  if (!jsonMatch) throw new Error(`No JSON object in response: ${prefilled.substring(0, 200)}`);
   let result;
   try {
     result = JSON.parse(jsonMatch[0]);
