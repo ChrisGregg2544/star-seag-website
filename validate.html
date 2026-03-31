@@ -519,7 +519,7 @@ async function runCheck(q) {
   const response = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'x-api-key': anthropicKey, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
-    body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 1000, system: "You are a JSON-only API. You must respond with a single valid JSON object and absolutely nothing else — no preamble, no explanation, no working, no text after the closing brace. Think entirely silently.", messages: [{ role: 'user', content: buildCheckPrompt(q) }, { role: 'assistant', content: '{"verdict":"' }] })
+    body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 1000, system: "You are a JSON-only API. You must respond with a single valid JSON object and absolutely nothing else — no preamble, no explanation, no working, no text after the closing brace. Think entirely silently.", messages: [{ role: 'user', content: buildCheckPrompt(q) }] })
   });
   if (!response.ok) throw new Error(`API error ${response.status}: ${response.statusText}`);
   const data = await response.json();
@@ -528,10 +528,9 @@ async function runCheck(q) {
   const raw = data.content[0].text.trim();
   // Strip markdown code fences if present
   const clean = raw.replace(/^```json\s*/i,'').replace(/^```\s*/i,'').replace(/```\s*$/,'').trim();
-  // Prepend the assistant prefill and extract JSON object
-  const prefilled = '{"verdict":"' + clean;
-  const jsonMatch = prefilled.match(/\{[\s\S]*\}/);
-  if (!jsonMatch) throw new Error(`No JSON object in response: ${prefilled.substring(0, 200)}`);
+  // Extract JSON object if the model added surrounding prose
+  const jsonMatch = clean.match(/\{[\s\S]*\}/);
+  if (!jsonMatch) throw new Error(`No JSON object in response: ${clean.substring(0, 200)}`);
   let result;
   try {
     result = JSON.parse(jsonMatch[0]);
