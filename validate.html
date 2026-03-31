@@ -510,7 +510,7 @@ WARN = minor issues (slightly off format, explanation too long, wording slightly
 FAIL = wrong answer, wrong format (e.g. punctuation question testing comma placement), ambiguous correct answer, wildly wrong difficulty, explanation is wrong
 
 Do all reasoning silently in your head. Output ONLY the JSON object below — no text before it, no text after it, no working shown. If you write anything outside the JSON your response will be rejected:
-{"verdict":"PASS|WARN|FAIL","reason":"one sentence max 15 words","issues":[]}`;
+{"verdict":"PASS|WARN|FAIL","reason":"one sentence max 15 words"}`;
 }
 
 // ── Run check ──────────────────────────────────────────────────────────────────
@@ -558,7 +558,7 @@ async function aiCheck() {
     const cls = result.verdict === 'PASS' ? 'pass' : result.verdict === 'FAIL' ? 'fail' : 'warn';
     const icon = result.verdict === 'PASS' ? '✅' : result.verdict === 'FAIL' ? '❌' : '⚠️';
     verdictEl.className = `ai-verdict ${cls}`;
-    verdictEl.innerHTML = `<div class="verdict-header">${icon} Verdict vs Catapult Standard: ${result.verdict}</div><div class="verdict-text">${result.reason}${result.issues?.length ? '<br><br><strong>Issues:</strong> ' + result.issues.join('; ') : ''}</div>`;
+    verdictEl.innerHTML = `<div class="verdict-header">${icon} Verdict vs Catapult Standard: ${result.verdict}</div><div class="verdict-text">${result.reason}${(result.issues||[])?.length ? '<br><br><strong>Issues:</strong> ' + result.issues.join('; ') : ''}</div>`;
   } catch(err) { showToast('Check failed: ' + err.message, 'error'); }
   btn.disabled = false;
   spinner.style.display = 'none';
