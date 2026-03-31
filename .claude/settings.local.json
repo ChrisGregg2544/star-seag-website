@@ -3,7 +3,9 @@
     "allow": [
       "Bash(node -e \":*)",
       "Bash(node:*)",
-      "Bash(git config:*)"
+      "Bash(git config:*)",
+      "Bash(git checkout:*)",
+      "Bash(node -e \"require\\(''''pdf-parse''''\\)\")"
     ]
   }
 }

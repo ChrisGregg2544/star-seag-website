@@ -35,44 +35,44 @@ const PASSAGE_WATCHER = `The Watcher
 16. And so, Charlotte had taken it upon herself to investigate. She had spent long hours
 17. wandering through the halls of Thornfield, listening for any sounds that seemed out
 18. of place, and peeking around corners for any sign of the mysterious watcher.
-20. But so far, her efforts had been in vain. The watcher remained out of reach, and
-21. Charlotte remained haunted by the fear that she was in danger. She knew she had
-22. to be careful, for if the watcher discovered her investigation, the consequences could
-23. be dreadful.
-24. As she walked through the halls of Thornfield, Charlotte decided to redouble her
-25. efforts. She would not rest until she had uncovered the truth behind the mysterious
-26. watcher, and put an end to whatever nefarious plot they were hatching. For the sake
-27. of Thornfield and all its inhabitants, she would not give up.
-28. Days turned into weeks, and still, Charlotte's search for the watcher continued.
-29. The weight of her secret pressed down on her like a lead blanket, and she found
-30. herself constantly looking over her shoulder, waiting for the watcher to pounce.
-31. Mrs Fairfax had grown increasingly concerned about Charlotte's behaviour, but
-32. Charlotte could not bring herself to confide in her further. She could not bear the
-33. thought of burdening the kind housekeeper with her concerns, for fear of bringing
-34. her into danger.
-35. And then, one fateful night, Charlotte's worst fears were realised. As she lay in bed,
-36. unable to sleep, she heard the unmistakable sound of those steps outside her door.
-37. She lay frozen in terror as a shadow appeared below it.
-38. With a strength she did not know she possessed, Charlotte sprang out of bed and
-39. hurled herself against the door. The figure on the other side darted away, then
-40. Charlotte bolted down the hallway.
-41. She did not stop until she reached the safety of Mrs Fairfax's room, where she
-42. burst in, gasping for breath. Mrs Fairfax listened to Charlotte's story with a look of
-43. grave concern on her face, and together, they hatched a plan to catch the watcher
-44. once and for all.
-45. The plan was simple but risky. Charlotte would draw the watcher out into the
-46. gardens, pretending to be oblivious to their presence. Meanwhile, Mrs Fairfax and
-47. the rest of the staff would be lying in wait, ready to apprehend the watcher as soon
-48. as they made their move.
-49. Charlotte felt a thrill of fear and excitement as she slipped out into the gardens that
-50. night. She wandered slowly through the winding paths, her heart racing, pretending
-51. to admire the moonlit flowers. And then, just as she had hoped, she heard a rustling
-52. in the bushes.
-53. She turned to face the watcher. She was stunned. And amused. She had not
-54. looked into their eyes for more than a few seconds before noticing that same
-55. tattered toy, which she now knew she could confidently remove from the watcher's
-56. mouth. It was only then that Charlotte was startled again: her name was stitched on
-57. the toy's back...`;
+19. But so far, her efforts had been in vain. The watcher remained out of reach, and
+20. Charlotte remained haunted by the fear that she was in danger. She knew she had
+21. to be careful, for if the watcher discovered her investigation, the consequences could
+22. be dreadful.
+23. As she walked through the halls of Thornfield, Charlotte decided to redouble her
+24. efforts. She would not rest until she had uncovered the truth behind the mysterious
+25. watcher, and put an end to whatever nefarious plot they were hatching. For the sake
+26. of Thornfield and all its inhabitants, she would not give up.
+27. Days turned into weeks, and still, Charlotte's search for the watcher continued.
+28. The weight of her secret pressed down on her like a lead blanket, and she found
+29. herself constantly looking over her shoulder, waiting for the watcher to pounce.
+30. Mrs Fairfax had grown increasingly concerned about Charlotte's behaviour, but
+31. Charlotte could not bring herself to confide in her further. She could not bear the
+32. thought of burdening the kind housekeeper with her concerns, for fear of bringing
+33. her into danger.
+34. And then, one fateful night, Charlotte's worst fears were realised. As she lay in bed,
+35. unable to sleep, she heard the unmistakable sound of those steps outside her door.
+36. She lay frozen in terror as a shadow appeared below it.
+37. With a strength she did not know she possessed, Charlotte sprang out of bed and
+38. hurled herself against the door. The figure on the other side darted away, then
+39. Charlotte bolted down the hallway.
+40. She did not stop until she reached the safety of Mrs Fairfax's room, where she
+41. burst in, gasping for breath. Mrs Fairfax listened to Charlotte's story with a look of
+42. grave concern on her face, and together, they hatched a plan to catch the watcher
+43. once and for all.
+44. The plan was simple but risky. Charlotte would draw the watcher out into the
+45. gardens, pretending to be oblivious to their presence. Meanwhile, Mrs Fairfax and
+46. the rest of the staff would be lying in wait, ready to apprehend the watcher as soon
+47. as they made their move.
+48. Charlotte felt a thrill of fear and excitement as she slipped out into the gardens that
+49. night. She wandered slowly through the winding paths, her heart racing, pretending
+50. to admire the moonlit flowers. And then, just as she had hoped, she heard a rustling
+51. in the bushes.
+52. She turned to face the watcher. She was stunned. And amused. She had not
+53. looked into their eyes for more than a few seconds before noticing that same
+54. tattered toy, which she now knew she could confidently remove from the watcher's
+55. mouth. It was only then that Charlotte was startled again: her name was stitched on
+56. the toy's back...`;
 
 const QUESTIONS = [
 
@@ -220,23 +220,23 @@ const QUESTIONS = [
   {
     subject: 'English', topic: 'comprehension_mc', question_type: 'Comprehension_MC',
     passage: PASSAGE_WATCHER,
-    question_text: "'Charlotte would draw the watcher out into the gardens, pretending to be oblivious to their presence.' (lines 45-46). What does this tell us about the plan?",
+    question_text: "'Charlotte would draw the watcher out into the gardens, pretending to be oblivious to their presence.' (lines 44-45). What does this tell us about the plan?",
     options: { A: "Charlotte would write an invitation to the watcher to meet her.", B: "Charlotte would catch the watcher and drag them to the gardens.", C: "Charlotte would watch the watcher from a distance.", D: "Charlotte would stand in the gardens and challenge the watcher to appear.", E: "Charlotte would act as if she wasn't concerned about the watcher." },
     correct_answer: 'E',
-    explanation: "Lines 49-51 describe Charlotte pretending to admire the flowers (line 50). She is acting as if she is not concerned about the watcher."
+    explanation: "Lines 48-50 describe Charlotte pretending to admire the flowers (line 49). She is acting as if she is not concerned about the watcher."
   },
   {
     subject: 'English', topic: 'comprehension_mc', question_type: 'Comprehension_MC',
     passage: PASSAGE_WATCHER,
     question_text: "Which of these words from the passage is closest in meaning to 'wicked'?",
-    options: { A: "amiss (line 13)", B: "vain (line 20)", C: "nefarious (line 26)", D: "confide (line 32)", E: "grave (line 43)" },
+    options: { A: "amiss (line 13)", B: "vain (line 19)", C: "nefarious (line 25)", D: "confide (line 31)", E: "grave (line 42)" },
     correct_answer: 'C',
     explanation: "Nefarious means wicked. Amiss means missing/not right; vain means fruitless; confide means entrust; grave means serious."
   },
   {
     subject: 'English', topic: 'comprehension_mc', question_type: 'Comprehension_MC',
     passage: PASSAGE_WATCHER,
-    question_text: "Why does Charlotte feel 'a thrill of fear and excitement' (line 49) towards the end of the passage?",
+    question_text: "Why does Charlotte feel 'a thrill of fear and excitement' (line 48) towards the end of the passage?",
     options: { A: "She knows the identity of the watcher and can't wait to meet them.", B: "The plan, although risky, is adventurous.", C: "She loves acting.", D: "She gets to admire the flowers.", E: "She feels completely confident because the staff are nearby." },
     correct_answer: 'B',
     explanation: "Option A is false; there is no evidence Charlotte enjoys acting (C); option D is not the reason; option E is wrong as she does not feel completely confident."
@@ -244,10 +244,10 @@ const QUESTIONS = [
   {
     subject: 'English', topic: 'comprehension_mc', question_type: 'Comprehension_MC',
     passage: PASSAGE_WATCHER,
-    question_text: "What does Charlotte discover about the watcher in lines 53-57?",
+    question_text: "What does Charlotte discover about the watcher in lines 52-56?",
     options: { A: "The watcher is a harmless toy-maker.", B: "The watcher is a member of the staff.", C: "The watcher is a harmless animal.", D: "The watcher is Mrs Fairfax.", E: "There was no watcher." },
     correct_answer: 'C',
-    explanation: "Lines 54-56: Charlotte removes the toy from the watcher's mouth. She is confident doing so — it is presumably a dog that has been following her."
+    explanation: "Lines 53-55: Charlotte removes the toy from the watcher's mouth. She is confident doing so — it is presumably a dog that has been following her."
   },
 
   // ── COMPREHENSION FR Q23-28 ───────────────────────────────────────────────
@@ -278,15 +278,15 @@ const QUESTIONS = [
   {
     subject: 'English', topic: 'comprehension_fr', question_type: 'Comprehension_FR',
     passage: PASSAGE_WATCHER,
-    question_text: "Which line from lines 27-33 contains a simile? Write the number of the line.",
+    question_text: "Which line from lines 26-32 contains a simile? Write the number of the line.",
     options: {},
-    correct_answer: '29',
-    explanation: "The weight of her secret pressed down on her like a lead blanket (line 29). Similes compare things using as or like."
+    correct_answer: '28',
+    explanation: "The weight of her secret pressed down on her like a lead blanket (line 28). Similes compare things using as or like."
   },
   {
     subject: 'English', topic: 'comprehension_fr', question_type: 'Comprehension_FR',
     passage: PASSAGE_WATCHER,
-    question_text: "Line 32 contains the word 'further'. The word is used as an adverb in the sentence. Which other adverb is used in the same paragraph (lines 31-34)?",
+    question_text: "Line 31 contains the word 'further'. The word is used as an adverb in the sentence. Which other adverb is used in the same paragraph (lines 30-33)?",
     options: {},
     correct_answer: 'increasingly',
     explanation: "Many adverbs have -ly ending. Adverbs can describe adjectives: increasingly concerned."
@@ -294,7 +294,7 @@ const QUESTIONS = [
   {
     subject: 'English', topic: 'comprehension_fr', question_type: 'Comprehension_FR',
     passage: PASSAGE_WATCHER,
-    question_text: "Which one part of speech are the following as they appear in the passage? glimpse (line 1), unease (line 8), shoulder (line 30), behaviour (line 31)",
+    question_text: "Which one part of speech are the following as they appear in the passage? glimpse (line 1), unease (line 8), shoulder (line 29), behaviour (line 30)",
     options: {},
     correct_answer: 'noun',
     explanation: "Glimpse is a noun (preceded by 'a'). Unease, shoulder and behaviour are also nouns in this context — they are all things."
@@ -317,10 +317,10 @@ const QUESTIONS = [
   },
   {
     subject: 'Maths', topic: 'fractions_decimals', question_type: 'Multiple_Choice',
-    question_text: "Each of five shapes has had a fraction of its parts shaded. Shape A is a 4×7 grid with 8 squares shaded. Which of the shapes has NOT had one quarter of its parts shaded?",
+    question_text: "Each of five shapes has had a fraction of its parts shaded. Which of the shapes has NOT had three quarters (¾) of its parts shaded?",
     options: { A: "Shape A", B: "Shape B", C: "Shape C", D: "Shape D", E: "Shape E" },
     correct_answer: 'A',
-    explanation: "Shape A has 28 squares (4×7) but only 8 are shaded. 8 is not one-quarter of 28 (one quarter would be 7)."
+    explanation: "This question requires a diagram showing five shapes. Shape A has not had three quarters of its parts shaded. Requires diagram to verify."
   },
   {
     subject: 'Maths', topic: 'arithmetic', question_type: 'Multiple_Choice',
@@ -443,10 +443,10 @@ const QUESTIONS = [
   },
   {
     subject: 'Maths', topic: 'fractions_decimals', question_type: 'Multiple_Choice',
-    question_text: "Which of these fractions is equal to 5/6? Options: 40/48, 30/42, 25/36, 20/24, 15/18",
-    options: { A: "40/48", B: "30/42", C: "25/36", D: "20/24", E: "15/18" },
+    question_text: "Which of these fractions is equal to 5/6?",
+    options: { A: "40/48", B: "22/26", C: "35/40", D: "30/35", E: "45/50" },
     correct_answer: 'A',
-    explanation: "40/48: both divide by 8 to give 5/6. Check: 5×8=40, 6×8=48. ✓"
+    explanation: "40/48: both divide by 8 to give 5/6 (5×8=40, 6×8=48). The other options simplify to: 22/26=11/13, 35/40=7/8, 30/35=6/7, 45/50=9/10."
   },
   {
     subject: 'Maths', topic: 'algebra_sequences', question_type: 'Multiple_Choice',
