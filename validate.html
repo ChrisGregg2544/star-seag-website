@@ -196,7 +196,7 @@
   <div class="auto-panel">
     <div class="auto-panel-info">
       <strong>⚡ Auto-Run Mode</strong>
-      <p>Checks every pending question against the Catapult Papers standard.<br>PASS or WARN → approve automatically. FAIL only → reject. 1 question every 5 seconds.</p>
+      <p>Checks every pending question against the Catapult Papers standard.<br>PASS → approve. WARN → flag for manual review. FAIL → reject. 1 question every 5 seconds.</p>
     </div>
     <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
       <div class="auto-progress" id="auto-progress"></div>
@@ -603,14 +603,17 @@ async function startAutoRun() {
     try {
       const result = await runCheck(question);
       if (result.verdict === 'FAIL') {
-        await sb.from('questions').update({ source: 'rejected' }).eq('id', question.id);
+        await sb.from('questions').update({ source: 'rejected', validator_verdict: 'fail', validator_reason: result.reason }).eq('id', question.id);
         rejected++;
         addLog(log, `❌ FAIL — ${question.year_group} ${question.subject} ${question.topic} — ${result.reason.substring(0,70)}`, 'fail');
-      } else {
-        await sb.from('questions').update({ validated: true }).eq('id', question.id);
+      } else if (result.verdict === 'WARN') {
+        await sb.from('questions').update({ validator_verdict: 'warn', validator_reason: result.reason }).eq('id', question.id);
         approved++;
-        const icon = result.verdict === 'WARN' ? '⚠️' : '✅';
-        addLog(log, `${icon} ${result.verdict} — ${question.year_group} ${question.subject} ${question.topic} — ${question.question_text.substring(0,55)}...`, result.verdict === 'WARN' ? 'warn' : 'pass');
+        addLog(log, `⚠️ WARN — ${question.year_group} ${question.subject} ${question.topic} — ${result.reason.substring(0,70)}`, 'warn');
+      } else {
+        await sb.from('questions').update({ validated: true, validator_verdict: 'pass', validator_reason: result.reason }).eq('id', question.id);
+        approved++;
+        addLog(log, `✅ PASS — ${question.year_group} ${question.subject} ${question.topic} — ${question.question_text.substring(0,55)}...`, 'pass');
       }
       processed++;
       await refreshStats();
