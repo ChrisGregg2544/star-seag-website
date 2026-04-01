@@ -510,7 +510,7 @@ PASS = correct answer is unambiguous, format matches real Catapult Papers, tests
 WARN = minor issues (slightly off format, explanation too long, wording slightly awkward) but question is usable
 FAIL = wrong answer, wrong format (e.g. punctuation question testing comma placement), ambiguous correct answer, wildly wrong difficulty, explanation is wrong
 NOTE: explanations are teaching notes and often deliberately quote the incorrect word or form to contrast it with the correct one (e.g. "occassionally should be occasionally"). Do NOT treat the presence of a misspelled or incorrect word in the explanation as an error.
-NOTE: spelling explanations use simplified phonics descriptions as memory aids for P6/P7 children — never WARN or FAIL because a phonics explanation is simplified or imprecise (e.g. describing the /ʒ/ sound as a "softer z sound" is acceptable and intentional).
+NOTE: for spelling questions, do NOT analyse or verify the phonics details in the explanation — phonics mnemonics are simplified teaching aids and you will get them wrong. Only check that the correct answer letter (A/B/C/D/N) matches the option that contains the misspelling. If the correct answer points to the right misspelled option, give PASS regardless of the phonics explanation.
 WARN (not FAIL) for topic miscategorisation — a question with the wrong topic tag is still usable and should be WARN with the suggested correct topic in the reason, never FAIL.
 
 Do all reasoning silently in your head. Output ONLY the JSON object below — no text before it, no text after it, no working shown. If you write anything outside the JSON your response will be rejected:
