@@ -173,7 +173,7 @@ async function connect() {
 }
 
 async function refreshStats() {
-  const { data: flagged } = await sb.from('questions').select('validator_verdict').in('validator_verdict', ['warn','fail']).eq('validated', false).neq('source', 'rejected');
+  const { data: flagged } = await sb.from('questions').select('validator_verdict').in('validator_verdict', ['warn','fail']).eq('validated', false);
   const warns = (flagged||[]).filter(q => q.validator_verdict === 'warn').length;
   const fails = (flagged||[]).filter(q => q.validator_verdict === 'fail').length;
   document.getElementById('stat-total').textContent = (flagged||[]).length;
@@ -187,7 +187,7 @@ async function loadQueue() {
   const subject = document.getElementById('filter-subject').value;
   const year = document.getElementById('filter-year').value;
   const topic = document.getElementById('filter-topic').value;
-  let q = sb.from('questions').select('*').in('validator_verdict', verdict ? [verdict] : ['warn','fail']).eq('validated', false).neq('source', 'rejected').order('validator_verdict', { ascending: false }).order('created_at', { ascending: true }).limit(100);
+  let q = sb.from('questions').select('*').in('validator_verdict', verdict ? [verdict] : ['warn','fail']).eq('validated', false).order('validator_verdict', { ascending: false }).order('created_at', { ascending: true }).limit(100);
   if (subject) q = q.eq('subject', subject);
   if (year) q = q.eq('year_group', year);
   if (topic) q = q.eq('topic', topic);
