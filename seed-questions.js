@@ -17,9 +17,11 @@ const SUPABASE_KEY      = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.S
 const BATCH_SIZE = 5;
 const DELAY_MS   = 4000;
 
-// CLI: --limit N  → only run the first N targets
+// CLI: --limit N  → only run N targets; --from N → start from target index N
 const limitArg = process.argv.indexOf('--limit');
+const fromArg  = process.argv.indexOf('--from');
 const TARGET_LIMIT = limitArg !== -1 ? parseInt(process.argv[limitArg + 1], 10) : Infinity;
+const TARGET_FROM  = fromArg  !== -1 ? parseInt(process.argv[fromArg  + 1], 10) : 0;
 
 const anthropic = new Anthropic({ apiKey: ANTHROPIC_API_KEY });
 const supabase  = createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -530,7 +532,7 @@ async function main() {
   let totalInserted = 0;
   let totalErrors = 0;
 
-  for (const [subject, topic, yearGroup, difficulty, count] of TARGETS.slice(0, TARGET_LIMIT)) {
+  for (const [subject, topic, yearGroup, difficulty, count] of TARGETS.slice(TARGET_FROM, TARGET_FROM + TARGET_LIMIT)) {
     const batches = Math.ceil(count / BATCH_SIZE);
     console.log(`\n📝 ${yearGroup} ${subject}/${topic} diff:${difficulty} — ${count} questions (${batches} batches)`);
 
