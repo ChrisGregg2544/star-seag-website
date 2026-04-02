@@ -468,7 +468,7 @@ function attachDiagram(q) {
 }
 
 // ── Insert ─────────────────────────────────────────────────────────────────────
-async function insertQuestions(questions, subject, topic, yearGroup, difficulty) {
+async function insertQuestions(questions, subject, topic, yearGroup, difficulty, passageId = null) {
   const rows = questions.map(q => ({
     subject,
     topic,      // always from TARGETS — never from generated JSON
@@ -477,6 +477,7 @@ async function insertQuestions(questions, subject, topic, yearGroup, difficulty)
     question_type: q.question_type || (q.options ? 'mc' : 'written'),
     question_text: q.question_text,
     passage: q.passage || null,
+    passage_id: passageId,
     options: q.options || null,
     correct_answer: String(q.correct_answer),
     explanation: q.explanation || null,
@@ -495,6 +496,323 @@ async function insertQuestions(questions, subject, topic, yearGroup, difficulty)
   const { error, data } = await supabase.from('questions').insert(valid).select('id');
   if (error) throw new Error(`Supabase insert error: ${error.message}`);
   return data.length;
+}
+
+// ── Passage-group prompt ───────────────────────────────────────────────────────
+function buildPassageGroupPrompt(yearGroup, difficulty) {
+  const diffLabel = { 1:'very easy', 2:'easy', 3:'moderate', 4:'challenging', 5:'very hard' }[difficulty];
+  const level = yearGroup === 'P6'
+    ? 'P6 Warm-Up level — slightly easier SEAG prep for 10-year-olds'
+    : 'P7 Main Series — full SEAG exam standard for 11-year-olds';
+
+  return `You are generating one original reading passage and two questions about it for the SEAG Transfer Test (Northern Ireland, P6/P7 pupils aged 10-11).
+
+YEAR GROUP: ${level}
+DIFFICULTY: ${diffLabel} (${difficulty}/5)
+
+PASSAGE: Write an original 6-8 sentence passage (fiction or non-fiction).
+Topics: nature, science, history, sport, adventure, biography, everyday life.
+No copyright material. UK English spelling only.
+
+MC QUESTION (comprehension_mc):
+- question_text: ONE question about the passage — theme/purpose, word meaning in context, or literary device (simile uses like/as, metaphor says IS, alliteration=same starting letter, personification=human trait to non-human)
+- options: A, B, C, D, E — one clearly correct from the passage, others plausible
+- correct_answer: one of A/B/C/D/E
+
+WRITTEN QUESTION (comprehension_written):
+- question_text: "Find a word in the passage that means [synonym]", OR "Copy the simile from the passage", OR "What part of speech is the word [X]?", OR "Find a compound word in the passage"
+- options: null
+- correct_answer: the EXACT word or short phrase copied directly from the passage
+
+RULES:
+1. The passage MUST contain a simile (using like/as) OR a strong vocabulary word — so the written question is answerable
+2. P6: simpler vocabulary, shorter sentences. P7: more complex language, richer vocabulary
+3. Explanations: 2 lines MAX, parent-friendly
+4. The correct_answer for the written question must appear verbatim in the passage content
+
+Respond with ONLY this JSON object (no markdown fences, no backticks):
+{
+  "title": "Short 3-5 word title",
+  "content": "Full passage text here...",
+  "mc_question": {
+    "question_text": "...",
+    "question_type": "mc",
+    "options": {"A":"...", "B":"...", "C":"...", "D":"...", "E":"..."},
+    "correct_answer": "B",
+    "explanation": "..."
+  },
+  "written_question": {
+    "question_text": "...",
+    "question_type": "written",
+    "options": null,
+    "correct_answer": "exact word or phrase from passage",
+    "explanation": "..."
+  }
+}`;
+}
+
+// ── Generate one passage group (passage + MC + written) ────────────────────────
+async function generatePassageGroup(yearGroup, difficulty) {
+  const prompt = buildPassageGroupPrompt(yearGroup, difficulty);
+
+  const response = await anthropic.messages.create({
+    model: 'claude-sonnet-4-6',
+    max_tokens: 2000,
+    messages: [{ role: 'user', content: prompt }],
+  });
+
+  const raw = response.content[0].text.trim();
+  const clean = raw.replace(/^```json\s*/i,'').replace(/^```\s*/i,'').replace(/```\s*$/i,'').trim();
+
+  let group;
+  try {
+    group = JSON.parse(clean);
+  } catch(e) {
+    throw new Error(`Passage group JSON parse failed: ${e.message} — raw: ${raw.substring(0, 200)}`);
+  }
+
+  if (!group.title || !group.content || !group.mc_question || !group.written_question) {
+    throw new Error('Passage group missing required fields (title/content/mc_question/written_question)');
+  }
+  return group;
+}
+
+// ── Count passages ─────────────────────────────────────────────────────────────
+async function countPassages(yearGroup, difficulty) {
+  const { count, error } = await supabase
+    .from('passages')
+    .select('id', { count: 'exact', head: true })
+    .eq('year_group', yearGroup)
+    .eq('difficulty', difficulty)
+    .eq('source', 'ai_generated_v3');
+  if (error) throw new Error(`Passage count failed: ${error.message}`);
+  return count || 0;
+}
+
+// ── Seed comprehension passage-aware ──────────────────────────────────────────
+async function seedComprehension(yearGroup, difficulty, mcTarget, writtenTarget) {
+  const label = `${yearGroup} comprehension diff:${difficulty}`;
+
+  // Remove legacy comprehension questions that have no passage_id (they were generated independently)
+  const { error: delErr } = await supabase
+    .from('questions')
+    .delete()
+    .eq('subject', 'english')
+    .in('topic', ['comprehension_mc', 'comprehension_written'])
+    .eq('year_group', yearGroup)
+    .eq('difficulty', difficulty)
+    .eq('source', 'ai_generated_v3')
+    .is('passage_id', null);
+  if (delErr) throw new Error(`Failed to remove legacy comprehension: ${delErr.message}`);
+
+  const existingPassages = await countPassages(yearGroup, difficulty);
+  const passagesNeeded = Math.max(0, Math.max(mcTarget, writtenTarget, 10) - existingPassages);
+
+  if (passagesNeeded === 0) {
+    console.log(`\n✓  ${label} — already has ${existingPassages} passages, skipping`);
+    return { inserted: 0, skipped: 1, errors: 0 };
+  }
+
+  console.log(`\n📖 ${label} — generating ${passagesNeeded} passages (${passagesNeeded} MC + ${passagesNeeded} written)`);
+
+  let inserted = 0;
+  let errors = 0;
+
+  for (let i = 0; i < passagesNeeded; i++) {
+    process.stdout.write(`   Passage ${i+1}/${passagesNeeded}... `);
+    try {
+      const group = await generatePassageGroup(yearGroup, difficulty);
+
+      // Insert passage record
+      const { data: passageRow, error: pErr } = await supabase
+        .from('passages')
+        .insert({
+          title: group.title,
+          content: group.content,
+          year_group: yearGroup,
+          difficulty,
+          source: 'ai_generated_v3',
+        })
+        .select('id')
+        .single();
+      if (pErr) throw new Error(`Passage insert failed: ${pErr.message}`);
+      const passageId = passageRow.id;
+
+      // Insert MC question
+      const mcQ = { ...group.mc_question, passage: group.content };
+      await insertQuestions([mcQ], 'english', 'comprehension_mc', yearGroup, difficulty, passageId);
+
+      // Insert written question
+      const wrQ = { ...group.written_question, passage: group.content };
+      await insertQuestions([wrQ], 'english', 'comprehension_written', yearGroup, difficulty, passageId);
+
+      inserted += 2;
+      console.log(`✅ passage ${passageId.substring(0,8)}… inserted`);
+    } catch(err) {
+      errors++;
+      console.log(`❌ ${err.message}`);
+    }
+
+    if (i < passagesNeeded - 1) await sleep(DELAY_MS);
+  }
+
+  const totalPassages = (await countPassages(yearGroup, difficulty));
+  console.log(`   → ${totalPassages} passages, ~${totalPassages} MC + ~${totalPassages} written for ${label}`);
+  return { inserted, skipped: 0, errors };
+}
+
+// ── Per-passage question targets ───────────────────────────────────────────────
+const MC_PER_PASSAGE      = 7;
+const WRITTEN_PER_PASSAGE = 6;
+
+// ── Raw Claude call returning a parsed JSON array ──────────────────────────────
+async function callClaude(prompt, maxTokens = 4000) {
+  const response = await anthropic.messages.create({
+    model: 'claude-sonnet-4-6',
+    max_tokens: maxTokens,
+    messages: [{ role: 'user', content: prompt }],
+  });
+  const raw   = response.content[0].text.trim();
+  const clean = raw.replace(/^```json\s*/i,'').replace(/^```\s*/i,'').replace(/```\s*$/i,'').trim();
+  let parsed;
+  try {
+    parsed = JSON.parse(clean);
+  } catch(e) {
+    throw new Error(`JSON parse failed: ${e.message} — raw: ${raw.substring(0, 300)}`);
+  }
+  if (!Array.isArray(parsed)) throw new Error('Response was not a JSON array');
+  return parsed;
+}
+
+// ── Top-up prompt builder ──────────────────────────────────────────────────────
+function buildTopUpPrompt(passageContent, yearGroup, difficulty, questionType, count, existingQTexts) {
+  const diffLabel = { 1:'very easy', 2:'easy', 3:'moderate', 4:'challenging', 5:'very hard' }[difficulty];
+  const level = yearGroup === 'P6'
+    ? 'P6 Warm-Up level (10-year-olds)'
+    : 'P7 Main Series — full SEAG exam standard (11-year-olds)';
+
+  const alreadyAsked = existingQTexts.length
+    ? `\nALREADY ASKED FOR THIS PASSAGE — do NOT repeat or overlap:\n${existingQTexts.map((q,i) => `${i+1}. ${q}`).join('\n')}\n`
+    : '';
+
+  if (questionType === 'mc') {
+    return `Generate ${count} multiple-choice comprehension questions for this SEAG reading passage (${level}, difficulty: ${diffLabel}).
+
+PASSAGE:
+"${passageContent}"
+${alreadyAsked}
+Each question must test a DIFFERENT aspect. Use varied types across the set:
+- Word meaning in context: "What does the word [X] mean/suggest in this passage?"
+- Inference: "What do we learn about [subject] from this passage?"
+- Literary device: "What technique is used in the phrase '[quote from passage]'?"
+- Character/author attitude: "How does [character/author] feel about [X]?"
+- Main theme or purpose: "What is the main purpose of this passage?"
+
+Rules:
+- question_text: the question only — no passage text, no 'Read the passage' instruction
+- options A–E: one clearly correct answer from the passage; other four plausible but wrong
+- correct_answer: one of A/B/C/D/E
+- explanation: 2 lines MAX, UK English spelling
+
+Respond with ONLY a valid JSON array of ${count} objects — no markdown, no backticks:
+[{"question_text":"...","question_type":"mc","options":{"A":"...","B":"...","C":"...","D":"...","E":"..."},"correct_answer":"B","explanation":"..."}]`;
+  }
+
+  return `Generate ${count} written-answer comprehension questions for this SEAG reading passage (${level}, difficulty: ${diffLabel}).
+
+PASSAGE:
+"${passageContent}"
+${alreadyAsked}
+Each answer MUST be a word or short phrase copied VERBATIM from the passage above.
+Use varied question types across the set:
+- Vocabulary: "Find a word in the passage that means [synonym]." (answer = exact word from passage)
+- Literary device: "Copy the [simile / metaphor / alliteration / personification] from the passage." (answer = exact quote)
+- Word class: "What part of speech is the word [X]?" (answer = noun / verb / adjective / adverb)
+- Compound word: "Find a compound word in the passage." (answer = the compound word)
+- Evidence phrase: "Copy a phrase from the passage that shows [X]." (answer = exact short quote)
+
+Rules:
+- question_text: the question only — no passage text, no 'Read the passage' instruction
+- options: null
+- correct_answer: the EXACT word or phrase — it must appear verbatim in the passage text above
+- explanation: 2 lines MAX, UK English spelling
+
+Respond with ONLY a valid JSON array of ${count} objects — no markdown, no backticks:
+[{"question_text":"...","question_type":"written","options":null,"correct_answer":"exact phrase","explanation":"..."}]`;
+}
+
+// ── Top up every passage to MC_PER_PASSAGE MC + WRITTEN_PER_PASSAGE written ────
+async function topUpPassages() {
+  const { data: passages, error } = await supabase
+    .from('passages')
+    .select('id, title, content, year_group, difficulty')
+    .eq('source', 'ai_generated_v3')
+    .order('created_at', { ascending: true });
+  if (error) throw new Error(`Failed to fetch passages: ${error.message}`);
+
+  console.log(`\n\n── Passage top-up (target: ${MC_PER_PASSAGE} MC + ${WRITTEN_PER_PASSAGE} written per passage) ──`);
+  console.log(`   ${passages.length} passages found`);
+
+  let totalInserted = 0;
+  let totalErrors   = 0;
+
+  for (let pi = 0; pi < passages.length; pi++) {
+    const p = passages[pi];
+
+    const { data: existing, error: qErr } = await supabase
+      .from('questions')
+      .select('topic, question_text')
+      .eq('passage_id', p.id)
+      .eq('source', 'ai_generated_v3');
+    if (qErr) throw new Error(`Failed to fetch questions for passage ${p.id}: ${qErr.message}`);
+
+    const existingMC      = (existing||[]).filter(q => q.topic === 'comprehension_mc');
+    const existingWritten = (existing||[]).filter(q => q.topic === 'comprehension_written');
+    const neededMC        = Math.max(0, MC_PER_PASSAGE      - existingMC.length);
+    const neededWritten   = Math.max(0, WRITTEN_PER_PASSAGE - existingWritten.length);
+
+    if (neededMC === 0 && neededWritten === 0) {
+      console.log(`\n✓  [${pi+1}/${passages.length}] "${p.title}" — already complete`);
+      continue;
+    }
+
+    console.log(`\n📄 [${pi+1}/${passages.length}] "${p.title}" (${p.year_group} diff:${p.difficulty}) — need +${neededMC} MC, +${neededWritten} written`);
+
+    if (neededMC > 0) {
+      process.stdout.write(`   Generating ${neededMC} MC... `);
+      try {
+        const prompt    = buildTopUpPrompt(p.content, p.year_group, p.difficulty, 'mc', neededMC, existingMC.map(q => q.question_text));
+        const questions = await callClaude(prompt, 3000);
+        const tagged    = questions.map(q => ({ ...q, passage: p.content }));
+        const n         = await insertQuestions(tagged, 'english', 'comprehension_mc', p.year_group, p.difficulty, p.id);
+        totalInserted  += n;
+        console.log(`✅ ${n} inserted`);
+      } catch(err) {
+        totalErrors++;
+        console.log(`❌ ${err.message}`);
+      }
+      await sleep(DELAY_MS);
+    }
+
+    if (neededWritten > 0) {
+      process.stdout.write(`   Generating ${neededWritten} written... `);
+      try {
+        const prompt    = buildTopUpPrompt(p.content, p.year_group, p.difficulty, 'written', neededWritten, existingWritten.map(q => q.question_text));
+        const questions = await callClaude(prompt, 2000);
+        const tagged    = questions.map(q => ({ ...q, passage: p.content }));
+        const n         = await insertQuestions(tagged, 'english', 'comprehension_written', p.year_group, p.difficulty, p.id);
+        totalInserted  += n;
+        console.log(`✅ ${n} inserted`);
+      } catch(err) {
+        totalErrors++;
+        console.log(`❌ ${err.message}`);
+      }
+      if (pi < passages.length - 1) await sleep(DELAY_MS);
+    }
+  }
+
+  console.log(`\n   Top-up complete — inserted: ${totalInserted}  errors: ${totalErrors}`);
+  return { inserted: totalInserted, errors: totalErrors };
 }
 
 // ── Generate batch ─────────────────────────────────────────────────────────────
@@ -549,6 +867,9 @@ async function main() {
 
   for (const [subject, topic, yearGroup, difficulty, target] of TARGETS.slice(TARGET_FROM, TARGET_FROM + TARGET_LIMIT)) {
 
+    // Comprehension topics are handled passage-aware below — skip here
+    if (topic === 'comprehension_mc' || topic === 'comprehension_written') continue;
+
     const existing = await countExisting(subject, topic, yearGroup, difficulty);
     const needed   = Math.max(0, target - existing);
 
@@ -584,6 +905,36 @@ async function main() {
     }
 
     console.log(`   → ${existing + inserted}/${target} for this target`);
+  }
+
+  // ── Comprehension: passage-aware seeding ──────────────────────────────────────
+  // Paired targets: each year group gets min 10 passages, each yielding 1 MC + 1 written
+  const COMPREHENSION_SETS = [
+    { yearGroup: 'P6', difficulty: 2, mcTarget: 10, writtenTarget: 10 },
+    { yearGroup: 'P7', difficulty: 3, mcTarget: 10, writtenTarget: 10 },
+  ];
+
+  console.log('\n\n── Comprehension (passage-aware) ──────────────────────────────────────');
+  for (const { yearGroup, difficulty, mcTarget, writtenTarget } of COMPREHENSION_SETS) {
+    try {
+      const { inserted, skipped, errors } = await seedComprehension(yearGroup, difficulty, mcTarget, writtenTarget);
+      totalInserted += inserted;
+      totalSkipped  += skipped;
+      totalErrors   += errors;
+    } catch(err) {
+      totalErrors++;
+      console.error(`❌ seedComprehension ${yearGroup} diff:${difficulty} failed: ${err.message}`);
+    }
+  }
+
+  // ── Passage top-up ────────────────────────────────────────────────────────────
+  try {
+    const { inserted, errors } = await topUpPassages();
+    totalInserted += inserted;
+    totalErrors   += errors;
+  } catch(err) {
+    totalErrors++;
+    console.error(`❌ topUpPassages failed: ${err.message}`);
   }
 
   console.log('\n=============================================');
