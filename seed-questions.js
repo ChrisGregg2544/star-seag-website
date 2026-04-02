@@ -524,20 +524,45 @@ async function generateBatch(subject, topic, yearGroup, difficulty, count) {
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
+// ── Count existing ────────────────────────────────────────────────────────────
+async function countExisting(subject, topic, yearGroup, difficulty) {
+  const { count, error } = await supabase
+    .from('questions')
+    .select('id', { count: 'exact', head: true })
+    .eq('subject', subject)
+    .eq('topic', topic)
+    .eq('year_group', yearGroup)
+    .eq('difficulty', difficulty)
+    .eq('source', 'ai_generated_v3');
+  if (error) throw new Error(`Count query failed: ${error.message}`);
+  return count || 0;
+}
+
 // ── Main ───────────────────────────────────────────────────────────────────────
 async function main() {
   console.log('🚀 STAR AI Tutor — Question Bank Generator v3');
   console.log('=============================================');
 
   let totalInserted = 0;
-  let totalErrors = 0;
+  let totalSkipped  = 0;
+  let totalErrors   = 0;
 
-  for (const [subject, topic, yearGroup, difficulty, count] of TARGETS.slice(TARGET_FROM, TARGET_FROM + TARGET_LIMIT)) {
-    const batches = Math.ceil(count / BATCH_SIZE);
-    console.log(`\n📝 ${yearGroup} ${subject}/${topic} diff:${difficulty} — ${count} questions (${batches} batches)`);
+  for (const [subject, topic, yearGroup, difficulty, target] of TARGETS.slice(TARGET_FROM, TARGET_FROM + TARGET_LIMIT)) {
 
-    let inserted = 0;
-    let remaining = count;
+    const existing = await countExisting(subject, topic, yearGroup, difficulty);
+    const needed   = Math.max(0, target - existing);
+
+    if (needed === 0) {
+      console.log(`\n✓  ${yearGroup} ${subject}/${topic} diff:${difficulty} — already at ${existing}/${target}, skipping`);
+      totalSkipped++;
+      continue;
+    }
+
+    const batches = Math.ceil(needed / BATCH_SIZE);
+    console.log(`\n📝 ${yearGroup} ${subject}/${topic} diff:${difficulty} — need ${needed} more (have ${existing}/${target}) — ${batches} batch${batches>1?'es':''}`);
+
+    let inserted  = 0;
+    let remaining = needed;
 
     for (let b = 0; b < batches; b++) {
       const batchCount = Math.min(BATCH_SIZE, remaining);
@@ -546,7 +571,7 @@ async function main() {
       try {
         const questions = await generateBatch(subject, topic, yearGroup, difficulty, batchCount);
         const n = await insertQuestions(questions, subject, topic, yearGroup, difficulty);
-        inserted += n;
+        inserted  += n;
         remaining -= batchCount;
         totalInserted += n;
         console.log(`✅ ${n} inserted`);
@@ -558,12 +583,11 @@ async function main() {
       if (b < batches - 1) await sleep(DELAY_MS);
     }
 
-    console.log(`   → ${inserted}/${count} for this target`);
+    console.log(`   → ${existing + inserted}/${target} for this target`);
   }
 
   console.log('\n=============================================');
-  console.log(`✅ Done! Total inserted: ${totalInserted}`);
-  if (totalErrors > 0) console.log(`⚠️  Errors: ${totalErrors}`);
+  console.log(`✅ Done! Inserted: ${totalInserted}  Skipped: ${totalSkipped}  Errors: ${totalErrors}`);
 }
 
 main().catch(err => { console.error('Fatal:', err); process.exit(1); });
