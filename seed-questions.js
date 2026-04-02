@@ -8,6 +8,7 @@
 
 import Anthropic from '@anthropic-ai/sdk';
 import { createClient } from '@supabase/supabase-js';
+import { generateDiagram } from './diagram-generator.js';
 
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY  || 'YOUR_KEY_HERE';
 const SUPABASE_URL      = process.env.SUPABASE_URL       || 'https://iutcgogmxhaqgaxkznxu.supabase.co';
@@ -403,6 +404,63 @@ IMPORTANT: Respond with ONLY a valid JSON array of ${count} questions. No markdo
 Generate ${count} questions for: ${subject} / ${topic} / ${yearGroup} / difficulty ${difficulty}`;
 }
 
+// ── Diagram attachment ────────────────────────────────────────────────────────
+function attachDiagram(q) {
+  const text = ((q.question_text || '') + ' ' + (q.topic || '')).toLowerCase();
+
+  if (/right[- ]angled/.test(text) && /triangle/.test(text))
+    return generateDiagram('triangle', { subtype: 'right-angled', unknownAngle: /\ba°|unknown/.test(text) });
+  if (/equilateral/.test(text) && /triangle/.test(text))
+    return generateDiagram('triangle', { subtype: 'equilateral' });
+  if (/isosceles/.test(text) && /triangle/.test(text))
+    return generateDiagram('triangle', { subtype: 'isosceles' });
+  if (/\btriangle\b/.test(text))
+    return generateDiagram('triangle', { subtype: 'scalene', unknownAngle: /\ba°|unknown/.test(text) });
+
+  if (/\bsquare\b/.test(text) && !/square number/.test(text))
+    return generateDiagram('shape', { subtype: 'square' });
+  if (/\brectangle\b/.test(text))
+    return generateDiagram('shape', { subtype: 'rectangle' });
+  if (/\bhexagon\b/.test(text))
+    return generateDiagram('shape', { subtype: 'hexagon' });
+  if (/\bpentagon\b/.test(text))
+    return generateDiagram('shape', { subtype: 'pentagon' });
+  if (/\boctagon\b/.test(text))
+    return generateDiagram('shape', { subtype: 'octagon' });
+  if (/\bparallelogram\b/.test(text))
+    return generateDiagram('shape', { subtype: 'parallelogram' });
+  if (/\brhombus\b/.test(text))
+    return generateDiagram('shape', { subtype: 'rhombus' });
+  if (/\btrapezium\b/.test(text))
+    return generateDiagram('shape', { subtype: 'trapezium' });
+
+  if (/\bangle\b|\bdegrees?\b|\bprotractor\b/.test(text))
+    return generateDiagram('angle', { unknown: /unknown|a°|find/.test(text) });
+
+  if (/\bnet\b|\bunfold/.test(text))
+    return generateDiagram('net', {});
+
+  if (/shaded|fraction.*grid|grid.*fraction/.test(text))
+    return generateDiagram('fraction-grid', {});
+
+  if (/bar chart|bar graph|\bfrequency\b/.test(text))
+    return generateDiagram('bar-chart', {});
+
+  if (/line graph/.test(text))
+    return generateDiagram('line-graph', {});
+
+  if (/\bpictogram\b/.test(text))
+    return generateDiagram('pictogram', {});
+
+  if (/number line|missing number/.test(text))
+    return generateDiagram('number-line', {});
+
+  if (/\bruler\b|\bthermometer\b|\bweighs?\b|\bweighing\b/.test(text))
+    return generateDiagram('measurement-scale', { type: /therm/.test(text) ? 'thermometer' : /weigh/.test(text) ? 'weighing-dial' : 'ruler' });
+
+  return null;
+}
+
 // ── Insert ─────────────────────────────────────────────────────────────────────
 async function insertQuestions(questions, subject, topic, yearGroup, difficulty) {
   const rows = questions.map(q => ({
@@ -416,6 +474,7 @@ async function insertQuestions(questions, subject, topic, yearGroup, difficulty)
     options: q.options || null,
     correct_answer: String(q.correct_answer),
     explanation: q.explanation || null,
+    diagram: attachDiagram(q),
     validated: false,
     source: 'ai_generated_v3',
   }));
