@@ -579,40 +579,182 @@ async function init() {
 }
 
 /* ════════════════════════════════════════
-   FETCH SECTION QUESTIONS
+   QUESTION BANK ASSEMBLY
+   All questions come directly from
+   Supabase — no AI API calls.
+════════════════════════════════════════ */
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+// Convert a DB question row to the format renderQuestion() expects
+function normalizeDBQuestion(dbQ) {
+  const topic   = dbQ.topic   || '';
+  const subject = dbQ.subject || '';
+  const opts    = dbQ.options; // object {A:'...', B:'...'} or null
+  const isFR    = dbQ.question_type === 'written' || !opts;
+
+  const TOPIC_LABELS = {
+    punctuation:           'Punctuation',
+    grammar:               'Grammar',
+    spelling:              'Spelling',
+    vocabulary:            'Vocabulary',
+    comprehension_mc:      'Comprehension',
+    comprehension_written: 'Comprehension',
+    arithmetic:            'Arithmetic',
+    fractions_decimals:    'Fractions & Decimals',
+    geometry:              'Geometry',
+    statistics:            'Statistics',
+    algebra_sequences:     'Algebra & Sequences',
+    measurement:           'Measurement',
+  };
+
+  // Build options array in "A. text" format (empty array = free-response)
+  let optionsArray = [];
+  if (!isFR && opts && typeof opts === 'object') {
+    optionsArray = Object.entries(opts).map(([k, v]) => `${k}. ${v}`);
+  }
+
+  let text     = dbQ.question_text || '';
+  let context  = '';
+  let segments = [];
+
+  if (topic === 'punctuation') {
+    // A/B/C/D shown as labeled segment blocks; A–D + N as clickable option buttons
+    segments = ['A','B','C','D'].map(k => opts?.[k]).filter(Boolean);
+    // text = the instruction from question_text
+  } else if (topic === 'spelling') {
+    // question_text = "instruction\n\npassage with [A][B][C][D] word markers"
+    const parts = text.split('\n\n');
+    text    = 'Find the section with the spelling mistake. Mark N if there are no mistakes.';
+    context = parts.length >= 2 ? parts.slice(1).join('\n\n') : (dbQ.passage || '');
+    segments = ['A','B','C','D'].map(k => opts?.[k]).filter(Boolean);
+  } else if (topic === 'grammar') {
+    // question_text is the gap sentence — display it as context, use generic instruction
+    context = text;
+    text    = 'Choose the best word to complete the sentence.';
+  }
+  // comprehension_mc/written: text = question, passage = dbQ.passage
+  // maths: text = question, optionsArray = A–E
+
+  return {
+    type:        subject === 'english' ? 'english' : 'maths',
+    topic:       TOPIC_LABELS[topic] || topic,
+    marks:       '1 mark',
+    text,
+    context,
+    segments,
+    passage:     dbQ.passage     || '',
+    options:     optionsArray,
+    answer:      String(dbQ.correct_answer || ''),
+    explanation: dbQ.explanation  || '',
+    steps:       [],
+    hint:        'Think carefully about each option.',
+    diagram:     dbQ.diagram      || null,
+  };
+}
+
+// Fetch a shuffled subset of N questions for the student's year group
+async function fetchPool(subject, topic, count) {
+  const { data, error } = await sb
+    .from('questions')
+    .select('id,subject,topic,year_group,difficulty,question_type,question_text,passage,options,correct_answer,explanation,diagram')
+    .eq('subject',    subject)
+    .eq('topic',      topic)
+    .eq('year_group', userYear)
+    .eq('source',     'ai_generated_v3')
+    .limit(count * 5); // over-fetch so shuffle gives good variety
+  if (error) throw new Error(`DB fetch failed (${subject}/${topic}): ${error.message}`);
+  return shuffle(data || []).slice(0, count).map(normalizeDBQuestion);
+}
+
+// 10 warm-up questions: 5 English + 5 Maths (unscored, hints on)
+async function assemblePracticeFromDB() {
+  const [punct, grammar, spelling, arith, frac, geom] = await Promise.all([
+    fetchPool('english', 'punctuation',        2),
+    fetchPool('english', 'grammar',            2),
+    fetchPool('english', 'spelling',           1),
+    fetchPool('maths',   'arithmetic',         2),
+    fetchPool('maths',   'fractions_decimals', 2),
+    fetchPool('maths',   'geometry',           1),
+  ]);
+  return shuffle([...punct, ...grammar, ...spelling, ...arith, ...frac, ...geom]).slice(0, 10);
+}
+
+// 28 English questions: Q1-5 Punct | Q6-10 Grammar | Q11-15 Spelling | Q16-22 MC | Q23-28 Written
+async function assembleEnglishFromDB() {
+  // Pick a random passage for this year group
+  const { data: passages, error: pErr } = await sb
+    .from('passages')
+    .select('id,content')
+    .eq('year_group', userYear)
+    .eq('source', 'ai_generated_v3');
+  if (pErr || !passages?.length) throw new Error('Could not load reading passages from question bank');
+
+  const chosenPassage = passages[Math.floor(Math.random() * passages.length)];
+
+  // Fetch comprehension questions + language sections all in parallel
+  const [mcResult, wrResult, punct, grammar, spelling] = await Promise.all([
+    sb.from('questions')
+      .select('id,subject,topic,year_group,difficulty,question_type,question_text,passage,options,correct_answer,explanation,diagram')
+      .eq('passage_id', chosenPassage.id)
+      .eq('topic',      'comprehension_mc')
+      .eq('source',     'ai_generated_v3'),
+    sb.from('questions')
+      .select('id,subject,topic,year_group,difficulty,question_type,question_text,passage,options,correct_answer,explanation,diagram')
+      .eq('passage_id', chosenPassage.id)
+      .eq('topic',      'comprehension_written')
+      .eq('source',     'ai_generated_v3'),
+    fetchPool('english', 'punctuation', 5),
+    fetchPool('english', 'grammar',     5),
+    fetchPool('english', 'spelling',    5),
+  ]);
+
+  if (mcResult.error) throw new Error(`Comprehension MC fetch failed: ${mcResult.error.message}`);
+  if (wrResult.error) throw new Error(`Comprehension written fetch failed: ${wrResult.error.message}`);
+
+  const mcQs = shuffle(mcResult.data || []).slice(0, 7).map(normalizeDBQuestion);
+  const wrQs = shuffle(wrResult.data || []).slice(0, 6).map(normalizeDBQuestion);
+
+  if (mcQs.length < 7) throw new Error(`Passage only has ${mcQs.length}/7 MC questions — please try again`);
+  if (wrQs.length < 6) throw new Error(`Passage only has ${wrQs.length}/6 written questions — please try again`);
+
+  return [...punct, ...grammar, ...spelling, ...mcQs, ...wrQs];
+}
+
+// 28 Maths questions per SEAG section spec
+async function assembleMathsFromDB() {
+  const [arith, geom, frac, meas, stat, alg] = await Promise.all([
+    fetchPool('maths', 'arithmetic',         7),
+    fetchPool('maths', 'geometry',           7),
+    fetchPool('maths', 'fractions_decimals', 6),
+    fetchPool('maths', 'measurement',        4),
+    fetchPool('maths', 'statistics',         2),
+    fetchPool('maths', 'algebra_sequences',  2),
+  ]);
+  return [...arith, ...geom, ...frac, ...meas, ...stat, ...alg];
+}
+
+/* ════════════════════════════════════════
+   FETCH SECTION QUESTIONS (DB-backed)
 ════════════════════════════════════════ */
 async function fetchSection(sectionMode, count, attempt = 0) {
-  console.log(`[mock] fetchSection: ${sectionMode} attempt ${attempt + 1}`);
+  console.log(`[mock] fetchSection (DB): ${sectionMode}`);
   try {
-    const response = await fetch('/api/generate-questions', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ track: userYear, mode: sectionMode, count })
-    });
-    if (!response.ok) {
-      console.warn(`[mock] ${sectionMode} HTTP ${response.status} on attempt ${attempt + 1}`);
-      if (attempt === 0) {
-        console.log(`[mock] Retrying ${sectionMode} in 4s…`);
-        await new Promise(r => setTimeout(r, 4000));
-        return fetchSection(sectionMode, count, 1);
-      }
-      throw new Error('Failed to generate ' + sectionMode + ' questions (HTTP ' + response.status + ')');
-    }
-    const data = await response.json();
-    if (!data.questions || data.questions.length === 0) {
-      throw new Error('No questions returned for ' + sectionMode);
-    }
-    console.log(`[mock] ${sectionMode} succeeded: ${data.questions.length} questions`);
-    return data.questions;
-  } catch(err) {
-    // Also retry on network errors (e.g. fetch throws before we get a response)
-    const isOurError = err.message.startsWith('Failed to generate') || err.message.startsWith('No questions');
-    if (attempt === 0 && !isOurError) {
-      console.warn(`[mock] ${sectionMode} network error: "${err.message}" — retrying in 4s`);
-      await new Promise(r => setTimeout(r, 4000));
+    if (sectionMode === 'mock_practice') return await assemblePracticeFromDB();
+    if (sectionMode === 'mock_english')  return await assembleEnglishFromDB();
+    if (sectionMode === 'mock_maths')    return await assembleMathsFromDB();
+    throw new Error('Unknown section mode: ' + sectionMode);
+  } catch (err) {
+    if (attempt === 0) {
+      console.warn(`[mock] ${sectionMode} failed, retrying: ${err.message}`);
       return fetchSection(sectionMode, count, 1);
     }
-    console.error(`[mock] ${sectionMode} failed permanently: ${err.message}`);
+    console.error(`[mock] ${sectionMode} permanently failed: ${err.message}`);
     throw err;
   }
 }
