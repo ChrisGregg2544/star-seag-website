@@ -253,6 +253,7 @@
   </div>
   <div class="card-body">
     <div class="question-number" id="q-number-label">Question 1</div>
+    <div class="question-diagram" id="q-diagram" style="text-align:center;margin-bottom:16px;display:none;"></div>
     <div class="question-text" id="q-text">Loading question…</div>
     <div class="question-context" id="q-context" style="display:none;"></div>
     <div class="segments-row" id="segments-row" style="display:none;"></div>
@@ -609,6 +610,10 @@ function loadQuestion(idx) {
   document.getElementById('card-marks').textContent     = q.marks || '1 mark';
   document.getElementById('q-number-label').textContent = 'Question ' + (idx + 1);
   document.getElementById('q-text').textContent         = q.text;
+
+  const diagEl = document.getElementById('q-diagram');
+  if (q.diagram) { diagEl.innerHTML = q.diagram; diagEl.style.display = ''; }
+  else           { diagEl.innerHTML = ''; diagEl.style.display = 'none'; }
 
   const ctxEl = document.getElementById('q-context');
   if (q.context) { ctxEl.textContent = q.context; ctxEl.style.display = 'block'; }
