@@ -418,6 +418,23 @@
     </div>
     <div class="wrong-section" id="wrong-section"></div>
     <div class="results-actions">
+      <button class="results-btn primary" id="btn-retry" style="display:none" onclick="startRetry()">🔁 Retry These Questions</button>
+      <button class="results-btn primary" onclick="window.location.href='mock.html'">📝 Take Another Mock</button>
+      <button class="results-btn secondary" onclick="window.location.href='dashboard.html'">← Back to Dashboard</button>
+    </div>
+  </div>
+</div>
+
+<!-- RETRY COMPLETE -->
+<div class="screen" id="screen-retry-done">
+  <div class="results-card" style="text-align:center">
+    <div class="results-badge" style="display:inline-flex;margin-bottom:16px;">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="#C9A84C"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
+      Retry Complete
+    </div>
+    <div class="results-title" id="retry-done-title">Good effort!</div>
+    <div class="results-sub" id="retry-done-sub" style="margin-bottom:28px;"></div>
+    <div class="results-actions">
       <button class="results-btn primary" onclick="window.location.href='mock.html'">📝 Take Another Mock</button>
       <button class="results-btn secondary" onclick="window.location.href='dashboard.html'">← Back to Dashboard</button>
     </div>
@@ -529,6 +546,12 @@ let hintVisible    = false;
 let mockStartTime  = null;
 let userId         = null;
 let userYear       = 'P6';
+
+// Retry mode state
+let retryMode      = false;
+let RETRY_QS       = [];
+let retryIdx       = 0;
+let retryAnswers   = {};
 
 /* ════════════════════════════════════════
    SCREEN MANAGEMENT
@@ -742,13 +765,14 @@ async function assembleEnglishFromDB() {
 
 // 28 Maths questions per SEAG section spec
 async function assembleMathsFromDB() {
+  const usedIds = (PRACTICE_QS || []).map(q => q._id).filter(Boolean);
   const [arith, geom, frac, meas, stat, alg] = await Promise.all([
-    fetchPool('maths', 'arithmetic',         7),
-    fetchPool('maths', 'geometry',           7),
-    fetchPool('maths', 'fractions_decimals', 6),
-    fetchPool('maths', 'measurement',        4),
-    fetchPool('maths', 'statistics',         2),
-    fetchPool('maths', 'algebra_sequences',  2),
+    fetchPool('maths', 'arithmetic',         7, usedIds),
+    fetchPool('maths', 'geometry',           7, usedIds),
+    fetchPool('maths', 'fractions_decimals', 6, usedIds),
+    fetchPool('maths', 'measurement',        4, usedIds),
+    fetchPool('maths', 'statistics',         2, usedIds),
+    fetchPool('maths', 'algebra_sequences',  2, usedIds),
   ]);
   return [...arith, ...geom, ...frac, ...meas, ...stat, ...alg];
 }
@@ -879,6 +903,7 @@ function saveMockProgress() {
    SECTION HELPERS
 ════════════════════════════════════════ */
 function getCurrentQuestion() {
+  if (retryMode) return RETRY_QS[retryIdx];
   if (currentSection === 'practice') return PRACTICE_QS[currentIdx];
   if (currentSection === 'english')  return ENGLISH_QS[currentIdx];
   if (currentSection === 'maths')    return MATHS_QS[currentIdx];
@@ -886,6 +911,7 @@ function getCurrentQuestion() {
 }
 
 function getGlobalIdx() {
+  if (retryMode) return retryIdx;
   if (currentSection === 'practice') return currentIdx;
   if (currentSection === 'english')  return 10 + currentIdx;
   if (currentSection === 'maths')    return 38 + currentIdx;
@@ -893,6 +919,7 @@ function getGlobalIdx() {
 }
 
 function getSectionLength() {
+  if (retryMode) return RETRY_QS.length;
   if (currentSection === 'practice') return PRACTICE_QS.length;
   if (currentSection === 'english')  return ENGLISH_QS.length;
   if (currentSection === 'maths')    return MATHS_QS.length;
@@ -910,27 +937,39 @@ function renderQuestion() {
   selectedMC  = null;
   hintVisible = false;
 
-  const sectionLabels = { practice:'Practice Section', english:'English Main Test', maths:'Maths Main Test' };
-  document.getElementById('nav-section-label').textContent = sectionLabels[currentSection] || '';
-
-  ['practice','english','maths'].forEach(s => {
-    document.getElementById('badge-' + s).style.display = s === currentSection ? '' : 'none';
-  });
-
-  const pct = Math.round(((currentIdx + 1) / getSectionLength()) * 100);
-  document.getElementById('progress-fill').style.width = pct + '%';
-  document.getElementById('q-current').textContent = currentIdx + 1;
-  document.getElementById('q-total').textContent   = getSectionLength();
-
-  const correct = Object.values(answers).filter(v => v === 'correct').length;
-  const wrong   = Object.values(answers).filter(v => v === 'wrong').length;
-  document.getElementById('score-correct').textContent = correct + ' correct';
-  document.getElementById('score-wrong').textContent   = wrong + ' wrong';
-
-  if (currentSection === 'practice') {
-    document.getElementById('q-number-label').textContent = 'Practice Question ' + (currentIdx + 1);
+  if (retryMode) {
+    document.getElementById('nav-section-label').textContent = 'Retry Mode';
+    ['practice','english','maths'].forEach(s => {
+      document.getElementById('badge-' + s).style.display = 'none';
+    });
+    const pct = Math.round(((retryIdx + 1) / RETRY_QS.length) * 100);
+    document.getElementById('progress-fill').style.width = pct + '%';
+    document.getElementById('q-current').textContent = retryIdx + 1;
+    document.getElementById('q-total').textContent   = RETRY_QS.length;
+    const rc = Object.values(retryAnswers).filter(v => v === 'correct').length;
+    const rw = Object.values(retryAnswers).filter(v => v === 'wrong').length;
+    document.getElementById('score-correct').textContent = rc + ' correct';
+    document.getElementById('score-wrong').textContent   = rw + ' wrong';
+    document.getElementById('q-number-label').textContent = 'Retry Question ' + (retryIdx + 1);
   } else {
-    document.getElementById('q-number-label').textContent = 'Question ' + (currentIdx + 1);
+    const sectionLabels = { practice:'Practice Section', english:'English Main Test', maths:'Maths Main Test' };
+    document.getElementById('nav-section-label').textContent = sectionLabels[currentSection] || '';
+    ['practice','english','maths'].forEach(s => {
+      document.getElementById('badge-' + s).style.display = s === currentSection ? '' : 'none';
+    });
+    const pct = Math.round(((currentIdx + 1) / getSectionLength()) * 100);
+    document.getElementById('progress-fill').style.width = pct + '%';
+    document.getElementById('q-current').textContent = currentIdx + 1;
+    document.getElementById('q-total').textContent   = getSectionLength();
+    const correct = Object.values(answers).filter(v => v === 'correct').length;
+    const wrong   = Object.values(answers).filter(v => v === 'wrong').length;
+    document.getElementById('score-correct').textContent = correct + ' correct';
+    document.getElementById('score-wrong').textContent   = wrong + ' wrong';
+    if (currentSection === 'practice') {
+      document.getElementById('q-number-label').textContent = 'Practice Question ' + (currentIdx + 1);
+    } else {
+      document.getElementById('q-number-label').textContent = 'Question ' + (currentIdx + 1);
+    }
   }
 
   const badge = document.getElementById('card-type-badge');
@@ -1006,7 +1045,7 @@ function renderQuestion() {
   const hintBtn   = document.getElementById('hint-btn');
   const hintPanel = document.getElementById('hint-panel');
   hintPanel.classList.remove('visible');
-  if (currentSection === 'practice') {
+  if (!retryMode && currentSection === 'practice') {
     hintBtn.style.display = '';
     document.getElementById('hint-text').textContent = q.hint || 'Think carefully about what the question is asking.';
   } else {
@@ -1018,10 +1057,12 @@ function renderQuestion() {
   document.getElementById('btn-submit').style.display = '';
   document.getElementById('btn-next').style.display   = 'none';
 
-  // Comprehension passage panel — visible for English Q16-28 only
+  // Comprehension passage panel — visible for comprehension questions that carry a passage
   const passagePanel = document.getElementById('passage-panel');
   const passageBody  = document.getElementById('passage-body');
-  const isComprehension = currentSection === 'english' && currentIdx >= 15;
+  const isComprehension = retryMode
+    ? !!q.passage
+    : (currentSection === 'english' && currentIdx >= 15);
   if (isComprehension && q.passage) {
     passageBody.textContent = q.passage;
     passagePanel.style.display = '';
@@ -1136,28 +1177,42 @@ async function submitAnswer() {
   }
 
   const globalIdx = getGlobalIdx();
-  answers[globalIdx] = isCorrect ? 'correct' : 'wrong';
-  saveMockProgress();
+  if (retryMode) {
+    retryAnswers[globalIdx] = isCorrect ? 'correct' : 'wrong';
+  } else {
+    answers[globalIdx] = isCorrect ? 'correct' : 'wrong';
+    saveMockProgress();
+  }
 
   if (!isFR) {
-    const showFeedback = currentSection === 'practice' || !isCorrect;
+    const showFeedback = retryMode || currentSection === 'practice' || !isCorrect;
     if (showFeedback) showFeedbackPanel(isCorrect, q.explanation, q.steps, false);
 
     document.getElementById('btn-submit').style.display = 'none';
     document.getElementById('btn-next').style.display   = 'block';
   }
 
-  const correct = Object.values(answers).filter(v => v === 'correct').length;
-  const wrong   = Object.values(answers).filter(v => v === 'wrong').length;
-  document.getElementById('score-correct').textContent = correct + ' correct';
-  document.getElementById('score-wrong').textContent   = wrong + ' wrong';
+  if (retryMode) {
+    const rc = Object.values(retryAnswers).filter(v => v === 'correct').length;
+    const rw = Object.values(retryAnswers).filter(v => v === 'wrong').length;
+    document.getElementById('score-correct').textContent = rc + ' correct';
+    document.getElementById('score-wrong').textContent   = rw + ' wrong';
+  } else {
+    const correct = Object.values(answers).filter(v => v === 'correct').length;
+    const wrong   = Object.values(answers).filter(v => v === 'wrong').length;
+    document.getElementById('score-correct').textContent = correct + ' correct';
+    document.getElementById('score-wrong').textContent   = wrong + ' wrong';
+  }
 
-  const isLastInSection = currentIdx === getSectionLength() - 1;
+  const isLast = retryMode
+    ? retryIdx === RETRY_QS.length - 1
+    : currentIdx === getSectionLength() - 1;
   const btn = document.getElementById('btn-next');
-  if (isLastInSection) {
-    if (currentSection === 'practice')    btn.textContent = 'Finish Practice Section →';
-    else if (currentSection === 'english') btn.textContent = 'Finish English Section →';
-    else                                   btn.textContent = 'Finish Mock →';
+  if (isLast) {
+    if (retryMode)                         btn.textContent = 'See Retry Results →';
+    else if (currentSection === 'practice') btn.textContent = 'Finish Practice Section →';
+    else if (currentSection === 'english')  btn.textContent = 'Finish English Section →';
+    else                                    btn.textContent = 'Finish Mock →';
   } else {
     btn.textContent = 'Next →';
   }
@@ -1167,6 +1222,17 @@ async function submitAnswer() {
    NEXT QUESTION
 ════════════════════════════════════════ */
 function nextQuestion() {
+  if (retryMode) {
+    if (retryIdx < RETRY_QS.length - 1) {
+      retryIdx++;
+      showScreen('question');
+      renderQuestion();
+    } else {
+      showRetryResults();
+    }
+    return;
+  }
+
   const isLastInSection = currentIdx === getSectionLength() - 1;
 
   if (!isLastInSection) {
@@ -1362,7 +1428,6 @@ function buildWrongAnswers() {
 
   for (let i = 10; i < 66; i++) {
     if (answers[i] === 'wrong') {
-      // Find the question from whichever array
       let q;
       if (i < 38) q = ENGLISH_QS[i - 10];
       else q = MATHS_QS[i - 38];
@@ -1370,8 +1435,12 @@ function buildWrongAnswers() {
     }
   }
 
+  // Populate retry queue
+  RETRY_QS = wrongQs.map(item => item.q);
+
   if (wrongQs.length === 0) {
     wrongSection.innerHTML = '<div style="text-align:center;padding:20px;color:rgba(255,255,255,.5);font-size:.88rem;">🎉 You got every question right on the main test!</div>';
+    document.getElementById('btn-retry').style.display = 'none';
     return;
   }
 
@@ -1400,6 +1469,37 @@ function buildWrongAnswers() {
     `;
     wrongSection.appendChild(div);
   });
+
+  document.getElementById('btn-retry').style.display = '';
+}
+
+/* ════════════════════════════════════════
+   RETRY MODE
+════════════════════════════════════════ */
+function startRetry() {
+  if (RETRY_QS.length === 0) return;
+  retryMode    = true;
+  retryIdx     = 0;
+  retryAnswers = {};
+  showScreen('question');
+  renderQuestion();
+}
+
+function showRetryResults() {
+  const total   = RETRY_QS.length;
+  const correct = Object.values(retryAnswers).filter(v => v === 'correct').length;
+  const pct     = Math.round((correct / total) * 100);
+
+  document.getElementById('retry-done-title').textContent =
+    pct === 100 ? '🌟 Perfect retry!' :
+    pct >= 70   ? '⭐ Great improvement!' :
+                  '💪 Keep practising!';
+
+  document.getElementById('retry-done-sub').textContent =
+    `You got ${correct} / ${total} correct on retry (${pct}%)`;
+
+  retryMode = false;
+  showScreen('retry-done');
 }
 
 /* ════════════════════════════════════════
