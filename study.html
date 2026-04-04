@@ -188,6 +188,25 @@
     .tutorial-glow { animation: pulse-gold 2s infinite; border: 2px solid #ffbf00 !important; transform: scale(1.05); transition: all 0.3s ease; }
     @media (max-width: 600px) { .card-header { padding: 14px 18px 12px; } .card-body { padding: 20px 18px 0; } .card-footer { padding: 16px 18px 22px; } .question-text { font-size: 1.12rem; } .segments-row { gap: 6px; } .segment-text { font-size: .82rem; padding: 8px 10px; background: rgba(11,31,58,.09); border-color: rgba(11,31,58,.22); } .mc-btn { background: rgba(11,31,58,.07); border-color: rgba(11,31,58,.22); min-height: 52px; } .results-panel { padding: 28px 20px 24px; } }
     @media (min-width: 768px) { .mc-btn { padding: 18px 20px; } .btn-submit, .btn-next { padding: 20px 28px; font-size: 1rem; } .btn-hint { padding: 15px 20px; font-size: .85rem; } }
+    /* PASSAGE PANEL */
+    .passage-panel{background:rgba(11,31,58,.04);border:1px solid rgba(201,168,76,.2);border-radius:14px;padding:16px 20px;margin-bottom:20px;}
+    .passage-panel-label{font-size:.65rem;font-weight:900;letter-spacing:.12em;text-transform:uppercase;color:#a07820;margin-bottom:8px;}
+    .passage-body{font-size:.9rem;line-height:1.75;color:var(--text-dark);max-height:220px;overflow-y:auto;white-space:pre-wrap;}
+    .passage-body::-webkit-scrollbar{width:4px;} .passage-body::-webkit-scrollbar-track{background:transparent;} .passage-body::-webkit-scrollbar-thumb{background:rgba(201,168,76,.35);border-radius:3px;}
+    /* TOPIC PICKER */
+    .topic-picker{position:relative;z-index:10;width:100%;max-width:780px;background:var(--card-bg);border-radius:var(--radius-card);border:1px solid var(--card-border);box-shadow:0 20px 60px rgba(0,0,0,.3);padding:36px 28px;animation:cardIn .45s cubic-bezier(.22,1,.36,1) forwards;}
+    .topic-picker-title{font-family:'Playfair Display',serif;font-size:1.5rem;font-weight:900;color:var(--text-dark);margin-bottom:6px;}
+    .topic-picker-sub{font-size:.88rem;color:var(--text-mid);margin-bottom:24px;}
+    .topic-group-label{font-size:.65rem;font-weight:900;letter-spacing:.12em;text-transform:uppercase;color:var(--text-light);margin-bottom:10px;margin-top:18px;}
+    .topic-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(168px,1fr));gap:10px;margin-bottom:4px;}
+    .topic-btn{background:rgba(11,31,58,.04);border:1.5px solid rgba(11,31,58,.1);border-radius:12px;padding:14px 16px;font-family:'Lato',sans-serif;font-size:.85rem;font-weight:700;color:var(--text-dark);cursor:pointer;text-align:left;transition:all .2s;}
+    .topic-btn:hover{border-color:var(--gold);background:rgba(201,168,76,.07);transform:translateY(-2px);}
+    .topic-btn.eng:hover{border-color:#3b82f6;background:rgba(59,130,246,.07);}
+    /* MARKING SPINNER */
+    .marking-spinner{display:inline-block;width:16px;height:16px;border:2px solid rgba(11,31,58,.2);border-top-color:var(--navy);border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:6px;}
+    @keyframes spin{to{transform:rotate(360deg);}}
+    .feedback-marking{background:rgba(11,31,58,.04)!important;border:1px solid rgba(201,168,76,.2)!important;}
+    .feedback-marking .feedback-icon{background:transparent!important;}
   </style>
   <style>
     .star-footer { position: relative; z-index: 10; width: 100%; max-width: 1000px; margin: 56px auto 0; padding-top: 32px; border-top: 1px solid rgba(201,168,76,0.15); }
@@ -254,6 +273,10 @@
   <div class="card-body">
     <div class="question-number" id="q-number-label">Question 1</div>
     <div class="question-diagram" id="q-diagram" style="text-align:center;margin-bottom:16px;display:none;"></div>
+    <div class="passage-panel" id="passage-panel" style="display:none;">
+      <div class="passage-panel-label">📖 Reading Passage</div>
+      <div class="passage-body" id="passage-body"></div>
+    </div>
     <div class="question-text" id="q-text">Loading question…</div>
     <div class="question-context" id="q-context" style="display:none;"></div>
     <div class="segments-row" id="segments-row" style="display:none;"></div>
@@ -301,6 +324,28 @@
 
 <div class="complete-screen" id="complete-screen"></div>
 
+<!-- TOPIC PICKER -->
+<div class="topic-picker" id="topic-picker" style="display:none;">
+  <div class="topic-picker-title">Choose a Topic</div>
+  <div class="topic-picker-sub">Pick a topic to practise. Questions get harder as you improve — difficulty unlocks after 5 correct answers.</div>
+  <div class="topic-group-label">📖 English</div>
+  <div class="topic-grid">
+    <button class="topic-btn eng" onclick="selectTopic('punctuation')">✏️ Punctuation</button>
+    <button class="topic-btn eng" onclick="selectTopic('grammar')">📝 Grammar</button>
+    <button class="topic-btn eng" onclick="selectTopic('spelling')">🔤 Spelling</button>
+    <button class="topic-btn eng" onclick="selectTopic('comprehension')">📖 Comprehension</button>
+  </div>
+  <div class="topic-group-label">📐 Maths</div>
+  <div class="topic-grid">
+    <button class="topic-btn" onclick="selectTopic('arithmetic')">➕ Arithmetic</button>
+    <button class="topic-btn" onclick="selectTopic('geometry')">📐 Geometry</button>
+    <button class="topic-btn" onclick="selectTopic('fractions_decimals')">½ Fractions & Decimals</button>
+    <button class="topic-btn" onclick="selectTopic('measurement')">📏 Measurement</button>
+    <button class="topic-btn" onclick="selectTopic('statistics')">📊 Statistics</button>
+    <button class="topic-btn" onclick="selectTopic('algebra_sequences')">🔢 Algebra & Sequences</button>
+  </div>
+</div>
+
 <div class="results-panel" id="results-panel">
   <div class="results-header">
     <span class="results-emoji" id="res-emoji">⭐</span>
@@ -324,7 +369,7 @@
     <button class="btn-complete-primary" style="margin-bottom:0;" onclick="goToSignup()">🚀 Save My Results & Unlock More</button>
   </div>
   <div class="results-actions">
-    <button class="btn-complete-primary" onclick="restartSession()">🔄 &nbsp;Try Another Sprint</button>
+    <button class="btn-complete-primary" onclick="restartSession()">🎯 &nbsp;Pick Another Topic</button>
     <button class="btn-complete-secondary" onclick="goToDashboard()">View My Dashboard →</button>
   </div>
 </div>
@@ -377,6 +422,15 @@ let selectedMC  = null;
 let sprintCount = 0;
 let loadingTipInterval = null;
 
+// Study-mode state
+let userYear         = 'P6';
+let selectedTopic    = null;   // DB topic slug
+let usedIds          = new Set();
+let correctCount     = 0;      // cumulative correct for difficulty unlock
+let sessionCorrect   = 0;      // across all batches
+let sessionTotal     = 0;      // across all batches
+let nextBatchPromise = null;   // background pre-fetch
+
 /* ════════════════════════════════
    LOADING STATE
 ════════════════════════════════ */
@@ -403,7 +457,7 @@ function showLoadingState() {
     <div style="padding:64px 28px 56px;text-align:center;">
       <div style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,rgba(201,168,76,.25),rgba(201,168,76,.08));border:2px solid rgba(201,168,76,.55);display:flex;align-items:center;justify-content:center;margin:0 auto 28px;font-size:2.2rem;animation:avatarPulse 1.5s ease-in-out infinite;">⭐</div>
       <div style="font-family:'Playfair Display',serif;font-size:1.45rem;font-weight:700;color:#ffffff;margin-bottom:10px;">STAR is building your sprint…</div>
-      <div style="font-size:.92rem;color:rgba(255,255,255,.7);margin-bottom:6px;">Generating 10 tailored questions just for you</div>
+      <div style="font-size:.92rem;color:rgba(255,255,255,.7);margin-bottom:6px;">Pulling from your personal question bank</div>
       <div id="loading-tip" style="font-size:.84rem;color:rgba(255,255,255,.55);margin-top:24px;min-height:1.4em;line-height:1.5;padding:0 16px;transition:opacity .4s;">${LOADING_TIPS[0]}</div>
       <div style="font-size:.75rem;color:rgba(201,168,76,.8);margin-top:16px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;">✦ &nbsp;Fresh questions every sprint&nbsp; ✦</div>
     </div>`;
@@ -450,6 +504,11 @@ function rebuildQuestionCard() {
     </div>
     <div class="card-body">
       <div class="question-number" id="q-number-label">Question 1</div>
+      <div class="question-diagram" id="q-diagram" style="text-align:center;margin-bottom:16px;display:none;"></div>
+      <div class="passage-panel" id="passage-panel" style="display:none;">
+        <div class="passage-panel-label">📖 Reading Passage</div>
+        <div class="passage-body" id="passage-body"></div>
+      </div>
       <div class="question-text" id="q-text">Loading question…</div>
       <div class="question-context" id="q-context" style="display:none;"></div>
       <div class="segments-row" id="segments-row" style="display:none;"></div>
@@ -496,85 +555,272 @@ function rebuildQuestionCard() {
 }
 
 /* ════════════════════════════════
-   FETCH QUESTIONS
+   SHUFFLE
 ════════════════════════════════ */
-async function fetchQuestions(track, topic) {
-  const body = topic
-    ? { track, topic, mode: 'topic' }
-    : { track };
-  const response = await fetch('/api/generate-questions', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body)
-  });
-  if (!response.ok) {
-    const errData = await response.json().catch(() => ({}));
-    throw new Error(errData.error || 'Could not load questions — please try again');
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
   }
-  const data = await response.json();
-  if (!data.questions || !Array.isArray(data.questions) || data.questions.length === 0) {
-    throw new Error('STAR could not generate questions right now — please try again');
+  return a;
+}
+
+/* ════════════════════════════════
+   NORMALIZE DB QUESTION
+════════════════════════════════ */
+function normalizeDBQuestion(dbQ) {
+  const rawTopic = dbQ.topic   || '';
+  const subject  = dbQ.subject || '';
+  const opts     = dbQ.options;
+  const isFR     = dbQ.question_type === 'written' || !opts;
+
+  const TOPIC_LABELS = {
+    punctuation:           'Punctuation',
+    grammar:               'Grammar',
+    spelling:              'Spelling',
+    comprehension_mc:      'Comprehension',
+    comprehension_written: 'Comprehension',
+    arithmetic:            'Arithmetic',
+    fractions_decimals:    'Fractions & Decimals',
+    geometry:              'Geometry',
+    statistics:            'Statistics',
+    measurement:           'Measurement',
+    algebra_sequences:     'Algebra & Sequences',
+  };
+
+  let optionsArray = [];
+  if (!isFR && opts && typeof opts === 'object') {
+    optionsArray = Object.entries(opts).map(([k, v]) => `${k}. ${v}`);
   }
-  return data.questions;
+
+  let text     = dbQ.question_text || '';
+  let context  = '';
+  let segments = [];
+
+  if (rawTopic === 'punctuation') {
+    segments = ['A','B','C','D'].map(k => opts?.[k]).filter(Boolean);
+  } else if (rawTopic === 'spelling') {
+    const parts = text.split('\n\n');
+    text    = 'Find the section with the spelling mistake. Mark N if there are no mistakes.';
+    context = parts.length >= 2 ? parts.slice(1).join('\n\n') : (dbQ.passage || '');
+    segments = ['A','B','C','D'].map(k => opts?.[k]).filter(Boolean);
+  } else if (rawTopic === 'grammar') {
+    context = text;
+    text    = 'Choose the best word to complete the sentence.';
+  }
+
+  const type = subject === 'maths' ? 'maths' : 'english';
+
+  return {
+    _id:         dbQ.id,
+    _rawTopic:   rawTopic,
+    type,
+    topic:       TOPIC_LABELS[rawTopic] || rawTopic,
+    marks:       '1 mark',
+    text,
+    context,
+    segments,
+    passage:     dbQ.passage    || '',
+    options:     optionsArray,
+    answer:      String(dbQ.correct_answer || ''),
+    explanation: dbQ.explanation || '',
+    steps:       [],
+    hint:        'Think carefully about each option.',
+    diagram:     dbQ.diagram    || null,
+    videoTopic:  rawTopic,
+    videoSource: type === 'english' ? 'BBC Bitesize' : 'CorbettMaths',
+    videoUrl:    '',
+  };
+}
+
+/* ════════════════════════════════
+   FETCH BATCH FROM DB
+════════════════════════════════ */
+async function fetchBatch() {
+  const dbTopics = selectedTopic === 'comprehension'
+    ? ['comprehension_mc', 'comprehension_written']
+    : [selectedTopic];
+
+  // Difficulty unlocks after 5 cumulative correct answers
+  const diffTiers = correctCount >= 5 ? [1, 2, 3, 4] : [1, 2];
+
+  let query = sb
+    .from('questions')
+    .select('id,subject,topic,year_group,difficulty,question_type,question_text,passage,options,correct_answer,explanation,diagram')
+    .eq('year_group', userYear)
+    .eq('source',     'ai_generated_v3')
+    .in('difficulty',  diffTiers)
+    .limit(30);
+
+  if (dbTopics.length === 1) query = query.eq('topic', dbTopics[0]);
+  else                       query = query.in('topic', dbTopics);
+
+  if (usedIds.size > 0) {
+    query = query.not('id', 'in', `(${[...usedIds].join(',')})`);
+  }
+
+  const { data, error } = await query;
+  if (error) throw new Error(error.message);
+
+  return shuffle(data || []).map(normalizeDBQuestion);
+}
+
+/* ════════════════════════════════
+   TOPIC PICKER
+════════════════════════════════ */
+function showTopicPicker() {
+  document.getElementById('topic-picker').style.display = '';
+  document.getElementById('question-card').style.display = 'none';
+  document.getElementById('progress-section').style.display = 'none';
+  document.getElementById('results-panel').classList.remove('visible');
+}
+
+function selectTopic(topic) {
+  document.getElementById('topic-picker').style.display = 'none';
+  startStudy(topic);
+}
+
+/* ════════════════════════════════
+   START STUDY SESSION
+════════════════════════════════ */
+async function startStudy(topic) {
+  selectedTopic    = topic;
+  usedIds          = new Set();
+  correctCount     = 0;
+  sessionCorrect   = 0;
+  sessionTotal     = 0;
+  currentQ         = 0;
+  QUESTIONS        = [];
+  answers          = [];
+  userAnswers      = [];
+  score            = { correct: 0, wrong: 0 };
+  nextBatchPromise = null;
+  sprintCount      = 0;
+  answered         = false;
+  hintVisible      = false;
+  selectedMC       = null;
+
+  document.getElementById('results-panel').classList.remove('visible');
+  document.getElementById('complete-screen').classList.remove('visible');
+  document.getElementById('progress-section').style.display = '';
+  document.getElementById('question-card').style.display = '';
+
+  const TOPIC_DISPLAY = {
+    punctuation:'Punctuation', grammar:'Grammar', spelling:'Spelling',
+    comprehension:'Comprehension', arithmetic:'Arithmetic', geometry:'Geometry',
+    fractions_decimals:'Fractions & Decimals', measurement:'Measurement',
+    statistics:'Statistics', algebra_sequences:'Algebra & Sequences',
+  };
+  document.getElementById('track-badge').textContent = '⚡ ' + (TOPIC_DISPLAY[topic] || topic);
+  document.getElementById('score-correct').textContent = '0 correct';
+  document.getElementById('score-wrong').textContent   = '0 wrong';
+
+  showLoadingState();
+
+  try {
+    const batch = await fetchBatch();
+    if (batch.length === 0) { showExhausted(); return; }
+    batch.forEach(q => usedIds.add(q._id));
+    QUESTIONS   = batch;
+    answers     = new Array(batch.length).fill(null);
+    userAnswers = new Array(batch.length).fill(null);
+    rebuildQuestionCard();
+    buildProgressPips();
+    loadQuestion(0);
+  } catch (err) {
+    console.error('[study] startStudy failed:', err.message);
+    showErrorState(err.message || 'Could not load questions — please try again.');
+  }
+}
+
+/* ════════════════════════════════
+   SHOW EXHAUSTED / RESULTS
+════════════════════════════════ */
+function showExhausted() {
+  if (loadingTipInterval) { clearInterval(loadingTipInterval); loadingTipInterval = null; }
+  document.getElementById('question-card').style.display    = 'none';
+  document.getElementById('progress-section').style.display = 'none';
+
+  const pct = sessionTotal > 0 ? Math.round(sessionCorrect / sessionTotal * 100) : 0;
+
+  document.getElementById('res-emoji').textContent = sessionTotal === 0 ? '🔍' : pct === 100 ? '🏆' : pct >= 70 ? '🌟' : '⭐';
+  document.getElementById('res-title').textContent = sessionTotal === 0
+    ? 'No questions found'
+    : 'Topic Complete!';
+  document.getElementById('res-sub').textContent = sessionTotal === 0
+    ? 'No questions available for this topic and year group yet.'
+    : `You\'ve answered all ${sessionTotal} questions in this topic! Score: ${sessionCorrect}/${sessionTotal} (${pct}%)`;
+
+  document.getElementById('res-fraction').textContent = `${sessionCorrect}/${sessionTotal || 0}`;
+  document.getElementById('res-pct2').textContent     = pct + '%';
+
+  const stars    = Math.round(pct / 20);
+  const starWrap = document.getElementById('res-star-wrap');
+  starWrap.innerHTML = '';
+  for (let i = 0; i < 5; i++) {
+    const svg  = document.createElementNS('http://www.w3.org/2000/svg','svg');
+    svg.setAttribute('width','24'); svg.setAttribute('height','24'); svg.setAttribute('viewBox','0 0 24 24');
+    svg.setAttribute('fill', i < stars ? '#C9A84C' : 'rgba(201,168,76,.2)');
+    svg.setAttribute('stroke','#C9A84C'); svg.setAttribute('stroke-width','1.2');
+    const poly = document.createElementNS('http://www.w3.org/2000/svg','polygon');
+    poly.setAttribute('points','12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26');
+    svg.appendChild(poly); starWrap.appendChild(svg);
+  }
+  const sl = document.createElement('div');
+  sl.className = 'results-score-label'; sl.style.marginTop = '4px'; sl.textContent = 'Rating';
+  starWrap.appendChild(sl);
+
+  // Don't show missed-questions section on exhausted
+  document.getElementById('missed-section').innerHTML = '';
+  document.getElementById('upgrade-banner').style.display = 'none';
+
+  document.getElementById('results-panel').classList.add('visible');
 }
 
 /* ════════════════════════════════
    INIT
 ════════════════════════════════ */
 async function init() {
-  currentQ    = 0;
-  score       = { correct: 0, wrong: 0 };
-  answered    = false;
-  hintVisible = false;
-  selectedMC  = null;
-
   const params   = new URLSearchParams(window.location.search);
-  const urlTrack = params.get('track');
   const urlTopic = params.get('topic');
-  const urlMode  = params.get('mode');
-  const year     = urlTrack || sessionStorage.getItem('star_year') || 'P6';
-  const name     = sessionStorage.getItem('star_name') || '';
+  const urlTrack = params.get('track');
+
+  // Load year group + name from Supabase profile
+  const { data: authData } = await sb.auth.getSession();
+  if (authData?.session?.user) {
+    const { data: profile } = await sb.from('profiles')
+      .select('name, year_group')
+      .eq('id', authData.session.user.id)
+      .single();
+    if (profile?.year_group) userYear = profile.year_group;
+    if (profile?.name) document.getElementById('nav-student-name').textContent = '· ' + profile.name;
+  } else {
+    userYear = urlTrack || sessionStorage.getItem('star_year') || 'P6';
+    const name = sessionStorage.getItem('star_name') || '';
+    if (name) document.getElementById('nav-student-name').textContent = '· ' + name;
+  }
 
   document.getElementById('results-panel').classList.remove('visible');
   document.getElementById('complete-screen').classList.remove('visible');
-  document.getElementById('progress-section').style.display = '';
 
-  if (name) document.getElementById('nav-student-name').textContent = '· ' + name;
-
-  // Show topic sprint badge if in topic mode
-  if (urlMode === 'topic' && urlTopic) {
-    document.getElementById('track-badge').textContent = '⚡ Topic Sprint: ' + urlTopic;
+  if (urlTopic) {
+    await startStudy(urlTopic);
   } else {
-    document.getElementById('track-badge').textContent = year === 'P7' ? 'P7 Executor Track 🏆' : 'P6 Builder Track ⚡';
-  }
-
-  showLoadingState();
-
-  try {
-    QUESTIONS   = await fetchQuestions(year, urlTopic);
-    answers     = new Array(QUESTIONS.length).fill(null);
-    userAnswers = new Array(QUESTIONS.length).fill(null);
-    rebuildQuestionCard();
-    document.getElementById('q-total').textContent       = QUESTIONS.length;
-    document.getElementById('score-correct').textContent = '0 correct';
-    document.getElementById('score-wrong').textContent   = '0 wrong';
-    buildProgressPips();
-    loadQuestion(0);
-  } catch (error) {
-    console.error('Failed to load questions:', error);
-    showErrorState(error.message || 'Please try again.');
+    showTopicPicker();
   }
 }
 
 function buildProgressPips() {
   const container = document.getElementById('progress-dots');
   container.innerHTML = '';
-  QUESTIONS.forEach((_, i) => {
+  const show = Math.min(QUESTIONS.length, 15);
+  for (let i = 0; i < show; i++) {
     const pip = document.createElement('div');
     pip.className = 'progress-pip' + (i === 0 ? ' active' : '');
     pip.id = 'pip-' + i;
     container.appendChild(pip);
-  });
+  }
 }
 
 /* ════════════════════════════════
@@ -586,11 +832,14 @@ function loadQuestion(idx) {
   selectedMC  = null;
   const q = QUESTIONS[idx];
 
-  document.getElementById('q-current').textContent = idx + 1;
+  // Progress bar within current batch
+  document.getElementById('q-current').textContent = sessionTotal + idx + 1;
+  document.getElementById('q-total').textContent   = sessionTotal + QUESTIONS.length;
   document.getElementById('progress-fill').style.width = ((idx + 1) / QUESTIONS.length * 100) + '%';
 
-  for (let i = 0; i < QUESTIONS.length; i++) {
+  for (let i = 0; i < Math.min(QUESTIONS.length, 15); i++) {
     const pip = document.getElementById('pip-' + i);
+    if (!pip) continue;
     pip.className = 'progress-pip';
     if      (answers[i] === 'correct') pip.classList.add('correct');
     else if (answers[i] === 'wrong')   pip.classList.add('wrong');
@@ -599,31 +848,36 @@ function loadQuestion(idx) {
   }
 
   const badge = document.getElementById('card-type-badge');
-  const typeLower  = (q.type  || '').toLowerCase();
-  const topicLower = (q.topic || '').toLowerCase();
-  const isEnglish  = typeLower.includes('english') ||
-    ['punctuation', 'grammar', 'spelling', 'comprehension'].some(t => topicLower.includes(t));
-  if (isEnglish) { badge.className = 'card-type-badge badge-english'; badge.textContent = '📖 English'; }
-  else           { badge.className = 'card-type-badge badge-maths';   badge.textContent = '📐 Maths'; }
+  if (q.type === 'english') { badge.className = 'card-type-badge badge-english'; badge.textContent = '📖 English'; }
+  else                      { badge.className = 'card-type-badge badge-maths';   badge.textContent = '📐 Maths'; }
 
   document.getElementById('card-topic').textContent     = q.topic;
   document.getElementById('card-marks').textContent     = q.marks || '1 mark';
-  document.getElementById('q-number-label').textContent = 'Question ' + (idx + 1);
-  document.getElementById('q-text').textContent         = q.text;
+  document.getElementById('q-number-label').textContent = 'Question ' + (sessionTotal + idx + 1);
 
+  // Diagram
   const diagEl = document.getElementById('q-diagram');
   if (q.diagram) { diagEl.innerHTML = q.diagram; diagEl.style.display = ''; }
   else           { diagEl.innerHTML = ''; diagEl.style.display = 'none'; }
 
+  // Passage (comprehension questions)
+  const passagePanel = document.getElementById('passage-panel');
+  const passageBody  = document.getElementById('passage-body');
+  if (q.passage) { passageBody.textContent = q.passage; passagePanel.style.display = ''; }
+  else           { passagePanel.style.display = 'none'; }
+
+  document.getElementById('q-text').textContent = q.text;
+
+  // Context (grammar gap sentence, spelling passage)
   const ctxEl = document.getElementById('q-context');
   if (q.context) { ctxEl.textContent = q.context; ctxEl.style.display = 'block'; }
   else           { ctxEl.style.display = 'none'; }
 
+  // Segments (punctuation / spelling blocks)
   const segRow  = document.getElementById('segments-row');
   const letters = ['A','B','C','D'];
   if (q.segments && q.segments.length) {
-    segRow.style.display = 'flex';
-    segRow.innerHTML = '';
+    segRow.style.display = 'flex'; segRow.innerHTML = '';
     q.segments.forEach((seg, i) => {
       const block = document.createElement('div');
       block.className = 'segment-block';
@@ -632,6 +886,7 @@ function loadQuestion(idx) {
     });
   } else { segRow.style.display = 'none'; }
 
+  // MC or FR
   const mcWrap  = document.getElementById('mc-options');
   const frWrap  = document.getElementById('fr-wrap');
   const frInput = document.getElementById('fr-input');
@@ -658,9 +913,9 @@ function loadQuestion(idx) {
   document.getElementById('btn-submit').textContent = 'Check Answer';
   document.getElementById('btn-next').style.display = 'none';
 
-  const vl = document.getElementById('video-link');
+  const vl     = document.getElementById('video-link');
   const effVid = getEffectiveVideo(q);
-  document.getElementById('video-title').textContent  = q.videoTitle  || (q.videoTopic ? `Search: ${q.videoTopic}` : 'Watch Tutorial');
+  document.getElementById('video-title').textContent  = q.topic || 'Watch Tutorial';
   document.getElementById('video-source').textContent = effVid.source;
   vl.setAttribute('href',   effVid.url);
   vl.setAttribute('target', '_blank');
@@ -673,12 +928,9 @@ function loadQuestion(idx) {
 function buildMC(options) {
   const wrap = document.getElementById('mc-options');
   wrap.innerHTML = '';
-  const defaultLetters = ['A','B','C','D','E'];
-  options.forEach((opt, i) => {
-    const optLower = (opt || '').toLowerCase().trim();
-    const isNoMistake = optLower.startsWith('n.') || optLower === 'no mistake' || optLower === 'n. no mistake';
-    const letter = isNoMistake ? 'N' : defaultLetters[i];
-    const label  = opt.replace(/^[A-EN]\.\s*/i, '');
+  options.forEach((opt) => {
+    const letter = opt.split('.')[0].trim();
+    const label  = opt.split('.').slice(1).join('.').trim();
     const btn = document.createElement('button');
     btn.className = 'mc-btn';
     btn.dataset.letter = letter;
@@ -699,69 +951,112 @@ function selectMC(letter, btn) {
 /* ════════════════════════════════
    SUBMIT ANSWER
 ════════════════════════════════ */
-function submitAnswer() {
+async function submitAnswer() {
   if (answered) return;
   answered = true;
   const q = QUESTIONS[currentQ];
-  let isCorrect = false;
+  let isCorrect  = false;
+  let aiFeedback = '';
 
   if (q.options && q.options.length) {
+    // ── Multiple choice ──────────────────────────────────
     isCorrect = selectedMC === q.answer;
     document.querySelectorAll('.mc-btn').forEach(btn => {
       btn.disabled = true;
-      const btnLetter = btn.dataset.letter;
-      if (btnLetter === q.answer)                        btn.classList.add('correct-ans');
-      else if (btnLetter === selectedMC && !isCorrect)   btn.classList.add('wrong-ans');
+      if (btn.dataset.letter === q.answer)                       btn.classList.add('correct-ans');
+      else if (btn.dataset.letter === selectedMC && !isCorrect)  btn.classList.add('wrong-ans');
     });
-    const selectedBtn = document.querySelector(`.mc-btn[data-letter="${selectedMC}"]`);
-    userAnswers[currentQ] = selectedBtn
-      ? selectedBtn.querySelector('span').textContent
-      : (selectedMC || '(no answer)');
+    const selBtn = document.querySelector(`.mc-btn[data-letter="${selectedMC}"]`);
+    userAnswers[currentQ] = selBtn ? selBtn.querySelector('span').textContent : (selectedMC || '(no answer)');
+    document.getElementById('btn-submit').style.display = 'none';
+    document.getElementById('btn-next').style.display   = 'inline-block';
   } else {
+    // ── Free response ─────────────────────────────────────
     const frInput = document.getElementById('fr-input');
-    const normalise = s => s.trim().toLowerCase().replace(/²/g,'2').replace(/\^2/g,'2').replace(/\s+/g,' ').trim();
-    const userVal  = normalise(frInput.value);
-    const accepted = (q.acceptedAnswers || [q.answer]).map(normalise);
-    isCorrect = accepted.includes(userVal);
+    const userVal = frInput.value.trim();
     frInput.disabled = true;
-    frInput.classList.add(isCorrect ? 'correct-inp' : 'wrong-inp');
-    userAnswers[currentQ] = frInput.value.trim();
+    userAnswers[currentQ] = userVal;
+
+    if (q._rawTopic === 'comprehension_written') {
+      // AI marking via /api/mark-written
+      const panel = document.getElementById('feedback-panel');
+      const icon  = document.getElementById('feedback-icon');
+      const title = document.getElementById('feedback-title');
+      const body  = document.getElementById('feedback-body');
+      document.getElementById('feedback-steps').style.display = 'none';
+      panel.className   = 'feedback-panel visible feedback-marking';
+      icon.innerHTML    = '<span class="marking-spinner"></span>';
+      title.textContent = 'Marking your answer…';
+      body.textContent  = '';
+
+      document.getElementById('btn-submit').style.display = 'none';
+      document.getElementById('btn-next').style.display   = 'inline-block';
+      document.getElementById('btn-next').disabled        = true;
+
+      try {
+        const resp = await fetch('/api/mark-written', {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body:    JSON.stringify({ question: q.text, correctAnswer: q.answer, studentAnswer: userVal })
+        });
+        if (!resp.ok) throw new Error('HTTP ' + resp.status);
+        const json = await resp.json();
+        isCorrect  = !!json.pass;
+        aiFeedback = json.feedback || '';
+      } catch (e) {
+        const norm = s => s.toLowerCase().replace(/\s+/g,' ').trim();
+        isCorrect  = norm(userVal) === norm(q.answer);
+      }
+
+      frInput.classList.add(isCorrect ? 'correct-inp' : 'wrong-inp');
+      document.getElementById('btn-next').disabled = false;
+    } else {
+      // Whitespace-normalised string match for maths / other FR
+      const normalise = s => s.trim().toLowerCase().replace(/²/g,'2').replace(/\^2/g,'2').replace(/\s+/g,' ').trim();
+      const accepted  = (q.acceptedAnswers || [q.answer]).map(normalise);
+      isCorrect = accepted.includes(normalise(userVal));
+      frInput.classList.add(isCorrect ? 'correct-inp' : 'wrong-inp');
+      document.getElementById('btn-submit').style.display = 'none';
+      document.getElementById('btn-next').style.display   = 'inline-block';
+    }
   }
 
+  // Update state
   answers[currentQ] = isCorrect ? 'correct' : 'wrong';
-  if (isCorrect) score.correct++; else score.wrong++;
+  if (isCorrect) { score.correct++; correctCount++; sessionCorrect++; }
+  else             score.wrong++;
+  sessionTotal++;
 
+  // Show feedback (always in study mode)
+  showFeedback(q, isCorrect, aiFeedback);
+
+  // UI updates
   const vl = document.getElementById('video-link');
   if (!isCorrect) vl.classList.add('tutorial-glow'); else vl.classList.remove('tutorial-glow');
 
   const pip = document.getElementById('pip-' + currentQ);
-  pip.className = 'progress-pip ' + (isCorrect ? 'correct' : 'wrong');
+  if (pip) pip.className = 'progress-pip ' + (isCorrect ? 'correct' : 'wrong');
   document.getElementById('score-correct').textContent = score.correct + ' correct';
   document.getElementById('score-wrong').textContent   = score.wrong + ' wrong';
 
-  showFeedback(q, isCorrect);
-  document.getElementById('btn-submit').style.display = 'none';
-  document.getElementById('btn-next').style.display   = 'inline-block';
-  document.getElementById('btn-next').textContent = currentQ < QUESTIONS.length - 1 ? 'Next Question →' : 'See Results 🏁';
+  document.getElementById('btn-next').textContent = 'Next Question →';
 
-  /* Save to localStorage after each answer */
-  const track = sessionStorage.getItem('star_year') || 'P6';
-  const pct   = QUESTIONS.length ? Math.round(score.correct / QUESTIONS.length * 100) : 0;
-  localStorage.setItem('star_last_score', pct);
-  localStorage.setItem('star_last_track', track);
-  localStorage.setItem('star_last_name',  sessionStorage.getItem('star_name') || '');
+  // Kick off background pre-fetch when 3 from end of batch
+  if (!nextBatchPromise && currentQ >= QUESTIONS.length - 3) {
+    nextBatchPromise = fetchBatch().catch(() => []);
+  }
 }
 
-function showFeedback(q, isCorrect) {
+function showFeedback(q, isCorrect, aiFeedback) {
   const panel   = document.getElementById('feedback-panel');
   const icon    = document.getElementById('feedback-icon');
   const title   = document.getElementById('feedback-title');
   const body    = document.getElementById('feedback-body');
   const stepsEl = document.getElementById('feedback-steps');
-  panel.className = 'feedback-panel visible ' + (isCorrect ? 'feedback-correct' : 'feedback-wrong');
+  panel.className   = 'feedback-panel visible ' + (isCorrect ? 'feedback-correct' : 'feedback-wrong');
   icon.textContent  = isCorrect ? '✓' : '✗';
   title.textContent = isCorrect ? 'Correct! Well done.' : 'Not quite — here\'s how:';
-  body.textContent  = q.explanation || '';
+  body.textContent  = aiFeedback || q.explanation || '';
   if (!isCorrect && q.steps && q.steps.length) {
     stepsEl.style.display = 'block';
     stepsEl.innerHTML = q.steps.map(s => `<li>${s}</li>`).join('');
@@ -786,15 +1081,54 @@ function toggleHint() {
 /* ════════════════════════════════
    NEXT QUESTION
 ════════════════════════════════ */
-function nextQuestion() {
+async function nextQuestion() {
   if (currentQ < QUESTIONS.length - 1) {
     currentQ++;
     const card = document.getElementById('question-card');
     card.classList.add('card-refreshing');
     setTimeout(() => { card.classList.remove('card-refreshing'); loadQuestion(currentQ); }, 180);
-  } else {
-    showResults();
+
+    // Kick off pre-fetch when 3 from end of batch
+    if (!nextBatchPromise && currentQ >= QUESTIONS.length - 3) {
+      nextBatchPromise = fetchBatch().catch(() => []);
+    }
+    return;
   }
+
+  // Last question in batch — load next batch
+  const btn = document.getElementById('btn-next');
+  btn.disabled    = true;
+  btn.textContent = 'Loading…';
+
+  let next = [];
+  try {
+    if (!nextBatchPromise) nextBatchPromise = fetchBatch();
+    next = await nextBatchPromise;
+  } catch (e) {
+    console.error('[study] batch fetch failed:', e.message);
+  }
+  nextBatchPromise = null;
+
+  if (next.length === 0) {
+    showExhausted();
+    return;
+  }
+
+  next.forEach(q => usedIds.add(q._id));
+  QUESTIONS   = next;
+  answers     = new Array(next.length).fill(null);
+  userAnswers = new Array(next.length).fill(null);
+  score       = { correct: 0, wrong: 0 };
+  currentQ    = 0;
+
+  const card = document.getElementById('question-card');
+  card.classList.add('card-refreshing');
+  setTimeout(() => {
+    card.classList.remove('card-refreshing');
+    rebuildQuestionCard();
+    buildProgressPips();
+    loadQuestion(0);
+  }, 180);
 }
 
 /* ════════════════════════════════
@@ -818,9 +1152,13 @@ function getEffectiveVideo(q) {
 
 /* ════════════════════════════════
    SHOW RESULTS
-   Supabase save happens HERE — once, at end of sprint only
+   Called by showExhausted (session end) — Supabase save here
 ════════════════════════════════ */
 function showResults() {
+  showExhausted(); // study mode uses showExhausted for completion screen
+}
+
+function _showResultsInternal() {
   sprintCount++;
   document.getElementById('question-card').style.display    = 'none';
   document.getElementById('progress-section').style.display = 'none';
@@ -1022,10 +1360,8 @@ function showResults() {
 async function restartSession() {
   document.getElementById('results-panel').classList.remove('visible');
   document.getElementById('complete-screen').classList.remove('visible');
-  document.getElementById('question-card').style.display    = '';
-  document.getElementById('progress-section').style.display = '';
   const allowed = await checkAccess();
-  if (allowed) init();
+  if (allowed) showTopicPicker();
 }
 function goToSignup() {
   const pct = Math.round(score.correct / QUESTIONS.length * 100);
