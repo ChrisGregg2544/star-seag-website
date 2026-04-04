@@ -104,6 +104,9 @@
     .feedback-panel.visible{display:block;animation:fadeUp .3s ease both;}
     .feedback-panel.correct-fb{background:var(--green-bg);border:1px solid rgba(34,197,94,.25);}
     .feedback-panel.wrong-fb{background:var(--red-bg);border:1px solid rgba(239,68,68,.2);}
+    .feedback-panel.marking-fb{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);}
+    .marking-spinner{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,.25);border-top-color:rgba(255,255,255,.8);border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:6px;}
+    @keyframes spin{to{transform:rotate(360deg);}}
     .feedback-header{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
     .feedback-icon{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.85rem;font-weight:900;color:#fff;flex-shrink:0;}
     .feedback-icon.ok{background:var(--green);}
@@ -1049,7 +1052,29 @@ function toggleHint() {
 /* ════════════════════════════════════════
    SUBMIT ANSWER
 ════════════════════════════════════════ */
-function submitAnswer() {
+function showFeedbackPanel(isCorrect, explanationText, steps, isFR) {
+  const fbPanel = document.getElementById('feedback-panel');
+  const fbIcon  = document.getElementById('feedback-icon');
+  const fbTitle = document.getElementById('feedback-title');
+  const fbExpl  = document.getElementById('feedback-explanation');
+  const fbSteps = document.getElementById('feedback-steps');
+
+  fbPanel.className   = 'feedback-panel visible ' + (isCorrect ? 'correct-fb' : 'wrong-fb');
+  fbIcon.className    = 'feedback-icon ' + (isCorrect ? 'ok' : 'no');
+  fbIcon.textContent  = isCorrect ? '✓' : '✗';
+  fbTitle.textContent = isCorrect ? 'Well done! ⭐' : 'Not quite — here\'s how:';
+  fbExpl.textContent  = explanationText || '';
+  fbSteps.innerHTML   = '';
+  if (!isFR && steps && steps.length > 0) {
+    steps.forEach(step => {
+      const li = document.createElement('li');
+      li.textContent = step;
+      fbSteps.appendChild(li);
+    });
+  }
+}
+
+async function submitAnswer() {
   const q = getCurrentQuestion();
   if (!q || answered) return;
   answered = true;
@@ -1057,13 +1082,50 @@ function submitAnswer() {
   const frInput = document.getElementById('fr-input');
   const isFR    = !q.options || q.options.length === 0;
   let isCorrect;
+  let aiFeedback = '';
 
   if (isFR) {
     const userAnswer = frInput.value.trim();
-    const correct    = (q.answer || '').toString().toLowerCase().trim();
-    isCorrect = userAnswer.toLowerCase() === correct ||
-                userAnswer.toLowerCase().replace(/\s/g,'') === correct.replace(/\s/g,'');
     frInput.disabled = true;
+
+    // Show spinner while AI marks
+    const fbPanel = document.getElementById('feedback-panel');
+    const fbIcon  = document.getElementById('feedback-icon');
+    const fbTitle = document.getElementById('feedback-title');
+    document.getElementById('feedback-explanation').textContent = '';
+    document.getElementById('feedback-steps').innerHTML = '';
+    fbPanel.className   = 'feedback-panel visible marking-fb';
+    fbIcon.className    = 'feedback-icon';
+    fbIcon.innerHTML    = '<span class="marking-spinner"></span>';
+    fbTitle.textContent = 'Marking your answer…';
+
+    document.getElementById('btn-submit').style.display = 'none';
+    document.getElementById('btn-next').style.display   = 'block';
+    document.getElementById('btn-next').disabled        = true;
+
+    try {
+      const resp = await fetch('/api/mark-written', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({
+          question:      q.text,
+          correctAnswer: q.answer,
+          studentAnswer: userAnswer
+        })
+      });
+      if (!resp.ok) throw new Error('HTTP ' + resp.status);
+      const json = await resp.json();
+      isCorrect  = !!json.pass;
+      aiFeedback = json.feedback || '';
+    } catch (e) {
+      // Fallback: whitespace-normalised exact match
+      const norm = s => s.toLowerCase().replace(/\s+/g, ' ').trim();
+      isCorrect = norm(userAnswer) === norm(q.answer || '');
+    }
+
+    document.getElementById('btn-next').disabled = false;
+    showFeedbackPanel(isCorrect, aiFeedback || q.explanation, q.steps, true);
+
   } else {
     isCorrect = selectedMC === q.answer;
     document.querySelectorAll('#mc-options .mc-btn').forEach(btn => {
@@ -1077,27 +1139,12 @@ function submitAnswer() {
   answers[globalIdx] = isCorrect ? 'correct' : 'wrong';
   saveMockProgress();
 
-  const showFeedback = currentSection === 'practice' || !isCorrect;
-  if (showFeedback) {
-    const fbPanel = document.getElementById('feedback-panel');
-    const fbIcon  = document.getElementById('feedback-icon');
-    const fbTitle = document.getElementById('feedback-title');
-    const fbExpl  = document.getElementById('feedback-explanation');
-    const fbSteps = document.getElementById('feedback-steps');
+  if (!isFR) {
+    const showFeedback = currentSection === 'practice' || !isCorrect;
+    if (showFeedback) showFeedbackPanel(isCorrect, q.explanation, q.steps, false);
 
-    fbPanel.className = 'feedback-panel visible ' + (isCorrect ? 'correct-fb' : 'wrong-fb');
-    fbIcon.className  = 'feedback-icon ' + (isCorrect ? 'ok' : 'no');
-    fbIcon.textContent = isCorrect ? '✓' : '✗';
-    fbTitle.textContent = isCorrect ? 'Well done! ⭐' : 'Not quite — here\'s how:';
-    fbExpl.textContent  = q.explanation || '';
-    fbSteps.innerHTML   = '';
-    if (q.steps && q.steps.length > 0) {
-      q.steps.forEach(step => {
-        const li = document.createElement('li');
-        li.textContent = step;
-        fbSteps.appendChild(li);
-      });
-    }
+    document.getElementById('btn-submit').style.display = 'none';
+    document.getElementById('btn-next').style.display   = 'block';
   }
 
   const correct = Object.values(answers).filter(v => v === 'correct').length;
@@ -1105,15 +1152,12 @@ function submitAnswer() {
   document.getElementById('score-correct').textContent = correct + ' correct';
   document.getElementById('score-wrong').textContent   = wrong + ' wrong';
 
-  document.getElementById('btn-submit').style.display = 'none';
-  document.getElementById('btn-next').style.display   = 'block';
-
   const isLastInSection = currentIdx === getSectionLength() - 1;
   const btn = document.getElementById('btn-next');
   if (isLastInSection) {
-    if (currentSection === 'practice')  btn.textContent = 'Finish Practice Section →';
+    if (currentSection === 'practice')    btn.textContent = 'Finish Practice Section →';
     else if (currentSection === 'english') btn.textContent = 'Finish English Section →';
-    else btn.textContent = 'Finish Mock →';
+    else                                   btn.textContent = 'Finish Mock →';
   } else {
     btn.textContent = 'Next →';
   }
