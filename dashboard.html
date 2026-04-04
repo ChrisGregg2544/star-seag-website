@@ -77,6 +77,24 @@
     .today-arrow{flex-shrink:0;width:48px;height:48px;border-radius:50%;background:rgba(11,31,58,.12);display:flex;align-items:center;justify-content:center;font-size:1.2rem;transition:transform .22s;position:relative;z-index:1;}
     .today-card:hover .today-arrow{transform:translateX(5px);}
 
+    /* ACTION PAIR */
+    .action-pair{position:relative;z-index:10;width:100%;max-width:860px;display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;animation:fadeUp .53s .08s cubic-bezier(.22,1,.36,1) both;}
+    .ap-btn{border-radius:18px;padding:20px 24px;display:flex;align-items:center;gap:14px;text-decoration:none;transition:all .22s;-webkit-tap-highlight-color:transparent;}
+    .ap-btn:hover{transform:translateY(-3px);}
+    .ap-primary{background:linear-gradient(135deg,var(--gold) 0%,var(--gold-light) 50%,#d4a843 100%);box-shadow:0 6px 32px rgba(201,168,76,.38);}
+    .ap-primary:hover{box-shadow:0 12px 44px rgba(201,168,76,.55);}
+    .ap-secondary{background:rgba(255,255,255,.06);border:1.5px solid rgba(255,255,255,.18);}
+    .ap-secondary:hover{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.28);}
+    .ap-icon{font-size:1.9rem;flex-shrink:0;}
+    .ap-text{display:flex;flex-direction:column;gap:2px;}
+    .ap-label{font-family:'Lato',sans-serif;font-size:.9rem;font-weight:900;letter-spacing:.06em;text-transform:uppercase;}
+    .ap-primary .ap-label{color:var(--navy);}
+    .ap-secondary .ap-label{color:#fff;}
+    .ap-desc{font-size:.72rem;line-height:1.4;}
+    .ap-primary .ap-desc{color:rgba(11,31,58,.55);}
+    .ap-secondary .ap-desc{color:rgba(255,255,255,.4);}
+    @media(max-width:520px){.action-pair{grid-template-columns:1fr;}.ap-btn{padding:18px 20px;}}
+
     /* MODES */
     .modes-section{position:relative;z-index:10;width:100%;max-width:860px;margin-bottom:24px;animation:fadeUp .55s .1s cubic-bezier(.22,1,.36,1) both;}
     .modes-title{font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:900;color:#fff;margin-bottom:14px;}
@@ -282,14 +300,32 @@
   <div class="today-arrow">→</div>
 </a>
 
+<!-- MAIN ACTION PAIR -->
+<div class="action-pair">
+  <a class="ap-btn ap-primary" href="mock.html">
+    <div class="ap-icon">📝</div>
+    <div class="ap-text">
+      <div class="ap-label">Take a Mock</div>
+      <div class="ap-desc">Full 56-question SEAG paper</div>
+    </div>
+  </a>
+  <a class="ap-btn ap-secondary" href="study.html">
+    <div class="ap-icon">📚</div>
+    <div class="ap-text">
+      <div class="ap-label">Study by Topic</div>
+      <div class="ap-desc">Pick a topic and practise at your own pace</div>
+    </div>
+  </a>
+</div>
+
 <!-- MODES -->
 <div class="modes-section">
   <div class="modes-title">Choose Your Session</div>
   <div class="modes-grid">
     <a class="mode-card" href="study.html">
-      <div class="mode-icon">⚡</div>
-      <div class="mode-name">Quick Sprint</div>
-      <div class="mode-desc">10 questions, mixed topics</div>
+      <div class="mode-icon">📚</div>
+      <div class="mode-name">Study Hall</div>
+      <div class="mode-desc">Pick a topic, practise at your pace</div>
     </a>
     <a class="mode-card" href="topic-sprint.html">
       <div class="mode-icon">🎯</div>
