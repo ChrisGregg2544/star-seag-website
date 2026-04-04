@@ -642,6 +642,7 @@ function normalizeDBQuestion(dbQ) {
   // maths: text = question, optionsArray = A–E
 
   return {
+    _id:         dbQ.id,
     type:        subject === 'english' ? 'english' : 'maths',
     topic:       TOPIC_LABELS[topic] || topic,
     marks:       '1 mark',
@@ -658,9 +659,10 @@ function normalizeDBQuestion(dbQ) {
   };
 }
 
-// Fetch a shuffled subset of N questions for the student's year group
-async function fetchPool(subject, topic, count) {
-  const { data, error } = await sb
+// Fetch a shuffled subset of N questions for the student's year group,
+// excluding any IDs already used in the practice section.
+async function fetchPool(subject, topic, count, excludeIds = []) {
+  let query = sb
     .from('questions')
     .select('id,subject,topic,year_group,difficulty,question_type,question_text,passage,options,correct_answer,explanation,diagram')
     .eq('subject',    subject)
@@ -668,6 +670,10 @@ async function fetchPool(subject, topic, count) {
     .eq('year_group', userYear)
     .eq('source',     'ai_generated_v3')
     .limit(count * 5); // over-fetch so shuffle gives good variety
+  if (excludeIds.length > 0) {
+    query = query.not('id', 'in', `(${excludeIds.join(',')})`);
+  }
+  const { data, error } = await query;
   if (error) throw new Error(`DB fetch failed (${subject}/${topic}): ${error.message}`);
   return shuffle(data || []).slice(0, count).map(normalizeDBQuestion);
 }
@@ -687,6 +693,9 @@ async function assemblePracticeFromDB() {
 
 // 28 English questions: Q1-5 Punct | Q6-10 Grammar | Q11-15 Spelling | Q16-22 MC | Q23-28 Written
 async function assembleEnglishFromDB() {
+  // Exclude any question IDs already shown in the practice section
+  const usedIds = (PRACTICE_QS || []).map(q => q._id).filter(Boolean);
+
   // Pick a random passage for this year group
   const { data: passages, error: pErr } = await sb
     .from('passages')
@@ -698,6 +707,8 @@ async function assembleEnglishFromDB() {
   const chosenPassage = passages[Math.floor(Math.random() * passages.length)];
 
   // Fetch comprehension questions + language sections all in parallel
+  // Comprehension questions are passage-specific so can't overlap with practice;
+  // language pools get the excludeIds filter.
   const [mcResult, wrResult, punct, grammar, spelling] = await Promise.all([
     sb.from('questions')
       .select('id,subject,topic,year_group,difficulty,question_type,question_text,passage,options,correct_answer,explanation,diagram')
@@ -709,9 +720,9 @@ async function assembleEnglishFromDB() {
       .eq('passage_id', chosenPassage.id)
       .eq('topic',      'comprehension_written')
       .eq('source',     'ai_generated_v3'),
-    fetchPool('english', 'punctuation', 5),
-    fetchPool('english', 'grammar',     5),
-    fetchPool('english', 'spelling',    5),
+    fetchPool('english', 'punctuation', 5, usedIds),
+    fetchPool('english', 'grammar',     5, usedIds),
+    fetchPool('english', 'spelling',    5, usedIds),
   ]);
 
   if (mcResult.error) throw new Error(`Comprehension MC fetch failed: ${mcResult.error.message}`);
