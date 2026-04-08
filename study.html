@@ -334,6 +334,7 @@
     <button class="topic-btn eng" onclick="selectTopic('grammar')">📝 Grammar</button>
     <button class="topic-btn eng" onclick="selectTopic('spelling')">🔤 Spelling</button>
     <button class="topic-btn eng" onclick="selectTopic('comprehension')">📖 Comprehension</button>
+    <button class="topic-btn eng" onclick="selectTopic('vocabulary')">💬 Vocabulary</button>
   </div>
   <div class="topic-group-label">📐 Maths</div>
   <div class="topic-grid">
@@ -429,6 +430,7 @@ let usedIds          = new Set();
 let correctCount     = 0;      // cumulative correct for difficulty unlock
 let sessionCorrect   = 0;      // across all batches
 let sessionTotal     = 0;      // across all batches
+let batchOffset      = 0;      // questions completed before current batch (for display)
 let nextBatchPromise = null;   // background pre-fetch
 
 /* ════════════════════════════════
@@ -587,6 +589,7 @@ function normalizeDBQuestion(dbQ) {
     statistics:            'Statistics',
     measurement:           'Measurement',
     algebra_sequences:     'Algebra & Sequences',
+    vocabulary:            'Vocabulary',
   };
 
   let optionsArray = [];
@@ -690,6 +693,7 @@ async function startStudy(topic) {
   correctCount     = 0;
   sessionCorrect   = 0;
   sessionTotal     = 0;
+  batchOffset      = 0;
   currentQ         = 0;
   QUESTIONS        = [];
   answers          = [];
@@ -833,8 +837,8 @@ function loadQuestion(idx) {
   const q = QUESTIONS[idx];
 
   // Progress bar within current batch
-  document.getElementById('q-current').textContent = sessionTotal + idx + 1;
-  document.getElementById('q-total').textContent   = sessionTotal + QUESTIONS.length;
+  document.getElementById('q-current').textContent = batchOffset + idx + 1;
+  document.getElementById('q-total').textContent   = batchOffset + QUESTIONS.length;
   document.getElementById('progress-fill').style.width = ((idx + 1) / QUESTIONS.length * 100) + '%';
 
   for (let i = 0; i < Math.min(QUESTIONS.length, 15); i++) {
@@ -853,7 +857,7 @@ function loadQuestion(idx) {
 
   document.getElementById('card-topic').textContent     = q.topic;
   document.getElementById('card-marks').textContent     = q.marks || '1 mark';
-  document.getElementById('q-number-label').textContent = 'Question ' + (sessionTotal + idx + 1);
+  document.getElementById('q-number-label').textContent = 'Question ' + (batchOffset + idx + 1);
 
   // Diagram
   const diagEl = document.getElementById('q-diagram');
@@ -1115,6 +1119,7 @@ async function nextQuestion() {
   }
 
   next.forEach(q => usedIds.add(q._id));
+  batchOffset = sessionTotal;   // freeze offset at questions answered so far
   QUESTIONS   = next;
   answers     = new Array(next.length).fill(null);
   userAnswers = new Array(next.length).fill(null);
