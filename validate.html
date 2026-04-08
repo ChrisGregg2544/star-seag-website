@@ -643,6 +643,7 @@ async function startAutoRun() {
     progress.textContent = `${processed + 1} / ${allPending.length} — ✅ ${approved} approved  ❌ ${rejected} rejected`;
     try {
       const result = await runCheck(question);
+      console.log('Saving question id:', question.id, 'verdict:', result.verdict);
       if (result.verdict === 'FAIL') {
         const saveResult = await sb.from('questions').update({ source: 'rejected', validator_verdict: 'fail', validator_reason: result.reason }).eq('id', question.id);
         console.log('Save result (FAIL):', saveResult.error ? saveResult.error : 'OK');
