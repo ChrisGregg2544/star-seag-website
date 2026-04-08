@@ -196,7 +196,7 @@
   <div class="auto-panel">
     <div class="auto-panel-info">
       <strong>⚡ Auto-Run Mode</strong>
-      <p>Checks every pending question against the Catapult Papers standard.<br>PASS → approve. WARN → flag for manual review. FAIL → reject. 1 question every 5 seconds.</p>
+      <p>Checks every pending question against the Catapult Papers standard.<br>PASS → approve. WARN → flag for manual review. FAIL → reject. 1 question every 2 seconds.</p>
     </div>
     <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
       <div class="auto-progress" id="auto-progress"></div>
@@ -224,6 +224,7 @@ let queue = [];
 let currentIdx = 0;
 let autoRunning = false;
 let autoAbort = false;
+let feedbackExamplesBlock = undefined; // undefined = not yet fetched; '' = fetched but empty
 
 // ── Catapult Papers Reference Standard ────────────────────────────────────────
 const STANDARD = {
@@ -364,6 +365,7 @@ async function refreshStats() {
   const { count: approved } = await sb.from('questions').select('*', { count: 'exact', head: true }).eq('validated', true);
   const { count: rejected } = await sb.from('questions').select('*', { count: 'exact', head: true }).eq('source', 'rejected');
   const pending = total - approved - rejected;
+  console.log('Stats refresh:', { total, pending, approved, rejected });
   document.getElementById('stat-total').textContent    = total    ?? 0;
   document.getElementById('stat-pending').textContent  = pending  ?? 0;
   document.getElementById('stat-approved').textContent = approved ?? 0;
@@ -449,6 +451,31 @@ function renderCurrent() {
     </div>`;
 }
 
+// ── Feedback examples (fetched once per session) ───────────────────────────────
+async function loadFeedbackExamples() {
+  if (feedbackExamplesBlock !== undefined) return; // already fetched
+  if (!sb) { feedbackExamplesBlock = ''; return; }
+  try {
+    const { data } = await sb
+      .from('validator_feedback')
+      .select('original_result, original_flags, your_decision, reason')
+      .not('reason', 'is', null)
+      .order('created_at', { ascending: false })
+      .limit(20);
+    if (!data || data.length === 0) { feedbackExamplesBlock = ''; return; }
+    const lines = data.map(row => {
+      const flags = (row.original_flags || []).map(f => JSON.stringify(f)).join(', ');
+      const action = row.your_decision === row.original_result
+        ? `Reviewer kept ${row.your_decision}`
+        : `Reviewer decided ${row.your_decision}`;
+      return `- You said ${row.original_result} (flags: [${flags}]) → ${action}: "${row.reason}"`;
+    }).join('\n');
+    feedbackExamplesBlock = `You have previously validated questions for this exam and the human reviewer corrected or confirmed your decisions. Learn from these examples:\n\n${lines}\n`;
+  } catch (_) {
+    feedbackExamplesBlock = ''; // don't block validation if feedback fetch fails
+  }
+}
+
 // ── Build check prompt ─────────────────────────────────────────────────────────
 function buildCheckPrompt(q) {
   // Normalise topic key: comprehension_fr maps to comprehension_fr standard
@@ -487,7 +514,8 @@ If a geometry or statistics question CANNOT be answered from the text alone beca
 If the question IS self-contained in text (all values given, no visual needed), evaluate it normally.
 Only FAIL a geometry or statistics question if the correct answer is mathematically wrong.\n`;
 
-  return `You are a quality checker for a Northern Ireland SEAG Transfer Test preparation platform. You use British English (UK English) spelling, grammar and phonics conventions throughout. Northern Ireland follows the UK curriculum and UK English rules — never apply US English spelling, phonics or grammar rules.
+  const examplesPrefix = feedbackExamplesBlock ? feedbackExamplesBlock + '\n' : '';
+  return `${examplesPrefix}You are a quality checker for a Northern Ireland SEAG Transfer Test preparation platform. You use British English (UK English) spelling, grammar and phonics conventions throughout. Northern Ireland follows the UK curriculum and UK English rules — never apply US English spelling, phonics or grammar rules.
 
 Check this question against the REAL Catapult Papers standard:
 
@@ -519,6 +547,7 @@ Do all reasoning silently in your head. Output ONLY the JSON object below — no
 
 // ── Run check ──────────────────────────────────────────────────────────────────
 async function runCheck(q) {
+  await loadFeedbackExamples(); // no-op after first call
   const response = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'x-api-key': anthropicKey, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
@@ -584,11 +613,12 @@ async function startAutoRun() {
   log.innerHTML = '';
   progress.className = 'auto-progress active';
 
-  // Load ALL pending (up to 1000)
+  // Load ALL pending (up to 1000) — only questions not yet touched by the validator
+  // (.is('validator_verdict', null) prevents re-processing WARN questions and erasing them)
   const subject = document.getElementById('filter-subject').value;
   const year    = document.getElementById('filter-year').value;
   const topic   = document.getElementById('filter-topic').value;
-  let q = sb.from('questions').select('*').eq('validated', false).neq('source', 'rejected').order('created_at', { ascending: true }).limit(1000);
+  let q = sb.from('questions').select('*').eq('validated', false).neq('source', 'rejected').is('validator_verdict', null).order('created_at', { ascending: true }).limit(1000);
   if (subject) q = q.eq('subject', subject);
   if (year)    q = q.eq('year_group', year);
   if (topic)   q = q.eq('topic', topic);
@@ -622,12 +652,13 @@ async function startAutoRun() {
     } catch(err) {
       addLog(log, `⚠️ Error: ${err.message}`, 'warn');
     }
-    if (!autoAbort) await sleep(5000);
+    if (!autoAbort) await sleep(2000);
   }
 
   progress.textContent = `Complete — ✅ ${approved} approved  ❌ ${rejected} rejected  (${processed} processed)`;
   showToast(`Done: ${approved} approved, ${rejected} rejected`, 'success');
   stopAutoRun();
+  await refreshStats();
   await loadQueue();
 }
 
