@@ -302,10 +302,10 @@
 </div>
 
 <nav class="top-nav">
-  <div class="nav-logo">
+  <a id="logo-link" class="nav-logo" href="index.html" style="text-decoration:none;">
     <svg class="nav-logo-mark" width="36" height="36" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><circle cx="20" cy="20" r="19" fill="#0B1F3A" stroke="#C9A84C" stroke-width="1.5"/><circle cx="20" cy="20" r="15" fill="none" stroke="#C9A84C" stroke-width="0.7" stroke-opacity="0.45"/><circle cx="20" cy="20" r="10.5" fill="none" stroke="#C9A84C" stroke-width="0.7" stroke-opacity="0.28"/><polygon points="20,12 22.06,17.17 27.61,17.53 23.33,21.08 24.70,26.47 20,23.5 15.30,26.47 16.67,21.08 12.39,17.53 17.94,17.17" fill="#C9A84C"/></svg>
     <div class="nav-logo-wordmark"><span class="nav-logo-name">STAR</span><span class="nav-logo-sub">AI&nbsp;TUTOR</span></div>
-  </div>
+  </a>
   <a href="login.html" class="nav-login">Sign In</a>
 </nav>
 
@@ -416,6 +416,7 @@
   window.addEventListener('DOMContentLoaded', async () => {
     const { data } = await sb.auth.getSession();
     if (data?.session?.user) {
+      document.getElementById('logo-link').href = 'dashboard.html';
       const { data: profile } = await sb
         .from('profiles')
         .select('subscription_status')
