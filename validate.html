@@ -645,18 +645,18 @@ async function startAutoRun() {
       const result = await runCheck(question);
       console.log('Saving question id:', question.id, 'verdict:', result.verdict);
       if (result.verdict === 'FAIL') {
-        const saveResult = await sb.from('questions').update({ source: 'rejected', validator_verdict: 'fail', validator_reason: result.reason }).eq('id', question.id);
-        console.log('Save result (FAIL):', saveResult.error ? saveResult.error : 'OK');
+        const { error, count } = await sb.from('questions').update({ source: 'rejected', validator_verdict: 'fail', validator_reason: result.reason }, { count: 'exact' }).eq('id', question.id);
+        console.log('Save result (FAIL):', error ? error : `OK (${count} rows updated)`);
         rejected++;
         addLog(log, `❌ FAIL — ${question.year_group} ${question.subject} ${question.topic} — ${result.reason.substring(0,70)}`, 'fail');
       } else if (result.verdict === 'WARN') {
-        const saveResult = await sb.from('questions').update({ validator_verdict: 'warn', validator_reason: result.reason }).eq('id', question.id);
-        console.log('Save result (WARN):', saveResult.error ? saveResult.error : 'OK');
+        const { error, count } = await sb.from('questions').update({ validator_verdict: 'warn', validator_reason: result.reason }, { count: 'exact' }).eq('id', question.id);
+        console.log('Save result (WARN):', error ? error : `OK (${count} rows updated)`);
         approved++;
         addLog(log, `⚠️ WARN — ${question.year_group} ${question.subject} ${question.topic} — ${result.reason.substring(0,70)}`, 'warn');
       } else {
-        const saveResult = await sb.from('questions').update({ validated: true, validator_verdict: 'pass', validator_reason: result.reason }).eq('id', question.id);
-        console.log('Save result (PASS):', saveResult.error ? saveResult.error : 'OK');
+        const { error, count } = await sb.from('questions').update({ validated: true, validator_verdict: 'pass', validator_reason: result.reason }, { count: 'exact' }).eq('id', question.id);
+        console.log('Save result (PASS):', error ? error : `OK (${count} rows updated)`);
         approved++;
         addLog(log, `✅ PASS — ${question.year_group} ${question.subject} ${question.topic} — ${question.question_text.substring(0,55)}...`, 'pass');
       }
