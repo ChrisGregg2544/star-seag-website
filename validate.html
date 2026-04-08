@@ -365,13 +365,16 @@ async function refreshStats() {
   const { count: total }    = await sb.from('questions').select('*', { count: 'exact', head: true });
   const { count: approved } = await sb.from('questions').select('*', { count: 'exact', head: true }).eq('validated', true);
   const { count: rejected } = await sb.from('questions').select('*', { count: 'exact', head: true }).eq('source', 'rejected');
-  const pending = total - approved - rejected;
-  console.log('Stats refresh:', { total, pending, approved, rejected });
-  document.getElementById('stat-total').textContent    = total    ?? 0;
-  document.getElementById('stat-pending').textContent  = pending  ?? 0;
-  document.getElementById('stat-approved').textContent = approved ?? 0;
-  document.getElementById('stat-rejected').textContent = rejected ?? 0;
-  if (total > 0) document.getElementById('progress-fill').style.width = Math.round((approved / total) * 100) + '%';
+  const t = total    || 0;
+  const a = approved || 0;
+  const r = rejected || 0;
+  const pending = t - a - r;
+  console.log('Stats refresh:', { total: t, pending, approved: a, rejected: r });
+  document.getElementById('stat-total').textContent    = t;
+  document.getElementById('stat-pending').textContent  = pending;
+  document.getElementById('stat-approved').textContent = a;
+  document.getElementById('stat-rejected').textContent = r;
+  if (t > 0) document.getElementById('progress-fill').style.width = Math.round((a / t) * 100) + '%';
 }
 
 // ── Load queue ─────────────────────────────────────────────────────────────────
