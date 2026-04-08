@@ -362,9 +362,15 @@ async function connect() {
 
 // ── Stats ──────────────────────────────────────────────────────────────────────
 async function refreshStats() {
-  const { count: total }    = await sb.from('questions').select('*', { count: 'exact', head: true });
-  const { count: approved } = await sb.from('questions').select('*', { count: 'exact', head: true }).eq('validated', true);
-  const { count: rejected } = await sb.from('questions').select('*', { count: 'exact', head: true }).eq('source', 'rejected');
+  const totalResult    = await sb.from('questions').select('*', { count: 'exact', head: true });
+  const approvedResult = await sb.from('questions').select('*', { count: 'exact', head: true }).eq('validated', true);
+  const rejectedResult = await sb.from('questions').select('*', { count: 'exact', head: true }).eq('source', 'rejected');
+  console.log('total query:', totalResult);
+  console.log('approved query:', approvedResult);
+  console.log('rejected query:', rejectedResult);
+  const total    = totalResult.count;
+  const approved = approvedResult.count;
+  const rejected = rejectedResult.count;
   const t = total    || 0;
   const a = approved || 0;
   const r = rejected || 0;
