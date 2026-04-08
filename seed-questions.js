@@ -455,8 +455,38 @@ function attachDiagram(q) {
   if (/line graph/.test(text))
     return generateDiagram('line-graph', {});
 
-  if (/\bpictogram\b/.test(text))
-    return generateDiagram('pictogram', {});
+  if (/\bcoordinates?\b|\bplotted\b|\b(?:on a|using a|the)\s+grid\b/.test(text) && !/fraction.*grid|grid.*fraction|shaded/.test(text)) {
+    const ptPat = /\(\s*(\d+)\s*,\s*(\d+)\s*\)/g;
+    const pts = [];
+    let ptm;
+    while ((ptm = ptPat.exec(text)) !== null) {
+      const px = parseInt(ptm[1]), py = parseInt(ptm[2]);
+      if (px >= 0 && px <= 10 && py >= 0 && py <= 10) pts.push({ x: px, y: py });
+    }
+    return generateDiagram('coordinate-grid', { points: pts });
+  }
+
+  if (/\bpictogram\b/.test(text)) {
+    // Try to extract key value (e.g. "each symbol = 2", "key: ● = 4")
+    const keyMatch = text.match(/(?:key|symbol|each\s+(?:symbol|picture|icon|star|image))[^=:\d]*[=:]\s*(\d+)/i)
+                  || text.match(/represents?\s+(\d+)/i)
+                  || text.match(/worth\s+(\d+)/i);
+    const keyValue = keyMatch ? (parseInt(keyMatch[1]) || 1) : 1;
+
+    // Extract label: count pairs — try "Label: N" / "Label = N" patterns
+    const data = [];
+    const dpat = /([A-Z][a-zA-Z ]{1,20}?)\s*[:=]\s*(\d+)(?:\s*(?:symbol|book|pet|pupil|child|student|vote|point)s?)?/g;
+    let dm;
+    while ((dm = dpat.exec(text)) !== null) {
+      const label = dm[1].trim();
+      if (['key', 'answer', 'note'].includes(label.toLowerCase())) continue;
+      const count = parseInt(dm[2]);
+      if (count >= 0 && count <= 20 && data.length < 8) data.push({ label, count });
+    }
+
+    if (data.length >= 2) return generateDiagram('pictogram', { data, keyValue });
+    return null;  // can't extract reliably — show no diagram rather than wrong one
+  }
 
   if (/number line|missing number/.test(text))
     return generateDiagram('number-line', {});

@@ -475,6 +475,52 @@ ${scale}${arrowEl}`);
 ${marks}${arrowEl}`);
 }
 
+// ── coordinate-grid ───────────────────────────────────────────────────────────
+
+function coordinateGrid(opts = {}) {
+  const { points = [] } = opts;
+  const left = 30, right = 268, top = 10, bottom = 163;
+  const n = 10;
+  const dx = (right - left) / n;
+  const dy = (bottom - top) / n;
+
+  let content = '';
+
+  // Grid lines + axis labels
+  for (let i = 0; i <= n; i++) {
+    const gx = r2(left + i * dx);
+    const gy = r2(bottom - i * dy);
+    // Vertical grid line
+    content += `<line x1="${gx}" y1="${top}" x2="${gx}" y2="${bottom}" stroke="${i === 0 ? BLUE : '#e5e7eb'}" stroke-width="${i === 0 ? 1.5 : 0.7}"/>`;
+    // Horizontal grid line
+    content += `<line x1="${left}" y1="${gy}" x2="${right}" y2="${gy}" stroke="${i === 0 ? BLUE : '#e5e7eb'}" stroke-width="${i === 0 ? 1.5 : 0.7}"/>`;
+    if (i > 0) {
+      content += `<text x="${gx}" y="${bottom + 12}" text-anchor="middle" fill="${GREY}" font-size="9">${i}</text>`;
+      content += `<text x="${left - 4}" y="${r2(gy + 3)}" text-anchor="end" fill="${GREY}" font-size="9">${i}</text>`;
+    }
+  }
+  content += `<text x="${left - 4}" y="${bottom + 12}" text-anchor="end" fill="${GREY}" font-size="9">0</text>`;
+
+  // Axis labels
+  content += `<text x="${r2((left + right) / 2)}" y="${H - 2}" text-anchor="middle" fill="${GREY}" font-size="9">x</text>`;
+  content += `<text x="8" y="${r2((top + bottom) / 2)}" text-anchor="middle" fill="${GREY}" font-size="9" transform="rotate(-90,8,${r2((top + bottom) / 2)})">y</text>`;
+
+  // Axis arrows
+  content += `<polygon points="${right},${bottom} ${right - 7},${bottom - 4} ${right - 7},${bottom + 4}" fill="${BLUE}"/>`;
+  content += `<polygon points="${left},${top} ${left - 4},${top + 7} ${left + 4},${top + 7}" fill="${BLUE}"/>`;
+
+  // Plot points
+  for (const p of points) {
+    if (p.x < 0 || p.x > 10 || p.y < 0 || p.y > 10) continue;
+    const px = r2(left + p.x * dx);
+    const py = r2(bottom - p.y * dy);
+    content += `<circle cx="${px}" cy="${py}" r="5" fill="${BLUE}" opacity="0.9"/>`;
+    content += `<text x="${px + 7}" y="${py - 4}" fill="${PURPLE}" font-size="10" font-weight="bold">(${p.x},${p.y})</text>`;
+  }
+
+  return wrap(content);
+}
+
 // ── Main export ───────────────────────────────────────────────────────────────
 
 export function generateDiagram(type, options = {}) {
@@ -490,6 +536,7 @@ export function generateDiagram(type, options = {}) {
       case 'pictogram':         return pictogram(options);
       case 'number-line':       return numberLine(options);
       case 'measurement-scale': return measurementScale(options);
+      case 'coordinate-grid':   return coordinateGrid(options);
       default:                  return null;
     }
   } catch {
