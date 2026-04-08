@@ -635,6 +635,7 @@ async function startAutoRun() {
   if (topic)   q = q.eq('topic', topic);
   const { data } = await q;
   const allPending = data || [];
+  console.log('First question shape:', JSON.stringify(allPending[0]));
 
   let processed = 0, approved = 0, rejected = 0;
 
