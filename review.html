@@ -327,18 +327,30 @@ function showFeedbackForm(q, yourDecision) {
 async function saveFeedback() {
   if (!pendingFeedback) { next(); return; }
   const reason = document.getElementById('feedback-input').value.trim() || null;
-  // Best-effort — don't block on error
-  fetch('/api/save-feedback', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      questionId:     pendingFeedback.questionId,
-      originalResult: pendingFeedback.originalResult,
-      originalFlags:  pendingFeedback.originalFlags,
-      yourDecision:   pendingFeedback.yourDecision,
-      reason
-    })
-  }).catch(() => {});
+  console.log('Sending feedback:', JSON.stringify({
+    questionId:     pendingFeedback.questionId,
+    originalResult: pendingFeedback.originalResult,
+    originalFlags:  pendingFeedback.originalFlags,
+    yourDecision:   pendingFeedback.yourDecision,
+    reason
+  }));
+  try {
+    const res = await fetch('/api/save-feedback', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        questionId:     pendingFeedback.questionId,
+        originalResult: pendingFeedback.originalResult,
+        originalFlags:  pendingFeedback.originalFlags,
+        yourDecision:   pendingFeedback.yourDecision,
+        reason
+      })
+    });
+    const result = await res.json();
+    console.log('Feedback response:', result);
+  } catch (e) {
+    console.log('Feedback error:', e.message);
+  }
   hideFeedbackForm();
   next();
 }
