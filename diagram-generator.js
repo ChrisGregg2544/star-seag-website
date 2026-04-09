@@ -522,6 +522,117 @@ function coordinateGrid(opts = {}) {
   return wrap(content);
 }
 
+// ── cuboid ────────────────────────────────────────────────────────────────────
+
+function cuboid(opts = {}) {
+  const { width = '', height = '', depth = '' } = opts;
+  const PINK = '#DB2777';
+
+  // Front face anchor and dimensions
+  const fx = 60, fy = 40, fw = 120, fh = 90;
+  // Isometric offset for top/side faces (depth projection)
+  const ox = 50, oy = 25;
+
+  // Key points
+  // Front face: A(top-left), B(top-right), C(bottom-right), D(bottom-left)
+  const A = [fx,      fy];
+  const B = [fx + fw, fy];
+  const C = [fx + fw, fy + fh];
+  const D = [fx,      fy + fh];
+  // Back-top edge (offset by projection vector)
+  const E = [A[0] + ox, A[1] - oy];  // back-top-left
+  const F = [B[0] + ox, B[1] - oy];  // back-top-right
+  const G = [C[0] + ox, C[1] - oy];  // back-bottom-right
+
+  const pt = (p) => `${r2(p[0])},${r2(p[1])}`;
+
+  // Top face (parallelogram A-B-F-E)
+  const topFace = `<polygon points="${pt(A)} ${pt(B)} ${pt(F)} ${pt(E)}" fill="#D1FAE5" stroke="${BLUE}" stroke-width="2"/>`;
+  // Right face (parallelogram B-C-G-F)
+  const rightFace = `<polygon points="${pt(B)} ${pt(C)} ${pt(G)} ${pt(F)}" fill="#DBEAFE" stroke="${BLUE}" stroke-width="2"/>`;
+  // Front face
+  const frontFace = `<rect x="${fx}" y="${fy}" width="${fw}" height="${fh}" fill="${FILL}" stroke="${BLUE}" stroke-width="2.5"/>`;
+
+  // Hidden edges (dashed): back-left vertical, back-bottom-left horizontal, back-left-to-E
+  const hiddenEdges = [
+    // left vertical back edge: E down to D+offset
+    `<line x1="${pt(E).split(',')[0]}" y1="${pt(E).split(',')[1]}" x2="${r2(D[0]+ox)}" y2="${r2(D[1]-oy)}" stroke="${GREY}" stroke-width="1.2" stroke-dasharray="4,3"/>`,
+    // bottom back horizontal: D+offset to G
+    `<line x1="${r2(D[0]+ox)}" y1="${r2(D[1]-oy)}" x2="${pt(G).split(',')[0]}" y2="${pt(G).split(',')[1]}" stroke="${GREY}" stroke-width="1.2" stroke-dasharray="4,3"/>`,
+    // bottom back left to D
+    `<line x1="${r2(D[0]+ox)}" y1="${r2(D[1]-oy)}" x2="${pt(D).split(',')[0]}" y2="${pt(D).split(',')[1]}" stroke="${GREY}" stroke-width="1.2" stroke-dasharray="4,3"/>`,
+  ].join('');
+
+  // Dimension labels
+  let labels = '';
+  // width: below front face, centred
+  if (width) labels += `<text x="${r2(fx + fw/2)}" y="${r2(fy + fh + 16)}" text-anchor="middle" fill="${PINK}" font-size="12" font-weight="bold">${width}</text>`;
+  // height: left of front face, centred vertically
+  if (height) labels += `<text x="${r2(fx - 10)}" y="${r2(fy + fh/2 + 4)}" text-anchor="end" fill="${PINK}" font-size="12" font-weight="bold">${height}</text>`;
+  // depth: along top-right diagonal edge, above
+  if (depth) {
+    const mx = r2((B[0] + F[0]) / 2 + 4);
+    const my = r2((B[1] + F[1]) / 2 - 6);
+    labels += `<text x="${mx}" y="${my}" text-anchor="start" fill="${PINK}" font-size="12" font-weight="bold">${depth}</text>`;
+  }
+
+  return wrap(topFace + rightFace + frontFace + hiddenEdges + labels);
+}
+
+// ── pie-chart ─────────────────────────────────────────────────────────────────
+
+const PIE_COLORS = ['#2563EB', '#7C3AED', '#DB2777', '#059669', '#D97706'];
+
+function pieChart(opts = {}) {
+  const { data = [] } = opts;
+  if (!data.length) return null;
+
+  const cx = 118, cy = 82, radius = 65;
+  const legendLeft = 198, legendTop = 28, legendRowH = 22;
+
+  // Calculate proportions
+  const total = data.reduce((s, d) => s + (d.value || 0), 0);
+  if (total === 0) return null;
+
+  let slices = '';
+  let legend = '';
+  let startAngle = -Math.PI / 2;  // start at 12 o'clock
+
+  data.forEach((seg, i) => {
+    const color = seg.color || PIE_COLORS[i % PIE_COLORS.length];
+    const frac  = seg.value / total;
+    const sweep = frac * 2 * Math.PI;
+    const endAngle = startAngle + sweep;
+
+    const x1 = r2(cx + radius * Math.cos(startAngle));
+    const y1 = r2(cy + radius * Math.sin(startAngle));
+    const x2 = r2(cx + radius * Math.cos(endAngle));
+    const y2 = r2(cy + radius * Math.sin(endAngle));
+    const largeArc = sweep > Math.PI ? 1 : 0;
+
+    slices += `<path d="M${cx},${cy} L${x1},${y1} A${radius},${radius} 0 ${largeArc},1 ${x2},${y2} Z" fill="${color}" stroke="white" stroke-width="1.5"/>`;
+
+    // Percentage label inside slice (only if segment wide enough)
+    if (frac >= 0.08) {
+      const midAngle = startAngle + sweep / 2;
+      const lx = r2(cx + radius * 0.62 * Math.cos(midAngle));
+      const ly = r2(cy + radius * 0.62 * Math.sin(midAngle));
+      const pct = Math.round(frac * 100);
+      slices += `<text x="${lx}" y="${ly}" text-anchor="middle" dominant-baseline="middle" fill="white" font-size="11" font-weight="bold">${pct}%</text>`;
+    }
+
+    // Legend row
+    const ly2 = legendTop + i * legendRowH;
+    const label = (seg.label || '').slice(0, 10);
+    legend += `<rect x="${legendLeft}" y="${ly2}" width="12" height="12" fill="${color}" rx="2"/>`;
+    legend += `<text x="${legendLeft + 16}" y="${ly2 + 10}" fill="${GREY}" font-size="10">${label}</text>`;
+
+    startAngle = endAngle;
+  });
+
+  return wrap(slices + legend);
+}
+
 // ── Main export ───────────────────────────────────────────────────────────────
 
 export function generateDiagram(type, options = {}) {
@@ -538,6 +649,8 @@ export function generateDiagram(type, options = {}) {
       case 'number-line':       return numberLine(options);
       case 'measurement-scale': return measurementScale(options);
       case 'coordinate-grid':   return coordinateGrid(options);
+      case 'cuboid':            return cuboid(options);
+      case 'pie-chart':         return pieChart(options);
       default:                  return null;
     }
   } catch {

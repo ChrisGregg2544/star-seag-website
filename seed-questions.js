@@ -546,6 +546,45 @@ function attachDiagram(q) {
   if (/\bruler\b|\bthermometer\b|\bweighs?\b|\bweighing\b/.test(text))
     return generateDiagram('measurement-scale', { type: /therm/.test(text) ? 'thermometer' : /weigh/.test(text) ? 'weighing-dial' : 'ruler' });
 
+  // cuboid: must come before generic 3D shape checks
+  if (/\bcuboid\b|\brectangular prism\b/.test(text)) {
+    const [width, height, depth] = extractMeasurements(text, 3);
+    return generateDiagram('cuboid', { width, height, depth });
+  }
+
+  // pie chart: try to extract up to 5 label/value pairs
+  if (/pie chart|pie graph/.test(text)) {
+    const data = [];
+    // Match "Label: N%" or "Label N%" or "Label: N" patterns
+    const pctPat = /([A-Za-z][a-zA-Z ]{1,20}?)\s*[:=]?\s*(\d+(?:\.\d+)?)\s*%/g;
+    let pm;
+    while ((pm = pctPat.exec(text)) !== null && data.length < 5) {
+      const label = pm[1].trim();
+      if (['key', 'answer', 'note', 'total'].includes(label.toLowerCase())) continue;
+      data.push({ label, value: parseFloat(pm[2]) });
+    }
+    // Fall back to plain "Label: N" pairs if no percentages found
+    if (data.length < 2) {
+      const valPat = /([A-Z][a-zA-Z ]{1,20}?)\s*[:=]\s*(\d+)/g;
+      let vm;
+      while ((vm = valPat.exec(text)) !== null && data.length < 5) {
+        const label = vm[1].trim();
+        if (['key', 'answer', 'note', 'total'].includes(label.toLowerCase())) continue;
+        data.push({ label, value: parseInt(vm[2]) });
+      }
+    }
+    if (data.length >= 2) return generateDiagram('pie-chart', { data });
+    // No data extracted — render a generic 4-segment placeholder
+    return generateDiagram('pie-chart', {
+      data: [
+        { label: 'A', value: 35 },
+        { label: 'B', value: 25 },
+        { label: 'C', value: 22 },
+        { label: 'D', value: 18 },
+      ],
+    });
+  }
+
   return null;
 }
 
