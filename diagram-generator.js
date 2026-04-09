@@ -569,11 +569,9 @@ function cuboid(opts = {}) {
   if (width) labels += `<text x="${r2(fx + fw/2)}" y="${r2(fy + fh + 16)}" text-anchor="middle" fill="${PINK}" font-size="12" font-weight="bold">${width}</text>`;
   // height: left of front face, centred vertically
   if (height) labels += `<text x="${r2(fx - 10)}" y="${r2(fy + fh/2 + 4)}" text-anchor="end" fill="${PINK}" font-size="12" font-weight="bold">${height}</text>`;
-  // depth: along top-right diagonal edge, above
+  // depth: above and to the right of the top face's far-right corner (point F)
   if (depth) {
-    const mx = r2((B[0] + F[0]) / 2 + 4);
-    const my = r2((B[1] + F[1]) / 2 - 6);
-    labels += `<text x="${mx}" y="${my}" text-anchor="start" fill="${PINK}" font-size="12" font-weight="bold">${depth}</text>`;
+    labels += `<text x="${r2(F[0] + 8)}" y="${r2(F[1] - 8)}" text-anchor="start" fill="${PINK}" font-size="12" font-weight="bold">${depth}</text>`;
   }
 
   return wrap(topFace + rightFace + frontFace + hiddenEdges + labels);
