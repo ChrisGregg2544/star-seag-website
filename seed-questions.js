@@ -411,34 +411,86 @@ Generate ${count} questions for: ${subject} / ${topic} / ${yearGroup} / difficul
 }
 
 // ── Diagram attachment ────────────────────────────────────────────────────────
+
+// Extract all measurements (e.g. "8 cm", "3.5 m", "12mm") from text in order.
+// Returns array of formatted strings like "8 cm", or empty string for missing slots.
+function extractMeasurements(text, count) {
+  const pat = /(\d+(?:\.\d+)?)\s*(cm|m|mm|km)/g;
+  const found = [];
+  let m;
+  while ((m = pat.exec(text)) !== null && found.length < count) {
+    found.push(`${m[1]} ${m[2]}`);
+  }
+  // Pad to requested count with empty strings
+  while (found.length < count) found.push('');
+  return found;
+}
+
+// Extract degree values (e.g. "70°", "60 degrees") from text in order.
+// Returns array of formatted strings like "70°", or empty string for missing slots.
+function extractAngles(text, count) {
+  const pat = /(\d+(?:\.\d+)?)\s*(?:°|degrees?)/g;
+  const found = [];
+  let m;
+  while ((m = pat.exec(text)) !== null && found.length < count) {
+    found.push(`${m[1]}°`);
+  }
+  while (found.length < count) found.push('');
+  return found;
+}
+
 function attachDiagram(q) {
   const text = ((q.question_text || '') + ' ' + (q.topic || '')).toLowerCase();
 
-  if (/right[- ]angled/.test(text) && /triangle/.test(text))
-    return generateDiagram('triangle', { subtype: 'right-angled', unknownAngle: /\ba°|unknown/.test(text) });
-  if (/equilateral/.test(text) && /triangle/.test(text))
-    return generateDiagram('triangle', { subtype: 'equilateral' });
-  if (/isosceles/.test(text) && /triangle/.test(text))
-    return generateDiagram('triangle', { subtype: 'isosceles' });
-  if (/\btriangle\b/.test(text))
-    return generateDiagram('triangle', { subtype: 'scalene', unknownAngle: /\ba°|unknown/.test(text) });
+  if (/right[- ]angled/.test(text) && /triangle/.test(text)) {
+    const [sideA, sideB, sideC] = extractMeasurements(text, 3);
+    const [, angleB, angleC] = extractAngles(text, 3); // skip [0]: right angle vertex
+    return generateDiagram('triangle', { subtype: 'right-angled', sideA, sideB, sideC, angleB, angleC, unknownAngle: /\ba°|unknown/.test(text) });
+  }
+  if (/equilateral/.test(text) && /triangle/.test(text)) {
+    const [sideA] = extractMeasurements(text, 1);
+    return generateDiagram('triangle', { subtype: 'equilateral', sideA, sideB: sideA, sideC: sideA });
+  }
+  if (/isosceles/.test(text) && /triangle/.test(text)) {
+    const [sideA, sideB] = extractMeasurements(text, 2);
+    const [angleA, angleB, angleC] = extractAngles(text, 3);
+    return generateDiagram('triangle', { subtype: 'isosceles', sideA, sideB, sideC: sideB, angleA, angleB, angleC });
+  }
+  if (/\btriangle\b/.test(text)) {
+    const [sideA, sideB, sideC] = extractMeasurements(text, 3);
+    const [angleA, angleB, angleC] = extractAngles(text, 3);
+    return generateDiagram('triangle', { subtype: 'scalene', sideA, sideB, sideC, angleA, angleB, angleC, unknownAngle: /\ba°|unknown/.test(text) });
+  }
 
-  if (/\bsquare\b/.test(text) && !/square number/.test(text))
-    return generateDiagram('shape', { subtype: 'square' });
-  if (/\brectangle\b/.test(text))
-    return generateDiagram('shape', { subtype: 'rectangle' });
-  if (/\bhexagon\b/.test(text))
+  if (/\bsquare\b/.test(text) && !/square number/.test(text)) {
+    const [width] = extractMeasurements(text, 1);
+    return generateDiagram('shape', { subtype: 'square', width });
+  }
+  if (/\brectangle\b/.test(text)) {
+    const [width, height] = extractMeasurements(text, 2);
+    return generateDiagram('shape', { subtype: 'rectangle', width, height });
+  }
+  if (/\bhexagon\b/.test(text)) {
     return generateDiagram('shape', { subtype: 'hexagon' });
-  if (/\bpentagon\b/.test(text))
+  }
+  if (/\bpentagon\b/.test(text)) {
     return generateDiagram('shape', { subtype: 'pentagon' });
-  if (/\boctagon\b/.test(text))
+  }
+  if (/\boctagon\b/.test(text)) {
     return generateDiagram('shape', { subtype: 'octagon' });
-  if (/\bparallelogram\b/.test(text))
-    return generateDiagram('shape', { subtype: 'parallelogram' });
-  if (/\brhombus\b/.test(text))
+  }
+  if (/\bparallelogram\b/.test(text)) {
+    const [width, height] = extractMeasurements(text, 2);
+    return generateDiagram('shape', { subtype: 'parallelogram', width, height });
+  }
+  if (/\brhombus\b/.test(text)) {
     return generateDiagram('shape', { subtype: 'rhombus' });
-  if (/\btrapezium\b/.test(text))
-    return generateDiagram('shape', { subtype: 'trapezium' });
+  }
+  if (/\btrapezium\b/.test(text)) {
+    // diagram-generator only labels the top edge (width) for trapezium
+    const [width] = extractMeasurements(text, 1);
+    return generateDiagram('shape', { subtype: 'trapezium', width });
+  }
 
   if (/\bangle\b|\bdegrees?\b|\bprotractor\b/.test(text))
     return generateDiagram('angle', { unknown: /unknown|a°|find/.test(text) });

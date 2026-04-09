@@ -89,7 +89,7 @@ function triangle(opts = {}) {
 // ── shape ─────────────────────────────────────────────────────────────────────
 
 function shape(opts = {}) {
-  const { subtype = 'rectangle', width = '', height = '' } = opts;
+  const { subtype = 'rectangle', width = '', height = '', sideLabel = '' } = opts;
   const cx = W / 2, cy = H / 2;
   let content = '';
 
@@ -111,7 +111,8 @@ function shape(opts = {}) {
       const pw = 160, ph = 70, sl = 28;
       const pts = `${cx-pw/2+sl},${cy-ph/2} ${cx+pw/2+sl},${cy-ph/2} ${cx+pw/2-sl},${cy+ph/2} ${cx-pw/2-sl},${cy+ph/2}`;
       content = `<polygon points="${pts}" fill="${FILL}" stroke="${BLUE}" stroke-width="2.5"/>`;
-      if (width) content += `<text x="${cx}" y="${cy-ph/2-8}" text-anchor="middle" fill="${PURPLE}" font-size="12">${width}</text>`;
+      if (width)  content += `<text x="${cx}" y="${cy-ph/2-8}" text-anchor="middle" fill="${PURPLE}" font-size="12">${width}</text>`;
+      if (height) content += `<text x="${cx+pw/2+sl+14}" y="${cy+5}" text-anchor="start" fill="${PURPLE}" font-size="12">${height}</text>`;
       break;
     }
     case 'rhombus': {
