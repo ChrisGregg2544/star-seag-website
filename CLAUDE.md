@@ -254,6 +254,28 @@ fractions_decimals, measurement, statistics, algebra_sequences
 
 ---
 
+## COMPLETED THIS SESSION (April 2026)
+
+- ✅ Diagram measurements not showing — FIXED (extractMeasurements/extractAngles added to seed-questions.js, reseed-diagrams.js run against all 32 validated questions with diagrams)
+- ✅ Cuboid diagram type — DONE (diagram-generator.js, isometric projection with dashed hidden edges, pink labels)
+- ✅ Pie-chart diagram type — DONE (diagram-generator.js, proportional segments, % labels, legend)
+- ✅ Validator auto-run — DONE (938 approved, 85 rejected, 0 pending)
+- ✅ Manual WARN/FAIL review — DONE (all 131 FAILs processed: bulk_reject.sql, fix_needed.sql, manual_review_fixes.sql applied)
+- ✅ Validator feedback system — DONE (see section below)
+
+---
+
+## VALIDATOR FEEDBACK SYSTEM (built April 2026)
+
+- validator_feedback table created in Supabase (migration: 20260408000000_add_validator_feedback.sql)
+- api/save-feedback.js — routes validator_feedback INSERT server-side (bypasses RLS)
+- api/update-verdict.js — routes questions UPDATE server-side (bypasses RLS)
+- review.html approve/reject now calls api/update-verdict (not direct Supabase)
+- validate.html fetches last 20 labelled feedback rows and injects into Claude prompt as few-shot examples
+- manual_review_feedback.sql inserted 57 human-reviewed decisions as training data
+
+---
+
 ## OUTSTANDING ITEMS (priority order)
 
 ### 1. Personalised study recommendations ← NEXT
