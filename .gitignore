@@ -2,3 +2,12 @@ node_modules/
 .env
 .env.*
 *.env
+
+# analysis/working files
+bulk_reject.sql
+fix_needed.sql
+manual_review_fixes.sql
+manual_review_feedback.sql
+flagged_questions.json
+flagged_review.json
+diagrams_sample.json

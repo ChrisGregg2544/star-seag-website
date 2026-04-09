@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Diagram Generator — Test</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f8fafc;
+      margin: 0;
+      padding: 32px;
+    }
+    h1 { color: #1e293b; margin-bottom: 32px; }
+    .grid {
+      display: flex;
+      gap: 40px;
+      flex-wrap: wrap;
+    }
+    .card {
+      background: white;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 24px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+    .card h2 {
+      margin: 0 0 8px 0;
+      font-size: 14px;
+      font-weight: 600;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .card .props {
+      font-size: 12px;
+      color: #94a3b8;
+      margin-bottom: 16px;
+      font-family: monospace;
+    }
+    .diagram { display: block; }
+  </style>
+</head>
+<body>
+  <h1>Diagram Generator — Visual Test</h1>
+  <div class="grid">
+    <div class="card">
+      <h2>Cuboid</h2>
+      <div class="props">width="8 cm" · height="5 cm" · depth="3 cm"</div>
+      <div class="diagram" id="cuboid"></div>
+    </div>
+    <div class="card">
+      <h2>Pie Chart</h2>
+      <div class="props">Football 40% · Swimming 25% · Tennis 20% · Other 15%</div>
+      <div class="diagram" id="pie"></div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { generateDiagram } from './diagram-generator.js';
+
+    document.getElementById('cuboid').innerHTML = generateDiagram('cuboid', {
+      width:  '8 cm',
+      height: '5 cm',
+      depth:  '3 cm',
+    });
+
+    document.getElementById('pie').innerHTML = generateDiagram('pie-chart', {
+      data: [
+        { label: 'Football', value: 40 },
+        { label: 'Swimming', value: 25 },
+        { label: 'Tennis',   value: 20 },
+        { label: 'Other',    value: 15 },
+      ],
+    });
+  </script>
+</body>
+</html>
