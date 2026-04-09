@@ -327,14 +327,18 @@ function showFeedbackForm(q, yourDecision) {
 async function saveFeedback() {
   if (!pendingFeedback) { next(); return; }
   const reason = document.getElementById('feedback-input').value.trim() || null;
-  await sb.from('validator_feedback').insert({
-    question_id: pendingFeedback.questionId,
-    original_result: pendingFeedback.originalResult,
-    original_flags: pendingFeedback.originalFlags,
-    your_decision: pendingFeedback.yourDecision,
-    reason
-  });
-  // Feedback save is best-effort — don't block on error
+  // Best-effort — don't block on error
+  fetch('/api/save-feedback', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      questionId:     pendingFeedback.questionId,
+      originalResult: pendingFeedback.originalResult,
+      originalFlags:  pendingFeedback.originalFlags,
+      yourDecision:   pendingFeedback.yourDecision,
+      reason
+    })
+  }).catch(() => {});
   hideFeedbackForm();
   next();
 }
