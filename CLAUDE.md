@@ -276,37 +276,53 @@ fractions_decimals, measurement, statistics, algebra_sequences
 
 ---
 
-## OUTSTANDING ITEMS (priority order)
+## LAUNCH PLAN (all items required before go-live)
 
-### 1. Personalised study recommendations ← NEXT
-dashboard.html "Today's Recommended Session" card is currently generic.
-Should analyse student's mock/study history → surface weakest topics.
-Requires: student_question_history or question_results to be populated
-when students answer, then query for lowest-scoring topics per student.
+### Phase 1 — Data Foundation
+- [ ] 1. Top up thin P7/P6 topics via seed run (see thin topics below)
+- [ ] 2. Remove Catapult questions (DELETE WHERE source='catapult_test')
+- [ ] 3. Save study/mock results to Supabase (question_results + progress_summary)
+- [ ] 4. Stripe end-to-end test — confirm profiles table updates on payment
 
-### 2. Wire study mode results back to Supabase
-study.html saves results to localStorage but not consistently to Supabase.
-Needs: insert to question_results and update progress_summary after each session.
+### Phase 2 — Student Experience  
+- [ ] 5. Personalised recommendations on dashboard (weak topics from history)
+- [ ] 6. Remove Anthropic/Claude branding from all pages
+- [ ] 7. Parent section (child progress, weak topics, recent sessions)
+- [ ] 8. Google OAuth — publish app in Google Cloud Console
+- [ ] 9. Results history page
+- [ ] 10. Function machine question type + box/arrow SVG diagram
 
-### 3. Remove Anthropic/Claude branding
-"co-authored by Anthropic AI" or similar visible to students — remove from all pages.
+### Phase 3 — Pre-Launch
+- [ ] 11. Real Life Test (printable 56-question paper)
+- [ ] 12. Full end-to-end user journey test (signup → onboarding → mock → study → payment)
+- [ ] 13. Mobile testing on real devices
+- [ ] 14. Stripe switch to live keys
+- [ ] 15. CLAUDE.md final update
 
-### 4. Stripe verification
-Confirm these Vercel env vars are set: STRIPE_SECRET_KEY, STRIPE_PRICE_ID, 
-STRIPE_WEBHOOK_SECRET, SUPABASE_SERVICE_ROLE_KEY.
-Confirm webhook URL in Stripe dashboard: https://star-seag-website.vercel.app/api/stripe-webhook
+### Post Launch
+- [ ] STAR Chat (full coached AI tutor)
+- [ ] GCSE expansion (2027)
 
-### 5. Google OAuth — publish app
-Still in Testing mode in Google Cloud Console. Must click "Publish App" before public launch.
+---
 
-### 6. Function machine questions
-Appear in real Catapult papers. Not in seed targets. Consider adding with box/arrow SVG diagram.
+## THIN TOPICS — need top-up before removing Catapult
 
-### 7. Reseed deleted/rejected questions
-~95 questions rejected during validation. Need replacement seeds for depleted topics.
+### P7 (priority — thinner than P6)
+| Topic | Current | Target | Need |
+|-------|---------|--------|------|
+| arithmetic | 25 | 40 | +15 |
+| fractions_decimals | 23 | 40 | +17 |
+| geometry | 22 | 40 | +18 |
+| grammar | 23 | 40 | +17 |
+| spelling | 23 | 40 | +17 |
 
-### 8. Parent section
-parent.html exists but is incomplete. Should show child's progress, recent sessions, weak topics.
+### P6 (borderline)
+| Topic | Current | Target | Need |
+|-------|---------|--------|------|
+| grammar | 25 | 40 | +15 |
+| punctuation | 25 | 40 | +15 |
+| spelling | 24 | 40 | +16 |
+| vocabulary | 21 | 40 | +19 |
 
 ---
 
