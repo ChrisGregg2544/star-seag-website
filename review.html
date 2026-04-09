@@ -289,8 +289,12 @@ function renderCurrent() {
 async function approve(id) {
   const q = queue[currentIdx];
   if (!q || q.id !== id) return;
-  const { error } = await sb.from('questions').update({ validated: true }).eq('id', id);
-  if (error) { showToast('Error approving', 'error'); return; }
+  const res = await fetch('/api/update-verdict', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ questionId: q.id, verdict: 'PASS', reason: 'Manual review approved' })
+  });
+  if (!res.ok) { showToast('Error approving', 'error'); return; }
   reviewed++;
   showToast('Approved ✅', 'success');
   showFeedbackForm(q, 'PASS');
@@ -299,8 +303,12 @@ async function approve(id) {
 async function reject(id) {
   const q = queue[currentIdx];
   if (!q || q.id !== id) return;
-  const { error } = await sb.from('questions').update({ source: 'rejected' }).eq('id', id);
-  if (error) { showToast('Error rejecting', 'error'); return; }
+  const res = await fetch('/api/update-verdict', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ questionId: q.id, verdict: 'FAIL', reason: 'Manual review rejected' })
+  });
+  if (!res.ok) { showToast('Error rejecting', 'error'); return; }
   reviewed++;
   showToast('Rejected ❌', 'error');
   showFeedbackForm(q, 'FAIL');
