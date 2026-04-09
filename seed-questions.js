@@ -64,6 +64,22 @@ const TARGETS = [
   ['maths', 'statistics',              'P7', 3, 10],
   ['maths', 'algebra_sequences',       'P7', 3, 10],
   ['maths', 'measurement',             'P7', 3, 10],
+
+  // ── Top-up targets (April 2026) ── fill thin topics to ~40 per topic ──────────
+  // P7 maths top-ups (diff:5 — new level, starts at 0 existing)
+  ['maths', 'arithmetic',              'P7', 5, 15],
+  ['maths', 'fractions_decimals',      'P7', 5, 17],
+  ['maths', 'geometry',                'P7', 5, 18],
+  // P7 english top-ups (diff:5 — new level)
+  ['english', 'grammar',               'P7', 5, 17],
+  ['english', 'spelling',              'P7', 5, 17],
+  // P6 english top-ups (diff:4 — new level)
+  ['english', 'grammar',               'P6', 4, 15],
+  ['english', 'punctuation',           'P6', 4, 15],
+  ['english', 'spelling',              'P6', 4, 16],
+  // P6 vocabulary needs largest top-up — split across diff:3 and diff:4
+  ['english', 'vocabulary',            'P6', 3, 10],
+  ['english', 'vocabulary',            'P6', 4, 10],
 ];
 
 // ── Topic guidance ─────────────────────────────────────────────────────────────
