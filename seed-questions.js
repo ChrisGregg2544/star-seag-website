@@ -75,14 +75,14 @@ const TARGETS = [
   ['english', 'spelling',              'P7', 5, 17],
   // P6 english top-ups (diff:4 — new level)
   ['english', 'grammar',               'P6', 4, 15],
-  ['english', 'punctuation',           'P6', 4, 15],
+  ['english', 'punctuation',           'P6', 4, 10],
   ['english', 'spelling',              'P6', 4, 16],
   // P6 vocabulary needs largest top-up — split across diff:3 and diff:4
   ['english', 'vocabulary',            'P6', 3, 10],
   ['english', 'vocabulary',            'P6', 4, 10],
 
   // ── Round 2 top-up (April 2026) — fill to 40 per topic after dedup cleanup ─
-  ['english', 'punctuation',           'P6', 5, 25],  // 15→40
+  ['english', 'punctuation',           'P6', 5,  5],  // top up to 40 total (diff:2→15, diff:3→10, diff:4→10, diff:5→5)
   ['english', 'grammar',               'P6', 5,  3],  // 39→40+ (small buffer)
   ['english', 'spelling',              'P6', 5,  3],  // 39→40+
   ['english', 'vocabulary',            'P6', 5,  5],  // 38→40+
@@ -208,7 +208,7 @@ MEASUREMENT FORMAT:
 };
 
 // ── Prompt builder ────────────────────────────────────────────────────────────
-function buildPrompt(subject, topic, yearGroup, difficulty, count) {
+function buildPrompt(subject, topic, yearGroup, difficulty, count, usedPassages = []) {
   const diffLabel = { 1:'very easy', 2:'easy', 3:'moderate', 4:'challenging', 5:'very hard' }[difficulty];
   const level = yearGroup === 'P6'
     ? 'P6 Warm-Up level — slightly easier SEAG prep for 10-year-olds'
@@ -420,6 +420,10 @@ function buildPrompt(subject, topic, yearGroup, difficulty, count) {
     ? `\nCRITICAL: Every question MUST use a completely different, original sentence. Never reuse any sentence, name, or scenario from another question in this batch or any previous batch. Each sentence must feature different characters, places and situations.\n`
     : '';
 
+  const usedSentencesBlock = (topic === 'punctuation' && usedPassages.length > 0)
+    ? `\nALREADY USED SENTENCES (never reuse these or anything similar):\n${usedPassages.map(p => `- ${p}`).join('\n')}\n`
+    : '';
+
   return `You are generating ${count} original SEAG Transfer Test questions for STAR AI Tutor (Northern Ireland, P6/P7 pupils aged 10-11).
 
 YEAR GROUP: ${level}
@@ -439,7 +443,7 @@ CRITICAL RULES:
 6. Comprehension questions MUST put the passage in the "passage" field, NOT in question_text
 7. Maths questions MUST have 5 options (A,B,C,D,E) with verified correct arithmetic
 8. Punctuation/spelling questions use options A,B,C,D,N
-${topicExtra}
+${topicExtra}${usedSentencesBlock}
 Before responding, check that all your questions are completely distinct from each other — different sentences, different scenarios, different vocabulary. Remove any that are too similar and replace with unique alternatives.
 
 Here is an example of the EXACT JSON format required:
@@ -989,8 +993,8 @@ async function topUpPassages() {
 }
 
 // ── Generate batch ─────────────────────────────────────────────────────────────
-async function generateBatch(subject, topic, yearGroup, difficulty, count) {
-  const prompt = buildPrompt(subject, topic, yearGroup, difficulty, count);
+async function generateBatch(subject, topic, yearGroup, difficulty, count, usedPassages = []) {
+  const prompt = buildPrompt(subject, topic, yearGroup, difficulty, count, usedPassages);
 
   const response = await anthropic.messages.create({
     model: 'claude-sonnet-4-6',
@@ -1029,6 +1033,31 @@ async function countExisting(subject, topic, yearGroup, difficulty) {
   return count || 0;
 }
 
+// ── Fetch used punctuation passages (to inject as exclusion list) ─────────────
+async function fetchUsedPassages(yearGroup) {
+  const { data, error } = await supabase
+    .from('questions')
+    .select('passage')
+    .eq('subject', 'english')
+    .eq('topic', 'punctuation')
+    .eq('year_group', yearGroup)
+    .not('passage', 'is', null)
+    .order('created_at', { ascending: false })
+    .limit(30);
+  if (error) return [];
+  // Dedupe and strip slash separators for readable display
+  const seen = new Set();
+  const result = [];
+  for (const r of (data || [])) {
+    const clean = (r.passage || '').replace(/\s*\/\s*/g, ' ').replace(/\s+/g, ' ').trim();
+    if (clean && !seen.has(clean)) {
+      seen.add(clean);
+      result.push(clean);
+    }
+  }
+  return result;
+}
+
 // ── Main ───────────────────────────────────────────────────────────────────────
 async function main() {
   console.log('🚀 STAR AI Tutor — Question Bank Generator v3');
@@ -1052,6 +1081,14 @@ async function main() {
       continue;
     }
 
+    // For punctuation: fetch existing passages to inject as exclusion list
+    let usedPassages = [];
+    if (topic === 'punctuation') {
+      usedPassages = await fetchUsedPassages(yearGroup);
+      if (usedPassages.length > 0)
+        console.log(`   (${usedPassages.length} existing sentences loaded for exclusion)`);
+    }
+
     const batches = Math.ceil(needed / BATCH_SIZE);
     console.log(`\n📝 ${yearGroup} ${subject}/${topic} diff:${difficulty} — need ${needed} more (have ${existing}/${target}) — ${batches} batch${batches>1?'es':''}`);
 
@@ -1063,7 +1100,7 @@ async function main() {
       process.stdout.write(`   Batch ${b+1}/${batches} (${batchCount})... `);
 
       try {
-        const questions = await generateBatch(subject, topic, yearGroup, difficulty, batchCount);
+        const questions = await generateBatch(subject, topic, yearGroup, difficulty, batchCount, usedPassages);
         const n = await insertQuestions(questions, subject, topic, yearGroup, difficulty);
         inserted  += n;
         remaining -= batchCount;
