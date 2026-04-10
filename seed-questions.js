@@ -80,6 +80,14 @@ const TARGETS = [
   // P6 vocabulary needs largest top-up — split across diff:3 and diff:4
   ['english', 'vocabulary',            'P6', 3, 10],
   ['english', 'vocabulary',            'P6', 4, 10],
+
+  // ── Round 2 top-up (April 2026) — fill to 40 per topic after dedup cleanup ─
+  ['english', 'punctuation',           'P6', 5, 25],  // 15→40
+  ['english', 'grammar',               'P6', 5,  3],  // 39→40+ (small buffer)
+  ['english', 'spelling',              'P6', 5,  3],  // 39→40+
+  ['english', 'vocabulary',            'P6', 5,  5],  // 38→40+
+  ['english', 'vocabulary',            'P7', 5, 12],  // 29→40+
+  ['english', 'spelling',              'P7', 3, 15],  // refill diff:3 (12 exist → +3)
 ];
 
 // ── Topic guidance ─────────────────────────────────────────────────────────────
@@ -398,6 +406,10 @@ function buildPrompt(subject, topic, yearGroup, difficulty, count) {
     ? 'Written answer: options is null, correct_answer is the exact expected answer string'
     : 'Multiple choice: options A, B, C, D, E';
 
+  const topicExtra = isPunctSpell
+    ? `\nCRITICAL: Every question MUST use a completely different, original sentence. Never reuse any sentence, name, or scenario from another question in this batch or any previous batch. Each sentence must feature different characters, places and situations.\n`
+    : '';
+
   return `You are generating ${count} original SEAG Transfer Test questions for STAR AI Tutor (Northern Ireland, P6/P7 pupils aged 10-11).
 
 YEAR GROUP: ${level}
@@ -417,6 +429,8 @@ CRITICAL RULES:
 6. Comprehension questions MUST put the passage in the "passage" field, NOT in question_text
 7. Maths questions MUST have 5 options (A,B,C,D,E) with verified correct arithmetic
 8. Punctuation/spelling questions use options A,B,C,D,N
+${topicExtra}
+Before responding, check that all your questions are completely distinct from each other — different sentences, different scenarios, different vocabulary. Remove any that are too similar and replace with unique alternatives.
 
 Here is an example of the EXACT JSON format required:
 ${exampleJson}
@@ -667,6 +681,10 @@ RULES:
 3. Explanations: 2 lines MAX, parent-friendly
 4. The correct_answer for the written question must appear verbatim in the passage content
 
+CRITICAL: Every question must reference specific content from THIS passage only — specific names, places, events, or direct quotes from the text. Never generate generic questions like 'What is the main purpose of this passage?' or 'Copy a simile from the passage' that could apply to any passage.
+
+Before responding, check that all your questions are completely distinct from each other — different sentences, different scenarios, different vocabulary. Remove any that are too similar and replace with unique alternatives.
+
 Respond with ONLY this JSON object (no markdown fences, no backticks):
 {
   "title": "Short 3-5 word title",
@@ -851,6 +869,10 @@ Rules:
 - correct_answer: one of A/B/C/D/E
 - explanation: 2 lines MAX, UK English spelling
 
+CRITICAL: Every question must reference specific content from THIS passage only — specific names, places, events, or direct quotes from the text. Never generate generic questions like 'What is the main purpose of this passage?' that could apply to any passage.
+
+Before responding, check that all your questions are completely distinct from each other — different aspects of the passage, different vocabulary. Remove any that are too similar and replace with unique alternatives.
+
 Respond with ONLY a valid JSON array of ${count} objects — no markdown, no backticks:
 [{"question_text":"...","question_type":"mc","options":{"A":"...","B":"...","C":"...","D":"...","E":"..."},"correct_answer":"B","explanation":"..."}]`;
   }
@@ -873,6 +895,10 @@ Rules:
 - options: null
 - correct_answer: the EXACT word or phrase — it must appear verbatim in the passage text above
 - explanation: 2 lines MAX, UK English spelling
+
+CRITICAL: Every question must reference specific content from THIS passage only — specific words, quotes, or details from the text. Never generate generic questions like 'Copy a simile from the passage' or 'Find a compound word in the passage' that could apply to any passage without referencing this one specifically.
+
+Before responding, check that all your questions are completely distinct from each other — different aspects of the passage, different vocabulary. Remove any that are too similar and replace with unique alternatives.
 
 Respond with ONLY a valid JSON array of ${count} objects — no markdown, no backticks:
 [{"question_text":"...","question_type":"written","options":null,"correct_answer":"exact phrase","explanation":"..."}]`;
