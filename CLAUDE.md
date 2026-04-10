@@ -156,6 +156,7 @@ weeks_to_exam, created_at, updated_at
 |------|---------|
 | seed-questions.js | Batch generate + insert questions to Supabase |
 | reseed-diagrams.js | Regenerate SVG diagrams for existing questions |
+| find-duplicates.js | Detects and removes duplicate questions from the validated bank. Run after every seed run. Use --delete flag to remove duplicates automatically. Compares: passage field for punctuation/spelling, question_text+passage_id for comprehension, first 80 chars of question_text for all other topics. |
 | insert-catapult-test.mjs | Insert real Catapult Papers questions (validator training) |
 | test-mock-assembly.mjs | Test full paper assembly without inserting |
 
