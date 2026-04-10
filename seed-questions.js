@@ -88,20 +88,31 @@ const TARGETS = [
   ['english', 'vocabulary',            'P6', 5,  5],  // 38→40+
   ['english', 'vocabulary',            'P7', 5, 12],  // 29→40+
   ['english', 'spelling',              'P7', 3, 15],  // refill diff:3 (12 exist → +3)
+
+  // ── Round 3 top-up (April 2026) ─────────────────────────────────────────────
+  ['english', 'punctuation',           'P7', 5, 15],  // 24→40 (diff:3 fills +1, diff:5 fills +15)
 ];
 
 // ── Topic guidance ─────────────────────────────────────────────────────────────
 const ENGLISH_GUIDE = {
   punctuation: `
 PUNCTUATION QUESTION FORMAT:
-- passage: the FULL sentence shown at the top of the question, with "/" marks dividing it into 4 sections (e.g. "Its raining heavily / outside today, / so we stayed / indoors.")
+- passage: the FULL sentence shown at the top of the question, with "/" marks dividing it into 4 sections (e.g. "The dolphins leapt / out of the water / near the rocky / coastline.")
 - question_text: "Find the section with the punctuation or capital letter mistake. If there are no mistakes, choose N."
-- Options A, B, C, D each contain ONLY the text of that one section (no full sentence, no slashes) — e.g. A: "Its raining heavily"  B: "outside today,"  C: "so we stayed"  D: "indoors."
+- Options A, B, C, D each contain ONLY the text of that one section (no full sentence, no slashes) — e.g. A: "The dolphins leapt"  B: "out of the water"  C: "near the rocky"  D: "coastline."
 - N: "No mistakes"
 - Test ONLY: apostrophe for contraction (wasn't, it's, I'll), possessive apostrophe (dog's, everyone's), missing full stop, missing question mark in speech, capital letter for proper nouns (Paris, Monday, Easter)
 - NEVER test comma placement — too ambiguous
 - N = No mistakes should be correct ~20% of time
-- P6: simple apostrophe/capital errors. P7: speech mark placement, possessive vs contraction distinctions`,
+- P6: simple apostrophe/capital errors. P7: speech mark placement, possessive vs contraction distinctions
+
+REQUIRED SCENARIO VARIETY — rotate through these settings, never repeat the same setting in a batch:
+  animals/wildlife, sport/competition, school/classroom, cooking/food, travel/geography,
+  history/famous people, science/nature, weather/seasons, space/planets, hobbies/art,
+  shopping/market, festivals/celebrations, buildings/architecture, ocean/sea creatures
+FORBIDDEN SCENARIOS — never use these:
+  "visiting a friend", "coming to visit", "friend is coming over", "friend named [Name]",
+  "going to a friend's house", any sentence starting "My friend"`,
 
   grammar: `
 GRAMMAR QUESTION FORMAT:
@@ -209,18 +220,17 @@ function buildPrompt(subject, topic, yearGroup, difficulty, count) {
   const examples = {
     punctuation: `[
   {
-    "passage": "Its raining heavily / outside today, / so we stayed / indoors.",
+    "passage": "The giant panda / lives in the bamboo forests / of china / and eats mostly plants.",
     "question_text": "Find the section with the punctuation or capital letter mistake. If there are no mistakes, choose N.",
     "question_type": "mc",
     "options": {
-      "A": "Its raining heavily",
-      "B": "outside today,",
-      "C": "so we stayed",
-      "D": "indoors.",
-      "N": "No mistakes"
+      "A": "The giant panda",
+      "B": "lives in the bamboo forests",
+      "C": "of china",
+      "D": "and eats mostly plants."
     },
-    "correct_answer": "A",
-    "explanation": "Its should be It's — a contraction of 'it is'. The apostrophe replaces the missing letter i."
+    "correct_answer": "C",
+    "explanation": "China is a proper noun (the name of a country) and must start with a capital letter."
   }
 ]`,
 
