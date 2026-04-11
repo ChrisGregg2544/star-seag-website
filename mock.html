@@ -643,7 +643,9 @@ function normalizeDBQuestion(dbQ) {
   // Build options array in "A. text" format (empty array = free-response)
   let optionsArray = [];
   if (!isFR && opts && typeof opts === 'object') {
-    optionsArray = Object.entries(opts).map(([k, v]) => `${k}. ${v}`);
+    optionsArray = ['A','B','C','D','E','N']
+      .filter(k => opts[k] != null)
+      .map(k => `${k}. ${opts[k]}`);
   }
 
   let text     = dbQ.question_text || '';
