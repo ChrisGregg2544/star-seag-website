@@ -1312,7 +1312,7 @@ function _showResultsInternal() {
     const userId = data.session.user.id;
     const track  = sessionStorage.getItem('star_year') || 'P6';
 
-    const { data: sessionData, error } = await sb.from('sessions').insert({
+    const { data: sessionData, error: sessionError } = await sb.from('sessions').insert({
       user_id:         userId,
       session_type:    'mini_sprint',
       track:           track,
@@ -1321,9 +1321,10 @@ function _showResultsInternal() {
       english_score:   QUESTIONS.filter((q,i) => q.type==='english' && answers[i]==='correct').length,
       maths_score:     QUESTIONS.filter((q,i) => q.type==='maths'   && answers[i]==='correct').length,
     }).select().single();
+    console.log('Sessions save:', sessionError || 'OK');
 
-    if (error) {
-      console.error('Supabase insert error:', error.message);
+    if (sessionError) {
+      console.error('Supabase insert error:', sessionError.message);
       return;
     }
 
@@ -1336,17 +1337,19 @@ function _showResultsInternal() {
         question_type: q.type,
         correct:       answers[i] === 'correct'
       }));
-      await sb.from('question_results').insert(results);
+      const { error: qrError } = await sb.from('question_results').insert(results);
+      console.log('Question results save:', qrError || 'OK');
 
       const history = QUESTIONS.map(q => ({ student_id: userId, question_id: q._id }));
-      await sb.from('student_question_history').insert(history);
+      const { error: histError } = await sb.from('student_question_history').insert(history);
+      console.log('Student history save:', histError || 'OK');
     }
 
     const toReviewForDb = missedQuestions
       .map(q => ({ topic: q.topic, videoTitle: q.videoTopic || q.topic, videoUrl: q.videoUrl, videoSource: q.videoSource, questionText: q.text }))
       .filter((item, idx, arr) => arr.findIndex(x => x.topic === item.topic) === idx);
 
-    await sb.from('progress_summary').upsert({
+    const { error: psError } = await sb.from('progress_summary').upsert({
       user_id:          userId,
       last_score:       score.correct,
       last_total:       QUESTIONS.length,
@@ -1354,6 +1357,7 @@ function _showResultsInternal() {
       last_session_at:  new Date().toISOString(),
       updated_at:       new Date().toISOString()
     }, { onConflict: 'user_id' });
+    console.log('Progress summary save:', psError || 'OK');
 
     // Increment free sprint counter for non-subscribed users
     if (!window._starAccess?.subscribed) {
