@@ -1546,7 +1546,9 @@ async function saveMockToSupabase(totalCorrect, totalQ, englishCorrect, mathsCor
       await sb.from('question_results').insert([...englishResults, ...mathsResults]);
 
       const history = [...ENGLISH_QS, ...MATHS_QS].map(q => ({ student_id: userId, question_id: q._id }));
-      await sb.from('student_question_history').insert(history);
+      console.log('Saving history for', history.length, 'questions');
+      const histResult = await sb.from('student_question_history').insert(history);
+      console.log('History save result:', histResult.error || 'OK');
     }
 
     const topicStats = {};
