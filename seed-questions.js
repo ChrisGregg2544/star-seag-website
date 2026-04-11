@@ -91,6 +91,12 @@ const TARGETS = [
 
   // ── Round 3 top-up (April 2026) ─────────────────────────────────────────────
   ['english', 'punctuation',           'P7', 5, 15],  // 24→40 (diff:3 fills +1, diff:5 fills +15)
+
+  // ── Round 4 top-up (April 2026) — expand punctuation + measurement ───────────
+  ['english', 'punctuation',           'P7', 2, 40],  // fill to 40 at diff:2 → 80 total
+  ['english', 'punctuation',           'P6', 1, 40],  // fill to 40 at diff:1 → 80 total
+  ['maths',   'measurement',           'P7', 4, 10],  // +9 (1 exist) → fills gap
+  ['maths',   'measurement',           'P7', 5, 15],  // +15 at fresh diff:5 → 55 total
 ];
 
 // ── Topic guidance ─────────────────────────────────────────────────────────────

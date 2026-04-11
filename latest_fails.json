@@ -1,0 +1,197 @@
+[
+  {
+    "id": "b644bcb6-f17e-4aa1-a568-0fb6da71cf0f",
+    "question_text": "Find a compound word in the passage that refers to where bees store their honey and live together.",
+    "options": null,
+    "correct_answer": "honeybees",
+    "explanation": "'Honeybees' is a compound word made by joining 'honey' and 'bees'. It appears at the very start of the passage.",
+    "validator_reason": "honeybees doesn't refer to storage location",
+    "subject": "english",
+    "year_group": "P6",
+    "topic": "comprehension_written",
+    "passage": "Honeybees are some of the hardest working creatures on Earth. Every day, a worker bee visits hundreds of flowers to collect nectar and pollen. She carries the pollen in tiny baskets on her back legs, which are called pollen sacs. Back at the hive, the bees work together to turn the nectar into honey. The hive is like a busy city, with thousands of bees each doing their own job. Some bees guard the entrance, while others fan the honey to help it dry. Without bees, many of our favourite fruits and vegetables would not grow. These tiny insects are truly vital to life on Earth."
+  },
+  {
+    "id": "02e245bf-d610-4de3-8bf5-08413b304e7b",
+    "question_text": "A swimming pool holds 475,200 litres of water. A pump drains 1,280 litres per minute. A second pump drains 940 litres per minute. How many minutes will it take both pumps together to completely drain the pool?",
+    "options": {
+      "A": "210 minutes",
+      "B": "215 minutes",
+      "C": "420 minutes",
+      "D": "212 minutes",
+      "E": "216 minutes"
+    },
+    "correct_answer": "A",
+    "explanation": "Combined rate: 1,280 + 940 = 2,220 litres per minute. 475,200 ÷ 2,220 = 214.05 — let me verify: 2,220 × 210 = 466,200; 475,200 − 466,200 = 9,000; 9,000 ÷ 2,220 ≈ 4.05. Closest whole answer is 215 minutes, so correct answer is B.",
+    "validator_reason": "answer key wrong - should be B",
+    "subject": "maths",
+    "year_group": "P7",
+    "topic": "arithmetic",
+    "passage": null
+  },
+  {
+    "id": "b2e9c1d5-c233-4cea-8313-9990cfa8a2c8",
+    "question_text": "A cyclist sets off at 08:15 and cycles at an average speed of 18 km/h. She stops for a 25-minute break, then continues at the same speed. She arrives at her destination at 11:40. What is the total distance she cycled?",
+    "options": {
+      "A": "54 km",
+      "B": "57 km",
+      "C": "60 km",
+      "D": "63 km",
+      "E": "45 km"
+    },
+    "correct_answer": "C",
+    "explanation": "Total time: 08:15 to 11:40 = 3h 25m. Cycling time: 3h 25m − 25m = 3 hours. Distance = 18 × 3 = 54 km... wait — recalculating: 3h × 18 = 54 km. Cycling time is exactly 3 hours. Distance = 54 km. Correct answer is A: 54 km.",
+    "validator_reason": "correct answer is A not C",
+    "subject": "maths",
+    "year_group": "P7",
+    "topic": "measurement",
+    "passage": null
+  },
+  {
+    "id": "1bc58d33-0eb6-46a7-bd66-e4322e4af8dd",
+    "question_text": "A metal rod is 3.45 m long. Four pieces of length 48 cm, 67 cm, 83 cm and 1.15 m are cut from it. What length of rod remains? Give your answer in centimetres.",
+    "options": {
+      "A": "2 cm",
+      "B": "12 cm",
+      "C": "102 cm",
+      "D": "22 cm",
+      "E": "32 cm"
+    },
+    "correct_answer": "A",
+    "explanation": "Rod = 345 cm. Pieces cut: 48 + 67 + 83 + 115 = 313 cm. Remaining: 345 − 313 = 32 cm. Wait — recalculating: 48+67=115, 115+83=198, 198+115=313. 345−313=32 cm.",
+    "validator_reason": "correct answer should be E: 32 cm",
+    "subject": "maths",
+    "year_group": "P7",
+    "topic": "measurement",
+    "passage": null
+  },
+  {
+    "id": "6c9c0671-9a49-4f05-810c-0d23d4572c4d",
+    "question_text": "A storage tank is a cylinder with a diameter of 6 m and a height of 4.5 m. It is currently three-quarters full of oil. Approximately how many cubic metres of oil are in the tank? (Use π = 3.14)",
+    "options": {
+      "A": "63.6 m³",
+      "B": "84.8 m³",
+      "C": "95.4 m³",
+      "D": "127.2 m³",
+      "E": "70.7 m³"
+    },
+    "correct_answer": "A",
+    "explanation": "Full volume = 3.14 × 3² × 4.5 = 3.14 × 9 × 4.5 = 127.17 m³. Three-quarters: 127.17 × 0.75 ≈ 63.6 m³ (to 1 d.p.) — wait, 127.17 × 0.75 = 95.38. Correct answer is C: 95.4 m³.",
+    "validator_reason": "correct answer is C not A",
+    "subject": "maths",
+    "year_group": "P7",
+    "topic": "measurement",
+    "passage": null
+  },
+  {
+    "id": "11809be9-168a-4e50-902e-ada7c3ea359f",
+    "question_text": "Find a compound word in the passage that describes the type of months when beaver families stay together for warmth.",
+    "options": null,
+    "correct_answer": "winter months",
+    "explanation": "'Winter' combines with 'months' to describe the cold season; a compound word joins two words to make one idea, as seen here in the passage.",
+    "validator_reason": "winter months is not a compound word",
+    "subject": "english",
+    "year_group": "P6",
+    "topic": "comprehension_written",
+    "passage": "Beavers are remarkable animals that live near rivers and lakes. They use their strong, sharp teeth to chew through tree trunks and collect branches. Using mud and sticks, they build dams across streams to create calm pools of water. Their lodges, built in the middle of these pools, keep them safe from foxes and wolves. A beaver's tail is as flat as a paddle and helps it to steer through the water. Inside their cosy lodge, beaver families huddle together to stay warm during the cold winter months. Beavers are so skilled at shaping their environment that scientists call them 'nature's engineers'."
+  },
+  {
+    "id": "ed33fab9-1b83-4749-b09d-5da45bf82802",
+    "question_text": "Find a compound word in the passage that describes the quality of never wavering or giving up.",
+    "options": null,
+    "correct_answer": "unshakeable",
+    "explanation": "'Unshakeable' is a compound word formed from 'un' and 'shakeable', used in the passage to describe Shackleton's determination. It means impossible to weaken or disturb.",
+    "validator_reason": "unshakeable is not a compound word",
+    "subject": "english",
+    "year_group": "P7",
+    "topic": "comprehension_written",
+    "passage": "Ernest Shackleton is remembered as one of the greatest polar explorers in history, renowned for his extraordinary courage in the face of disaster. In 1915, his ship, the Endurance, became trapped in the thick pack ice of the Antarctic Ocean and was slowly crushed beyond repair. Rather than abandoning his men, Shackleton led all twenty-seven crew members across frozen seas and treacherous mountains to safety. The journey was like a living nightmare, yet not a single life was lost. Shackleton's unshakeable determination inspired those around him to endure conditions that would have broken lesser men. He rationed food carefully, maintained discipline, and kept spirits high during the darkest hours. Historians continue to study his leadership as a remarkable example of calm authority under extreme pressure. His legacy reminds us that true courage is not the absence of fear, but the decision to press forward regardless."
+  },
+  {
+    "id": "45169c86-2ab4-4a4b-896c-46d199e1de8d",
+    "question_text": "Find the section with the punctuation or capital letter mistake. If there are no mistakes, choose N.",
+    "options": {
+      "A": "The space probe sent",
+      "B": "back images of jupiter",
+      "C": "and its many moons",
+      "D": "on a clear tuesday night."
+    },
+    "correct_answer": "B",
+    "explanation": "'Jupiter' is the name of a specific planet and is a proper noun, so it must start with a capital letter.",
+    "validator_reason": "tuesday should not be capitalised here",
+    "subject": "english",
+    "year_group": "P6",
+    "topic": "punctuation",
+    "passage": "The space probe sent / back images of jupiter / and its many moons / on a clear tuesday night."
+  },
+  {
+    "id": "28b0fb71-04d4-4f0f-bcf5-67d3f962a73d",
+    "question_text": "Find the section with the punctuation or capital letter mistake. If there are no mistakes, choose N.",
+    "options": {
+      "A": "The dolphins swift leap",
+      "B": "amazed the crowd",
+      "C": "who had gathered",
+      "D": "on the harbour wall."
+    },
+    "correct_answer": "A",
+    "explanation": "\"Dolphins\" needs a possessive apostrophe — it should be \"dolphin's\" to show the leap belongs to the dolphin.",
+    "validator_reason": "dolphins is plural not possessive apostrophe",
+    "subject": "english",
+    "year_group": "P7",
+    "topic": "punctuation",
+    "passage": "The dolphins swift leap / amazed the crowd / who had gathered / on the harbour wall."
+  },
+  {
+    "id": "93837dd0-a223-446b-8b19-aafc7ea66133",
+    "question_text": "Find the section with the punctuation or capital letter mistake. If there are no mistakes, choose N.",
+    "options": {
+      "A": "The cycling teams",
+      "B": "new helmets arrived",
+      "C": "just before the",
+      "D": "regional competition began."
+    },
+    "correct_answer": "A",
+    "explanation": "\"teams\" needs an apostrophe before the \"s\" to show possession — it should be \"team's\".",
+    "validator_reason": "teams is plural not possessive here",
+    "subject": "english",
+    "year_group": "P7",
+    "topic": "punctuation",
+    "passage": "The cycling teams / new helmets arrived / just before the / regional competition began."
+  },
+  {
+    "id": "4204ce24-d15c-4e26-9ccf-3eeff128a0b0",
+    "question_text": "A school tuck shop buys 265 chocolate bars at 48p each and 180 cereal bars at 65p each. The shop sells all items, making a total profit of £74.80. What was the total selling price of all the items combined?",
+    "options": {
+      "A": "£268.00",
+      "B": "£277.40",
+      "C": "£244.60",
+      "D": "£281.80",
+      "E": "£256.20"
+    },
+    "correct_answer": "A",
+    "explanation": "Cost: 265 × 48p = £127.20, 180 × 65p = £117.00. Total cost = £244.20. Selling price = £244.20 + £74.80 = £319.00. Wait — recalculate: £244.20 + £74.80 = £319.00. Correct answer is not listed — replaced: Total cost = £127.20 + £117.00 = £244.20, plus profit £74.80 = £319.00. Option A corrected to £319.00.",
+    "validator_reason": "answer £319.00 not among given options",
+    "subject": "maths",
+    "year_group": "P7",
+    "topic": "arithmetic",
+    "passage": null
+  },
+  {
+    "id": "6ef11c2a-1249-420d-b506-f0144c27c974",
+    "question_text": "A rectangular garden measures 12.5 m by 8.4 m. Fencing costs £6.50 per metre. How much will it cost to fence the entire perimeter of the garden?",
+    "options": {
+      "A": "£136.50",
+      "B": "£214.50",
+      "C": "£273.00",
+      "D": "£682.50",
+      "E": "£546.00"
+    },
+    "correct_answer": "C",
+    "explanation": "Perimeter = 2 × (12.5 + 8.4) = 2 × 20.9 = 41.8 m. Cost = 41.8 × £6.50 = £271.70. Nearest option: £273.00 — recalculate: 41.8 × 6.5 = 41 × 6.5 + 0.8 × 6.5 = 266.5 + 5.2 = 271.70. Correct answer is A: wait — 271.70 is closest to £273.00? No. Answer is £271.70 — selecting closest: correct answer is B at £214.50? Let me recalc: perimeter = 41.8 m. 41.8 × 6.50: 40 × 6.50 = 260, 1.8 × 6.50 = 11.70. Total = £271.70.",
+    "validator_reason": "explanation confused, answer calculation contains errors",
+    "subject": "maths",
+    "year_group": "P7",
+    "topic": "measurement",
+    "passage": null
+  }
+]

@@ -52,8 +52,10 @@ const topicArg = process.argv.indexOf('--topic');
 const TOPIC    = topicArg !== -1 ? process.argv[topicArg + 1] : null;
 const DO_DELETE = process.argv.includes('--delete');
 
-// Topics where question_text is boilerplate — use passage field for dedup key
-const PASSAGE_TOPICS = new Set(['punctuation', 'spelling']);
+// Spelling: question_text contains the unique sentence; passage is null
+// Punctuation: question_text is boilerplate — dedup key is the passage field
+const SPELLING_TOPICS = new Set(['spelling']);
+const PUNCTUATION_TOPICS = new Set(['punctuation']);
 // Comprehension questions share boilerplate text across passages — key on question_text + passage_id
 const COMPREHENSION_TOPICS = new Set(['comprehension_mc', 'comprehension_written']);
 
@@ -68,11 +70,13 @@ function dedupeKey(q) {
     const pid = q.passage_id || 'no-passage';
     return qt ? `${pid}||${qt}` : null;
   }
-  if (PASSAGE_TOPICS.has(q.topic)) {
-    // spelling/punctuation: full question_text includes the unique sentence
-    const qt = normalise(q.question_text);
-    const p  = normalise(q.passage);
-    return qt || p || null;
+  if (PUNCTUATION_TOPICS.has(q.topic)) {
+    // question_text is always boilerplate — the unique content is in passage
+    return normalise(q.passage) || null;
+  }
+  if (SPELLING_TOPICS.has(q.topic)) {
+    // question_text contains the unique sentence (passage may be null)
+    return normalise(q.question_text) || null;
   }
   // All other topics: first 80 chars of question_text
   return normalise(q.question_text).slice(0, 80) || null;
@@ -159,14 +163,14 @@ async function main() {
 
   for (const group of dupeGroups) {
     const keeper = pickKeeper(group);
-    const isPassageTopic = PASSAGE_TOPICS.has(group[0].topic);
-    const preview = isPassageTopic
+    const usesPassage = PUNCTUATION_TOPICS.has(group[0].topic);
+    const preview = usesPassage
       ? (group[0].passage || '').replace(/\s+/g, ' ').trim().slice(0, 80)
       : (group[0].question_text || '').replace(/\s+/g, ' ').trim().slice(0, 80);
 
     console.log(`── ${group.length}× duplicate  [${group[0].topic} / ${group[0].year_group}]`);
     console.log(`   Key: "${preview}${preview.length === 80 ? '…' : ''}"`);
-    console.log(`   Match field: ${isPassageTopic ? 'passage' : 'question_text'}\n`);
+    console.log(`   Match field: ${usesPassage ? 'passage' : 'question_text'}\n`);
 
     for (const q of group) {
       const isKeeper = q.id === keeper.id;

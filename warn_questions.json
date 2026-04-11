@@ -1,0 +1,200 @@
+[
+  {
+    "id": "5105f0e6-6da7-41ff-b57d-aca70978d059",
+    "question_text": "A train travels 216 km on Monday, 347 km on Tuesday, and 189 km on Wednesday. The same total distance must be covered equally across Thursday and Friday. How far does the train travel each day on Thursday and Friday?",
+    "options": {
+      "A": "356 km",
+      "B": "376 km",
+      "C": "381 km",
+      "D": "372 km",
+      "E": "368 km"
+    },
+    "correct_answer": "B",
+    "explanation": "Total distance Mon–Wed: 216 + 347 + 189 = 752 km. Divided equally: 752 ÷ 2 = 376 km each day.",
+    "validator_reason": "difficulty 5/5 too high for P7 standard",
+    "subject": "maths",
+    "year_group": "P7",
+    "topic": "arithmetic",
+    "passage": null
+  },
+  {
+    "id": "a4e96440-5aad-49d8-a3d2-fa6599a49c6e",
+    "question_text": "A lorry travels 672 km on a full tank of diesel. It uses 96 litres per full tank. Diesel costs £1.45 per litre. How much does it cost in diesel to travel 2,016 km?",
+    "options": {
+      "A": "£397.20",
+      "B": "£408.60",
+      "C": "£417.60",
+      "D": "£435.00",
+      "E": "£452.40"
+    },
+    "correct_answer": "C",
+    "explanation": "2,016 ÷ 672 = 3 tanks. 3 × 96 = 288 litres. 288 × £1.45 = £417.60.",
+    "validator_reason": "difficulty 5/5 too high for P7",
+    "subject": "maths",
+    "year_group": "P7",
+    "topic": "arithmetic",
+    "passage": null
+  },
+  {
+    "id": "51bba24c-eb90-441b-b39f-f5c3343884d7",
+    "question_text": "Find the section with the punctuation or capital letter mistake. If there are no mistakes, choose N.",
+    "options": {
+      "A": "Everyone's bags",
+      "B": "were packed for the",
+      "C": "trip to belfast",
+      "D": "on friday morning.",
+      "N": "No mistakes"
+    },
+    "correct_answer": "C",
+    "explanation": "'Belfast' is a proper noun — the name of a city — so it must start with a capital letter. Section D also has an error, but C comes first.",
+    "validator_reason": "section D also contains capitalisation error",
+    "subject": "english",
+    "year_group": "P6",
+    "topic": "punctuation",
+    "passage": "Everyone's bags / were packed for the / trip to belfast / on friday morning."
+  },
+  {
+    "id": "0a4d72c6-c450-48ee-a39b-a764b8949636",
+    "question_text": "Read the passage below, then answer the question.\n\nThe professor's lecture was so abstruse that even the most diligent students struggled to follow her reasoning. She spoke of philosophical paradoxes with such fluency that the words seemed to blur into one another. By the end, the lecture theatre had descended into a baffled hush.\n\nWhat does the word 'abstruse' mean in this passage?",
+    "options": {
+      "A": "extremely lengthy and repetitive",
+      "B": "difficult to understand and highly complex",
+      "C": "delivered in an unpleasant and rude manner",
+      "D": "surprisingly entertaining and humorous",
+      "E": "spoken very quietly and without confidence"
+    },
+    "correct_answer": "B",
+    "explanation": "Abstruse means difficult to understand, especially because it is highly complex or technical. The students struggled to follow the lecture because it was so abstruse.",
+    "validator_reason": "too difficult vocabulary for P7 students",
+    "subject": "english",
+    "year_group": "P7",
+    "topic": "vocabulary",
+    "passage": null
+  },
+  {
+    "id": "b862b18f-e8c4-4444-800e-3b56ed0d01e1",
+    "question_text": "Read the passage below, then answer the question.\n\nThe novelist was celebrated for her pellucid prose, which made even the most complex ideas feel effortlessly accessible to readers. Critics praised her ability to distil profound truths into deceptively simple sentences. Her latest work was hailed as a triumph of clarity over obscurity.\n\nFind a word in the passage that means 'to reduce something to its most essential form'.",
+    "options": {
+      "A": "pellucid",
+      "B": "profound",
+      "C": "distil",
+      "D": "obscurity",
+      "E": "deceptively"
+    },
+    "correct_answer": "C",
+    "explanation": "Distil means to extract or reduce something to its purest or most essential form. Here it describes how the novelist captured deep truths in simple sentences.",
+    "validator_reason": "difficulty too high for P7 vocabulary",
+    "subject": "english",
+    "year_group": "P7",
+    "topic": "vocabulary",
+    "passage": null
+  },
+  {
+    "id": "0f3857b4-d1bd-45e5-945b-3a2e8b43f3c7",
+    "question_text": "Read the passage below, then answer the question.\n\nThe diplomat's speech was deliberately ambiguous, designed to placate both factions without truly committing to either cause. His opponents, however, saw through the obfuscation and demanded unequivocal answers. The assembly grew increasingly restless as his evasive rhetoric continued to meander through half-truths and hollow promises.\n\nWhat does the word 'obfuscation' mean in this passage?",
+    "options": {
+      "A": "a formal declaration made in public",
+      "B": "the deliberate use of confusing or unclear language",
+      "C": "a method of persuading an audience",
+      "D": "an aggressive response to criticism",
+      "E": "a carefully prepared written document"
+    },
+    "correct_answer": "B",
+    "explanation": "Obfuscation means making something unclear or difficult to understand on purpose. Here it refers to the diplomat's strategy of avoiding direct answers.",
+    "validator_reason": "difficulty too high for P7 level",
+    "subject": "english",
+    "year_group": "P7",
+    "topic": "vocabulary",
+    "passage": null
+  },
+  {
+    "id": "5ef2dc7a-7b9f-4c0e-92b9-c383e2159d2f",
+    "question_text": "A supermarket sells 475 bottles of juice on Monday and three times as many on Tuesday. On Wednesday they sell 389 fewer than Tuesday. How many bottles are sold on Wednesday?",
+    "options": {
+      "A": "986",
+      "B": "1,036",
+      "C": "1,036",
+      "D": "1,086",
+      "E": "1,136"
+    },
+    "correct_answer": "B",
+    "explanation": "Tuesday: 475 × 3 = 1,425. Wednesday: 1,425 − 389 = 1,036.",
+    "validator_reason": "options B and C are identical",
+    "subject": "maths",
+    "year_group": "P7",
+    "topic": "arithmetic",
+    "passage": null
+  },
+  {
+    "id": "8be2d90d-c1fb-4fbe-a40d-6547c518ab9d",
+    "question_text": "A train travels 264 kilometres each day. Over 32 days, how many kilometres does it travel in total?",
+    "options": {
+      "A": "8,148",
+      "B": "8,348",
+      "C": "8,448",
+      "D": "8,548",
+      "E": "8,648"
+    },
+    "correct_answer": "C",
+    "explanation": "264 × 32: 264 × 30 = 7,920 and 264 × 2 = 528. Add: 7,920 + 528 = 8,448.",
+    "validator_reason": "difficulty 5/5 too high for basic multiplication",
+    "subject": "maths",
+    "year_group": "P7",
+    "topic": "arithmetic",
+    "passage": null
+  },
+  {
+    "id": "bc22aeec-bc2d-43a9-b41b-ee675a42948e",
+    "question_text": "A factory produces 364 widgets per hour. It operates for 18 hours each day for 5 days. How many widgets are produced in total?",
+    "options": {
+      "A": "31,920",
+      "B": "32,760",
+      "C": "33,480",
+      "D": "32,400",
+      "E": "33,120"
+    },
+    "correct_answer": "B",
+    "explanation": "364 × 18 = 6,552 widgets per day. 6,552 × 5 = 32,760 widgets in total.",
+    "validator_reason": "difficulty 5/5 too high for basic multiplication",
+    "subject": "maths",
+    "year_group": "P7",
+    "topic": "arithmetic",
+    "passage": null
+  },
+  {
+    "id": "48aadd3f-e921-4344-a7cc-efdcf87e97be",
+    "question_text": "Find the section with the punctuation or capital letter mistake. If there are no mistakes, choose N.",
+    "options": {
+      "A": "We travelled to belfast",
+      "B": "by train last tuesday",
+      "C": "to visit the",
+      "D": "new science museum.",
+      "N": "No mistakes"
+    },
+    "correct_answer": "A",
+    "explanation": "Belfast is a proper noun and must begin with a capital letter. Both Belfast and Tuesday need capitals, but Belfast comes first in section A.",
+    "validator_reason": "Tuesday also needs capital in section B",
+    "subject": "english",
+    "year_group": "P6",
+    "topic": "punctuation",
+    "passage": "We travelled to belfast / by train last tuesday / to visit the / new science museum."
+  },
+  {
+    "id": "1c83120d-5f27-4218-a324-344d3f69065f",
+    "question_text": "Find the section with the punctuation or capital letter mistake. If there are no mistakes, choose N.",
+    "options": {
+      "A": "My uncle hasnt visited",
+      "B": "us since last",
+      "C": "december, when",
+      "D": "the weather turned cold.",
+      "N": "No mistakes"
+    },
+    "correct_answer": "A",
+    "explanation": "Hasnt should be hasn't — the apostrophe replaces the missing letter o in 'has not'. December also needs a capital but is in section C; however the apostrophe error in A appears first and is the primary error to identify.",
+    "validator_reason": "december also needs capital, creates ambiguity",
+    "subject": "english",
+    "year_group": "P7",
+    "topic": "punctuation",
+    "passage": "My uncle hasnt visited / us since last / december, when / the weather turned cold."
+  }
+]
