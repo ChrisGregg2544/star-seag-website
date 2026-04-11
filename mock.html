@@ -1507,6 +1507,7 @@ function showRetryResults() {
    SAVE TO SUPABASE
 ════════════════════════════════════════ */
 async function saveMockToSupabase(totalCorrect, totalQ, englishCorrect, mathsCorrect, pct) {
+  if (!userId) { console.log('No userId — mock not saved to Supabase'); return; }
   try {
     const timeTaken = mockStartTime ? Math.round((Date.now() - mockStartTime) / 1000) : null;
 
@@ -1527,6 +1528,7 @@ async function saveMockToSupabase(totalCorrect, totalQ, englishCorrect, mathsCor
       const englishResults = ENGLISH_QS.map((q, i) => ({
         session_id:    sessionData.id,
         user_id:       userId,
+        question_id:   q._id,
         topic:         q.topic,
         question_type: 'english',
         correct:       answers[10 + i] === 'correct'
@@ -1534,19 +1536,36 @@ async function saveMockToSupabase(totalCorrect, totalQ, englishCorrect, mathsCor
       const mathsResults = MATHS_QS.map((q, i) => ({
         session_id:    sessionData.id,
         user_id:       userId,
+        question_id:   q._id,
         topic:         q.topic,
         question_type: 'maths',
         correct:       answers[38 + i] === 'correct'
       }));
       await sb.from('question_results').insert([...englishResults, ...mathsResults]);
+
+      const history = [...ENGLISH_QS, ...MATHS_QS].map(q => ({ student_id: userId, question_id: q._id }));
+      await sb.from('student_question_history').insert(history);
     }
 
+    const topicStats = {};
+    [...ENGLISH_QS.map((q, i) => ({ topic: q.topic, correct: answers[10 + i] === 'correct' })),
+     ...MATHS_QS.map((q, i)   => ({ topic: q.topic, correct: answers[38 + i] === 'correct' }))]
+      .forEach(({ topic, correct }) => {
+        if (!topicStats[topic]) topicStats[topic] = { correct: 0, total: 0 };
+        topicStats[topic].total++;
+        if (correct) topicStats[topic].correct++;
+      });
+    const topicsToReview = Object.entries(topicStats)
+      .filter(([, s]) => s.correct / s.total < 0.6)
+      .map(([topic]) => topic);
+
     await sb.from('progress_summary').upsert({
-      user_id:         userId,
-      last_score:      totalCorrect,
-      last_total:      totalQ,
-      last_session_at: new Date().toISOString(),
-      updated_at:      new Date().toISOString()
+      user_id:          userId,
+      last_score:       totalCorrect,
+      last_total:       totalQ,
+      topics_to_review: topicsToReview,
+      last_session_at:  new Date().toISOString(),
+      updated_at:       new Date().toISOString()
     }, { onConflict: 'user_id' });
 
     localStorage.setItem('star_last_score', pct);

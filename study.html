@@ -1329,11 +1329,15 @@ function _showResultsInternal() {
       const results = QUESTIONS.map((q, i) => ({
         session_id:    sessionData.id,
         user_id:       userId,
+        question_id:   q._id,
         topic:         q.topic,
         question_type: q.type,
         correct:       answers[i] === 'correct'
       }));
       await sb.from('question_results').insert(results);
+
+      const history = QUESTIONS.map(q => ({ student_id: userId, question_id: q._id }));
+      await sb.from('student_question_history').insert(history);
     }
 
     const toReviewForDb = missedQuestions
