@@ -640,22 +640,31 @@ function attachDiagram(q) {
 
 // ── Insert ─────────────────────────────────────────────────────────────────────
 async function insertQuestions(questions, subject, topic, yearGroup, difficulty, passageId = null) {
-  const rows = questions.map(q => ({
-    subject,
-    topic,      // always from TARGETS — never from generated JSON
-    year_group: yearGroup,
-    difficulty,
-    question_type: q.question_type || (q.options ? 'mc' : 'written'),
-    question_text: q.question_text,
-    passage: q.passage || null,
-    passage_id: passageId,
-    options: q.options || null,
-    correct_answer: String(q.correct_answer),
-    explanation: q.explanation || null,
-    diagram: attachDiagram(q),
-    validated: false,
-    source: 'ai_generated_v3',
-  }));
+  const needsN = topic === 'punctuation' || topic === 'spelling';
+
+  const rows = questions.map(q => {
+    let options = q.options || null;
+    // Enforce N key for punctuation/spelling — Claude sometimes omits it
+    if (needsN && options && typeof options === 'object' && options.N == null) {
+      options = { ...options, N: 'No mistakes' };
+    }
+    return {
+      subject,
+      topic,      // always from TARGETS — never from generated JSON
+      year_group: yearGroup,
+      difficulty,
+      question_type: q.question_type || (q.options ? 'mc' : 'written'),
+      question_text: q.question_text,
+      passage: q.passage || null,
+      passage_id: passageId,
+      options,
+      correct_answer: String(q.correct_answer),
+      explanation: q.explanation || null,
+      diagram: attachDiagram(q),
+      validated: false,
+      source: 'ai_generated_v3',
+    };
+  });
 
   // Validate before inserting
   const valid = rows.filter(r => r.question_text && r.question_text.trim().length > 10);
