@@ -244,10 +244,11 @@ reseed-diagrams.js regenerates SVGs for existing questions.
 ---
 
 ## CURRENT QUESTION BANK STATE (April 2026)
-- Total: ~1,024 questions
-- Approved (validated=true): 938
-- Rejected (source=rejected): ~85
-- Pending: 0
+- Total validated: 1,156
+- All topics healthy (35–79 per topic per year group)
+- Catapult questions removed from DB and repo
+- find-duplicates.js added as maintenance tool (run after every seed)
+- Duplicate prevention prompts added to seed-questions.js
 
 Topics covered: punctuation, grammar, spelling, vocabulary, 
 comprehension_mc, comprehension_written, arithmetic, geometry,
@@ -280,8 +281,8 @@ fractions_decimals, measurement, statistics, algebra_sequences
 ## LAUNCH PLAN (all items required before go-live)
 
 ### Phase 1 — Data Foundation
-- [ ] 1. Top up thin P7/P6 topics via seed run (see thin topics below)
-- [ ] 2. Remove Catapult questions (DELETE WHERE source='catapult_test')
+- [x] 1. Top up thin P7/P6 topics via seed run (see thin topics below)
+- [x] 2. Remove Catapult questions (DELETE WHERE source='catapult_test')
 - [ ] 3. Save study/mock results to Supabase (question_results + progress_summary)
 - [ ] 4. Stripe end-to-end test — confirm profiles table updates on payment
 
