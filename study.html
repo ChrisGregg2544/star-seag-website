@@ -1200,7 +1200,8 @@ function _showResultsInternal() {
   // but still run the Supabase save block below.
   const calledFromExhausted = !document.getElementById('missed-list');
   if (calledFromExhausted) {
-    saveSessionToSupabase([]);
+    const wrongQuestions = QUESTIONS.filter((q, i) => answers[i] === 'wrong');
+    saveSessionToSupabase(wrongQuestions);
     return;
   }
 
