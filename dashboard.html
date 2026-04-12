@@ -519,7 +519,7 @@ async function buildSkillsMap(count, userId) {
   // Query real question_results data
   const { data: qrData } = await sb
     .from('question_results')
-    .select('topic, is_correct')
+    .select('topic, correct')
     .eq('user_id', userId);
 
   const topicMap = {};
@@ -527,7 +527,7 @@ async function buildSkillsMap(count, userId) {
     if (!r.topic) return;
     if (!topicMap[r.topic]) topicMap[r.topic] = { correct: 0, total: 0 };
     topicMap[r.topic].total++;
-    if (r.is_correct) topicMap[r.topic].correct++;
+    if (r.correct) topicMap[r.topic].correct++;
   });
 
   const skills = Object.entries(topicMap)
