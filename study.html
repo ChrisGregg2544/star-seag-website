@@ -645,7 +645,7 @@ function normalizeDBQuestion(dbQ) {
    FETCH BATCH FROM DB
 ════════════════════════════════ */
 async function fetchBatch() {
-  console.log('fetchBatch called, sessionTotal:', sessionTotal, 'MAX_QUESTIONS:', MAX_QUESTIONS);
+  console.log('fetchBatch called, sessionTotal:', sessionTotal, 'MAX_QUESTIONS:', MAX_QUESTIONS, 'caller:', new Error().stack.split('\n')[2]);
   if (sessionTotal >= MAX_QUESTIONS) return [];
 
   // Difficulty unlocks after 5 cumulative correct answers
