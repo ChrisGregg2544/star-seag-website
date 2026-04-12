@@ -1390,6 +1390,8 @@ function saveSessionToSupabase(missedQs) {
       .map(q => ({ topic: q.topic, videoTitle: q.videoTopic || q.topic, videoUrl: q.videoUrl, videoSource: q.videoSource, questionText: q.text }))
       .filter((item, idx, arr) => arr.findIndex(x => x.topic === item.topic) === idx);
 
+    console.log('topics_to_review being saved:', JSON.stringify(toReviewForDb));
+
     const { error: psError } = await sb.from('progress_summary').upsert({
       user_id:          userId,
       last_score:       score.correct,
