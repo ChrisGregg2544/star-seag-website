@@ -299,7 +299,9 @@ fractions_decimals, measurement, statistics, algebra_sequences
 - [ ] 12. Full end-to-end user journey test (signup → onboarding → mock → study → payment)
 - [ ] 13. Mobile testing on real devices
 - [ ] 14. Stripe switch to live keys
-- [ ] 15. CLAUDE.md final update
+- [ ] 15. SMTP email configured via Resend.com for staraitutor.co.uk
+- [ ] 16. Confirm email enabled in Supabase Auth after SMTP verified
+- [ ] 17. CLAUDE.md final update
 
 ### Post Launch
 - [ ] STAR Chat (full coached AI tutor)
