@@ -663,6 +663,7 @@ async function fetchBatch() {
   else                       query = query.in('topic', dbTopics);
 
   if (usedIds.size > 0) {
+    console.log('Excluding IDs:', [...usedIds]);
     query = query.not('id', 'in', `(${[...usedIds].join(',')})`);
   }
 
