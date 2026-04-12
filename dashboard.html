@@ -463,7 +463,7 @@ const DAY_MAPS = {
   7: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],
 };
 
-function getTodayRec(yearGroup, weeks, sessionsPerWeek, weekDone) {
+function getTodayRec(yearGroup, weeks, sessionsPerWeek, weekDone, weakTopic) {
   const target = Math.max(1, Math.min(7, sessionsPerWeek || 3));
   const done   = weekDone || 0;
 
@@ -480,15 +480,31 @@ function getTodayRec(yearGroup, weeks, sessionsPerWeek, weekDone) {
   // Next session in rotation
   const next = SESSION_ROTATION[done % SESSION_ROTATION.length];
   const remaining = target - done;
-  const subs = {
-    'Quick Sprint':  `Session ${done + 1} of ${target} this week — 10 questions, instant feedback. Let's go!`,
-    'Topic Sprint':  `Session ${done + 1} of ${target} — focus on your weakest topic for the fastest improvement.`,
-    'Full Mock':     `Session ${done + 1} of ${target} — 56 questions in full exam format. Give it your best shot!`,
-  };
-  return { title: next.name, sub: subs[next.name] || `${remaining} session${remaining !== 1 ? 's' : ''} left this week.`, href: next.href };
+
+  let href = next.href;
+  let sub;
+
+  if (next.name === 'Topic Sprint') {
+    if (weakTopic) {
+      href = `study.html?topic=${encodeURIComponent(weakTopic)}&mode=topic`;
+      sub  = `Focus on ${weakTopic} — your weakest area. Session ${done + 1} of ${target} this week.`;
+    } else {
+      sub = `Session ${done + 1} of ${target} — focus on your weakest topic for the fastest improvement.`;
+    }
+  } else if (next.name === 'Quick Sprint') {
+    sub = weakTopic
+      ? `Your weakest area is ${weakTopic} — let's work on it today.`
+      : `Session ${done + 1} of ${target} this week — 10 questions, instant feedback. Let's go!`;
+  } else if (next.name === 'Full Mock') {
+    sub = `Session ${done + 1} of ${target} — 56 questions in full exam format. Give it your best shot!`;
+  } else {
+    sub = `${remaining} session${remaining !== 1 ? 's' : ''} left this week.`;
+  }
+
+  return { title: next.name, sub, href };
 }
 
-function buildSkillsMap(count) {
+async function buildSkillsMap(count, userId) {
   const pct = Math.min(100, Math.round((count / 3) * 100));
   const el = (id) => document.getElementById(id);
   if (el('sessions-needed')) el('sessions-needed').textContent = Math.max(0, 3 - count);
@@ -499,12 +515,36 @@ function buildSkillsMap(count) {
     : `Unlocks after ${3 - count} more session${3 - count !== 1 ? 's' : ''}`;
   if (count < 3) return;
   if (el('skills-locked')) el('skills-locked').style.display = 'none';
-  // Placeholder skills — will be replaced with real data once topic tracking is built
-  const skills = [
-    {name:'Punctuation',pct:72,c:'amber'},{name:'Grammar',pct:85,c:'green'},
-    {name:'Spelling',pct:60,c:'amber'},{name:'Fractions',pct:45,c:'red'},
-    {name:'Word Problems',pct:78,c:'green'},{name:'Data Handling',pct:90,c:'green'},
-  ];
+
+  // Query real question_results data
+  const { data: qrData } = await sb
+    .from('question_results')
+    .select('topic, is_correct')
+    .eq('user_id', userId);
+
+  const topicMap = {};
+  (qrData || []).forEach(r => {
+    if (!r.topic) return;
+    if (!topicMap[r.topic]) topicMap[r.topic] = { correct: 0, total: 0 };
+    topicMap[r.topic].total++;
+    if (r.is_correct) topicMap[r.topic].correct++;
+  });
+
+  const skills = Object.entries(topicMap)
+    .filter(([, v]) => v.total >= 3)
+    .map(([name, v]) => {
+      const accuracy = Math.round(v.correct / v.total * 100);
+      const c = accuracy >= 80 ? 'green' : accuracy >= 50 ? 'amber' : 'red';
+      return { name, pct: accuracy, c };
+    })
+    .sort((a, b) => a.pct - b.pct); // weakest first
+
+  const container = document.getElementById('skills-container');
+  if (skills.length === 0) {
+    container.innerHTML += `<p style="color:rgba(255,255,255,.5);font-size:.85rem;margin-top:12px;">Complete more sessions to unlock your Skills Map.</p>`;
+    return;
+  }
+
   const grid = document.createElement('div');
   grid.className = 'skills-grid';
   skills.forEach(s => {
@@ -513,7 +553,7 @@ function buildSkillsMap(count) {
     chip.innerHTML = `<div class="skill-name">${s.name}</div><div class="skill-pct">${s.pct}% accuracy</div>`;
     grid.appendChild(chip);
   });
-  document.getElementById('skills-container').appendChild(grid);
+  container.appendChild(grid);
 }
 
 function buildTopics(toReview, hasData) {
@@ -680,9 +720,10 @@ async function init() {
     document.getElementById('countdown-sub').textContent   = 'Complete onboarding';
   }
 
-  // Today's rec — driven by weekly schedule position
-  const weekDone = weekDoneCount || 0;
-  const rec = getTodayRec(yearGroup, weeks, sessionsPerWeek, weekDone);
+  // Today's rec — driven by weekly schedule position + weak topic
+  const weekDone  = weekDoneCount || 0;
+  const weakTopic = toReview.length > 0 ? (toReview[0].topic || null) : null;
+  const rec = getTodayRec(yearGroup, weeks, sessionsPerWeek, weekDone, weakTopic);
   document.getElementById('today-title').textContent = rec.title;
   document.getElementById('today-sub').textContent   = rec.sub;
   document.getElementById('today-card').href         = rec.href;
@@ -700,7 +741,7 @@ async function init() {
   }
 
   buildWeeklySchedule(sessionsPerWeek, weekDone);
-  buildSkillsMap(sessionsCount || 0);
+  buildSkillsMap(sessionsCount || 0, userId);
   buildTopics(toReview, hasData);
 }
 
