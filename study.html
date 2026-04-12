@@ -1064,7 +1064,12 @@ async function submitAnswer() {
   document.getElementById('score-correct').textContent = score.correct + ' correct';
   document.getElementById('score-wrong').textContent   = score.wrong + ' wrong';
 
-  document.getElementById('btn-next').textContent = 'Next Question →';
+  const nextBtn = document.getElementById('btn-next');
+  if (sessionTotal >= MAX_QUESTIONS) {
+    nextBtn.textContent = 'See Results →';
+  } else {
+    nextBtn.textContent = 'Next Question →';
+  }
 
   // Kick off background pre-fetch when 3 from end of batch
   const questionsLeft = MAX_QUESTIONS - sessionTotal;
