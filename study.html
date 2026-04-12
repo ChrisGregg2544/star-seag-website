@@ -425,6 +425,7 @@ let loadingTipInterval = null;
 
 // Study-mode state
 let userYear         = 'P6';
+const MAX_QUESTIONS  = 10;     // session cap — always end at exactly 10 questions
 let selectedTopic    = null;   // DB topic slug
 let usedIds          = new Set();
 let correctCount     = 0;      // cumulative correct for difficulty unlock
@@ -644,7 +645,6 @@ function normalizeDBQuestion(dbQ) {
    FETCH BATCH FROM DB
 ════════════════════════════════ */
 async function fetchBatch() {
-  const MAX_QUESTIONS = 10;
   if (sessionTotal >= MAX_QUESTIONS) return [];
 
   // Difficulty unlocks after 5 cumulative correct answers
@@ -1066,7 +1066,7 @@ async function submitAnswer() {
   document.getElementById('btn-next').textContent = 'Next Question →';
 
   // Kick off background pre-fetch when 3 from end of batch
-  if (!nextBatchPromise && currentQ >= QUESTIONS.length - 3) {
+  if (!nextBatchPromise && currentQ >= QUESTIONS.length - 3 && sessionTotal < MAX_QUESTIONS) {
     nextBatchPromise = fetchBatch().catch(() => []);
   }
 }
@@ -1113,7 +1113,7 @@ async function nextQuestion() {
     setTimeout(() => { card.classList.remove('card-refreshing'); loadQuestion(currentQ); }, 180);
 
     // Kick off pre-fetch when 3 from end of batch
-    if (!nextBatchPromise && currentQ >= QUESTIONS.length - 3) {
+    if (!nextBatchPromise && currentQ >= QUESTIONS.length - 3 && sessionTotal < MAX_QUESTIONS) {
       nextBatchPromise = fetchBatch().catch(() => []);
     }
     return;
