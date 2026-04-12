@@ -618,6 +618,7 @@ function normalizeDBQuestion(dbQ) {
   const type = subject === 'maths' ? 'maths' : 'english';
 
   return {
+    id:          dbQ.id,
     _id:         dbQ.id,
     _rawTopic:   rawTopic,
     type,
@@ -667,16 +668,17 @@ async function fetchBatch() {
   const { data, error } = await query;
   if (error) throw new Error(error.message);
 
+  const all = (data || []).map(normalizeDBQuestion);
   console.log('Query filter:', usedIds.size > 0 ? `excluding ${usedIds.size} IDs` : 'no exclusions');
-  console.log('First fetched ID:', data[0]?.id);
-  console.log('usedIds contains it:', usedIds.has(data[0]?.id));
-  const filtered = (data || []).filter(q => !usedIds.has(q.id));
+  console.log('First fetched ID:', all[0]?.id);
+  console.log('usedIds contains it:', usedIds.has(all[0]?.id));
+  const filtered = all.filter(q => !usedIds.has(q.id));
   if (filtered.length === 0) {
     console.log('fetchBatch returned: 0 questions (exhausted)');
     return [];
   }
 
-  const questions = shuffle(filtered).slice(0, BATCH_SIZE).map(normalizeDBQuestion);
+  const questions = shuffle(filtered).slice(0, BATCH_SIZE);
   console.log('fetchBatch returned:', questions.length, 'questions');
   return questions;
 }
@@ -737,7 +739,7 @@ async function startStudy(topic) {
   try {
     const batch = await fetchBatch();
     if (batch.length === 0) { showExhausted(); return; }
-    batch.forEach(q => { console.log('usedIds.add (startStudy):', q._id); usedIds.add(q._id); });
+    batch.forEach(q => { console.log('usedIds.add (startStudy):', q.id); usedIds.add(q.id); });
     QUESTIONS   = batch;
     answers     = new Array(batch.length).fill(null);
     userAnswers = new Array(batch.length).fill(null);
@@ -1135,7 +1137,7 @@ async function nextQuestion() {
     return;
   }
 
-  next.forEach(q => { console.log('usedIds.add (nextBatch):', q._id); usedIds.add(q._id); });
+  next.forEach(q => { console.log('usedIds.add (nextBatch):', q.id); usedIds.add(q.id); });
   batchOffset = sessionTotal;   // freeze offset at questions answered so far
   QUESTIONS   = next;
   answers     = new Array(next.length).fill(null);
