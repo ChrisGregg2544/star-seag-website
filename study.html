@@ -656,7 +656,7 @@ async function fetchBatch() {
     .eq('year_group', userYear)
     .eq('source',     'ai_generated_v3')
     .in('difficulty',  diffTiers)
-    .limit(30);
+    .limit(5); // TEMP: reduced for testing — change back to 30 before launch
 
   if (dbTopics.length === 1) query = query.eq('topic', dbTopics[0]);
   else                       query = query.in('topic', dbTopics);
