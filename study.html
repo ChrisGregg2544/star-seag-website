@@ -1067,7 +1067,8 @@ async function submitAnswer() {
   document.getElementById('btn-next').textContent = 'Next Question →';
 
   // Kick off background pre-fetch when 3 from end of batch
-  if (!nextBatchPromise && currentQ >= QUESTIONS.length - 3 && sessionTotal < MAX_QUESTIONS) {
+  const questionsLeft = MAX_QUESTIONS - sessionTotal;
+  if (!nextBatchPromise && currentQ >= QUESTIONS.length - 3 && questionsLeft > 3) {
     nextBatchPromise = fetchBatch().catch(() => []);
   }
 }
@@ -1114,7 +1115,8 @@ async function nextQuestion() {
     setTimeout(() => { card.classList.remove('card-refreshing'); loadQuestion(currentQ); }, 180);
 
     // Kick off pre-fetch when 3 from end of batch
-    if (!nextBatchPromise && currentQ >= QUESTIONS.length - 3 && sessionTotal < MAX_QUESTIONS) {
+    const questionsLeft = MAX_QUESTIONS - sessionTotal;
+    if (!nextBatchPromise && currentQ >= QUESTIONS.length - 3 && questionsLeft > 3) {
       nextBatchPromise = fetchBatch().catch(() => []);
     }
     return;
