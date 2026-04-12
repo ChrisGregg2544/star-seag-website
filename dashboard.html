@@ -445,10 +445,10 @@ function weeksUntil(examYear) {
 
 const SESSION_ROTATION = [
   { icon: '⚡', name: 'Quick Sprint',  href: 'study.html' },
-  { icon: '🎯', name: 'Topic Sprint',  href: 'topic-sprint.html' },
+  { icon: '🎯', name: 'Topic Sprint',  href: 'study.html?mode=topic' },
   { icon: '⚡', name: 'Quick Sprint',  href: 'study.html' },
   { icon: '📝', name: 'Full Mock',     href: 'mock.html' },
-  { icon: '🎯', name: 'Topic Sprint',  href: 'topic-sprint.html' },
+  { icon: '🎯', name: 'Topic Sprint',  href: 'study.html?mode=topic' },
   { icon: '⚡', name: 'Quick Sprint',  href: 'study.html' },
   { icon: '📝', name: 'Full Mock',     href: 'mock.html' },
 ];
@@ -644,6 +644,7 @@ async function init() {
   const { data: authData } = await sb.auth.getSession();
   if (!authData?.session?.user) { window.location.href = 'login.html'; return; }
   const userId = authData.session.user.id;
+  console.log('[dashboard] userId for session counter:', userId);
 
   const { data: profile } = await sb.from('profiles')
     .select('name,year_group,exam_year,subscription_status,sessions_per_week,free_sprints_used')

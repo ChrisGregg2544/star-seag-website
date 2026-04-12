@@ -644,14 +644,10 @@ function normalizeDBQuestion(dbQ) {
    FETCH BATCH FROM DB
 ════════════════════════════════ */
 async function fetchBatch() {
-  const dbTopics = selectedTopic === 'comprehension'
-    ? ['comprehension_mc', 'comprehension_written']
-    : [selectedTopic];
-
   // Difficulty unlocks after 5 cumulative correct answers
   const diffTiers = correctCount >= 5 ? [1, 2, 3, 4] : [1, 2];
 
-  const BATCH_SIZE = 30;
+  const BATCH_SIZE = 10;
 
   let query = sb
     .from('questions')
@@ -661,8 +657,13 @@ async function fetchBatch() {
     .in('difficulty',  diffTiers)
     .limit(50);
 
-  if (dbTopics.length === 1) query = query.eq('topic', dbTopics[0]);
-  else                       query = query.in('topic', dbTopics);
+  if (selectedTopic === 'mixed') {
+    // No topic filter — pull from all topics for Quick Sprint
+  } else if (selectedTopic === 'comprehension') {
+    query = query.in('topic', ['comprehension_mc', 'comprehension_written']);
+  } else {
+    query = query.eq('topic', selectedTopic);
+  }
 
   const { data, error } = await query;
   if (error) throw new Error(error.message);
@@ -798,6 +799,7 @@ function showExhausted() {
 async function init() {
   const params   = new URLSearchParams(window.location.search);
   const urlTopic = params.get('topic');
+  const urlMode  = params.get('mode');
   const urlTrack = params.get('track');
 
   // Load year group + name from Supabase profile
@@ -819,9 +821,14 @@ async function init() {
   document.getElementById('complete-screen').classList.remove('visible');
 
   if (urlTopic) {
+    // Specific topic passed — go straight to that topic
     await startStudy(urlTopic);
-  } else {
+  } else if (urlMode === 'topic') {
+    // Topic picker mode — let student choose
     showTopicPicker();
+  } else {
+    // Default: Quick Sprint — 10 random mixed questions, no picker
+    await startStudy('mixed');
   }
 }
 
@@ -1331,7 +1338,7 @@ function saveSessionToSupabase(missedQs) {
       console.log('No Supabase session — saved locally only');
       return;
     }
-    console.log('Saving to Supabase for:', data.session.user.email);
+    console.log('Saving to Supabase for:', data.session.user.email, '| userId:', data.session.user.id);
     const userId = data.session.user.id;
     const track  = sessionStorage.getItem('star_year') || 'P6';
 
