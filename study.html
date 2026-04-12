@@ -651,26 +651,30 @@ async function fetchBatch() {
   // Difficulty unlocks after 5 cumulative correct answers
   const diffTiers = correctCount >= 5 ? [1, 2, 3, 4] : [1, 2];
 
+  const BATCH_SIZE = 5; // TEMP: reduced for testing — change back to 30 before launch
+
   let query = sb
     .from('questions')
     .select('id,subject,topic,year_group,difficulty,question_type,question_text,passage,options,correct_answer,explanation,diagram')
     .eq('year_group', userYear)
     .eq('source',     'ai_generated_v3')
     .in('difficulty',  diffTiers)
-    .limit(5); // TEMP: reduced for testing — change back to 30 before launch
+    .limit(50);
 
   if (dbTopics.length === 1) query = query.eq('topic', dbTopics[0]);
   else                       query = query.in('topic', dbTopics);
 
-  console.log('Query filter:', usedIds.size > 0 ? `excluding ${usedIds.size} IDs` : 'no exclusions');
-  if (usedIds.size > 0) {
-    query = query.not('id', 'in', `(${[...usedIds].join(',')})`);
-  }
-
   const { data, error } = await query;
   if (error) throw new Error(error.message);
 
-  const questions = shuffle(data || []).map(normalizeDBQuestion);
+  console.log('Query filter:', usedIds.size > 0 ? `excluding ${usedIds.size} IDs` : 'no exclusions');
+  const filtered = (data || []).filter(q => !usedIds.has(q.id));
+  if (filtered.length === 0) {
+    console.log('fetchBatch returned: 0 questions (exhausted)');
+    return [];
+  }
+
+  const questions = shuffle(filtered).slice(0, BATCH_SIZE).map(normalizeDBQuestion);
   console.log('fetchBatch returned:', questions.length, 'questions');
   return questions;
 }
