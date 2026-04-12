@@ -1234,7 +1234,7 @@ function _showResultsInternal() {
 
   const missedList    = document.getElementById('missed-list');
   const missedSection = document.getElementById('missed-section');
-  missedList.innerHTML = '';
+  if (!missedList || !missedSection) return; // DOM cleared by showExhausted — skip UI rebuild, saves already fired above
   const missedQuestions = QUESTIONS.filter((q, i) => answers[i] === 'wrong');
 
   if (missedQuestions.length === 0) {
