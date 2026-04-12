@@ -288,7 +288,7 @@ fractions_decimals, measurement, statistics, algebra_sequences
 
 ### Phase 2 — Student Experience  
 - [ ] 5. Personalised recommendations on dashboard (weak topics from history)
-- [ ] 6. Remove Anthropic/Claude branding from all pages
+- [x] 6. Remove Anthropic/Claude branding from all pages
 - [ ] 7. Parent section (child progress, weak topics, recent sessions)
 - [ ] 8. Google OAuth — publish app in Google Cloud Console
 - [ ] 9. Results history page
