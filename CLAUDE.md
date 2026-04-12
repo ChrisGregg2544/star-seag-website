@@ -287,7 +287,7 @@ fractions_decimals, measurement, statistics, algebra_sequences
 - [ ] 4. Stripe end-to-end test — confirm profiles table updates on payment
 
 ### Phase 2 — Student Experience  
-- [ ] 5. Personalised recommendations on dashboard (weak topics from history)
+- [x] 5. Personalised recommendations on dashboard (weak topics from history)
 - [x] 6. Remove Anthropic/Claude branding from all pages
 - [ ] 7. Parent section (child progress, weak topics, recent sessions)
 - [ ] 8. Google OAuth — publish app in Google Cloud Console
