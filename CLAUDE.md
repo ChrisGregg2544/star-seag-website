@@ -103,8 +103,8 @@ weeks_to_exam, created_at, updated_at
 
 ### Other tables
 - student_question_history — tracks questions seen per student
-- sessions — completed mock/sprint sessions
-- question_results — per-question results per session
+- sessions — completed mock/sprint sessions (session_type: 'full_mock' or 'topic_sprint')
+- question_results — per-question results per session; includes question_id (uuid, references questions)
 - progress_summary — latest score/topics per student
 
 ### RLS Policies (questions table)
@@ -283,7 +283,7 @@ fractions_decimals, measurement, statistics, algebra_sequences
 ### Phase 1 — Data Foundation
 - [x] 1. Top up thin P7/P6 topics via seed run (see thin topics below)
 - [x] 2. Remove Catapult questions (DELETE WHERE source='catapult_test')
-- [ ] 3. Save study/mock results to Supabase (question_results + progress_summary)
+- [x] 3. Save study/mock results to Supabase (question_results + progress_summary)
 - [ ] 4. Stripe end-to-end test — confirm profiles table updates on payment
 
 ### Phase 2 — Student Experience  
