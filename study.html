@@ -644,6 +644,8 @@ function normalizeDBQuestion(dbQ) {
    FETCH BATCH FROM DB
 ════════════════════════════════ */
 async function fetchBatch() {
+  const MAX_SESSION = 10; // TEMP for testing — change to null before launch
+  if (MAX_SESSION && sessionTotal >= MAX_SESSION) return [];
   console.log('fetchBatch called, usedIds count:', usedIds.size);
   const dbTopics = selectedTopic === 'comprehension'
     ? ['comprehension_mc', 'comprehension_written']
