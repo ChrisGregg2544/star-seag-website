@@ -644,9 +644,6 @@ function normalizeDBQuestion(dbQ) {
    FETCH BATCH FROM DB
 ════════════════════════════════ */
 async function fetchBatch() {
-  const MAX_SESSION = 5; // TEMP for testing — remove before launch
-  if (MAX_SESSION !== null && sessionTotal >= MAX_SESSION) return [];
-  console.log('fetchBatch called, usedIds count:', usedIds.size);
   const dbTopics = selectedTopic === 'comprehension'
     ? ['comprehension_mc', 'comprehension_written']
     : [selectedTopic];
@@ -654,7 +651,7 @@ async function fetchBatch() {
   // Difficulty unlocks after 5 cumulative correct answers
   const diffTiers = correctCount >= 5 ? [1, 2, 3, 4] : [1, 2];
 
-  const BATCH_SIZE = 5; // TEMP: reduced for testing — change back to 30 before launch
+  const BATCH_SIZE = 30;
 
   let query = sb
     .from('questions')
@@ -671,19 +668,11 @@ async function fetchBatch() {
   if (error) throw new Error(error.message);
 
   const rawData = data || [];
-  console.log('Query filter:', usedIds.size > 0 ? `excluding ${usedIds.size} IDs` : 'no exclusions');
-  console.log('First fetched ID:', rawData[0]?.id);
-  console.log('usedIds contains it:', usedIds.has(rawData[0]?.id));
-
   const filtered = rawData.filter(q => !usedIds.has(q.id));
-  if (filtered.length === 0) {
-    console.log('fetchBatch returned: 0 questions (exhausted)');
-    return [];
-  }
+  if (filtered.length === 0) return [];
 
   const questions = shuffle(filtered).slice(0, BATCH_SIZE);
   questions.forEach(q => usedIds.add(q.id)); // add raw DB ids before normalizing
-  console.log('fetchBatch returned:', questions.length, 'questions');
   return questions.map(normalizeDBQuestion);
 }
 
@@ -1066,11 +1055,10 @@ async function submitAnswer() {
 
   document.getElementById('btn-next').textContent = 'Next Question →';
 
-  // TEMP: disabled for testing
   // Kick off background pre-fetch when 3 from end of batch
-  // if (!nextBatchPromise && currentQ >= QUESTIONS.length - 3) {
-  //   nextBatchPromise = fetchBatch().catch(() => []);
-  // }
+  if (!nextBatchPromise && currentQ >= QUESTIONS.length - 3) {
+    nextBatchPromise = fetchBatch().catch(() => []);
+  }
 }
 
 function showFeedback(q, isCorrect, aiFeedback) {
@@ -1114,11 +1102,10 @@ async function nextQuestion() {
     card.classList.add('card-refreshing');
     setTimeout(() => { card.classList.remove('card-refreshing'); loadQuestion(currentQ); }, 180);
 
-    // TEMP: disabled for testing
     // Kick off pre-fetch when 3 from end of batch
-    // if (!nextBatchPromise && currentQ >= QUESTIONS.length - 3) {
-    //   nextBatchPromise = fetchBatch().catch(() => []);
-    // }
+    if (!nextBatchPromise && currentQ >= QUESTIONS.length - 3) {
+      nextBatchPromise = fetchBatch().catch(() => []);
+    }
     return;
   }
 
