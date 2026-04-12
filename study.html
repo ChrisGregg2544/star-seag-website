@@ -643,6 +643,7 @@ function normalizeDBQuestion(dbQ) {
    FETCH BATCH FROM DB
 ════════════════════════════════ */
 async function fetchBatch() {
+  console.log('fetchBatch called, usedIds count:', usedIds.size);
   const dbTopics = selectedTopic === 'comprehension'
     ? ['comprehension_mc', 'comprehension_written']
     : [selectedTopic];
@@ -668,7 +669,9 @@ async function fetchBatch() {
   const { data, error } = await query;
   if (error) throw new Error(error.message);
 
-  return shuffle(data || []).map(normalizeDBQuestion);
+  const questions = shuffle(data || []).map(normalizeDBQuestion);
+  console.log('fetchBatch returned:', questions.length, 'questions');
+  return questions;
 }
 
 /* ════════════════════════════════
