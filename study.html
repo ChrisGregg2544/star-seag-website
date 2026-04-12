@@ -744,6 +744,7 @@ async function startStudy(topic) {
    SHOW EXHAUSTED / RESULTS
 ════════════════════════════════ */
 function showExhausted() {
+  console.log('showExhausted called');
   if (loadingTipInterval) { clearInterval(loadingTipInterval); loadingTipInterval = null; }
   document.getElementById('question-card').style.display    = 'none';
   document.getElementById('progress-section').style.display = 'none';
@@ -1166,6 +1167,7 @@ function showResults() {
 }
 
 function _showResultsInternal() {
+  console.log('_showResultsInternal called, answers:', Object.keys(answers).length);
   sprintCount++;
   document.getElementById('question-card').style.display    = 'none';
   document.getElementById('progress-section').style.display = 'none';
