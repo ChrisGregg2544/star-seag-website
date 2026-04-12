@@ -1189,6 +1189,16 @@ function showResults() {
 function _showResultsInternal() {
   console.log('_showResultsInternal called, answers:', Object.keys(answers).length);
   sprintCount++;
+
+  // When called from showExhausted, DOM elements for the results UI don't exist
+  // (showExhausted already rendered its own results screen). Skip UI rebuild,
+  // but still run the Supabase save block below.
+  const calledFromExhausted = !document.getElementById('missed-list');
+  if (calledFromExhausted) {
+    saveSessionToSupabase([]);
+    return;
+  }
+
   document.getElementById('question-card').style.display    = 'none';
   document.getElementById('progress-section').style.display = 'none';
   document.getElementById('complete-screen').classList.remove('visible');
@@ -1234,7 +1244,7 @@ function _showResultsInternal() {
 
   const missedList    = document.getElementById('missed-list');
   const missedSection = document.getElementById('missed-section');
-  if (!missedList || !missedSection) return; // DOM cleared by showExhausted — skip UI rebuild, saves already fired above
+  missedList.innerHTML = '';
   const missedQuestions = QUESTIONS.filter((q, i) => answers[i] === 'wrong');
 
   if (missedQuestions.length === 0) {
@@ -1324,7 +1334,11 @@ function _showResultsInternal() {
   localStorage.setItem('star_video_log', JSON.stringify(videoLog));
   localStorage.setItem('star_sessions',  JSON.stringify(sessions));
 
-  /* ── SUPABASE SAVE — runs once here at end of sprint only ── */
+  saveSessionToSupabase(missedQuestions);
+}
+
+function saveSessionToSupabase(missedQs) {
+  missedQs = missedQs || [];
   sb.auth.getSession().then(async ({ data }) => {
     if (!data?.session?.user) {
       console.log('No Supabase session — saved locally only');
@@ -1367,7 +1381,7 @@ function _showResultsInternal() {
       console.log('Student history save:', histError || 'OK');
     }
 
-    const toReviewForDb = missedQuestions
+    const toReviewForDb = missedQs
       .map(q => ({ topic: q.topic, videoTitle: q.videoTopic || q.topic, videoUrl: q.videoUrl, videoSource: q.videoSource, questionText: q.text }))
       .filter((item, idx, arr) => arr.findIndex(x => x.topic === item.topic) === idx);
 
@@ -1381,7 +1395,6 @@ function _showResultsInternal() {
     }, { onConflict: 'user_id' });
     console.log('Progress summary save:', psError || 'OK');
 
-    // Increment free sprint counter for non-subscribed users
     if (!window._starAccess?.subscribed) {
       const newCount = (window._starAccess?.freeUsed || 0) + 1;
       const { error: fsuError } = await sb.from('profiles').update({ free_sprints_used: newCount }).eq('id', userId);
