@@ -644,6 +644,9 @@ function normalizeDBQuestion(dbQ) {
    FETCH BATCH FROM DB
 ════════════════════════════════ */
 async function fetchBatch() {
+  const MAX_QUESTIONS = 10;
+  if (sessionTotal >= MAX_QUESTIONS) return [];
+
   // Difficulty unlocks after 5 cumulative correct answers
   const diffTiers = correctCount >= 5 ? [1, 2, 3, 4] : [1, 2];
 
@@ -1456,11 +1459,17 @@ async function checkAccess() {
         .from('profiles')
         .select('subscription_status, free_sprints_used')
         .eq('id', userId)
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error('Profile check error:', error.message);
         return true; // Fail open
+      }
+
+      // No profile row yet — allow access rather than blocking
+      if (!profile) {
+        window._starAccess = { subscribed: false, freeUsed: 0, userId };
+        return true;
       }
 
       const status = profile?.subscription_status;
