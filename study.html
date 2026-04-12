@@ -657,24 +657,20 @@ async function fetchBatch() {
     .eq('year_group', userYear)
     .eq('source',     'ai_generated_v3')
     .in('difficulty',  diffTiers)
-    .limit(20); // over-fetch for client-side dedup; TEMP batch display size is 5
+    .limit(5); // TEMP: reduced for testing — change back to 30 before launch
 
   if (dbTopics.length === 1) query = query.eq('topic', dbTopics[0]);
   else                       query = query.in('topic', dbTopics);
 
+  console.log('Query filter:', usedIds.size > 0 ? `excluding ${usedIds.size} IDs` : 'no exclusions');
   if (usedIds.size > 0) {
-    console.log('Excluding IDs:', [...usedIds]);
-    console.log('Exclude filter string:', `(${[...usedIds].join(',')})`);
+    query = query.not('id', 'in', `(${[...usedIds].join(',')})`);
   }
 
   const { data, error } = await query;
   if (error) throw new Error(error.message);
 
-  // Client-side exclusion — more reliable than .not('id','in',...) with Supabase JS
-  const BATCH_SIZE = 5; // TEMP: reduced for testing — change back to 30 before launch
-  const questions = shuffle((data || []).filter(q => !usedIds.has(q.id)))
-    .slice(0, BATCH_SIZE)
-    .map(normalizeDBQuestion);
+  const questions = shuffle(data || []).map(normalizeDBQuestion);
   console.log('fetchBatch returned:', questions.length, 'questions');
   return questions;
 }
