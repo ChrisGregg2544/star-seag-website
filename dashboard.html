@@ -684,7 +684,7 @@ async function init() {
 
   const [{ count: sessionsCount }, { count: weekDoneCount }] = await Promise.all([
     sb.from('sessions').select('*', {count:'exact',head:true}).eq('user_id', userId),
-    sb.from('sessions').select('*', {count:'exact',head:true}).eq('user_id', userId).gte('created_at', weekStart.toISOString()),
+    sb.from('sessions').select('*', {count:'exact',head:true}).eq('user_id', userId).gte('completed_at', weekStart.toISOString()),
   ]);
 
   const { data: progressData } = await sb.from('progress_summary')
