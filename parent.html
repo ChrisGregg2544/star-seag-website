@@ -380,35 +380,7 @@
   <div class="star-p" style="width:3px;height:3px;top:78%;left:89%; --d:3.9s;--del:2s"></div>
 </div>
 
-<!-- ══════ PIN OVERLAY ══════ -->
-<div class="pin-overlay" id="pin-overlay">
-  <div class="pin-card">
-    <div class="pin-icon">🔐</div>
-    <div class="pin-title">Parent Portal</div>
-    <div class="pin-sub">Enter your 4-digit PIN to continue</div>
-    <div class="pin-dots" id="pin-dots">
-      <div class="pin-dot" id="dot-0"></div>
-      <div class="pin-dot" id="dot-1"></div>
-      <div class="pin-dot" id="dot-2"></div>
-      <div class="pin-dot" id="dot-3"></div>
-    </div>
-    <div class="pin-keypad" id="pin-keypad">
-      <button class="pin-key" onclick="pinPress('1')">1</button>
-      <button class="pin-key" onclick="pinPress('2')">2</button>
-      <button class="pin-key" onclick="pinPress('3')">3</button>
-      <button class="pin-key" onclick="pinPress('4')">4</button>
-      <button class="pin-key" onclick="pinPress('5')">5</button>
-      <button class="pin-key" onclick="pinPress('6')">6</button>
-      <button class="pin-key" onclick="pinPress('7')">7</button>
-      <button class="pin-key" onclick="pinPress('8')">8</button>
-      <button class="pin-key" onclick="pinPress('9')">9</button>
-      <button class="pin-key zero" onclick="pinPress('0')">0</button>
-      <button class="pin-key backspace" onclick="pinBackspace()">⌫</button>
-    </div>
-    <div class="pin-error-msg" id="pin-error"></div>
-    <a href="dashboard.html" class="pin-back-link">← Back to student dashboard</a>
-  </div>
-</div>
+
 
 <!-- Nav -->
 <nav class="top-nav">
@@ -421,7 +393,7 @@
 
 <!-- Page header -->
 <div class="page-header">
-  <div class="ph-eyebrow">Confidential — Parents &amp; Guardians</div>
+  <div class="ph-eyebrow">🔒 Secured by your account login · Parents &amp; Guardians</div>
   <div class="ph-title">Progress <span>Overview</span></div>
   <div class="ph-sub" id="ph-sub">Loading your child's data…</div>
 </div>
@@ -536,53 +508,7 @@ const sb = createClient(
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml1dGNnb2dteGhhcWdheGt6bnh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM3NjE4MTQsImV4cCI6MjA4OTMzNzgxNH0.o0plRQzH8ezfttG_sEeWu3F4IUtKnyzcXtPEGJ9xRF0'
 );
 
-const CORRECT_PIN = '1234';
-let pinEntry = '';
 let currentUserId = null;
-
-/* ── PIN logic ── */
-function pinPress(digit) {
-  if (pinEntry.length >= 4) return;
-  pinEntry += digit;
-  updateDots();
-  if (pinEntry.length === 4) setTimeout(checkPin, 180);
-}
-
-function pinBackspace() {
-  pinEntry = pinEntry.slice(0, -1);
-  document.getElementById('pin-error').textContent = '';
-  updateDots();
-}
-
-function updateDots() {
-  for (let i = 0; i < 4; i++) {
-    const dot = document.getElementById('dot-' + i);
-    dot.classList.toggle('filled', i < pinEntry.length);
-    dot.classList.remove('error');
-  }
-}
-
-function checkPin() {
-  if (pinEntry === CORRECT_PIN) {
-    document.getElementById('pin-overlay').classList.add('hidden');
-    buildDashboard();
-  } else {
-    for (let i = 0; i < 4; i++) {
-      const dot = document.getElementById('dot-' + i);
-      dot.classList.remove('filled');
-      dot.classList.add('error');
-    }
-    document.getElementById('pin-error').textContent = 'Incorrect PIN — please try again';
-    setTimeout(() => { pinEntry = ''; updateDots(); document.getElementById('pin-error').textContent = ''; }, 900);
-  }
-}
-
-document.addEventListener('keydown', e => {
-  if (!document.getElementById('pin-overlay').classList.contains('hidden')) {
-    if (e.key >= '0' && e.key <= '9') pinPress(e.key);
-    if (e.key === 'Backspace') pinBackspace();
-  }
-});
 
 /* ── Main build — reads from Supabase ── */
 async function buildDashboard() {
@@ -598,18 +524,18 @@ async function buildDashboard() {
   ] = await Promise.all([
     sb.from('profiles')
       .select('name, year_group')
-      .eq('id', currentUserId).single(),
+      .eq('id', currentUserId).maybeSingle(),
     sb.from('sessions')
-      .select('score, total_questions, track, session_type, created_at')
+      .select('score, total_questions, track, session_type, completed_at')
       .eq('user_id', currentUserId)
-      .order('created_at', { ascending: false })
+      .order('completed_at', { ascending: false })
       .limit(50),
     sb.from('question_results')
       .select('topic, question_type, correct')
       .eq('user_id', currentUserId),
     sb.from('progress_summary')
       .select('topics_to_review, last_session_at')
-      .eq('user_id', currentUserId).single(),
+      .eq('user_id', currentUserId).maybeSingle(),
   ]);
 
   const name        = profile?.name      || 'your child';
@@ -755,7 +681,7 @@ function buildHistory(sessions) {
         <div class="hist-track">${track} · ${typeLabel}</div>
         <div class="hist-score">${s.score} of ${s.total_questions} correct</div>
       </div>
-      <div class="hist-date">${s.created_at ? formatDate(s.created_at) : ''}</div>`;
+      <div class="hist-date">${s.completed_at ? formatDate(s.completed_at) : ''}</div>`;
     list.appendChild(row);
   });
 }
@@ -772,7 +698,7 @@ function formatDate(iso) {
   } catch { return ''; }
 }
 
-/* ── Init: check auth, then wait for PIN ── */
+/* ── Init: check auth, then load dashboard ── */
 window.addEventListener('DOMContentLoaded', async () => {
   const { data } = await sb.auth.getSession();
   if (!data?.session?.user) {
@@ -780,7 +706,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     return;
   }
   currentUserId = data.session.user.id;
-  // PIN overlay already showing — buildDashboard() called on correct PIN
+  buildDashboard();
 });
 </script>
 </body>
