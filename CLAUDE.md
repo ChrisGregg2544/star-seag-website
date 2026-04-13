@@ -309,7 +309,7 @@ fractions_decimals, measurement, statistics, algebra_sequences
 - [ ] 22. Favicon added (currently 404)
 - [ ] 23. Check staraitutor.co.uk domain points to the correct site
 - [ ] 24. Stripe switch to live keys
-- [ ] 25. SMTP email configured via Resend.com for staraitutor.co.uk
+- [x] 25. SMTP email configured via Resend.com for staraitutor.co.uk
 - [ ] 26. Confirm email enabled in Supabase Auth after SMTP verified
 - [ ] 27. CLAUDE.md final update
 
