@@ -631,6 +631,63 @@ function pieChart(opts = {}) {
   return wrap(slices + legend);
 }
 
+// ── function-machine ─────────────────────────────────────────────────────────
+
+function functionMachine({ rule = '× 3', input = '?', output = '?' } = {}) {
+  // Layout: [Input] → [  Rule box  ] → [Output]
+  // Centred vertically at y=90. Horizontal flow across 280px.
+  const cy = 90;
+
+  // Box dimensions
+  const ioW = 52, ioH = 36, ioR = 8;      // input/output boxes
+  const ruleW = 96, ruleH = 50, ruleR = 12; // rule box (larger)
+  const arrowLen = 22;
+
+  // X positions
+  const ioX1 = 8;                                        // input box left
+  const arr1X = ioX1 + ioW + 2;                          // arrow 1 start
+  const ruleX = arr1X + arrowLen + 2;                    // rule box left
+  const arr2X = ruleX + ruleW + 2;                       // arrow 2 start
+  const ioX2 = arr2X + arrowLen + 2;                     // output box left
+
+  const ioY  = cy - ioH / 2;
+  const ruleY = cy - ruleH / 2;
+
+  // Arrow helper: horizontal arrow from (x1,y) to (x2,y)
+  function arrow(x1, x2, y) {
+    const hx = x2 - 6;
+    return `<line x1="${x1}" y1="${y}" x2="${hx}" y2="${y}" stroke="${BLUE}" stroke-width="2.5"/>
+            <polygon points="${x2},${y} ${hx},${y - 5} ${hx},${y + 5}" fill="${BLUE}"/>`;
+  }
+
+  // Input box
+  const inputFill  = input  === '?' ? '#FFF7ED' : FILL;
+  const outputFill = output === '?' ? '#FFF7ED' : FILL;
+  const inputStroke  = input  === '?' ? '#F59E0B' : BLUE;
+  const outputStroke = output === '?' ? '#F59E0B' : BLUE;
+
+  const inputBox = `
+    <rect x="${ioX1}" y="${ioY}" width="${ioW}" height="${ioH}" rx="${ioR}" fill="${inputFill}" stroke="${inputStroke}" stroke-width="2"/>
+    <text x="${ioX1 + ioW / 2}" y="${cy + 5}" text-anchor="middle" font-size="15" font-weight="bold" fill="${input === '?' ? '#F59E0B' : PURPLE}">${input}</text>
+    <text x="${ioX1 + ioW / 2}" y="${ioY - 6}" text-anchor="middle" font-size="9" fill="${GREY}">INPUT</text>`;
+
+  // Rule box
+  const ruleBox = `
+    <rect x="${ruleX}" y="${ruleY}" width="${ruleW}" height="${ruleH}" rx="${ruleR}" fill="${FILL}" stroke="${BLUE}" stroke-width="2.5"/>
+    <text x="${ruleX + ruleW / 2}" y="${cy + 5}" text-anchor="middle" font-size="13" font-weight="bold" fill="${PURPLE}">${rule}</text>`;
+
+  // Output box
+  const outputBox = `
+    <rect x="${ioX2}" y="${ioY}" width="${ioW}" height="${ioH}" rx="${ioR}" fill="${outputFill}" stroke="${outputStroke}" stroke-width="2"/>
+    <text x="${ioX2 + ioW / 2}" y="${cy + 5}" text-anchor="middle" font-size="15" font-weight="bold" fill="${output === '?' ? '#F59E0B' : PURPLE}">${output}</text>
+    <text x="${ioX2 + ioW / 2}" y="${ioY - 6}" text-anchor="middle" font-size="9" fill="${GREY}">OUTPUT</text>`;
+
+  const arr1 = arrow(arr1X, ruleX, cy);
+  const arr2 = arrow(arr2X, ioX2, cy);
+
+  return wrap(inputBox + arr1 + ruleBox + arr2 + outputBox);
+}
+
 // ── Main export ───────────────────────────────────────────────────────────────
 
 export function generateDiagram(type, options = {}) {
@@ -649,6 +706,7 @@ export function generateDiagram(type, options = {}) {
       case 'coordinate-grid':   return coordinateGrid(options);
       case 'cuboid':            return cuboid(options);
       case 'pie-chart':         return pieChart(options);
+      case 'function-machine':  return functionMachine(options);
       default:                  return null;
     }
   } catch {

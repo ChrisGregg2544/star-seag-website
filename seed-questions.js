@@ -97,6 +97,14 @@ const TARGETS = [
   ['english', 'punctuation',           'P6', 1, 40],  // fill to 40 at diff:1 → 80 total
   ['maths',   'measurement',           'P7', 4, 10],  // +9 (1 exist) → fills gap
   ['maths',   'measurement',           'P7', 5, 15],  // +15 at fresh diff:5 → 55 total
+
+  // ── Function machine questions (April 2026) ───────────────────────────────────
+  ['maths', 'algebra_sequences',       'P6', 2, 10],  // function machines diff:2
+  ['maths', 'algebra_sequences',       'P6', 3, 10],  // function machines diff:3
+  ['maths', 'algebra_sequences',       'P6', 4, 10],  // function machines diff:4
+  ['maths', 'algebra_sequences',       'P7', 2, 10],  // function machines diff:2
+  ['maths', 'algebra_sequences',       'P7', 3, 10],  // function machines diff:3
+  ['maths', 'algebra_sequences',       'P7', 4, 10],  // function machines diff:4
 ];
 
 // ── Topic guidance ─────────────────────────────────────────────────────────────
@@ -588,6 +596,21 @@ function attachDiagram(q) {
 
     if (data.length >= 2) return generateDiagram('pictogram', { data, keyValue });
     return null;  // can't extract reliably — show no diagram rather than wrong one
+  }
+
+  if (/function machine|input.*output|output.*input/.test(text)) {
+    // Extract rule (e.g. "× 3 then + 2", "multiply by 4", "÷ 2")
+    const ruleMatch = text.match(/rule[:\s]+([×÷+\-x*\/][\s\d]+(?:then\s+[×÷+\-x*\/][\s\d]+)?)/i)
+                   || text.match(/((?:multiply|divide|add|subtract)[^.,;]{1,30})/i)
+                   || text.match(/([×÷+\-]\s*\d+(?:\s+then\s+[×÷+\-]\s*\d+)?)/i);
+    const rule   = ruleMatch ? ruleMatch[1].trim() : '× ?';
+    const inputQ  = /find.*input|\? →|input is unknown/.test(text) ? '?' : '';
+    const outputQ = /find.*output|→ \?|output is unknown/.test(text) ? '?' : '';
+    return generateDiagram('function-machine', {
+      rule,
+      input:  inputQ  || '?',
+      output: outputQ || '?',
+    });
   }
 
   if (/number line|missing number/.test(text))
