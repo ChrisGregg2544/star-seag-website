@@ -53,6 +53,11 @@
       <div class="props">Football 40% · Swimming 25% · Tennis 20% · Other 15%</div>
       <div class="diagram" id="pie"></div>
     </div>
+    <div class="card">
+      <h2>Function Machine</h2>
+      <div class="props">rule="× 3 then + 2" · input="4" · output="?"</div>
+      <div class="diagram" id="function-machine"></div>
+    </div>
   </div>
 
   <script type="module">
@@ -71,6 +76,12 @@
         { label: 'Tennis',   value: 20 },
         { label: 'Other',    value: 15 },
       ],
+    });
+
+    document.getElementById('function-machine').innerHTML = generateDiagram('function-machine', {
+      rule:   '× 3 then + 2',
+      input:  '4',
+      output: '?',
     });
   </script>
 </body>
