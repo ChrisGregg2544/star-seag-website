@@ -164,6 +164,20 @@ function attachDiagram(q) {
   if (/\bruler\b|\bthermometer\b|\bweighs?\b|\bweighing\b/.test(text))
     return generateDiagram('measurement-scale', { type: /therm/.test(text) ? 'thermometer' : /weigh/.test(text) ? 'weighing-dial' : 'ruler' });
 
+  if (/function machine|input.*output|output.*input/.test(text)) {
+    const ruleMatch = text.match(/rule[:\s]+([×÷+\-x*\/][\s\d]+(?:then\s+[×÷+\-x*\/][\s\d]+)?)/i)
+                   || text.match(/((?:multiply|divide|add|subtract)[^.,;]{1,30})/i)
+                   || text.match(/([×÷+\-]\s*\d+(?:\s+then\s+[×÷+\-]\s*\d+)?)/i);
+    const rule    = ruleMatch ? ruleMatch[1].trim() : '× ?';
+    const inputQ  = /find.*input|\? →|input is unknown/.test(text) ? '?' : '';
+    const outputQ = /find.*output|→ \?|output is unknown/.test(text) ? '?' : '';
+    return generateDiagram('function-machine', {
+      rule,
+      input:  inputQ  || '?',
+      output: outputQ || '?',
+    });
+  }
+
   return null;
 }
 
@@ -190,6 +204,22 @@ async function main() {
     allQuestions = allQuestions.concat(data);
     if (data.length < PAGE) break;
     from += PAGE;
+  }
+
+  // Also fetch algebra_sequences questions with no diagram — may be function machines
+  {
+    const { data, error } = await sb
+      .from('questions')
+      .select('id, question_text, topic, diagram')
+      .is('diagram', null)
+      .eq('validated', true)
+      .eq('topic', 'algebra_sequences');
+
+    if (error) { console.error('Fetch error (algebra_sequences):', error.message); process.exit(1); }
+    if (data && data.length > 0) {
+      console.log(`Also checking ${data.length} algebra_sequences questions with no diagram...`);
+      allQuestions = allQuestions.concat(data);
+    }
   }
 
   const total = Math.min(allQuestions.length, LIMIT);
