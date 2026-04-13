@@ -42,6 +42,8 @@
     .nav-btn{font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:7px 14px;border-radius:8px;cursor:pointer;border:none;font-family:'Lato',sans-serif;transition:all .2s;}
     .nav-signout{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);color:rgba(239,68,68,.7);}
     .nav-signout:hover{background:rgba(239,68,68,.15);color:#ef4444;}
+    .nav-parent-link{font-size:.72rem;color:rgba(255,255,255,.35);text-decoration:none;letter-spacing:.04em;transition:color .2s;white-space:nowrap;}
+    .nav-parent-link:hover{color:rgba(255,255,255,.65);}
 
     /* HERO */
     .hero{position:relative;z-index:10;width:100%;max-width:860px;background:linear-gradient(135deg,var(--navy-card) 0%,#0d1e38 100%);border:1px solid rgba(201,168,76,.18);border-radius:24px;padding:32px 36px;margin-bottom:20px;overflow:hidden;animation:fadeUp .5s cubic-bezier(.22,1,.36,1) both;display:grid;grid-template-columns:1fr auto;gap:24px;align-items:center;}
@@ -244,6 +246,7 @@
   </a>
   <div class="nav-right">
     <span class="nav-hi" id="nav-hi"></span>
+    <a href="parent.html" class="nav-parent-link">👨‍👩‍👧 Parent View</a>
     <button class="nav-btn nav-signout" onclick="signOut()">Sign Out</button>
   </div>
 </nav>
