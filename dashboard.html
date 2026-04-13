@@ -359,7 +359,10 @@
 <div class="week-section">
   <div class="week-header">
     <span class="week-title">📅 This Week</span>
-    <div class="week-count"><em id="week-done-num">0</em> of <em id="week-target-num">—</em> sessions</div>
+    <div style="display:flex;align-items:center;gap:14px;">
+      <div class="week-count"><em id="week-done-num">0</em> of <em id="week-target-num">—</em> sessions</div>
+      <a href="results.html" style="font-size:.72rem;color:rgba(255,255,255,.35);text-decoration:none;transition:color .2s;" onmouseover="this.style.color='rgba(255,255,255,.65)'" onmouseout="this.style.color='rgba(255,255,255,.35)'">View History →</a>
+    </div>
   </div>
   <div class="week-target-label" id="week-target-label">Loading your schedule…</div>
   <div class="week-progress-track">
