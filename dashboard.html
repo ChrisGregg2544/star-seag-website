@@ -652,9 +652,43 @@ async function init() {
   const userId = authData.session.user.id;
   console.log('[dashboard] userId for session counter:', userId);
 
+  // Handle post-Stripe-checkout redirect
+  const justPaid = new URLSearchParams(window.location.search).get('checkout') === 'success';
+  if (justPaid) {
+    const banner = document.getElementById('upgrade-banner');
+    const msg    = document.getElementById('upgrade-banner-msg');
+    banner.classList.add('visible');
+    msg.textContent = '💳 Payment successful! Setting up your account…';
+
+    let activated = false;
+    for (let i = 0; i < 10; i++) {
+      await new Promise(r => setTimeout(r, 2000));
+      const { data: p } = await sb.from('profiles')
+        .select('subscription_status')
+        .eq('id', userId)
+        .maybeSingle();
+      if (p?.subscription_status === 'active' || p?.subscription_status === 'trialing') {
+        activated = true;
+        break;
+      }
+    }
+
+    if (activated) {
+      msg.textContent = '🎉 Welcome to STAR AI Tutor! You\'re all set.';
+      setTimeout(() => {
+        // Remove ?checkout=success from URL then reload
+        window.history.replaceState({}, '', 'dashboard.html');
+        location.reload();
+      }, 2000);
+      return;
+    } else {
+      msg.textContent = '⚠️ Your subscription is being activated — refresh in a moment if anything looks wrong.';
+    }
+  }
+
   const { data: profile } = await sb.from('profiles')
     .select('name,year_group,exam_year,subscription_status,sessions_per_week,free_sprints_used')
-    .eq('id', userId).single();
+    .eq('id', userId).maybeSingle();
 
   const status = profile?.subscription_status;
   const subscribed = status === 'active' || status === 'trialing';
@@ -695,7 +729,7 @@ async function init() {
 
   const { data: progressData } = await sb.from('progress_summary')
     .select('last_score, last_total, topics_to_review')
-    .eq('user_id', userId).single();
+    .eq('user_id', userId).maybeSingle();
 
   const toReview  = progressData?.topics_to_review || JSON.parse(localStorage.getItem('star_toReview')) || [];
   const lastScore = progressData?.last_score != null
