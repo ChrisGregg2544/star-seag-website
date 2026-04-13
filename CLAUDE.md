@@ -290,7 +290,7 @@ fractions_decimals, measurement, statistics, algebra_sequences
 - [x] 5. Personalised recommendations on dashboard (weak topics from history)
 - [x] 6. Remove Anthropic/Claude branding from all pages
 - [ ] 7. Parent section (child progress, weak topics, recent sessions)
-- [ ] 8. Google OAuth — publish app in Google Cloud Console
+- [x] 8. Google OAuth — publish app in Google Cloud Console
 - [ ] 9. Results history page
 - [ ] 10. Function machine question type + box/arrow SVG diagram
 
