@@ -6,6 +6,7 @@
  * !ANTHROPIC_API_KEY=sk-ant-... SUPABASE_SERVICE_KEY=eyJ... node seed-questions.js
  */
 
+import 'dotenv/config';
 import Anthropic from '@anthropic-ai/sdk';
 import { createClient } from '@supabase/supabase-js';
 import { generateDiagram } from './diagram-generator.js';
