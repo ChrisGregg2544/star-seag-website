@@ -293,7 +293,7 @@ fractions_decimals, measurement, statistics, algebra_sequences
 - [x] 8. Google OAuth — publish app in Google Cloud Console
 - [ ] 9. Results history page
 - [x] 10. Function machine question type + SVG diagram
-- [ ] 11. STAR Chat — SEAG-restricted help chatbot (Anthropic API, strict system prompt limiting to SEAG topics only)
+- [x] 11. STAR Chat — SEAG-restricted help chatbot (Anthropic API, strict system prompt limiting to SEAG topics only)
 
 ### Phase 3 — Pre-Launch
 - [ ] 12. Real Life Test (printable 56-question paper)
