@@ -292,19 +292,28 @@ fractions_decimals, measurement, statistics, algebra_sequences
 - [ ] 7. Parent section (child progress, weak topics, recent sessions)
 - [x] 8. Google OAuth — publish app in Google Cloud Console
 - [ ] 9. Results history page
-- [ ] 10. Function machine question type + box/arrow SVG diagram
+- [ ] 10. Function machine question type + SVG diagram
+- [ ] 11. STAR Chat — SEAG-restricted help chatbot (Anthropic API, strict system prompt limiting to SEAG topics only)
 
 ### Phase 3 — Pre-Launch
-- [ ] 11. Real Life Test (printable 56-question paper)
-- [ ] 12. Full end-to-end user journey test (signup → onboarding → mock → study → payment)
-- [ ] 13. Mobile testing on real devices
-- [ ] 14. Stripe switch to live keys
-- [ ] 15. SMTP email configured via Resend.com for staraitutor.co.uk
-- [ ] 16. Confirm email enabled in Supabase Auth after SMTP verified
-- [ ] 17. CLAUDE.md final update
+- [ ] 12. Real Life Test (printable 56-question paper)
+- [ ] 13. Full end-to-end user journey test (signup → onboarding → mock → study → payment)
+- [ ] 14. Full website QA walkthrough (every page, every button, every user journey tested)
+- [ ] 15. Privacy Policy review — ensure accurate, GDPR compliant, reflects current architecture
+- [ ] 16. Terms of Service review — check all terms are appropriate for a children's educational product
+- [ ] 17. Cookie policy check — confirm cookie consent banner is working
+- [ ] 18. Check all footer links work (Privacy, Terms, Support, Facebook)
+- [ ] 19. Check all email templates in Supabase match STAR branding
+- [ ] 20. Mobile testing on real devices (iOS and Android)
+- [ ] 21. Cross-browser testing (Chrome, Safari, Firefox, Edge)
+- [ ] 22. Favicon added (currently 404)
+- [ ] 23. Check staraitutor.co.uk domain points to the correct site
+- [ ] 24. Stripe switch to live keys
+- [ ] 25. SMTP email configured via Resend.com for staraitutor.co.uk
+- [ ] 26. Confirm email enabled in Supabase Auth after SMTP verified
+- [ ] 27. CLAUDE.md final update
 
 ### Post Launch
-- [ ] STAR Chat (full coached AI tutor)
 - [ ] GCSE expansion (2027)
 
 ---
