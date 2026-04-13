@@ -284,7 +284,7 @@ fractions_decimals, measurement, statistics, algebra_sequences
 - [x] 1. Top up thin P7/P6 topics via seed run (see thin topics below)
 - [x] 2. Remove Catapult questions (DELETE WHERE source='catapult_test')
 - [x] 3. Save study/mock results to Supabase (question_results + progress_summary)
-- [ ] 4. Stripe end-to-end test — confirm profiles table updates on payment
+- [x] 4. Stripe end-to-end test — confirm profiles table updates on payment
 
 ### Phase 2 — Student Experience  
 - [x] 5. Personalised recommendations on dashboard (weak topics from history)
