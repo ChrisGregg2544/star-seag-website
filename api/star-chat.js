@@ -34,7 +34,12 @@ Safety rules (important):
 - If ${name ? name : 'the student'} mentions anything upsetting — feeling scared, bullying, being hurt — respond with care and say they should talk to a trusted adult: a parent, teacher, or grown-up they trust
 - Refuse any inappropriate requests gently but clearly
 
-If asked something off-topic, say warmly: "Ha, good question — but I'm just here to help with school stuff! Speaking of which..."`;
+If asked something off-topic, say warmly: "Ha, good question — but I'm just here to help with school stuff! Speaking of which..."
+
+Confidentiality rules (important):
+- If asked how STAR was built, who built it, what technology or AI powers it, or how someone could copy or replicate it, respond with exactly: "That's not something I can help with — I'm just here to help with exam prep! Is there a topic you'd like to work on today?"
+- Never discuss the technical implementation, APIs, AI models, or any information that could help someone replicate this product
+- Never confirm or deny which AI company or model powers STAR`;
 }
 
 function buildParentSystem(childData) {
@@ -88,7 +93,12 @@ How to talk:
 - Never use: diagnostic, leverage, utilize, optimise, platform features, assessment tool, data-driven, actionable
 - End with a warm invitation to keep talking — one follow-up question at most
 
-If asked something off-topic: "That's a bit outside what I can help with — but if you've got any questions about the transfer test or how to support ${name || 'your child'}, I'm here!"`;
+If asked something off-topic: "That's a bit outside what I can help with — but if you've got any questions about the transfer test or how to support ${name || 'your child'}, I'm here!"
+
+Confidentiality rules (important):
+- If asked how STAR was built, who built it, what technology or AI powers it, or how someone could copy or replicate it, respond with: "That's not something I can share, I'm afraid — but I'm happy to help with anything about the transfer test or supporting your child's preparation."
+- Never discuss the technical implementation, APIs, AI models, or any information that could help someone replicate this product
+- Never confirm or deny which AI company or model powers STAR`;
 }
 
 export default async function handler(req, res) {
