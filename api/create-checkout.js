@@ -28,8 +28,8 @@ export default async function handler(req, res) {
     params.append('line_items[0][price]',                      priceId);
     params.append('line_items[0][quantity]',                   '1');
     params.append('subscription_data[trial_period_days]',      '7');
-    params.append('success_url',  'https://star-seag-website.vercel.app/dashboard.html?checkout=success');
-    params.append('cancel_url',   'https://star-seag-website.vercel.app/pricing.html?checkout=cancelled');
+    params.append('success_url',  'https://www.staraitutor.co.uk/dashboard.html?checkout=success');
+    params.append('cancel_url',   'https://www.staraitutor.co.uk/pricing.html?checkout=cancelled');
 
     if (userId) params.append('metadata[userId]', userId);
     if (email)  params.append('customer_email',   email);

@@ -125,6 +125,12 @@
       color:rgba(255,255,255,.25);}
     .tb-loading{color:rgba(255,255,255,.3);font-size:.82rem;padding:8px 0;}
     .tb-empty{color:rgba(255,255,255,.3);font-size:.82rem;padding:8px 0;font-style:italic;}
+    .star-footer{position:relative;z-index:10;width:100%;max-width:860px;margin:40px auto 0;padding-top:32px;border-top:1px solid rgba(201,168,76,.15);}
+    .star-footer-bottom{padding:16px 0;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;}
+    .star-footer-bottom-text{font-size:.72rem;color:rgba(255,255,255,.22);}
+    .star-footer-bottom-links{display:flex;gap:18px;}
+    .star-footer-bottom-links a{font-size:.72rem;color:rgba(255,255,255,.22);text-decoration:none;transition:color .18s;}
+    .star-footer-bottom-links a:hover{color:rgba(255,255,255,.5);}
   </style>
 </head>
 <body>
@@ -335,5 +341,18 @@ async function init() {
 
 window.addEventListener('DOMContentLoaded', init);
 </script>
+
+<footer class="star-footer">
+  <div class="star-footer-bottom">
+    <span class="star-footer-bottom-text">&copy; 2026 STAR AI Tutor</span>
+    <div class="star-footer-bottom-links">
+      <a href="privacy.html">Privacy Policy</a>
+      <a href="terms.html">Terms of Service</a>
+      <a href="mailto:staraitutor.support@gmail.com">Support</a>
+      <a href="https://www.facebook.com/share/1DGKfvGo9b/" target="_blank" rel="noopener">Facebook</a>
+    </div>
+  </div>
+</footer>
+
 </body>
 </html>

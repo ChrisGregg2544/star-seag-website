@@ -55,8 +55,17 @@
       position:relative; z-index:10; width:100%; max-width:760px;
       display:flex; flex-direction:column;
       height:calc(100vh - 80px);
-      padding:0 16px 16px;
+      padding:0 16px 0;
     }
+    .chat-footer {
+      flex-shrink:0; padding:10px 4px 14px;
+      display:flex; justify-content:center; gap:20px; flex-wrap:wrap;
+    }
+    .chat-footer a {
+      font-size:.68rem; color:rgba(255,255,255,.2); text-decoration:none;
+      transition:color .18s;
+    }
+    .chat-footer a:hover { color:rgba(255,255,255,.5); }
 
     /* Header */
     .chat-header {
@@ -237,6 +246,12 @@
       </svg>
     </button>
   </div>
+  <footer class="chat-footer">
+    <a href="privacy.html">Privacy Policy</a>
+    <a href="terms.html">Terms of Service</a>
+    <a href="mailto:staraitutor.support@gmail.com">Support</a>
+    <a href="https://www.facebook.com/share/1DGKfvGo9b/" target="_blank" rel="noopener">Facebook</a>
+  </footer>
 </div>
 
 <div class="error-toast" id="error-toast"></div>
