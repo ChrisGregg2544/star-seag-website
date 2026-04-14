@@ -299,15 +299,15 @@ fractions_decimals, measurement, statistics, algebra_sequences
 - [ ] 12. Real Life Test (printable 56-question paper)
 - [ ] 13. Full end-to-end user journey test (signup → onboarding → mock → study → payment)
 - [ ] 14. Full website QA walkthrough (every page, every button, every user journey tested)
-- [ ] 15. Privacy Policy review — ensure accurate, GDPR compliant, reflects current architecture
-- [ ] 16. Terms of Service review — check all terms are appropriate for a children's educational product
+- [x] 15. Privacy Policy review — GDPR compliant, UK Children's Code, ICO registration C1909458
+- [x] 16. Terms of Service review — updated for NI law, cooling-off period, children's product
 - [ ] 17. Cookie policy check — confirm cookie consent banner is working
 - [ ] 18. Check all footer links work (Privacy, Terms, Support, Facebook)
 - [ ] 19. Check all email templates in Supabase match STAR branding
 - [ ] 20. Mobile testing on real devices (iOS and Android)
 - [ ] 21. Cross-browser testing (Chrome, Safari, Firefox, Edge)
-- [ ] 22. Favicon added (currently 404)
-- [ ] 23. Check staraitutor.co.uk domain points to the correct site
+- [x] 22. Favicon added
+- [x] 23. Check staraitutor.co.uk domain points to the correct site
 - [ ] 24. Stripe switch to live keys
 - [x] 25. SMTP email configured via Resend.com for staraitutor.co.uk
 - [ ] 26. Confirm email enabled in Supabase Auth after SMTP verified
