@@ -8,6 +8,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,400&family=Lato:wght@300;400;700;900&display=swap" rel="stylesheet"/>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <style>
     :root {
       --gold:#C9A84C; --gold-light:#E8C97A; --gold-dim:rgba(201,168,76,0.14);
@@ -117,6 +118,14 @@
       background:linear-gradient(135deg,var(--gold),var(--gold-light));
       color:var(--navy); font-weight:500; border-bottom-right-radius:4px;
     }
+    /* Markdown rendered inside star bubbles */
+    .msg.star .msg-bubble h3 { font-size:.9rem; font-weight:700; margin:8px 0 4px; color:#fff; }
+    .msg.star .msg-bubble ul { padding-left:18px; margin:4px 0; }
+    .msg.star .msg-bubble li { margin:2px 0; }
+    .msg.star .msg-bubble strong { color:#fff; font-weight:700; }
+    .msg.star .msg-bubble hr { border:none; border-top:1px solid rgba(255,255,255,.15); margin:8px 0; }
+    .msg.star .msg-bubble p { margin:0 0 6px; }
+    .msg.star .msg-bubble p:last-child { margin-bottom:0; }
 
     /* Typing indicator */
     .typing-indicator { display:flex; gap:10px; align-items:flex-end; }
@@ -270,7 +279,11 @@
 
     const bubble = document.createElement('div');
     bubble.className = 'msg-bubble';
-    bubble.textContent = text;
+    if (isUser) {
+      bubble.textContent = text;
+    } else {
+      bubble.innerHTML = marked.parse(text);
+    }
 
     div.appendChild(av);
     div.appendChild(bubble);
