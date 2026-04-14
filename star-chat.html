@@ -513,7 +513,7 @@
 
       appendMsg('assistant', greeting);
     } else {
-      // Student greeting
+      // Student greeting — fetch name so it can be passed in childData to the API
       const { data: profile } = await sb
         .from('profiles')
         .select('name')
@@ -521,6 +521,8 @@
         .maybeSingle();
 
       const firstName = (profile?.name || '').split(' ')[0] || 'there';
+      childData = { childName: firstName };
+
       appendMsg('assistant',
         `Hi ${firstName}! I'm STAR, your transfer test tutor. 🌟 I'm here to help you with anything about the exam — maths, English, exam tips, or just to explain something you're stuck on. What would you like help with today?`
       );
