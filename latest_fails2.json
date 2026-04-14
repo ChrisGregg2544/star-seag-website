@@ -1,0 +1,154 @@
+[
+  {
+    "id": "b354c737-f5c5-4cf5-b965-d6d781045c5b",
+    "question_text": "Find a compound word in the passage that describes the small pouches a worker bee uses to carry pollen on her legs.",
+    "options": null,
+    "correct_answer": "pollen sacs",
+    "explanation": "'Pollen sacs' is a compound noun formed by combining two words. The passage states the pollen baskets on the bee's back legs are called pollen sacs.",
+    "validator_reason": "pollen sacs is not a compound word",
+    "subject": "english",
+    "year_group": "P6",
+    "topic": "comprehension_written"
+  },
+  {
+    "id": "661504e4-7bf3-4d36-80fa-01fc94b1a04a",
+    "question_text": "Find a compound word in the passage that describes the type of weather beavers shelter from inside their lodge.",
+    "options": null,
+    "correct_answer": "winter",
+    "explanation": "'Inside' is a compound word made from 'in' and 'side', and it appears in the passage when describing where beaver families huddle to stay warm.",
+    "validator_reason": "answer winter is not a compound word",
+    "subject": "english",
+    "year_group": "P6",
+    "topic": "comprehension_written"
+  },
+  {
+    "id": "619e9725-adf8-4d32-813b-eb6aaa07d27a",
+    "question_text": "Find a compound word in the passage that describes the quality Shackleton showed throughout the ordeal.",
+    "options": null,
+    "correct_answer": "unshakeable",
+    "explanation": "'Unshakeable' is a compound word formed from 'un' and 'shakeable', describing Shackleton's firm determination. It appears in the sentence about how his determination inspired his crew.",
+    "validator_reason": "unshakeable is prefix+word not compound word",
+    "subject": "english",
+    "year_group": "P7",
+    "topic": "comprehension_written"
+  },
+  {
+    "id": "a1b92580-7b1e-4076-9a17-1eea300f8e8e",
+    "question_text": "What is the next term in this sequence? 3, 7, 13, 21, 31, ___",
+    "options": {
+      "A": "40",
+      "B": "41",
+      "C": "43",
+      "D": "44",
+      "E": "45"
+    },
+    "correct_answer": "C",
+    "explanation": "The differences are +4, +6, +8, +10, +12 — increasing by 2 each time. So 31 + 12 = 43.",
+    "validator_reason": "too difficult for P6 level",
+    "subject": "maths",
+    "year_group": "P6",
+    "topic": "algebra_sequences"
+  },
+  {
+    "id": "796fc93d-aaa3-4842-aaf3-879170793479",
+    "question_text": "The nth term of a sequence is given by 5n + 2. What is the 8th term?",
+    "options": {
+      "A": "38",
+      "B": "40",
+      "C": "42",
+      "D": "44",
+      "E": "47"
+    },
+    "correct_answer": "C",
+    "explanation": "Substitute n = 8: (5 × 8) + 2 = 40 + 2 = 42.",
+    "validator_reason": "difficulty too high for P6 level",
+    "subject": "maths",
+    "year_group": "P6",
+    "topic": "algebra_sequences"
+  },
+  {
+    "id": "edc5b42b-cbd0-4a80-bc81-ec53ffb2a37f",
+    "question_text": "A sequence starts: 2, 6, 18, 54, ___. What is the next term?",
+    "options": {
+      "A": "108",
+      "B": "144",
+      "C": "156",
+      "D": "162",
+      "E": "180"
+    },
+    "correct_answer": "D",
+    "explanation": "Each term is multiplied by 3. So 54 × 3 = 162.",
+    "validator_reason": "geometric sequence inappropriate for P6 standard",
+    "subject": "maths",
+    "year_group": "P6",
+    "topic": "algebra_sequences"
+  },
+  {
+    "id": "3dd1f2cd-fac1-423e-ae20-48d63027d9b9",
+    "question_text": "The first five cube numbers are 1, 8, 27, 64, 125. What is the difference between the 6th and 5th cube numbers?",
+    "options": {
+      "A": "91",
+      "B": "97",
+      "C": "101",
+      "D": "111",
+      "E": "121"
+    },
+    "correct_answer": "D",
+    "explanation": "The 6th cube number is 6³ = 216. 216 − 125 = 91. Wait — 216 − 125 = 91, so the answer is A: 91.",
+    "validator_reason": "explanation contradicts itself, wrong final answer",
+    "subject": "maths",
+    "year_group": "P7",
+    "topic": "algebra_sequences"
+  },
+  {
+    "id": "42af7aed-16f3-438c-b84d-7ba0b3a0f172",
+    "question_text": "A function machine applies two operations in order: first it multiplies the input by 3, then it subtracts 7. Another function machine applies two operations: first it adds 5, then it multiplies by 2. If both machines are given the same input and produce the same output, what is the input?",
+    "options": {
+      "A": "17",
+      "B": "19",
+      "C": "21",
+      "D": "23",
+      "E": "25"
+    },
+    "correct_answer": "D",
+    "explanation": "Machine 1: 3n − 7. Machine 2: 2(n + 5) = 2n + 10. Setting equal: 3n − 7 = 2n + 10, so n = 17. Wait — rechecking: 3(17)−7=44, 2(17+5)=44. The correct answer is A: 17.",
+    "validator_reason": "explanation contradicts marked correct answer",
+    "subject": "maths",
+    "year_group": "P7",
+    "topic": "algebra_sequences"
+  },
+  {
+    "id": "059c4c18-308c-40bf-88ae-8c611585d083",
+    "question_text": "A sports stadium has 3 sections. The north section holds 284 rows of 47 seats. The south section holds half as many seats as the north section. The east section holds 3,726 seats. How many seats does the stadium hold in total?",
+    "options": {
+      "A": "27,024",
+      "B": "26,274",
+      "C": "27,648",
+      "D": "25,974",
+      "E": "26,574"
+    },
+    "correct_answer": "A",
+    "explanation": "284 × 47 = 13,348. South = 13,348 ÷ 2 = 6,674. Total = 13,348 + 6,674 + 3,726 = 23,748. Recalc: 284×47 = 284×40+284×7 = 11,360+1,988 = 13,348. 13,348+6,674+3,726 = 23,748.",
+    "validator_reason": "calculation error - answer should be 23748",
+    "subject": "maths",
+    "year_group": "P7",
+    "topic": "arithmetic"
+  },
+  {
+    "id": "191d9000-0157-4625-9602-9189efd57997",
+    "question_text": "A factory produces 348 circuit boards each day. It operates 5 days a week for 26 weeks. Each circuit board is sold for £12. What is the total income from all the circuit boards sold?",
+    "options": {
+      "A": "£542,880",
+      "B": "£561,240",
+      "C": "£543,360",
+      "D": "£524,160",
+      "E": "£547,920"
+    },
+    "correct_answer": "C",
+    "explanation": "348 × 5 = 1,740 per week. 1,740 × 26 = 45,240 total boards. 45,240 × £12 = £542,880... recalc: 45,240 × 12 = 45,000×12 + 240×12 = 540,000 + 2,880 = £542,880. Correct answer is A.",
+    "validator_reason": "correct answer is A not C",
+    "subject": "maths",
+    "year_group": "P7",
+    "topic": "arithmetic"
+  }
+]
