@@ -90,7 +90,7 @@
 
   <div class="doc-eyebrow">Legal</div>
   <h1 class="doc-title">Privacy Policy</h1>
-  <div class="doc-meta">Last updated: 25 March 2026 &nbsp;·&nbsp; STAR AI Tutor &nbsp;·&nbsp; Northern Ireland, United Kingdom</div>
+  <div class="doc-meta">Last updated: April 2026 &nbsp;·&nbsp; STAR AI Tutor &nbsp;·&nbsp; Northern Ireland, United Kingdom</div>
 
   <div class="doc-highlight">
     <p>⚠️ This policy has been drafted in good faith but has not been reviewed by a solicitor. We recommend obtaining independent legal advice before launching to paying customers, particularly regarding UK GDPR compliance and children's data obligations under the Age Appropriate Design Code.</p>
@@ -99,8 +99,9 @@
   <!-- 1 -->
   <div class="doc-section">
     <h2 class="doc-h2">1. Who We Are</h2>
-    <p class="doc-p">STAR AI Tutor is an AI-powered tutoring platform for P6 and P7 pupils in Northern Ireland preparing for the SEAG Transfer Test. The service is operated by Chris Gregg, trading as STAR AI Tutor, based in Northern Ireland, United Kingdom ("we", "us", "our").</p>
-    <p class="doc-p">We are the data controller for personal information collected through this website. If you have any questions about this Privacy Policy or how we handle your data, please contact us at <strong>support@star-tutor.co.uk</strong>.</p>
+    <p class="doc-p">STAR AI Tutor is an educational platform for P6 and P7 pupils in Northern Ireland preparing for the GL Assessment transfer test. The service is operated by Chris Gregg, trading as STAR AI Tutor, based in Northern Ireland, United Kingdom ("we", "us", "our").</p>
+    <p class="doc-p">We are the data controller for personal information collected through this website. If you have any questions about this Privacy Policy or how we handle your data, please contact us at <strong>staraitutor.support@gmail.com</strong>.</p>
+    <p class="doc-p">ICO Registration Number: [pending — to be obtained prior to launch]</p>
   </div>
 
   <!-- 2 -->
@@ -128,7 +129,7 @@
     <p class="doc-p">Subscription payments are processed by Stripe, Inc. We do not store your card number, expiry date, or CVV. We receive a subscription status (active, trialing, inactive) and a Stripe customer identifier from Stripe to manage your access. Stripe's privacy policy is available at <strong>stripe.com/gb/privacy</strong>.</p>
 
     <h3 class="doc-h3">Usage Data</h3>
-    <p class="doc-p">We use Google Analytics 4 to collect anonymised data about how visitors use our website, including pages visited, time on site, and device type. This data is aggregated and does not identify individuals. See Section 8 (Cookies) for more detail.</p>
+    <p class="doc-p">We use Google Analytics 4 to collect anonymised, aggregated data about how visitors use our website (pages visited, time on site, device type). This data is collected at an aggregate level and is not linked to individual user accounts or children's identities. IP addresses are anonymised before transmission to Google. See Section 8 (Cookies) for more detail.</p>
   </div>
 
   <!-- 3 -->
@@ -138,29 +139,45 @@
       <li><strong>To provide the service:</strong> delivering personalised practice sessions, tracking progress, and displaying results to the student and parent.</li>
       <li><strong>To personalise learning:</strong> using topic performance data to recommend which areas to focus on.</li>
       <li><strong>To manage your subscription:</strong> processing payments via Stripe and controlling access based on subscription status.</li>
-      <li><strong>To generate practice questions:</strong> your year group and topic performance data are used when constructing prompts sent to our AI question generator. No personal identifying information (name, email) is included in these prompts.</li>
+      <li><strong>To power STAR Chat:</strong> when a student or parent uses the STAR Chat feature, the chat messages and the child's first name are sent to Anthropic's API in real time to generate a response. No email address, surname, or other identifying information is included. See Section 4 for full details.</li>
       <li><strong>To communicate with you:</strong> sending account confirmation emails and, where you have opted in, service updates. We do not send marketing emails without your consent.</li>
       <li><strong>To improve the service:</strong> using aggregated, anonymised analytics data to understand how the platform is used and where improvements are needed.</li>
     </ul>
-    <p class="doc-p">Our legal basis for processing personal data is <strong>contract performance</strong> (to deliver the service you have subscribed to) and, where applicable, <strong>legitimate interests</strong> (to improve the service and prevent fraud). For children's data, our legal basis is <strong>parental consent</strong> given at account creation.</p>
+    <p class="doc-p">Our legal basis for processing personal data is <strong>contract performance</strong> (to deliver the service you have subscribed to) and, where applicable, <strong>legitimate interests</strong> (to improve the service and prevent fraud). For children's data, our legal basis is <strong>parental consent</strong> given at account creation. Practice questions are pre-generated and stored in advance — no student data is sent to any AI service during practice sessions or mock exams.</p>
   </div>
 
   <!-- 4 -->
   <div class="doc-section">
-    <h2 class="doc-h2">4. AI-Generated Content</h2>
-    <p class="doc-p">Practice questions, hints, and feedback on this platform are quality-checked using Claude, an AI model developed by Anthropic, PBC. Questions are pre-generated and stored before being served to students. During the quality assurance process, we send the following information to Anthropic's API: the year group (P6 or P7), the topic area, and the question format required. We do not send your name, email address, or any other personal identifying information.</p>
-    <p class="doc-p">Anthropic processes this data as a data processor acting on our behalf. Anthropic processes data only during our question quality assurance process, not during student sessions. Anthropic's privacy policy is available at <strong>anthropic.com/privacy</strong>.</p>
-    <p class="doc-p">AI-generated content is reviewed against a set of validation rules before being shown to students. However, AI systems can make errors. We strongly recommend that parents review any question or explanation that seems incorrect and contact us so we can investigate. AI-generated content on STAR AI Tutor is not a substitute for qualified professional tutoring.</p>
+    <h2 class="doc-h2">4. AI and Third-Party Processing</h2>
+
+    <h3 class="doc-h3">Practice Questions (No Live AI During Sessions)</h3>
+    <p class="doc-p">All practice questions, mock exam questions, and written answer marking on this platform use content that is pre-generated and stored in our database before being served to students. During practice sessions and mock exams, no student data is sent to any AI service. Questions are quality-checked offline using Claude, an AI model developed by Anthropic, PBC. During this quality assurance process, we send only the year group (P6 or P7), topic area, and question text — no names, emails, or personal data.</p>
+
+    <h3 class="doc-h3">STAR Chat (Live AI During Chat Sessions)</h3>
+    <p class="doc-p">STAR Chat is an optional in-app chat feature. When a student or parent uses STAR Chat, the following data is sent to Anthropic's API in real time to generate a response: the messages in the conversation, and the child's first name (used to personalise responses). No email address, surname, school name, or other personal identifying information is included. Chat history is held only for the duration of the session and is not stored in our database after the session ends.</p>
+    <p class="doc-p">Anthropic processes this data as a data processor acting on our behalf. Anthropic does not use API inputs to train its models by default. Anthropic's privacy policy is available at <strong>anthropic.com/privacy</strong>.</p>
+
+    <h3 class="doc-h3">Content Accuracy</h3>
+    <p class="doc-p">AI-assisted content is reviewed before being shown to students, but AI systems can make errors. We strongly recommend that parents review any question or explanation that seems incorrect and contact us. STAR AI Tutor is a supplementary study tool and is not a substitute for qualified professional tutoring.</p>
   </div>
 
   <!-- 5 -->
   <div class="doc-section">
-    <h2 class="doc-h2">5. Children's Privacy</h2>
+    <h2 class="doc-h2">5. Children's Privacy and UK Children's Code</h2>
     <div class="doc-highlight">
-      <p>STAR AI Tutor is designed for use by children aged 9–12, under the supervision and with the consent of a parent or guardian. The account must be created by a parent or guardian, not the child.</p>
+      <p>STAR AI Tutor is designed for use by children aged 9–12, under the supervision and with the consent of a parent or guardian. The account must be created by a parent or guardian aged 18 or over — not the child.</p>
     </div>
-    <p class="doc-p">We comply with the UK Children's Code (Age Appropriate Design Code). We do not use children's data for profiling, targeted advertising, or any purpose beyond delivering and improving the educational service. We do not share children's personal data with any third party except those listed in Section 6 for the purpose of delivering the service.</p>
-    <p class="doc-p">If you believe a child has provided us with personal data without parental consent, please contact us immediately at <strong>support@star-tutor.co.uk</strong> and we will delete it promptly.</p>
+    <p class="doc-p">We comply with the UK Children's Code (Age Appropriate Design Code) published by the Information Commissioner's Office. Our commitments under this Code are:</p>
+    <ul class="doc-ul">
+      <li><strong>Best interests of the child:</strong> the design and operation of this service prioritises the educational welfare and best interests of child users above any commercial consideration.</li>
+      <li><strong>Parental consent:</strong> consent is obtained from the parent or guardian during account registration. By completing registration, the parent or guardian confirms they are aged 18 or over and consents to the collection and processing of their child's data as described in this policy.</li>
+      <li><strong>High privacy by default:</strong> all privacy settings are configured to the highest level of protection by default. No opt-in is required to protect your child's privacy.</li>
+      <li><strong>No profiling or targeted content:</strong> we do not profile children for commercial purposes or serve targeted advertising. The only personalisation we apply is educational — recommending which exam topics to focus on based on performance data.</li>
+      <li><strong>No nudge techniques:</strong> we do not use persuasive design techniques, psychological nudges, or dark patterns that could exploit children's behaviour or encourage excessive use.</li>
+      <li><strong>No data sharing beyond service delivery:</strong> children's personal data is shared only with the service providers listed in Section 6, solely for the purpose of delivering the educational service.</li>
+      <li><strong>Minimum age:</strong> the service is intended for children aged 9–12 in P6 or P7. Parents of younger or older children may use the service but it is designed specifically for this age group.</li>
+    </ul>
+    <p class="doc-p">If you believe a child has provided us with personal data without parental consent, please contact us immediately at <strong>staraitutor.support@gmail.com</strong> and we will delete it promptly.</p>
   </div>
 
   <!-- 6 -->
@@ -170,7 +187,7 @@
     <ul class="doc-ul">
       <li><strong>Supabase, Inc.</strong> (database and authentication) — your account data and learning records are stored in Supabase's cloud database, hosted on AWS infrastructure in the EU (Ireland). Supabase is ISO 27001 certified and SOC 2 Type II compliant.</li>
       <li><strong>Stripe, Inc.</strong> (payment processing) — processes subscription payments. Stripe is PCI DSS Level 1 certified.</li>
-      <li><strong>Anthropic, PBC</strong> (AI-assisted question quality assurance) — receives anonymised question quality assurance prompts (year group and topic only, no personal data). Anthropic does not use API inputs to train its models by default.</li>
+      <li><strong>Anthropic, PBC</strong> (AI question quality assurance and STAR Chat) — receives anonymised prompts during offline question quality assurance (year group and topic only, no personal data), and receives chat messages plus the child's first name during live STAR Chat sessions. Anthropic does not use API inputs to train its models by default.</li>
       <li><strong>Vercel, Inc.</strong> (website hosting) — hosts the STAR AI Tutor website and serverless functions on EU-region infrastructure.</li>
       <li><strong>Google LLC</strong> (analytics) — receives anonymised, aggregated usage data via Google Analytics 4. IP addresses are anonymised before transmission.</li>
     </ul>
@@ -181,7 +198,7 @@
   <div class="doc-section">
     <h2 class="doc-h2">7. Data Retention</h2>
     <p class="doc-p">We retain your personal data for as long as your account is active or as needed to provide the service. If you cancel your subscription, your account data and learning records are retained for 12 months to allow reactivation. After 12 months of inactivity, we will delete or anonymise your data.</p>
-    <p class="doc-p">You may request deletion of your data at any time by contacting us at <strong>support@star-tutor.co.uk</strong>. We will action deletion requests within 30 days.</p>
+    <p class="doc-p">You may request deletion of your data at any time by contacting us at <strong>staraitutor.support@gmail.com</strong>. We will action deletion requests within 30 days.</p>
   </div>
 
   <!-- 8 -->
@@ -207,7 +224,7 @@
       <li><strong>Right to object</strong> — you may object to processing based on legitimate interests.</li>
       <li><strong>Right to withdraw consent</strong> — where processing is based on consent, you may withdraw it at any time without affecting the lawfulness of prior processing.</li>
     </ul>
-    <p class="doc-p">To exercise any of these rights, contact us at <strong>support@star-tutor.co.uk</strong>. We will respond within 30 days. If you are not satisfied with our response, you have the right to lodge a complaint with the Information Commissioner's Office (ICO) at <strong>ico.org.uk</strong>.</p>
+    <p class="doc-p">To exercise any of these rights, contact us at <strong>staraitutor.support@gmail.com</strong>. We will respond within 30 days. If you are not satisfied with our response, you have the right to lodge a complaint with the Information Commissioner's Office (ICO) at <strong>ico.org.uk</strong>.</p>
   </div>
 
   <!-- 10 -->
@@ -220,7 +237,7 @@
   <div class="doc-section">
     <h2 class="doc-h2">11. Contact Us</h2>
     <p class="doc-p">For any privacy-related questions, data requests, or concerns, please contact us:</p>
-    <p class="doc-p"><strong>Email:</strong> support@star-tutor.co.uk<br>
+    <p class="doc-p"><strong>Email:</strong> staraitutor.support@gmail.com<br>
     <strong>Address:</strong> STAR AI Tutor, Northern Ireland, United Kingdom</p>
   </div>
 
