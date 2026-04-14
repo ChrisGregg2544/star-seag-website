@@ -301,9 +301,9 @@ fractions_decimals, measurement, statistics, algebra_sequences
 - [ ] 14. Full website QA walkthrough (every page, every button, every user journey tested)
 - [x] 15. Privacy Policy review — GDPR compliant, UK Children's Code, ICO registration C1909458
 - [x] 16. Terms of Service review — updated for NI law, cooling-off period, children's product
-- [ ] 17. Cookie policy check — confirm cookie consent banner is working
-- [ ] 18. Check all footer links work (Privacy, Terms, Support, Facebook)
-- [ ] 19. Check all email templates in Supabase match STAR branding
+- [x] 17. Cookie policy check — confirm cookie consent banner is working
+- [x] 18. Check all footer links work (Privacy, Terms, Support, Facebook)
+- [x] 19. Check all email templates in Supabase match STAR branding
 - [ ] 20. Mobile testing on real devices (iOS and Android)
 - [ ] 21. Cross-browser testing (Chrome, Safari, Firefox, Edge)
 - [x] 22. Favicon added
