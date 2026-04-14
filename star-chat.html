@@ -393,6 +393,17 @@
 
   sendBtn.addEventListener('click', sendMessage);
 
+  // ── Weeks to exam calculator ──────────────────────────────────────────────────
+  function calcWeeksToExam(examYear) {
+    if (!examYear) return null;
+    // Transfer test is sat in mid-November each year
+    const examDate = new Date(parseInt(examYear), 10, 15); // Nov 15
+    const now = new Date();
+    const msPerWeek = 7 * 24 * 60 * 60 * 1000;
+    const weeks = Math.round((examDate - now) / msPerWeek);
+    return weeks > 0 ? weeks : null;
+  }
+
   // ── Fetch parent child data from Supabase ─────────────────────────────────────
   async function fetchChildData(userId) {
     const loading = document.createElement('div');
@@ -402,6 +413,17 @@
     messagesEl.appendChild(loading);
 
     try {
+      // profiles (name + exam_year)
+      const { data: profile } = await sb
+        .from('profiles')
+        .select('name, exam_year')
+        .eq('id', userId)
+        .maybeSingle();
+
+      const childName  = profile?.name ? profile.name.split(' ')[0] : null;
+      const examYear   = profile?.exam_year ?? null;
+      const weeksToExam = calcWeeksToExam(examYear);
+
       // progress_summary
       const { data: ps } = await sb
         .from('progress_summary')
@@ -415,7 +437,7 @@
         .select('id', { count: 'exact', head: true })
         .eq('user_id', userId);
 
-      // topic accuracy from question_results via sessions
+      // topic accuracy from question_results
       const { data: qr } = await sb
         .from('question_results')
         .select('topic, correct')
@@ -445,6 +467,9 @@
         : topicAccuracy.filter(t => t.accuracy < 60).map(t => t.topic);
 
       childData = {
+        childName,
+        examYear,
+        weeksToExam,
         lastScore:     ps?.last_score ?? null,
         sessionsCount: sessionsCount ?? 0,
         weakTopics,
@@ -471,19 +496,20 @@
 
     if (isParent) {
       titleEl.textContent   = 'STAR Parent Advisor';
-      subtitleEl.textContent = 'Personalised advice for your child\'s SEAG prep';
+      subtitleEl.textContent = 'Personalised advice for your child\'s transfer test prep';
       avatarEl.textContent  = '🎓';
       badgeEl.textContent   = 'Parent';
       badgeEl.classList.add('parent');
       document.title = 'STAR – Parent Advisor';
-      inputEl.placeholder = 'Ask for advice about your child\'s SEAG preparation…';
+      inputEl.placeholder = 'Ask for advice about your child\'s transfer test preparation…';
 
       await fetchChildData(userId);
 
       // Greeting for parent mode
+      const childFirstName = childData?.childName || 'your child';
       const greeting = childData?.lastScore != null
-        ? `Hi! I'm STAR Parent Advisor. I can see your child has completed ${childData.sessionsCount} session${childData.sessionsCount !== 1 ? 's' : ''} with an overall score of ${childData.lastScore}%. How can I help you support their SEAG preparation today?`
-        : `Hi! I'm STAR Parent Advisor. I'm here to help you support your child's SEAG Transfer Test preparation. What would you like to know?`;
+        ? `Hi! I'm STAR Parent Advisor. I can see ${childFirstName} has completed ${childData.sessionsCount} session${childData.sessionsCount !== 1 ? 's' : ''} with an overall score of ${childData.lastScore}%. How can I help you support their transfer test preparation today?`
+        : `Hi! I'm STAR Parent Advisor. I'm here to help you support ${childFirstName}'s transfer test preparation. What would you like to know?`;
 
       appendMsg('assistant', greeting);
     } else {
@@ -496,7 +522,7 @@
 
       const firstName = (profile?.name || '').split(' ')[0] || 'there';
       appendMsg('assistant',
-        `Hi ${firstName}! I'm STAR, your SEAG exam tutor. 🌟 I'm here to help you with anything about the Transfer Test — maths, English, exam tips, or just to explain something you're stuck on. What would you like help with today?`
+        `Hi ${firstName}! I'm STAR, your transfer test tutor. 🌟 I'm here to help you with anything about the exam — maths, English, exam tips, or just to explain something you're stuck on. What would you like help with today?`
       );
     }
 
