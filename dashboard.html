@@ -296,10 +296,16 @@
     .skills-grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(140px,1fr)); gap: 10px; }
     .skill-chip { border-radius: 12px; padding: 12px 14px; }
     .skill-chip.green { background: #E8F5E9; border: 2px solid #A5D6A7; }
-    .skill-chip.amber { background: #FFF3E0; border: 2px solid #FFCC80; }
-    .skill-chip.red { background: #FFEBEE; border: 2px solid #FFCDD2; }
-    .skill-name { font-size: .8rem; font-weight: 800; color: var(--text-dark); }
-    .skill-pct { font-size: .7rem; font-weight: 700; color: var(--text-mid); margin-top: 2px; }
+    .skill-chip.amber { background: #FFF8E1; border: 2px solid #FFE082; }
+    .skill-chip.red   { background: #FFEBEE; border: 2px solid #FFCDD2; }
+    .skill-name { font-size: .8rem; font-weight: 800; }
+    .skill-pct  { font-size: .7rem; font-weight: 700; margin-top: 2px; }
+    .skill-chip.green .skill-name { color: #2E7D32; }
+    .skill-chip.green .skill-pct  { color: #388E3C; }
+    .skill-chip.amber .skill-name { color: #E65100; }
+    .skill-chip.amber .skill-pct  { color: #EF6C00; }
+    .skill-chip.red   .skill-name { color: #C62828; }
+    .skill-chip.red   .skill-pct  { color: #D32F2F; }
 
     /* ── TOPICS TO MASTER ── */
     .topic-grid { display: flex; flex-direction: column; gap: 10px; }
@@ -566,7 +572,7 @@
     </div>
     <div>
       <div class="star-footer-col-label">Legal</div>
-      <p class="star-footer-text">&copy; 2026 STAR AI Tutor. All rights reserved.<br>Not affiliated with the SEAG board or the BBC.</p>
+      <p class="star-footer-text">&copy; 2026 STAR AI Tutor. All rights reserved.<br>Not affiliated with the Education Authority, GL Assessment, CorbettMaths or BBC Bitesize.</p>
     </div>
   </div>
   <div class="star-footer-bottom">
@@ -695,7 +701,7 @@ async function buildSkillsMap(count, userId) {
     .filter(([, v]) => v.total >= 3)
     .map(([name, v]) => {
       const accuracy = Math.round(v.correct / v.total * 100);
-      const c = accuracy >= 80 ? 'green' : accuracy >= 50 ? 'amber' : 'red';
+      const c = accuracy >= 71 ? 'green' : accuracy >= 41 ? 'amber' : 'red';
       return { name, pct: accuracy, c };
     })
     .sort((a, b) => a.pct - b.pct); // weakest first
