@@ -422,7 +422,7 @@
     <div class="hero-greeting">Welcome back,</div>
     <div class="hero-name" id="hero-name">Student</div>
     <div class="hero-track-badge">
-      ⭐ <span id="track-label">P6 Builder Track ⚡</span>
+      ⭐ <span id="track-label">P6 Champion Track ⚡</span>
     </div>
     <div class="exam-countdown">
       <div class="countdown-weeks" id="countdown-weeks">—</div>
@@ -895,7 +895,7 @@ async function init() {
   // Personalise
   document.getElementById('nav-hi').textContent     = 'Hi, ' + name + '!';
   document.getElementById('hero-name').innerHTML    = name + '<span style="color:var(--orange)">!</span>';
-  document.getElementById('track-label').textContent = yearGroup === 'P7' ? 'P7 Executor Track 🏆' : 'P6 Builder Track ⚡';
+  document.getElementById('track-label').textContent = yearGroup === 'P7' ? 'P7 Champion Track 🏆' : 'P6 Champion Track ⚡';
 
   // Countdown
   const weeks = weeksUntil(examYear);
@@ -905,7 +905,7 @@ async function init() {
     document.getElementById('countdown-sub').textContent   =
       weeks <= 4  ? '⚠️ Final push — give it everything!' :
       weeks <= 12 ? '🔥 Exam season approaching!' :
-      '📅 SEAG Transfer Test';
+      '📅 Transfer Test';
   } else if (weeks === 0) {
     document.getElementById('countdown-weeks').textContent = '🎯';
     document.getElementById('countdown-title').textContent = 'Exam week!';
