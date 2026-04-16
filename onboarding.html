@@ -8,178 +8,241 @@
   <title>STAR AI Tutor – Welcome</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,400&family=Lato:wght@300;400;700;900&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <!-- Cookie Consent + GA4 (loads GA only if accepted) -->
   <script src="cookie-consent.js"></script>
   <style>
     :root {
-      --gold:       #C9A84C;
-      --gold-light: #E8C97A;
-      --navy:       #0B1F3A;
-      --white-40:   rgba(255,255,255,0.4);
-      --white-20:   rgba(255,255,255,0.2);
+      --orange:       #FF6D00;
+      --orange-dark:  #E65100;
+      --orange-light: #FF9E40;
+      --yellow:       #FFD54F;
+      --yellow-dark:  #F9A825;
+      --cream:        #FFF9E6;
+      --cream-border: #F0E0C0;
+      --card-border:  #E8D8B8;
+      --text-dark:    #333333;
+      --text-mid:     #666666;
+      --text-light:   #999999;
     }
-    *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
-    html, body { height:100%; }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
     body {
-      background:var(--navy); color:#fff;
-      font-family:'Lato',sans-serif;
-      display:flex; flex-direction:column;
-      align-items:center; justify-content:center;
-      min-height:100vh; padding:24px;
+      background: var(--cream);
+      color: var(--text-dark);
+      font-family: 'Nunito', sans-serif;
+      font-weight: 600;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      min-height: 100vh; padding: 24px;
     }
-    .bg-layer { position:fixed; inset:0; pointer-events:none; z-index:0; }
-    .bg-glow  { position:absolute; border-radius:50%; background:radial-gradient(circle,rgba(201,168,76,.06) 0%,transparent 70%); }
-    .star-p   { position:absolute; border-radius:50%; background:var(--gold); opacity:.12; animation:twinkle var(--dur,3.5s) ease-in-out infinite alternate; }
-    @keyframes twinkle { from{opacity:.04;transform:scale(.8);}to{opacity:.24;transform:scale(1.2);} }
 
+    /* ── Card ── */
     .card {
-      position:relative; z-index:1;
-      width:100%; max-width:540px;
-      background:linear-gradient(160deg,rgba(255,255,255,.07) 0%,rgba(255,255,255,.02) 100%);
-      border:1px solid rgba(201,168,76,.22); border-radius:28px;
-      padding:48px 44px 40px;
-      box-shadow:0 32px 80px rgba(0,0,0,.45);
-      text-align:center;
+      position: relative; z-index: 1;
+      width: 100%; max-width: 540px;
+      background: #fff;
+      border: 2px solid var(--card-border);
+      border-radius: 24px;
+      padding: 44px 40px 38px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+      text-align: center;
     }
 
-    .progress-wrap { display:flex; gap:8px; margin-bottom:36px; justify-content:center; }
-    .progress-dot  { height:4px; border-radius:99px; background:rgba(255,255,255,.15); flex:1; max-width:44px; transition:background .4s; }
-    .progress-dot.active { background:var(--gold); }
-    .progress-dot.done   { background:rgba(201,168,76,.45); }
+    /* ── Progress dots ── */
+    .progress-wrap { display: flex; gap: 8px; margin-bottom: 32px; justify-content: center; }
+    .progress-dot {
+      height: 5px; border-radius: 99px;
+      background: var(--cream-border); flex: 1; max-width: 44px;
+      transition: background .4s;
+    }
+    .progress-dot.active { background: var(--orange); }
+    .progress-dot.done   { background: rgba(255,109,0,.4); }
 
-    .avatar-wrap { display:flex; justify-content:center; margin-bottom:24px; }
+    /* ── Avatar ── */
+    .avatar-wrap { display: flex; justify-content: center; margin-bottom: 22px; }
     .avatar {
-      width:88px; height:88px; border-radius:50%;
-      background:linear-gradient(135deg,rgba(201,168,76,.2),rgba(201,168,76,.06));
-      border:2px solid rgba(201,168,76,.4);
-      display:flex; align-items:center; justify-content:center;
-      position:relative; animation:avatarPulse 3s ease-in-out infinite;
+      width: 88px; height: 88px; border-radius: 50%;
+      background: linear-gradient(135deg, rgba(255,109,0,.15), rgba(255,109,0,.05));
+      border: 2px solid rgba(255,109,0,.35);
+      display: flex; align-items: center; justify-content: center;
+      position: relative; animation: avatarPulse 3s ease-in-out infinite;
     }
     @keyframes avatarPulse {
-      0%,100%{box-shadow:0 0 0 8px rgba(201,168,76,.06),0 0 0 16px rgba(201,168,76,.03);}
-      50%{box-shadow:0 0 0 12px rgba(201,168,76,.1),0 0 0 24px rgba(201,168,76,.04);}
+      0%,100% { box-shadow: 0 0 0 8px rgba(255,109,0,.06), 0 0 0 16px rgba(255,109,0,.03); }
+      50%      { box-shadow: 0 0 0 12px rgba(255,109,0,.10), 0 0 0 24px rgba(255,109,0,.04); }
     }
-    .avatar-face { width:58px;height:58px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px; }
-    .avatar-eyes { display:flex;gap:11px;align-items:center; }
-    .avatar-eye  { width:8px;height:8px;border-radius:50%;background:var(--gold);animation:blink 4s ease-in-out infinite; }
-    .avatar-eye.r{ animation-delay:.08s; }
-    @keyframes blink{0%,92%,100%{transform:scaleY(1);}95%{transform:scaleY(.1);}}
-    .avatar-smile{ width:20px;height:10px;border:2px solid var(--gold);border-top:none;border-radius:0 0 20px 20px; }
-    .avatar::before{content:'';position:absolute;top:-16px;left:50%;transform:translateX(-50%);width:2px;height:12px;background:linear-gradient(180deg,var(--gold),rgba(201,168,76,.3));border-radius:2px;}
-    .avatar::after{content:'';position:absolute;top:-22px;left:50%;transform:translateX(-50%);width:7px;height:7px;border-radius:50%;background:var(--gold);box-shadow:0 0 8px rgba(201,168,76,.8);animation:antPulse 2s ease-in-out infinite;}
-    @keyframes antPulse{0%,100%{transform:translateX(-50%) scale(1);}50%{transform:translateX(-50%) scale(1.3);}}
+    .avatar-face { width: 58px; height: 58px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; }
+    .avatar-eyes { display: flex; gap: 11px; align-items: center; }
+    .avatar-eye  { width: 8px; height: 8px; border-radius: 50%; background: var(--orange); animation: blink 4s ease-in-out infinite; }
+    .avatar-eye.r { animation-delay: .08s; }
+    @keyframes blink { 0%,92%,100% { transform: scaleY(1); } 95% { transform: scaleY(.1); } }
+    .avatar-smile { width: 20px; height: 10px; border: 2px solid var(--orange); border-top: none; border-radius: 0 0 20px 20px; }
+    .avatar::before {
+      content: ''; position: absolute; top: -16px; left: 50%; transform: translateX(-50%);
+      width: 2px; height: 12px;
+      background: linear-gradient(180deg, var(--orange), rgba(255,109,0,.3)); border-radius: 2px;
+    }
+    .avatar::after {
+      content: ''; position: absolute; top: -22px; left: 50%; transform: translateX(-50%);
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--orange); box-shadow: 0 0 8px rgba(255,109,0,.7);
+      animation: antPulse 2s ease-in-out infinite;
+    }
+    @keyframes antPulse {
+      0%,100% { transform: translateX(-50%) scale(1); }
+      50%      { transform: translateX(-50%) scale(1.3); }
+    }
 
-    .qlabel { font-family:'Playfair Display',serif; font-size:1.5rem; font-weight:700; line-height:1.25; margin-bottom:8px; min-height:64px; }
-    .qsub   { font-size:.86rem; color:var(--white-40); margin-bottom:26px; letter-spacing:.03em; line-height:1.6; }
+    /* ── Step labels ── */
+    .qlabel { font-size: 1.5rem; font-weight: 900; line-height: 1.25; margin-bottom: 8px; min-height: 64px; color: var(--text-dark); }
+    .qsub   { font-size: .86rem; color: var(--text-mid); margin-bottom: 26px; line-height: 1.6; }
 
+    /* ── Text input ── */
     .text-input {
-      width:100%; background:rgba(255,255,255,.06);
-      border:1px solid rgba(201,168,76,.28); border-radius:14px;
-      padding:16px 20px; font-family:'Lato',sans-serif;
-      font-size:1.1rem; font-weight:700; color:#fff;
-      text-align:center; outline:none; margin-bottom:22px;
-      caret-color:var(--gold); transition:border-color .25s,background .25s,box-shadow .25s;
+      width: 100%; background: #fff;
+      border: 2px solid var(--card-border); border-radius: 14px;
+      padding: 16px 20px; font-family: 'Nunito', sans-serif;
+      font-size: 1.1rem; font-weight: 700; color: var(--text-dark);
+      text-align: center; outline: none; margin-bottom: 22px;
+      caret-color: var(--orange); transition: border-color .25s, box-shadow .25s;
     }
-    .text-input::placeholder{color:rgba(255,255,255,.25);font-weight:400;}
-    .text-input:focus{border-color:var(--gold);background:rgba(201,168,76,.07);box-shadow:0 0 0 3px rgba(201,168,76,.12);}
+    .text-input::placeholder { color: #bbb; font-weight: 400; }
+    .text-input:focus {
+      border-color: var(--orange);
+      box-shadow: 0 0 0 3px rgba(255,109,0,.12);
+    }
 
-    .choices   { display:flex; flex-direction:column; gap:10px; margin-bottom:22px; }
-    .choices.r { flex-direction:row; }
+    /* ── Choice buttons ── */
+    .choices   { display: flex; flex-direction: column; gap: 10px; margin-bottom: 22px; }
+    .choices.r { flex-direction: row; }
     .cbtn {
-      flex:1; background:rgba(255,255,255,.05);
-      border:1.5px solid rgba(201,168,76,.2); border-radius:14px;
-      padding:16px 12px; color:rgba(255,255,255,.8);
-      font-family:'Lato',sans-serif; font-size:.9rem; font-weight:700;
-      cursor:pointer; transition:all .22s; position:relative; overflow:hidden;
-      display:flex; flex-direction:column; align-items:center; gap:4px;
-      -webkit-tap-highlight-color:transparent;
+      flex: 1; background: var(--cream);
+      border: 2px solid var(--cream-border); border-radius: 14px;
+      padding: 16px 12px; color: var(--text-dark);
+      font-family: 'Nunito', sans-serif; font-size: .9rem; font-weight: 700;
+      cursor: pointer; transition: all .22s; position: relative; overflow: hidden;
+      display: flex; flex-direction: column; align-items: center; gap: 4px;
+      -webkit-tap-highlight-color: transparent;
     }
-    .cbtn .ci { font-size:1.4rem; }
-    .cbtn .cl { font-size:.9rem; }
-    .cbtn .cs { font-size:.7rem; color:var(--white-40); font-weight:400; }
-    .cbtn:hover{border-color:rgba(201,168,76,.5);background:rgba(201,168,76,.08);transform:translateY(-2px);color:#fff;}
+    .cbtn .ci { font-size: 1.4rem; }
+    .cbtn .cl { font-size: .9rem; }
+    .cbtn .cs { font-size: .7rem; color: var(--text-light); font-weight: 600; }
+    .cbtn:hover { border-color: var(--orange-light); background: #FFF3E8; transform: translateY(-2px); }
     .cbtn.sel {
-      border-color:var(--gold);
-      background:linear-gradient(135deg,rgba(201,168,76,.18),rgba(201,168,76,.06));
-      color:#fff; box-shadow:0 4px 20px rgba(201,168,76,.2);
+      border-color: var(--orange); background: #FFF3E8;
+      box-shadow: 0 3px 0 var(--orange-light);
     }
-    .cbtn.sel::after{
-      content:'';position:absolute;top:8px;right:10px;
-      width:16px;height:16px;border-radius:50%;background:var(--gold);
-      -webkit-mask:url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='3' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E") center/11px no-repeat;
-      mask:url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='3' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E") center/11px no-repeat;
+    .cbtn.sel::after {
+      content: ''; position: absolute; top: 8px; right: 10px;
+      width: 16px; height: 16px; border-radius: 50%; background: var(--orange);
+      -webkit-mask: url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='3' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E") center/11px no-repeat;
+      mask: url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='3' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E") center/11px no-repeat;
     }
-    .cbtn.row-style{flex-direction:row;justify-content:flex-start;gap:14px;padding:14px 18px;}
-    .cbtn.row-style .ci{font-size:1.2rem;}
-    .cbtn.row-style .txt{text-align:left;}
+    .cbtn.row-style { flex-direction: row; justify-content: flex-start; gap: 14px; padding: 14px 18px; }
+    .cbtn.row-style .ci { font-size: 1.2rem; }
+    .cbtn.row-style .txt { text-align: left; }
 
+    /* ── Info note ── */
     .info-note {
-      display:flex; align-items:flex-start; gap:9px;
-      background:rgba(201,168,76,.07); border:1px solid rgba(201,168,76,.18);
-      border-radius:10px; padding:11px 14px;
-      margin-bottom:18px; text-align:left;
+      display: flex; align-items: flex-start; gap: 9px;
+      background: #FFF3E8; border: 2px solid rgba(255,109,0,.2);
+      border-radius: 10px; padding: 11px 14px;
+      margin-bottom: 18px; text-align: left;
     }
-    .info-note svg { flex-shrink:0; margin-top:1px; }
-    .info-note span { font-size:.76rem; color:rgba(255,255,255,.48); line-height:1.6; }
+    .info-note svg { flex-shrink: 0; margin-top: 1px; }
+    .info-note span { font-size: .76rem; color: var(--text-mid); line-height: 1.6; }
 
+    /* ── Next button ── */
     .nbtn {
-      width:100%;
-      background:linear-gradient(135deg,var(--gold) 0%,var(--gold-light) 50%,var(--gold) 100%);
-      background-size:200% auto; color:var(--navy);
-      border:none; border-radius:14px; padding:18px 28px;
-      font-family:'Lato',sans-serif; font-size:.95rem; font-weight:900;
-      letter-spacing:.1em; text-transform:uppercase;
-      cursor:pointer; transition:background-position .4s,transform .18s,box-shadow .18s,opacity .2s;
-      box-shadow:0 6px 28px rgba(201,168,76,.42);
+      width: 100%;
+      background: var(--orange);
+      color: #fff; border: none; border-radius: 14px; padding: 18px 28px;
+      font-family: 'Nunito', sans-serif; font-size: .95rem; font-weight: 900;
+      letter-spacing: .06em; text-transform: uppercase;
+      cursor: pointer;
+      box-shadow: 0 5px 0 var(--orange-dark);
+      transition: transform .18s, box-shadow .18s, opacity .2s;
     }
-    .nbtn:hover:not(:disabled){background-position:right center;transform:translateY(-2px);box-shadow:0 10px 40px rgba(201,168,76,.65);}
-    .nbtn:disabled{opacity:.38;cursor:not-allowed;box-shadow:none;}
-    .nbtn.big{font-size:1.05rem;padding:20px 28px;}
+    .nbtn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 7px 0 var(--orange-dark); }
+    .nbtn:active:not(:disabled) { transform: translateY(2px); box-shadow: 0 2px 0 var(--orange-dark); }
+    .nbtn:disabled { background: #FFAB76; box-shadow: 0 5px 0 #D4845A; cursor: not-allowed; }
+    .nbtn.big { font-size: 1.05rem; padding: 20px 28px; }
 
-    .back-link{display:inline-block;margin-top:14px;font-size:.78rem;color:var(--white-40);cursor:pointer;background:none;border:none;letter-spacing:.06em;transition:color .2s;}
-    .back-link:hover{color:var(--gold);}
+    /* ── Back link ── */
+    .back-link {
+      display: inline-block; margin-top: 14px;
+      font-size: .78rem; color: var(--text-light);
+      cursor: pointer; background: none; border: none;
+      letter-spacing: .06em; font-family: 'Nunito', sans-serif;
+      transition: color .2s;
+    }
+    .back-link:hover { color: var(--orange); }
 
-    .complete-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(201,168,76,.12);border:1px solid rgba(201,168,76,.3);border-radius:999px;padding:5px 16px;font-size:.7rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin-bottom:20px;}
+    /* ── Complete badge ── */
+    .complete-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: #FFF3E8; border: 2px solid rgba(255,109,0,.3);
+      border-radius: 999px; padding: 5px 16px;
+      font-size: .7rem; font-weight: 800; letter-spacing: .14em; text-transform: uppercase;
+      color: var(--orange); margin-bottom: 20px;
+    }
 
-    .summary-box{background:rgba(201,168,76,.07);border:1px solid rgba(201,168,76,.18);border-radius:13px;padding:16px 20px;margin:16px 0 20px;text-align:left;display:flex;flex-direction:column;gap:10px;}
-    .srow{display:flex;align-items:center;gap:11px;font-size:.84rem;color:rgba(255,255,255,.7);}
-    .srow svg{flex-shrink:0;}
+    /* ── Summary box ── */
+    .summary-box {
+      background: #FFF3E8; border: 2px solid rgba(255,109,0,.2);
+      border-radius: 13px; padding: 16px 20px; margin: 16px 0 20px;
+      text-align: left; display: flex; flex-direction: column; gap: 10px;
+    }
+    .srow { display: flex; align-items: center; gap: 11px; font-size: .84rem; color: var(--text-mid); }
+    .srow svg { flex-shrink: 0; }
+    .srow strong { color: var(--text-dark); }
 
-    .star-explains{background:rgba(255,255,255,.04);border:1px solid rgba(201,168,76,.15);border-radius:13px;padding:18px 20px;margin-bottom:24px;text-align:left;}
-    .se-title{font-size:.68rem;font-weight:900;letter-spacing:.13em;text-transform:uppercase;color:var(--gold);margin-bottom:11px;display:flex;align-items:center;gap:6px;}
-    .star-explains p{font-size:.8rem;color:rgba(255,255,255,.52);line-height:1.75;margin-bottom:7px;}
-    .star-explains p:last-child{margin-bottom:0;}
-    .star-explains strong{color:rgba(255,255,255,.82);}
+    /* ── STAR explains box ── */
+    .star-explains {
+      background: var(--cream); border: 2px solid var(--cream-border);
+      border-left: 4px solid var(--orange);
+      border-radius: 13px; padding: 18px 20px; margin-bottom: 24px; text-align: left;
+    }
+    .se-title {
+      font-size: .68rem; font-weight: 900; letter-spacing: .13em; text-transform: uppercase;
+      color: var(--orange); margin-bottom: 11px; display: flex; align-items: center; gap: 6px;
+    }
+    .star-explains p { font-size: .8rem; color: var(--text-mid); line-height: 1.75; margin-bottom: 7px; }
+    .star-explains p:last-child { margin-bottom: 0; }
+    .star-explains strong { color: var(--text-dark); }
 
-    .step{display:none;}
-    .step.active{display:block;animation:sIn .4s cubic-bezier(.22,1,.36,1) forwards;}
-    .step.out   {display:block;animation:sOut .3s ease forwards;pointer-events:none;}
-    @keyframes sIn {from{opacity:0;transform:translateX(38px) scale(.98);}to{opacity:1;transform:translateX(0) scale(1);}}
-    @keyframes sOut{from{opacity:1;transform:translateX(0) scale(1);}to{opacity:0;transform:translateX(-38px) scale(.98);}}
+    /* ── Step transitions ── */
+    .step { display: none; }
+    .step.active { display: block; animation: sIn .4s cubic-bezier(.22,1,.36,1) forwards; }
+    .step.out    { display: block; animation: sOut .3s ease forwards; pointer-events: none; }
+    @keyframes sIn  { from { opacity: 0; transform: translateX(38px) scale(.98); } to { opacity: 1; transform: translateX(0) scale(1); } }
+    @keyframes sOut { from { opacity: 1; transform: translateX(0) scale(1); }    to { opacity: 0; transform: translateX(-38px) scale(.98); } }
 
-    .shint{margin-top:8px;font-size:.7rem;color:var(--white-20);letter-spacing:.05em;}
-    .saving-msg{font-size:.82rem;color:var(--gold);margin-top:14px;min-height:18px;}
+    .shint      { margin-top: 8px; font-size: .7rem; color: var(--text-light); letter-spacing: .05em; }
+    .saving-msg { font-size: .82rem; color: var(--orange); margin-top: 14px; min-height: 18px; font-weight: 700; }
 
-    @media(max-width:560px){
-      .card{padding:34px 22px 30px;border-radius:20px;}
-      .qlabel{font-size:1.28rem;}
-      .choices.r{flex-direction:column;}
+    /* ── Footer ── */
+    footer {
+      position: relative; z-index: 10; width: 100%; padding: 20px;
+      border-top: 2px solid var(--cream-border);
+      display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; margin-top: 32px;
+    }
+    footer a {
+      font-size: .74rem; font-weight: 700; color: var(--text-light);
+      text-decoration: none; transition: color .2s;
+    }
+    footer a:hover { color: var(--orange); }
+
+    @media (max-width: 560px) {
+      .card { padding: 32px 20px 28px; border-radius: 20px; }
+      .qlabel { font-size: 1.28rem; }
+      .choices.r { flex-direction: column; }
     }
   </style>
 </head>
 <body>
-
-<div class="bg-layer">
-  <div class="bg-glow" style="width:600px;height:600px;top:50%;left:50%;transform:translate(-50%,-50%);"></div>
-  <div class="star-p" style="left:6%;top:10%;width:3px;height:3px;--dur:3.6s;"></div>
-  <div class="star-p" style="left:20%;top:25%;width:2px;height:2px;--dur:4.2s;animation-delay:.7s;"></div>
-  <div class="star-p" style="left:85%;top:12%;width:4px;height:4px;--dur:3.9s;animation-delay:.3s;"></div>
-  <div class="star-p" style="left:91%;top:40%;width:2px;height:2px;--dur:4.5s;animation-delay:1.1s;"></div>
-  <div class="star-p" style="left:10%;top:75%;width:3px;height:3px;--dur:3.7s;animation-delay:.5s;"></div>
-  <div class="star-p" style="left:78%;top:80%;width:2px;height:2px;--dur:4.1s;animation-delay:1.8s;"></div>
-</div>
 
 <div class="card">
 
@@ -258,7 +321,7 @@
       </button>
     </div>
     <div class="info-note">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(201,168,76,0.7)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,109,0,0.7)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
       <span>Don't worry — you can change this any time from your dashboard. No pressure to get it perfect now!</span>
     </div>
     <button class="nbtn" id="btn-2" disabled onclick="goNext(2)">Next →</button>
@@ -272,7 +335,7 @@
     <div class="qsub" id="sub-3">We've worked this out — just confirm it looks right</div>
     <div class="choices r" id="exam-choices"></div>
     <div class="info-note">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(201,168,76,0.7)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,109,0,0.7)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
       <span>The SEAG Transfer Test is always in November — Paper 1 on the third Saturday, Paper 2 the following week.</span>
     </div>
     <button class="nbtn" id="btn-3" disabled onclick="goNext(3)">Next →</button>
@@ -283,43 +346,43 @@
   <!-- STEP 4: Summary -->
   <div class="step" id="step-4">
     <div class="complete-badge">
-      <svg width="11" height="11" viewBox="0 0 24 24" fill="#C9A84C"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="#FF6D00"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
       Profile Complete
     </div>
     <div class="qlabel" id="lbl-4">You're all set! 🎉</div>
 
     <div class="summary-box">
       <div class="srow">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-        <span>Name: <strong id="s-name" style="color:#fff;">—</strong></span>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#FF6D00" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <span>Name: <strong id="s-name">—</strong></span>
       </div>
       <div class="srow">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
-        <span>Track: <strong id="s-track" style="color:#C9A84C;">—</strong></span>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#FF6D00" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
+        <span>Track: <strong id="s-track" style="color:var(--orange);">—</strong></span>
       </div>
       <div class="srow">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-        <span>Sessions per week: <strong id="s-sessions" style="color:#fff;">—</strong></span>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#FF6D00" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        <span>Sessions per week: <strong id="s-sessions">—</strong></span>
       </div>
       <div class="srow">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg>
-        <span>Exam: <strong id="s-exam" style="color:#fff;">—</strong></span>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#FF6D00" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg>
+        <span>Exam: <strong id="s-exam">—</strong></span>
       </div>
       <div class="srow">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22,4 12,14.01 9,11.01"/></svg>
-        <span id="s-weeks" style="color:rgba(255,255,255,.65);">—</span>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#FF6D00" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22,4 12,14.01 9,11.01"/></svg>
+        <span id="s-weeks" style="color:var(--text-mid);">—</span>
       </div>
     </div>
 
     <div class="star-explains">
       <div class="se-title">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="#C9A84C"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="#FF6D00"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
         How STAR works for you
       </div>
       <p>I'll start you on sessions matched to your year group straight away. <strong>No diagnostic test needed — just start practising!</strong></p>
       <p>Behind the scenes, I'll be <strong>learning about you from your very first answer</strong> — tracking which topics you find easy and which ones need more work.</p>
       <p>After <strong>3 sessions</strong> I'll unlock your personal <strong>Skills Map</strong> — a clear picture of exactly where you're strong and where to focus next. The more you practise, the smarter my recommendations become.</p>
-      <p style="color:rgba(201,168,76,0.75);">You're always in control — switch sessions, change your schedule, or ask me anything in STAR Chat at any time. ✨</p>
+      <p style="color:var(--orange);">You're always in control — switch sessions, change your schedule, or ask me anything in STAR Chat at any time. ✨</p>
     </div>
 
     <button class="nbtn big" id="btn-start" onclick="startTraining()">🚀 &nbsp;Let's Start Training!</button>
@@ -328,6 +391,13 @@
   </div>
 
 </div>
+
+<footer>
+  <a href="mailto:staraitutor.support@gmail.com">Support</a>
+  <a href="https://www.facebook.com/share/1DGKfvGo9b/" target="_blank" rel="noopener">Facebook</a>
+  <a href="privacy.html">Privacy Policy</a>
+  <a href="terms.html">Terms of Service</a>
+</footer>
 
 <script>
   const { createClient } = supabase;
@@ -499,11 +569,5 @@
     setTimeout(() => { window.location.href = 'dashboard.html'; }, 700);
   }
 </script>
-<footer style="position:relative;z-index:10;width:100%;padding:24px 20px;border-top:1px solid rgba(201,168,76,.1);display:flex;justify-content:center;gap:24px;flex-wrap:wrap;margin-top:40px;">
-  <a href="mailto:staraitutor.support@gmail.com" style="font-family:'Lato',sans-serif;font-size:.74rem;color:rgba(255,255,255,.28);text-decoration:none;">Support</a>
-  <a href="https://www.facebook.com/share/1DGKfvGo9b/" target="_blank" rel="noopener" style="font-family:'Lato',sans-serif;font-size:.74rem;color:rgba(255,255,255,.28);text-decoration:none;">Facebook</a>
-  <a href="privacy.html" style="font-family:'Lato',sans-serif;font-size:.74rem;color:rgba(255,255,255,.28);text-decoration:none;">Privacy Policy</a>
-  <a href="terms.html" style="font-family:'Lato',sans-serif;font-size:.74rem;color:rgba(255,255,255,.28);text-decoration:none;">Terms of Service</a>
-</footer>
 </body>
 </html>
