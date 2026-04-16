@@ -274,6 +274,27 @@
     }
     .chat-footer a:hover { color:var(--text-mid); }
 
+    /* ── Starter chips ───────────────────────────────────────────────────────── */
+    .starter-chips {
+      display:flex; flex-wrap:wrap; justify-content:center;
+      gap:10px; padding:4px 0 8px;
+    }
+    .starter-chip {
+      background:#fff;
+      border:2px solid #FF6B00;
+      color:#FF6B00;
+      border-radius:999px;
+      padding:8px 16px;
+      font-family:'Nunito',sans-serif;
+      font-size:.85rem; font-weight:700;
+      cursor:pointer; transition:background .15s, color .15s;
+      white-space:nowrap;
+    }
+    .starter-chip:hover {
+      background:#FF6B00;
+      color:#fff;
+    }
+
     /* ── Context loading ─────────────────────────────────────────────────────── */
     .context-loading {
       text-align:center; padding:20px;
@@ -430,10 +451,43 @@
     setTimeout(() => el.classList.remove('show'), 4000);
   }
 
+  // ── Starter chips ─────────────────────────────────────────────────────────────
+  const CHIPS = [
+    '💡 Help me with fractions',
+    '✏️ What\'s a fronted adverbial?',
+    '🔢 Times tables tips',
+    '📝 Exam day advice',
+  ];
+
+  function addStarterChips() {
+    const row = document.createElement('div');
+    row.className = 'starter-chips';
+    row.id = 'starter-chips';
+    CHIPS.forEach(label => {
+      const btn = document.createElement('button');
+      btn.className = 'starter-chip';
+      btn.textContent = label;
+      btn.addEventListener('click', () => {
+        inputEl.value = label;
+        removeStarterChips();
+        sendMessage();
+      });
+      row.appendChild(btn);
+    });
+    messagesEl.appendChild(row);
+    scrollToBottom();
+  }
+
+  function removeStarterChips() {
+    document.getElementById('starter-chips')?.remove();
+  }
+
   // ── Send a message ────────────────────────────────────────────────────────────
   async function sendMessage() {
     const text = inputEl.value.trim();
     if (!text || isWaiting) return;
+
+    removeStarterChips();
 
     isWaiting = true;
     sendBtn.disabled = true;
@@ -615,6 +669,7 @@
         : `Hi! I'm STAR Parent Advisor. I'm here to help you support ${childFirstName}'s transfer test preparation. What would you like to know?`;
 
       appendMsg('assistant', greeting);
+      addStarterChips();
     } else {
       // Student greeting — fetch name so it can be passed in childData to the API
       const { data: profile } = await sb
@@ -629,6 +684,7 @@
       appendMsg('assistant',
         `Hi ${firstName}! I'm STAR, your transfer test tutor. 🌟 I'm here to help you with anything about the exam — maths, English, exam tips, or just to explain something you're stuck on. What would you like help with today?`
       );
+      addStarterChips();
     }
 
     inputEl.focus();
