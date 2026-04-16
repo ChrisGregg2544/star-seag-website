@@ -181,16 +181,16 @@
     .card-footer { padding: 18px 24px 24px; display: flex; flex-direction: column; gap: 12px; }
     .action-row { display: flex; gap: 10px; align-items: center; }
     .btn-submit {
-      flex: 1; background: var(--orange); color: #fff;
+      flex: 1; background: #FF6D00; color: #fff;
       border: none; border-radius: var(--radius-btn);
       padding: 16px 24px; font-family: 'Nunito', sans-serif;
       font-size: .95rem; font-weight: 800; letter-spacing: .04em; text-transform: uppercase;
-      cursor: pointer; transition: all .15s;
+      cursor: pointer; transition: background .15s, transform .15s, box-shadow .15s;
       box-shadow: 0 4px 0 #CC5500; -webkit-tap-highlight-color: transparent;
     }
     .btn-submit:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 5px 0 #CC5500; }
     .btn-submit:active:not(:disabled) { transform: translateY(2px); box-shadow: 0 2px 0 #CC5500; }
-    .btn-submit:disabled { opacity: .4; cursor: not-allowed; box-shadow: 0 4px 0 rgba(0,0,0,.08); }
+    .btn-submit:disabled { background: #FFAB76; color: #fff; cursor: not-allowed; box-shadow: 0 4px 0 #D4845A; }
     .btn-next {
       flex: 1; background: var(--green); color: #fff;
       border: none; border-radius: var(--radius-btn);
