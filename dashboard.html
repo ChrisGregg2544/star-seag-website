@@ -380,6 +380,21 @@
     .star-footer-bottom-links { display: flex; gap: 16px; }
     .star-footer-bottom-links a { font-size: .72rem; font-weight: 700; color: var(--text-light); text-decoration: none; transition: color .18s; }
     .star-footer-bottom-links a:hover { color: var(--orange); }
+    .btn-manage-sub {
+      display: none;
+      font-family: 'Nunito', sans-serif; font-size: .72rem; font-weight: 800;
+      color: var(--orange); background: #fff;
+      border: 2px solid var(--orange); border-radius: 999px;
+      padding: 5px 14px; cursor: pointer;
+      transition: background .15s, color .15s;
+    }
+    .btn-manage-sub:hover { background: var(--orange); color: #fff; }
+    .btn-manage-sub.visible { display: inline-block; }
+    .manage-sub-error {
+      display: none; font-size: .7rem; font-weight: 700; color: #ef4444;
+      margin-top: 6px; text-align: right;
+    }
+    .manage-sub-error.visible { display: block; }
 
     @media(max-width:680px) {
       .hero { grid-template-columns: 1fr; padding: 22px 18px; }
@@ -582,8 +597,10 @@
       <a href="terms.html">Terms of Service</a>
       <a href="mailto:staraitutor.support@gmail.com">Support</a>
       <a href="https://www.facebook.com/share/1DGKfvGo9b/" target="_blank" rel="noopener">Facebook</a>
+      <button class="btn-manage-sub" id="btn-manage-sub" onclick="openPortal()">Manage Subscription</button>
     </div>
   </div>
+  <div class="manage-sub-error" id="manage-sub-error">Something went wrong — please contact <a href="mailto:support@staraitutor.co.uk" style="color:#ef4444;">support@staraitutor.co.uk</a></div>
 </footer>
 
 </div><!-- /dash-wrap -->
@@ -598,6 +615,37 @@ const sb = createClient(
 async function signOut() {
   await sb.auth.signOut();
   window.location.href = 'login.html';
+}
+
+async function openPortal() {
+  const btn = document.getElementById('btn-manage-sub');
+  const errEl = document.getElementById('manage-sub-error');
+  errEl.classList.remove('visible');
+  btn.textContent = 'Loading…';
+  btn.disabled = true;
+
+  try {
+    const { data: sessionData } = await sb.auth.getSession();
+    const email = sessionData?.session?.user?.email;
+    if (!email) throw new Error('Not signed in');
+
+    const res = await fetch('/api/create-portal-session', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    });
+
+    const json = await res.json();
+    if (!res.ok || !json.url) throw new Error(json.error || 'Could not open portal');
+
+    window.location.href = json.url;
+
+  } catch (err) {
+    console.error('Portal error:', err);
+    errEl.classList.add('visible');
+    btn.textContent = 'Manage Subscription';
+    btn.disabled = false;
+  }
 }
 
 function comingSoon() {
@@ -853,6 +901,10 @@ async function init() {
 
   const status = profile?.subscription_status;
   const subscribed = status === 'active' || status === 'trialing';
+
+  if (subscribed) {
+    document.getElementById('btn-manage-sub').classList.add('visible');
+  }
 
   if (!subscribed) {
     const dbFreeUsed = profile?.free_sprints_used ?? 0;
