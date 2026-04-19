@@ -305,18 +305,14 @@ async function loadDashboard() {
 }
 
 async function loadQuestionBank() {
-  // Use direct REST fetch with a high explicit limit to avoid supabase-js's
-  // default 1,000-row cap, which silently drops rows beyond that threshold.
-  let data, fetchError;
+  let counts, total, fetchError;
   try {
-    const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/questions?select=topic,year_group&validated=eq.true`,
-      { headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`, 'Range': '0-9999' } }
-    );
+    const res = await fetch('/question-builder/api/get-question-counts');
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    data = await res.json();
-    document.title = 'Rows: ' + data.length;
-    console.log('Raw row count:', data.length, 'Sample:', data.slice(0,3));
+    const json = await res.json();
+    if (json.error) throw new Error(json.error);
+    counts = json.counts;
+    total  = json.total;
   } catch (err) {
     fetchError = err;
   }
@@ -329,23 +325,12 @@ async function loadQuestionBank() {
     return;
   }
 
-  // Build counts map — lowercase both sides to guard against any case drift
-  const counts = {};
-  TOPICS.forEach(t => { counts[t] = { P6: 0, P7: 0 }; });
-  (data || []).forEach(row => {
-    const topic = (row.topic || '').toLowerCase();
-    const yg    = row.year_group;
-    if (counts[topic] && (yg === 'P6' || yg === 'P7')) {
-      counts[topic][yg]++;
-    }
-  });
-
   const tbody = document.getElementById('bank-tbody');
   let totalP6 = 0, totalP7 = 0;
 
   TOPICS.forEach(topic => {
-    const p6 = counts[topic].P6;
-    const p7 = counts[topic].P7;
+    const p6 = counts[`${topic}_P6`] || 0;
+    const p7 = counts[`${topic}_P7`] || 0;
     totalP6 += p6; totalP7 += p7;
     const displayName = topic.replace(/_/g, ' ');
     tbody.innerHTML += `
@@ -373,7 +358,7 @@ async function loadQuestionBank() {
 
   document.getElementById('bank-table').style.display = 'table';
   document.getElementById('bank-updated').textContent =
-    `— ${(totalP6 + totalP7).toLocaleString()} validated questions`;
+    `— ${total.toLocaleString()} validated questions`;
 }
 
 async function loadReferenceDataset() {
