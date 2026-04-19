@@ -70,11 +70,11 @@ export default async function handler(req, res) {
           questions = JSON.parse(match[0]);
         } catch {
           console.error('JSON parse failed. Raw:', rawText.slice(0, 300));
-          return res.status(500).json({ error: 'Could not parse AI response' });
+          return res.status(500).json({ error: 'Could not parse AI response', raw: rawText.substring(0, 2000) });
         }
       } else {
         console.error('No JSON array found. Raw:', rawText.slice(0, 300));
-        return res.status(500).json({ error: 'Could not parse AI response' });
+        return res.status(500).json({ error: 'Could not parse AI response', raw: rawText.substring(0, 2000) });
       }
     }
 
