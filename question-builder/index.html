@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>STAR Question Builder</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Nunito', sans-serif;
+      background: #FFFBF0;
+      color: #1A1A1A;
+      min-height: 100vh;
+    }
+
+    /* ── AUTH GATE ── */
+    #auth-gate {
+      position: fixed; inset: 0; z-index: 999;
+      background: #FFFBF0;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .gate-card {
+      background: #fff;
+      border: 2px solid #E8D8B8;
+      border-radius: 16px;
+      padding: 40px 36px;
+      width: 100%; max-width: 380px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.10);
+      text-align: center;
+    }
+    .gate-card .gate-icon { font-size: 2.2rem; margin-bottom: 12px; }
+    .gate-card h1 { font-size: 1.3rem; font-weight: 900; color: #FF6B00; margin-bottom: 4px; }
+    .gate-card p { font-size: .85rem; color: #666; margin-bottom: 24px; font-weight: 600; }
+    .gate-input {
+      width: 100%; padding: 12px 14px; border-radius: 10px;
+      border: 2px solid #E0E0E0; font-family: 'Nunito', sans-serif;
+      font-size: .95rem; font-weight: 700; outline: none;
+      transition: border-color .15s; margin-bottom: 12px;
+    }
+    .gate-input:focus { border-color: #FF6B00; }
+    .gate-btn {
+      width: 100%; padding: 13px; border-radius: 10px; border: none;
+      background: #FF6B00; color: #fff;
+      font-family: 'Nunito', sans-serif; font-size: 1rem; font-weight: 900;
+      cursor: pointer; box-shadow: 0 4px 0 #CC5500; transition: all .15s;
+    }
+    .gate-btn:hover { transform: translateY(-1px); box-shadow: 0 5px 0 #CC5500; }
+    .gate-btn:active { transform: translateY(2px); box-shadow: 0 2px 0 #CC5500; }
+    .gate-error {
+      display: none; margin-top: 12px;
+      font-size: .82rem; font-weight: 700; color: #ef4444;
+    }
+    .gate-error.visible { display: block; }
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-8px); }
+      40%, 80% { transform: translateX(8px); }
+    }
+    .shake { animation: shake .4s ease; }
+
+    /* ── DASHBOARD ── */
+    #dashboard { display: none; }
+
+    .top-header {
+      background: #FF6B00;
+      height: 60px; padding: 0 24px;
+      display: flex; align-items: center; justify-content: space-between;
+      box-shadow: 0 3px 0 #CC5500;
+    }
+    .top-header h1 {
+      font-size: 1.1rem; font-weight: 900; color: #fff; letter-spacing: .02em;
+    }
+    .top-header h1 span { font-size: .75rem; font-weight: 700; color: rgba(255,255,255,.7); margin-left: 8px; }
+    .signout-link {
+      font-size: .78rem; font-weight: 700; color: rgba(255,255,255,.7);
+      cursor: pointer; text-decoration: underline; background: none; border: none;
+      font-family: 'Nunito', sans-serif;
+    }
+    .signout-link:hover { color: #fff; }
+
+    .sub-nav {
+      background: #fff;
+      border-bottom: 2px solid #F0E0C0;
+      padding: 0 24px;
+      display: flex; gap: 0;
+    }
+    .sub-nav a, .sub-nav span {
+      display: inline-block; padding: 12px 20px;
+      font-size: .82rem; font-weight: 800; letter-spacing: .04em;
+      text-transform: uppercase; text-decoration: none;
+      border-bottom: 3px solid transparent; margin-bottom: -2px;
+      transition: all .15s;
+    }
+    .sub-nav a.active { color: #FF6B00; border-bottom-color: #FF6B00; }
+    .sub-nav a:not(.active):not(.disabled) { color: #666; }
+    .sub-nav a:not(.active):not(.disabled):hover { color: #FF6B00; }
+    .sub-nav span.disabled { color: #CCC; cursor: not-allowed; }
+    .sub-nav span.disabled::after { content: ' (soon)'; font-size: .7rem; }
+
+    .page-wrap { max-width: 960px; margin: 0 auto; padding: 32px 20px 60px; }
+
+    .section-card {
+      background: #fff; border: 2px solid #E8D8B8;
+      border-radius: 16px; padding: 28px 28px;
+      box-shadow: 0 2px 8px rgba(0,0,0,.05);
+      margin-bottom: 24px;
+    }
+    .section-title {
+      font-size: 1rem; font-weight: 900; color: #1A1A1A;
+      text-transform: uppercase; letter-spacing: .05em;
+      margin-bottom: 20px; display: flex; align-items: center; gap: 8px;
+    }
+    .section-title span { color: #FF6B00; }
+
+    /* ── BANK TABLE ── */
+    .bank-table { width: 100%; border-collapse: collapse; font-size: .88rem; }
+    .bank-table th {
+      text-align: left; padding: 10px 12px;
+      font-size: .72rem; font-weight: 900; letter-spacing: .08em;
+      text-transform: uppercase; color: #999;
+      border-bottom: 2px solid #F0E0C0; background: #FFFBF0;
+    }
+    .bank-table td {
+      padding: 11px 12px; border-bottom: 1px solid #F5EDD5;
+      font-weight: 700; color: #333;
+    }
+    .bank-table tr:last-child td { border-bottom: none; font-weight: 900; background: #FFFBF0; }
+    .bank-table .topic-name { text-transform: capitalize; color: #1A1A1A; }
+    .bank-table .topic-name em { font-style: normal; font-size: .8rem; color: #999; }
+    .count-cell { text-align: center; font-size: .95rem; font-weight: 800; color: #1A1A1A; }
+
+    .pct-pill {
+      display: inline-block; padding: 3px 10px; border-radius: 999px;
+      font-size: .75rem; font-weight: 900; letter-spacing: .02em;
+    }
+    .pct-green  { background: #E8F5E9; color: #2E7D32; border: 1.5px solid #A5D6A7; }
+    .pct-orange { background: #FFF3E0; color: #E65100; border: 1.5px solid #FFCC80; }
+    .pct-red    { background: #FFEBEE; color: #C62828; border: 1.5px solid #FFCDD2; }
+
+    .totals-row td { border-top: 2px solid #F0E0C0 !important; }
+
+    /* ── REFERENCE TABLE ── */
+    .ref-table { width: 100%; border-collapse: collapse; font-size: .88rem; }
+    .ref-table th {
+      text-align: left; padding: 10px 12px;
+      font-size: .72rem; font-weight: 900; letter-spacing: .08em;
+      text-transform: uppercase; color: #999;
+      border-bottom: 2px solid #F0E0C0; background: #FFFBF0;
+    }
+    .ref-table td {
+      padding: 11px 12px; border-bottom: 1px solid #F5EDD5;
+      font-weight: 700; color: #333;
+    }
+    .ref-table tr:last-child td { border-bottom: none; }
+
+    .notice-yellow {
+      background: #FFFDE7; border: 2px solid #FFD54F;
+      border-radius: 10px; padding: 14px 18px;
+      font-size: .88rem; font-weight: 700; color: #795548;
+    }
+    .notice-yellow a { color: #FF6B00; font-weight: 900; text-decoration: none; }
+    .notice-yellow a:hover { text-decoration: underline; }
+
+    .loading-msg { color: #999; font-size: .88rem; font-weight: 700; padding: 12px 0; }
+
+    .page-footer {
+      text-align: center; padding: 20px;
+      font-size: .75rem; font-weight: 700; color: #CCC;
+      border-top: 2px solid #F0E0C0; margin-top: 8px;
+    }
+  </style>
+</head>
+<body>
+
+<!-- AUTH GATE -->
+<div id="auth-gate">
+  <div class="gate-card" id="gate-card">
+    <div class="gate-icon">⭐</div>
+    <h1>STAR Question Builder</h1>
+    <p>Internal tool — enter password to continue</p>
+    <input type="password" class="gate-input" id="gate-input"
+           placeholder="Password" autocomplete="current-password"
+           onkeydown="if(event.key==='Enter')submitPassword()" />
+    <button class="gate-btn" onclick="submitPassword()">Enter</button>
+    <div class="gate-error" id="gate-error">Incorrect password — try again</div>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboard">
+  <header class="top-header">
+    <h1>STAR Question Builder <span>Internal Tool</span></h1>
+    <button class="signout-link" onclick="signOut()">Sign out</button>
+  </header>
+  <nav class="sub-nav">
+    <a href="index.html" class="active">Dashboard</a>
+    <a href="extract.html">Extract</a>
+    <span class="disabled">Generate</span>
+    <span class="disabled">Review Queue</span>
+  </nav>
+
+  <div class="page-wrap">
+
+    <!-- SECTION 1: LIVE QUESTION BANK -->
+    <div class="section-card">
+      <div class="section-title">📊 Live Question Bank <span id="bank-updated"></span></div>
+      <div id="bank-loading" class="loading-msg">Loading question bank data…</div>
+      <table class="bank-table" id="bank-table" style="display:none;">
+        <thead>
+          <tr>
+            <th>Topic</th>
+            <th style="text-align:center;">P6 Count</th>
+            <th style="text-align:center;">P7 Count</th>
+            <th style="text-align:center;">Target</th>
+            <th style="text-align:center;">P6 %</th>
+            <th style="text-align:center;">P7 %</th>
+          </tr>
+        </thead>
+        <tbody id="bank-tbody"></tbody>
+      </table>
+    </div>
+
+    <!-- SECTION 2: REFERENCE DATASET -->
+    <div class="section-card">
+      <div class="section-title">📁 Reference Dataset</div>
+      <div id="ref-loading" class="loading-msg">Loading reference dataset…</div>
+      <div id="ref-notice" class="notice-yellow" style="display:none;">
+        Reference dataset not yet extracted. <a href="extract.html">Go to Extract</a> to begin.
+      </div>
+      <table class="ref-table" id="ref-table" style="display:none;">
+        <thead>
+          <tr>
+            <th>Category</th>
+            <th style="text-align:center;">P6 Papers</th>
+            <th style="text-align:center;">P7 Papers</th>
+            <th style="text-align:center;">Total</th>
+          </tr>
+        </thead>
+        <tbody id="ref-tbody"></tbody>
+      </table>
+    </div>
+
+  </div>
+
+  <footer class="page-footer">STAR Question Builder — Internal Tool Only</footer>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://iutcgogmxhaqgaxkznxu.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml1dGNnb2dteGhhcWdheGt6bnh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM3NjE4MTQsImV4cCI6MjA4OTMzNzgxNH0.o0plRQzH8ezfttG_sEeWu3F4IUtKnyzcXtPEGJ9xRF0';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const TOPICS = [
+  'punctuation', 'grammar', 'spelling', 'vocabulary',
+  'comprehension_mc', 'comprehension_written',
+  'arithmetic', 'geometry', 'fractions_decimals',
+  'measurement', 'statistics', 'algebra_sequences'
+];
+const TARGET = 250;
+const PASSWORD = 'StarAdmin2026';
+
+function checkAuth() {
+  if (sessionStorage.getItem('qb_auth') === 'true') {
+    document.getElementById('auth-gate').style.display = 'none';
+    document.getElementById('dashboard').style.display = 'block';
+    loadDashboard();
+  }
+}
+
+function submitPassword() {
+  const input = document.getElementById('gate-input');
+  const errEl = document.getElementById('gate-error');
+  const card  = document.getElementById('gate-card');
+  if (input.value === PASSWORD) {
+    sessionStorage.setItem('qb_auth', 'true');
+    document.getElementById('auth-gate').style.display = 'none';
+    document.getElementById('dashboard').style.display = 'block';
+    loadDashboard();
+  } else {
+    errEl.classList.add('visible');
+    input.value = '';
+    card.classList.remove('shake');
+    void card.offsetWidth; // force reflow
+    card.classList.add('shake');
+  }
+}
+
+function signOut() {
+  sessionStorage.removeItem('qb_auth');
+  window.location.reload();
+}
+
+function pctPill(count) {
+  const pct = Math.round(count / TARGET * 100);
+  const cls = pct >= 80 ? 'pct-green' : pct >= 50 ? 'pct-orange' : 'pct-red';
+  return `<span class="pct-pill ${cls}">${pct}%</span>`;
+}
+
+async function loadDashboard() {
+  await Promise.all([loadQuestionBank(), loadReferenceDataset()]);
+}
+
+async function loadQuestionBank() {
+  const { data, error } = await sb
+    .from('questions')
+    .select('topic, year_group')
+    .eq('validated', true);
+
+  document.getElementById('bank-loading').style.display = 'none';
+
+  if (error) {
+    document.getElementById('bank-loading').textContent = 'Error loading question bank: ' + error.message;
+    document.getElementById('bank-loading').style.display = 'block';
+    return;
+  }
+
+  // Build counts map
+  const counts = {};
+  TOPICS.forEach(t => { counts[t] = { P6: 0, P7: 0 }; });
+  (data || []).forEach(row => {
+    if (counts[row.topic] && (row.year_group === 'P6' || row.year_group === 'P7')) {
+      counts[row.topic][row.year_group]++;
+    }
+  });
+
+  const tbody = document.getElementById('bank-tbody');
+  let totalP6 = 0, totalP7 = 0;
+
+  TOPICS.forEach(topic => {
+    const p6 = counts[topic].P6;
+    const p7 = counts[topic].P7;
+    totalP6 += p6; totalP7 += p7;
+    const displayName = topic.replace(/_/g, ' ');
+    tbody.innerHTML += `
+      <tr>
+        <td class="topic-name">${displayName}</td>
+        <td class="count-cell">${p6}</td>
+        <td class="count-cell">${p7}</td>
+        <td class="count-cell" style="color:#999;">${TARGET}</td>
+        <td class="count-cell">${pctPill(p6)}</td>
+        <td class="count-cell">${pctPill(p7)}</td>
+      </tr>`;
+  });
+
+  // Totals row
+  const totalTarget = TARGET * TOPICS.length;
+  tbody.innerHTML += `
+    <tr class="totals-row">
+      <td class="topic-name">TOTAL</td>
+      <td class="count-cell">${totalP6}</td>
+      <td class="count-cell">${totalP7}</td>
+      <td class="count-cell" style="color:#999;">${totalTarget}</td>
+      <td class="count-cell">${pctPill(totalP6 / TOPICS.length)}</td>
+      <td class="count-cell">${pctPill(totalP7 / TOPICS.length)}</td>
+    </tr>`;
+
+  document.getElementById('bank-table').style.display = 'table';
+  document.getElementById('bank-updated').textContent =
+    `— ${(data || []).length.toLocaleString()} validated questions`;
+}
+
+async function loadReferenceDataset() {
+  const { data, error } = await sb
+    .from('reference_questions')
+    .select('category, year_group');
+
+  document.getElementById('ref-loading').style.display = 'none';
+
+  if (error) {
+    // Table likely doesn't exist yet
+    document.getElementById('ref-notice').style.display = 'block';
+    return;
+  }
+
+  if (!data || data.length === 0) {
+    document.getElementById('ref-notice').style.display = 'block';
+    return;
+  }
+
+  // Build counts map
+  const counts = {};
+  data.forEach(row => {
+    if (!counts[row.category]) counts[row.category] = { P6: 0, P7: 0 };
+    if (row.year_group === 'P6' || row.year_group === 'P7') {
+      counts[row.category][row.year_group]++;
+    }
+  });
+
+  const tbody = document.getElementById('ref-tbody');
+  let grandTotal = 0;
+
+  Object.keys(counts).sort().forEach(cat => {
+    const p6 = counts[cat].P6;
+    const p7 = counts[cat].P7;
+    const total = p6 + p7;
+    grandTotal += total;
+    tbody.innerHTML += `
+      <tr>
+        <td style="text-transform:capitalize;">${cat.replace(/_/g, ' ')}</td>
+        <td style="text-align:center;font-weight:800;">${p6}</td>
+        <td style="text-align:center;font-weight:800;">${p7}</td>
+        <td style="text-align:center;font-weight:900;">${total}</td>
+      </tr>`;
+  });
+
+  tbody.innerHTML += `
+    <tr style="font-weight:900;background:#FFFBF0;border-top:2px solid #F0E0C0;">
+      <td>TOTAL</td>
+      <td style="text-align:center;"></td>
+      <td style="text-align:center;"></td>
+      <td style="text-align:center;">${grandTotal}</td>
+    </tr>`;
+
+  document.getElementById('ref-table').style.display = 'table';
+}
+
+// Init
+checkAuth();
+</script>
+</body>
+</html>

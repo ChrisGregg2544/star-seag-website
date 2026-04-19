@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Extract — STAR Question Builder</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Nunito', sans-serif;
+      background: #FFFBF0;
+      color: #1A1A1A;
+      min-height: 100vh;
+    }
+
+    /* ── HEADER ── */
+    .top-header {
+      background: #FF6B00;
+      height: 60px; padding: 0 24px;
+      display: flex; align-items: center; justify-content: space-between;
+      box-shadow: 0 3px 0 #CC5500;
+    }
+    .top-header h1 { font-size: 1.1rem; font-weight: 900; color: #fff; letter-spacing: .02em; }
+    .top-header h1 span { font-size: .75rem; font-weight: 700; color: rgba(255,255,255,.7); margin-left: 8px; }
+    .signout-link {
+      font-size: .78rem; font-weight: 700; color: rgba(255,255,255,.7);
+      cursor: pointer; text-decoration: underline; background: none; border: none;
+      font-family: 'Nunito', sans-serif;
+    }
+    .signout-link:hover { color: #fff; }
+
+    .sub-nav {
+      background: #fff;
+      border-bottom: 2px solid #F0E0C0;
+      padding: 0 24px;
+      display: flex; gap: 0;
+    }
+    .sub-nav a, .sub-nav span {
+      display: inline-block; padding: 12px 20px;
+      font-size: .82rem; font-weight: 800; letter-spacing: .04em;
+      text-transform: uppercase; text-decoration: none;
+      border-bottom: 3px solid transparent; margin-bottom: -2px;
+      transition: all .15s;
+    }
+    .sub-nav a.active { color: #FF6B00; border-bottom-color: #FF6B00; }
+    .sub-nav a:not(.active):not(.disabled) { color: #666; }
+    .sub-nav a:not(.active):not(.disabled):hover { color: #FF6B00; }
+    .sub-nav span.disabled { color: #CCC; cursor: not-allowed; }
+    .sub-nav span.disabled::after { content: ' (soon)'; font-size: .7rem; }
+
+    /* ── PAGE ── */
+    .page-wrap { max-width: 900px; margin: 0 auto; padding: 32px 20px 60px; }
+
+    .page-title {
+      font-size: 1.4rem; font-weight: 900; color: #1A1A1A;
+      margin-bottom: 6px;
+    }
+    .page-sub { font-size: .9rem; font-weight: 600; color: #666; margin-bottom: 28px; }
+
+    .card {
+      background: #fff; border: 2px solid #E8D8B8;
+      border-radius: 16px; padding: 28px 28px;
+      box-shadow: 0 2px 8px rgba(0,0,0,.05);
+      margin-bottom: 24px;
+    }
+
+    /* ── FORM ── */
+    .form-row { display: flex; gap: 16px; margin-bottom: 18px; flex-wrap: wrap; }
+    .form-group { display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 160px; }
+    .form-group label {
+      font-size: .78rem; font-weight: 900; letter-spacing: .06em;
+      text-transform: uppercase; color: #666;
+    }
+    select, textarea {
+      font-family: 'Nunito', sans-serif; font-size: .92rem; font-weight: 700;
+      border: 2px solid #E0E0E0; border-radius: 10px;
+      padding: 10px 12px; outline: none; color: #1A1A1A;
+      transition: border-color .15s; background: #fff;
+    }
+    select:focus, textarea:focus { border-color: #FF6B00; }
+    textarea { width: 100%; resize: vertical; margin-bottom: 18px; line-height: 1.55; }
+
+    .btn-primary {
+      padding: 13px 28px; border-radius: 10px; border: none;
+      background: #FF6B00; color: #fff;
+      font-family: 'Nunito', sans-serif; font-size: .95rem; font-weight: 900;
+      cursor: pointer; box-shadow: 0 4px 0 #CC5500; transition: all .15s;
+    }
+    .btn-primary:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 5px 0 #CC5500; }
+    .btn-primary:active:not(:disabled) { transform: translateY(2px); box-shadow: 0 2px 0 #CC5500; }
+    .btn-primary:disabled { opacity: .6; cursor: not-allowed; }
+
+    .btn-outline {
+      padding: 13px 24px; border-radius: 10px;
+      background: #fff; color: #FF6B00;
+      border: 2px solid #FF6B00;
+      font-family: 'Nunito', sans-serif; font-size: .95rem; font-weight: 800;
+      cursor: pointer; transition: all .15s; margin-left: 10px;
+    }
+    .btn-outline:hover { background: #FF6B00; color: #fff; }
+
+    /* ── LOADING ── */
+    .loading-section {
+      display: none; text-align: center; padding: 32px 20px;
+    }
+    .spinner {
+      display: inline-block; width: 36px; height: 36px;
+      border: 4px solid #F0E0C0; border-top-color: #FF6B00;
+      border-radius: 50%; animation: spin .75s linear infinite; margin-bottom: 14px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-section p { font-size: .92rem; font-weight: 700; color: #666; }
+
+    /* ── RESULTS ── */
+    #results-section { display: none; }
+
+    .results-heading {
+      font-size: 1.05rem; font-weight: 900; color: #1A1A1A; margin-bottom: 18px;
+    }
+    .results-heading span { color: #FF6B00; }
+
+    .preview-table { width: 100%; border-collapse: collapse; font-size: .85rem; }
+    .preview-table th {
+      text-align: left; padding: 9px 10px;
+      font-size: .7rem; font-weight: 900; letter-spacing: .08em;
+      text-transform: uppercase; color: #999;
+      border-bottom: 2px solid #F0E0C0; background: #FFFBF0;
+    }
+    .preview-table td {
+      padding: 10px 10px; border-bottom: 1px solid #F5EDD5;
+      vertical-align: top;
+    }
+    .preview-table tr.removed { opacity: .35; text-decoration: line-through; }
+    .row-num { font-weight: 900; color: #999; font-size: .8rem; width: 32px; }
+    .q-text { font-weight: 700; color: #1A1A1A; max-width: 320px; line-height: 1.45; }
+    .ans-cell { font-weight: 900; color: #FF6B00; font-size: .9rem; width: 60px; }
+    .cat-select, .diff-select {
+      font-family: 'Nunito', sans-serif; font-size: .8rem; font-weight: 700;
+      border: 1.5px solid #E0E0E0; border-radius: 6px; padding: 5px 8px;
+      outline: none; background: #fff; color: #1A1A1A;
+    }
+    .cat-select:focus, .diff-select:focus { border-color: #FF6B00; }
+    .diff-select { width: 90px; }
+    .btn-remove {
+      background: none; border: none; cursor: pointer;
+      font-size: .8rem; font-weight: 900; color: #ef4444;
+      padding: 4px 8px; border-radius: 6px; transition: background .15s;
+      white-space: nowrap;
+    }
+    .btn-remove:hover { background: #FFEBEE; }
+
+    .results-actions { margin-top: 20px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .save-count { font-size: .85rem; font-weight: 700; color: #666; margin-left: 4px; }
+
+    /* ── MESSAGES ── */
+    .msg-error {
+      display: none; background: rgba(239,68,68,.08); border: 2px solid rgba(239,68,68,.25);
+      border-radius: 10px; padding: 12px 16px; margin-top: 14px;
+      font-size: .85rem; font-weight: 700; color: #ef4444;
+    }
+    .msg-error.visible { display: block; }
+    .msg-success {
+      display: none; background: #E8F5E9; border: 2px solid #A5D6A7;
+      border-radius: 10px; padding: 18px 20px; text-align: center;
+    }
+    .msg-success.visible { display: block; }
+    .msg-success strong { display: block; font-size: 1rem; font-weight: 900; color: #2E7D32; margin-bottom: 6px; }
+    .msg-success span { font-size: .88rem; font-weight: 700; color: #388E3C; }
+
+    .page-footer {
+      text-align: center; padding: 20px;
+      font-size: .75rem; font-weight: 700; color: #CCC;
+      border-top: 2px solid #F0E0C0; margin-top: 8px;
+    }
+  </style>
+</head>
+<body>
+
+<header class="top-header">
+  <h1>STAR Question Builder <span>Internal Tool</span></h1>
+  <button class="signout-link" onclick="signOut()">Sign out</button>
+</header>
+<nav class="sub-nav">
+  <a href="index.html">Dashboard</a>
+  <a href="extract.html" class="active">Extract</a>
+  <span class="disabled">Generate</span>
+  <span class="disabled">Review Queue</span>
+</nav>
+
+<div class="page-wrap">
+  <h2 class="page-title">Extract Reference Questions from Past Paper</h2>
+  <p class="page-sub">Paste one Catapult paper at a time. Preview and edit before saving to the reference dataset.</p>
+
+  <!-- FORM CARD -->
+  <div class="card" id="form-card">
+    <div class="form-row">
+      <div class="form-group">
+        <label for="year-group">Year Group</label>
+        <select id="year-group">
+          <option value="P6">P6</option>
+          <option value="P7">P7</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="paper-number">Paper Number</label>
+        <select id="paper-number">
+          <option value="1">Paper 1</option>
+          <option value="2">Paper 2</option>
+          <option value="3">Paper 3</option>
+          <option value="4">Paper 4</option>
+          <option value="5">Paper 5</option>
+          <option value="6">Paper 6</option>
+          <option value="7">Paper 7</option>
+          <option value="8">Paper 8</option>
+          <option value="9">Paper 9</option>
+          <option value="10">Paper 10</option>
+        </select>
+      </div>
+    </div>
+
+    <label style="font-size:.78rem;font-weight:900;letter-spacing:.06em;text-transform:uppercase;color:#666;display:block;margin-bottom:8px;">
+      Paper Content
+    </label>
+    <textarea id="paper-content" rows="20" placeholder="Paste the full paper content here…"></textarea>
+
+    <div>
+      <button class="btn-primary" id="extract-btn" onclick="extractQuestions()">Extract Questions</button>
+    </div>
+    <div class="msg-error" id="form-error"></div>
+  </div>
+
+  <!-- LOADING -->
+  <div class="loading-section" id="loading-section">
+    <div class="spinner"></div>
+    <p>Sending to AI for extraction…</p>
+  </div>
+
+  <!-- RESULTS -->
+  <div id="results-section">
+    <div class="card">
+      <div class="results-heading" id="results-heading">
+        Extracted <span id="q-count">0</span> questions — review before saving
+      </div>
+
+      <div style="overflow-x:auto;">
+        <table class="preview-table" id="preview-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Question Text</th>
+              <th>Correct Answer</th>
+              <th>Category</th>
+              <th>Difficulty</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="preview-tbody"></tbody>
+        </table>
+      </div>
+
+      <div class="results-actions">
+        <button class="btn-primary" id="save-btn" onclick="saveQuestions()">
+          Save <span id="save-count-num">0</span> Questions to Reference Dataset
+        </button>
+        <button class="btn-outline" onclick="startOver()">Start Over</button>
+        <span class="save-count" id="save-msg"></span>
+      </div>
+      <div class="msg-error" id="save-error"></div>
+    </div>
+
+    <!-- SUCCESS -->
+    <div class="card msg-success" id="success-card">
+      <strong id="success-msg">Questions saved successfully!</strong>
+      <span>They are now part of the reference dataset.</span>
+      <div style="margin-top:16px;">
+        <button class="btn-primary" onclick="startOver()">Extract Another Paper</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<footer class="page-footer">STAR Question Builder — Internal Tool Only</footer>
+
+<script>
+const CATEGORIES = [
+  'punctuation', 'grammar', 'spelling', 'vocabulary',
+  'comprehension_mc', 'comprehension_written',
+  'arithmetic', 'geometry', 'fractions_decimals',
+  'measurement', 'statistics', 'algebra_sequences'
+];
+
+// Auth check
+(function checkAuth() {
+  if (sessionStorage.getItem('qb_auth') !== 'true') {
+    window.location.href = 'index.html';
+  }
+})();
+
+function signOut() {
+  sessionStorage.removeItem('qb_auth');
+  window.location.href = 'index.html';
+}
+
+let extractedQuestions = [];  // live array (tracks removes)
+
+async function extractQuestions() {
+  const content = document.getElementById('paper-content').value.trim();
+  const errEl   = document.getElementById('form-error');
+  errEl.classList.remove('visible');
+
+  if (!content) {
+    errEl.textContent = 'Please paste the paper content before extracting.';
+    errEl.classList.add('visible');
+    return;
+  }
+
+  const yearGroup    = document.getElementById('year-group').value;
+  const paperNumber  = document.getElementById('paper-number').value;
+
+  document.getElementById('form-card').style.display = 'none';
+  document.getElementById('results-section').style.display = 'none';
+  document.getElementById('loading-section').style.display = 'block';
+
+  try {
+    const res = await fetch('/question-builder/api/extract-paper', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ content, year_group: yearGroup, paper_number: paperNumber }),
+    });
+
+    const json = await res.json();
+
+    document.getElementById('loading-section').style.display = 'none';
+
+    if (!res.ok || json.error) {
+      throw new Error(json.error || 'Extraction failed');
+    }
+
+    extractedQuestions = (json.questions || []).map((q, i) => ({ ...q, _id: i, _removed: false }));
+    renderResults();
+    document.getElementById('results-section').style.display = 'block';
+
+  } catch (err) {
+    document.getElementById('loading-section').style.display = 'none';
+    document.getElementById('form-card').style.display = 'block';
+    document.getElementById('form-error').textContent = err.message || 'Something went wrong. Please try again.';
+    document.getElementById('form-error').classList.add('visible');
+  }
+}
+
+function renderResults() {
+  const active = extractedQuestions.filter(q => !q._removed);
+  document.getElementById('q-count').textContent = extractedQuestions.length;
+  document.getElementById('save-count-num').textContent = active.length;
+
+  const tbody = document.getElementById('preview-tbody');
+  tbody.innerHTML = '';
+
+  let displayNum = 0;
+  extractedQuestions.forEach((q) => {
+    displayNum++;
+    const rowId = `row-${q._id}`;
+    const catOptions = CATEGORIES.map(c =>
+      `<option value="${c}" ${c === q.category ? 'selected' : ''}>${c.replace(/_/g, ' ')}</option>`
+    ).join('');
+    const diffOptions = ['easy', 'medium', 'hard'].map(d =>
+      `<option value="${d}" ${d === q.difficulty ? 'selected' : ''}>${d}</option>`
+    ).join('');
+
+    tbody.innerHTML += `
+      <tr id="${rowId}" ${q._removed ? 'class="removed"' : ''}>
+        <td class="row-num">${displayNum}</td>
+        <td class="q-text">${escHtml(q.question_text || '')}</td>
+        <td class="ans-cell">${escHtml(q.correct_answer || '')}</td>
+        <td>
+          <select class="cat-select" onchange="updateField(${q._id},'category',this.value)"
+                  ${q._removed ? 'disabled' : ''}>
+            ${catOptions}
+          </select>
+        </td>
+        <td>
+          <select class="diff-select" onchange="updateField(${q._id},'difficulty',this.value)"
+                  ${q._removed ? 'disabled' : ''}>
+            ${diffOptions}
+          </select>
+        </td>
+        <td>
+          ${q._removed
+            ? `<button class="btn-remove" style="color:#4CAF50;" onclick="restoreQuestion(${q._id})">↩ Restore</button>`
+            : `<button class="btn-remove" onclick="removeQuestion(${q._id})">✕ Remove</button>`
+          }
+        </td>
+      </tr>`;
+  });
+}
+
+function updateField(id, field, value) {
+  const q = extractedQuestions.find(q => q._id === id);
+  if (q) q[field] = value;
+  updateSaveCount();
+}
+
+function removeQuestion(id) {
+  const q = extractedQuestions.find(q => q._id === id);
+  if (q) q._removed = true;
+  renderResults();
+}
+
+function restoreQuestion(id) {
+  const q = extractedQuestions.find(q => q._id === id);
+  if (q) q._removed = false;
+  renderResults();
+}
+
+function updateSaveCount() {
+  const active = extractedQuestions.filter(q => !q._removed).length;
+  document.getElementById('save-count-num').textContent = active;
+}
+
+async function saveQuestions() {
+  const toSave = extractedQuestions.filter(q => !q._removed);
+  const errEl  = document.getElementById('save-error');
+  errEl.classList.remove('visible');
+
+  if (toSave.length === 0) {
+    errEl.textContent = 'No questions to save — restore some or extract again.';
+    errEl.classList.add('visible');
+    return;
+  }
+
+  const yearGroup   = document.getElementById('year-group').value;
+  const paperNumber = document.getElementById('paper-number').value;
+  const paperSource = `catapult_${yearGroup.toLowerCase()}_paper${paperNumber}`;
+
+  const saveBtn = document.getElementById('save-btn');
+  saveBtn.disabled = true;
+  saveBtn.textContent = 'Saving…';
+
+  try {
+    const res = await fetch('/question-builder/api/save-reference', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        questions: toSave.map(({ question_text, correct_answer, category, difficulty }) =>
+          ({ question_text, correct_answer, category, difficulty })),
+        year_group: yearGroup,
+        paper_source: paperSource,
+      }),
+    });
+
+    const json = await res.json();
+
+    if (!res.ok || json.error) throw new Error(json.error || 'Save failed');
+
+    document.getElementById('preview-table').closest('.card').style.display = 'none';
+    document.getElementById('success-msg').textContent =
+      `${json.saved} question${json.saved !== 1 ? 's' : ''} saved to reference dataset.`;
+    document.getElementById('success-card').classList.add('visible');
+
+  } catch (err) {
+    errEl.textContent = err.message || 'Save failed. Please try again.';
+    errEl.classList.add('visible');
+    saveBtn.disabled = false;
+    saveBtn.innerHTML = `Save <span id="save-count-num">${toSave.length}</span> Questions to Reference Dataset`;
+  }
+}
+
+function startOver() {
+  extractedQuestions = [];
+  document.getElementById('paper-content').value = '';
+  document.getElementById('preview-tbody').innerHTML = '';
+  document.getElementById('results-section').style.display = 'none';
+  document.getElementById('success-card').classList.remove('visible');
+  document.getElementById('form-error').classList.remove('visible');
+  document.getElementById('save-error').classList.remove('visible');
+  document.getElementById('form-card').style.display = 'block';
+  // Re-show the inner card if it was hidden after save
+  const innerCard = document.querySelector('#results-section .card');
+  if (innerCard) innerCard.style.display = 'block';
+}
+
+function escHtml(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+</script>
+</body>
+</html>
