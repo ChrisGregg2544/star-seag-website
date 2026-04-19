@@ -363,6 +363,8 @@ fractions_decimals, measurement, statistics, algebra_sequences
 - Anthropic API key has been rotated multiple times — always use latest from console.anthropic.com
 - N option: stored as key "N" in options jsonb, displayed as "N. No mistake" — never "E. No mistake"
 - Supabase JS v2 client silently caps all SELECT responses at 1,000 rows (adds Range: 0-999 header with no warning). For any query that could return >1,000 rows always use direct REST API fetch with &limit=10000 instead of the supabase-js client .select() call.
+- Supabase REST API caps all responses at 1,000 rows regardless of Range headers or auth key level. For any aggregate counts use a Supabase RPC function with SECURITY DEFINER instead — returns just the grouped result, no pagination needed.
+- The RPC function get_question_counts() is deployed in Supabase and used by /api/get-question-counts.js — do not drop this function.
 
 ---
 
