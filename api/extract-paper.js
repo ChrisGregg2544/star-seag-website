@@ -23,16 +23,26 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const { content, year_group, paper_number } = req.body || {};
+  const { content, pdf_base64, pdf_filename, year_group, paper_number } = req.body || {};
 
-  if (!content)      return res.status(400).json({ error: 'content is required' });
-  if (!year_group)   return res.status(400).json({ error: 'year_group is required' });
-  if (!paper_number) return res.status(400).json({ error: 'paper_number is required' });
+  if (!content && !pdf_base64) return res.status(400).json({ error: 'content or pdf_base64 is required' });
+  if (!year_group)              return res.status(400).json({ error: 'year_group is required' });
+  if (!paper_number)            return res.status(400).json({ error: 'paper_number is required' });
 
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) return res.status(500).json({ error: 'AI configuration error' });
 
-  const userMessage = `Year group: ${year_group}\nPaper: ${paper_number}\n\n${content}`;
+  const textPrompt = `Year group: ${year_group}\nPaper: ${paper_number || pdf_filename || ''}\n\nExtract all questions from this paper.`;
+
+  const userContent = pdf_base64
+    ? [
+        {
+          type: 'document',
+          source: { type: 'base64', media_type: 'application/pdf', data: pdf_base64 },
+        },
+        { type: 'text', text: textPrompt },
+      ]
+    : `Year group: ${year_group}\nPaper: ${paper_number}\n\n${content}`;
 
   try {
     const response = await fetch('https://api.anthropic.com/v1/messages', {
@@ -40,13 +50,14 @@ export default async function handler(req, res) {
       headers: {
         'x-api-key':         apiKey,
         'anthropic-version': '2023-06-01',
+        'anthropic-beta':    'pdfs-2024-09-25',
         'content-type':      'application/json',
       },
       body: JSON.stringify({
         model:      'claude-haiku-4-5-20251001',
         max_tokens: 4000,
         system:     SYSTEM_PROMPT,
-        messages:   [{ role: 'user', content: userMessage }],
+        messages:   [{ role: 'user', content: userContent }],
       }),
     });
 

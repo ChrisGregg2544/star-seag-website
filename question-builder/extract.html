@@ -74,14 +74,30 @@
       font-size: .78rem; font-weight: 900; letter-spacing: .06em;
       text-transform: uppercase; color: #666;
     }
-    select, textarea {
+    select {
       font-family: 'Nunito', sans-serif; font-size: .92rem; font-weight: 700;
       border: 2px solid #E0E0E0; border-radius: 10px;
       padding: 10px 12px; outline: none; color: #1A1A1A;
       transition: border-color .15s; background: #fff;
     }
-    select:focus, textarea:focus { border-color: #FF6B00; }
-    textarea { width: 100%; resize: vertical; margin-bottom: 18px; line-height: 1.55; }
+    select:focus { border-color: #FF6B00; }
+
+    /* ── PDF UPLOAD ── */
+    .pdf-upload-label {
+      display: inline-block;
+      background: #fff;
+      border: 2px solid #FF6B00;
+      color: #FF6B00;
+      border-radius: 10px;
+      padding: 12px 24px;
+      font-family: 'Nunito', sans-serif;
+      font-size: .92rem;
+      font-weight: 900;
+      cursor: pointer;
+      transition: background .15s, color .15s;
+      margin-bottom: 10px;
+    }
+    .pdf-upload-label:hover { background: #FF6B00; color: #fff; }
 
     .btn-primary {
       padding: 13px 28px; border-radius: 10px; border: none;
@@ -192,7 +208,7 @@
 
 <div class="page-wrap">
   <h2 class="page-title">Extract Reference Questions from Past Paper</h2>
-  <p class="page-sub">Paste one Catapult paper at a time. Preview and edit before saving to the reference dataset.</p>
+  <p class="page-sub">Upload one Catapult paper PDF at a time. Preview and edit before saving to the reference dataset.</p>
 
   <!-- FORM CARD -->
   <div class="card" id="form-card">
@@ -222,9 +238,14 @@
     </div>
 
     <label style="font-size:.78rem;font-weight:900;letter-spacing:.06em;text-transform:uppercase;color:#666;display:block;margin-bottom:8px;">
-      Paper Content
+      Paper PDF
     </label>
-    <textarea id="paper-content" rows="20" placeholder="Paste the full paper content here…"></textarea>
+    <div style="margin-bottom:18px;">
+      <label for="pdf-upload" class="pdf-upload-label">📄 Choose PDF File</label>
+      <input type="file" id="pdf-upload" accept=".pdf" style="display:none" onchange="onFileSelected(this)" />
+      <br />
+      <span id="pdf-filename" style="display:none; font-size:.88rem; font-weight:800; color:#FF6B00; margin-top:8px;"></span>
+    </div>
 
     <div>
       <button class="btn-primary" id="extract-btn" onclick="extractQuestions()">Extract Questions</button>
@@ -314,15 +335,35 @@ function addClass(id, cls)   { const e = el(id); if (e) e.classList.add(cls); }
 function removeClass(id, cls){ const e = el(id); if (e) e.classList.remove(cls); }
 
 let extractedQuestions = [];  // live array (tracks removes)
+let selectedPdfBase64  = null;
+let selectedPdfName    = '';
+
+function onFileSelected(input) {
+  const file = input.files && input.files[0];
+  if (file) loadPdfFile(file);
+}
+
+function loadPdfFile(file) {
+  selectedPdfName = file.name;
+  const filenameEl = el('pdf-filename');
+  if (filenameEl) {
+    filenameEl.textContent = '📎 ' + file.name;
+    filenameEl.style.display = 'inline';
+  }
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const dataUrl = e.target.result;
+    // Strip the data:application/pdf;base64, prefix
+    selectedPdfBase64 = dataUrl.split(',')[1] || '';
+  };
+  reader.readAsDataURL(file);
+}
 
 async function extractQuestions() {
-  const contentEl = el('paper-content');
-  const content   = contentEl ? contentEl.value.trim() : '';
-
   removeClass('form-error', 'visible');
 
-  if (!content) {
-    setText('form-error', 'Please paste the paper content before extracting.');
+  if (!selectedPdfBase64) {
+    setText('form-error', 'Please select a PDF file before extracting.');
     addClass('form-error', 'visible');
     return;
   }
@@ -338,7 +379,12 @@ async function extractQuestions() {
     const res = await fetch('/api/extract-paper', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ content, year_group: yearGroup, paper_number: paperNumber }),
+      body: JSON.stringify({
+        pdf_base64:   selectedPdfBase64,
+        pdf_filename: selectedPdfName,
+        year_group:   yearGroup,
+        paper_number: paperNumber,
+      }),
     });
 
     const json = await res.json();
