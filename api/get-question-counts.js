@@ -14,6 +14,11 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
 
+  console.log('ENV CHECK:', {
+    hasSupabaseUrl:  !!process.env.SUPABASE_URL,
+    hasServiceKey:   !!process.env.SUPABASE_SERVICE_ROLE_KEY,
+  });
+
   const supabaseUrl    = process.env.SUPABASE_URL;
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
@@ -35,8 +40,8 @@ export default async function handler(req, res) {
 
     if (!response.ok) {
       const body = await response.text();
-      console.error('Supabase fetch error:', response.status, body);
-      return res.status(500).json({ error: `Supabase error: ${response.status}` });
+      console.error('Supabase fetch error — status:', response.status, 'body:', body);
+      return res.status(500).json({ error: `Supabase error: ${response.status}`, detail: body });
     }
 
     const rows = await response.json();
@@ -58,7 +63,7 @@ export default async function handler(req, res) {
     return res.status(200).json({ counts, total });
 
   } catch (err) {
-    console.error('get-question-counts error:', err.message);
-    return res.status(500).json({ error: err.message || 'Failed to fetch counts' });
+    console.error('get-question-counts error:', err.message, err.stack);
+    return res.status(500).json({ error: err.message, stack: err.stack });
   }
 }
