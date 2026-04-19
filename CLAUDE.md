@@ -362,3 +362,200 @@ fractions_decimals, measurement, statistics, algebra_sequences
 - Vercel env vars must be set separately from .env — CC reads .env locally, Vercel needs dashboard config
 - Anthropic API key has been rotated multiple times — always use latest from console.anthropic.com
 - N option: stored as key "N" in options jsonb, displayed as "N. No mistake" — never "E. No mistake"
+
+---
+
+## QUESTION BUILDER TOOL — Full Plan
+
+### Overview
+A separate private internal web app for generating, validating, and 
+managing the STAR AI Tutor question bank. Built inside a /question-builder/ 
+folder in this repo initially, then moved to its own repo 
+(star-question-builder) and deployed as a separate Vercel project on 
+the same account.
+
+Connects to the same Supabase instance as the main site.
+All existing env vars reused (SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, 
+ANTHROPIC_API_KEY).
+Auth: hardcoded password protection (internal tool only).
+AI model: claude-haiku-4-5 for all generation and validation (cost control).
+
+### Batch Size Rules (strictly enforced)
+- First ever run: 5 questions only — verify manually before continuing
+- Second run: 10 questions
+- Third run: 25 questions — if pass rate >80% proceed to larger batches
+- Full batches: 50 maximum until system is proven stable
+- Post-launch weekly top-ups: 20-30 per category per week
+
+### Cost Estimates (Claude Haiku)
+- Extract 20 papers: ~£4
+- Re-validate 1,156 existing questions: ~£8
+- Generate 6,000 new questions inc. rewrites: ~£20
+- Ongoing weekly top-ups: ~£2/week
+- Total to full bank: ~£35
+
+---
+
+### Phase 1 — Project Setup & Reference Dataset Extraction
+
+Goal: Extract all questions from the 20 Catapult past papers (10 P6, 
+10 P7), categorise them, and store as a golden reference dataset in 
+Supabase. This is the foundation everything else builds on.
+
+Files to create:
+- /question-builder/index.html — password-protected dashboard
+- /question-builder/extract.html — paste paper content, preview, save
+- /question-builder/api/extract-paper.js — calls Haiku to extract questions
+- /question-builder/api/save-reference.js — inserts to reference_questions table
+
+Supabase table required (run this SQL in Supabase before using):
+CREATE TABLE reference_questions (
+  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  question_text text NOT NULL,
+  correct_answer text NOT NULL,
+  category text NOT NULL,
+  difficulty text CHECK (difficulty IN ('easy','medium','hard')),
+  year_group text CHECK (year_group IN ('P6','P7')),
+  paper_source text,
+  extracted_at timestamp DEFAULT now()
+);
+
+Dashboard shows:
+- Question bank counts by category/year vs target (250 per category)
+- Navigation to Extract, Generate, Review Queue pages
+
+Extract page flow:
+1. Paste paper content into textarea
+2. Select P6/P7 and paper number (1-10)
+3. Click Extract — calls /api/extract-paper.js
+4. Preview extracted questions in table before saving
+5. Click Save to commit to reference_questions table
+6. Process one paper at a time — verify first paper before continuing
+
+---
+
+### Phase 2 — Three-Validator System
+
+Goal: Three independent validators check every question. No manual 
+review required for the vast majority of questions.
+
+Validators (three separate /api/ functions):
+
+/api/validate-accuracy.js
+- Is the correct answer actually correct?
+- Maths: verify by calculation
+- English: check grammar/spelling rules
+- Returns: { score: 1-10, reason: string, verdict: pass/warn/fail }
+
+/api/validate-difficulty.js  
+- Is this appropriate for the target year group (P6/P7, ages 10-11)?
+- Compare against reference dataset difficulty distribution
+- Check vocabulary level is suitable
+- Returns: { score: 1-10, reason: string, verdict: pass/warn/fail }
+
+/api/validate-quality.js
+- Is the question clearly worded?
+- Is it a near-duplicate of anything already in the bank?
+- Are wrong answers plausible but definitely wrong?
+- Does it follow SEAG question style?
+- Returns: { score: 1-10, reason: string, verdict: pass/warn/fail }
+
+Scoring logic (/api/run-validators.js — orchestrator):
+- All three score 7+  → AUTO PASS → insert to questions table (validated=true)
+- Any score below 5  → AUTO FAIL → log reason, discard
+- Mixed scores       → AUTO REWRITE → return to generator with all 
+                       three feedback messages attached
+- Max 3 rewrite attempts before AUTO FAIL
+
+Supabase table required:
+CREATE TABLE validation_results (
+  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  question_text text,
+  category text,
+  year_group text,
+  v1_score int, v1_reason text,
+  v2_score int, v2_reason text,
+  v3_score int, v3_reason text,
+  outcome text CHECK (outcome IN ('pass','fail','rewrite')),
+  attempts int DEFAULT 1,
+  created_at timestamp DEFAULT now()
+);
+
+---
+
+### Phase 3 — Generator with Learning Loop
+
+Goal: Generate original questions using reference dataset as 
+style/difficulty guide. Generator improves over time from 
+validation feedback.
+
+/api/generate-questions.js
+- Accepts: { category, year_group, batch_size }
+- Fetches 10-15 examples from reference_questions for that category
+- Fetches 20 most recent AUTO FAIL reasons from validation_results
+- Fetches 10 highest scoring PASS questions from validation_results
+- Builds prompt combining: real examples + fail patterns to avoid + 
+  quality targets to aim for
+- Returns JSON array of generated questions
+- Each question tagged: source='ai_generated_v2', status='pending'
+
+Auto-rewrite loop:
+- On REWRITE outcome, generator called again with original question 
+  + all three validator feedback messages
+- Tracks attempt count — max 3 before AUTO FAIL
+- All outcomes logged to validation_results table
+
+---
+
+### Phase 4 — Dashboard & Monitoring
+
+index.html shows:
+- Question bank status: Category | P6 count | P7 count | Target | % complete
+- Pipeline health (last 7 days): generated / passed / failed / rewrites
+- Pass rate trend over time
+- Average validator scores by category
+- Recent activity feed (last 20 events)
+- Estimated cost tracker (tokens used × Haiku pricing)
+
+generate.html:
+- Pick category, year group, batch size
+- Warning prompt if batch size >50
+- Live feed showing pass/rewrite/fail per question as batch runs
+- Summary on completion with confirm before writing to live bank
+
+review.html (queue only — should be near empty):
+- Only shows questions that hit max rewrites and still failed
+- Simple approve / edit / delete interface
+
+---
+
+### Phase 5 — Weekly Top-up Mode (post-launch)
+
+Once initial bank reaches target (250 per category):
+- Weekly run: 20-30 questions per category
+- Only tops up categories that have dropped below target
+- Summary emailed to noreply@staraitutor.co.uk via Resend on completion
+
+---
+
+### Build Order
+1. Phase 1 — Reference dataset (foundation for everything else)
+2. Phase 2 — Three validators (required before any generation)
+3. Phase 3 — Generator + rewrite loop
+4. Phase 4 — Dashboard & monitoring UI
+5. Phase 5 — Scheduled weekly top-ups (post-launch only)
+
+### Categories to cover (matching existing question bank)
+Topics: punctuation, grammar, spelling, vocabulary, comprehension_mc, 
+comprehension_written, arithmetic, geometry, fractions_decimals, 
+measurement, statistics, algebra_sequences
+Year groups: P6 and P7
+Total combinations: 24
+Target: 250 per combination = 6,000 questions total
+
+### Key decisions
+- Never generate more than 50 questions in one batch until system proven
+- Nothing enters the live questions table without passing all 3 validators
+- Reference dataset is read-only after extraction — never modified
+- Generator prompt always includes recent fail reasons to avoid patterns
+- All costs logged — alert if single run exceeds £5
