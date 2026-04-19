@@ -473,7 +473,8 @@ async function saveQuestions() {
 
     if (!res.ok || json.error) throw new Error(json.error || 'Save failed');
 
-    setDisplay('results-card', 'none');
+    const resultsCard = document.getElementById('results-section');
+    if (resultsCard) resultsCard.style.display = 'none';
     setText('success-msg', `${json.saved} question${json.saved !== 1 ? 's' : ''} saved to reference dataset.`);
     addClass('success-card', 'visible');
 
@@ -488,25 +489,7 @@ async function saveQuestions() {
 }
 
 function startOver() {
-  extractedQuestions = [];
-
-  const contentEl = el('paper-content');
-  if (contentEl) contentEl.value = '';
-
-  removeClass('form-error',  'visible');
-  setHtml('preview-tbody',   '');
-  removeClass('save-error',  'visible');
-
-  const saveBtn = el('save-btn');
-  if (saveBtn) {
-    saveBtn.innerHTML = 'Save <span id="save-count-num">0</span> Questions to Reference Dataset';
-    saveBtn.disabled = false;
-  }
-
-  setDisplay('results-card',     'block');
-  setDisplay('results-section',  'none');
-  removeClass('success-card',    'visible');
-  setDisplay('form-card',        'block');
+  window.location.reload();
 }
 
 function escHtml(str) {
