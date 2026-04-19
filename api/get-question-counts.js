@@ -1,9 +1,21 @@
 /* ══════════════════════════════════════════════════════
    /api/get-question-counts.js
-   Fetches validated question counts from Supabase using
-   the service role key (bypasses RLS row limits entirely)
-   and groups by topic + year_group server-side.
+   Calls a Supabase RPC function that runs the GROUP BY
+   count inside the database, returning just 24 rows.
+   Avoids the REST API row cap entirely.
    Returns: { counts: { "punctuation_P6": 79, ... }, total: 1156 }
+
+   Run this in Supabase SQL Editor before first use:
+   CREATE OR REPLACE FUNCTION get_question_counts()
+   RETURNS TABLE(topic text, year_group text, count bigint)
+   LANGUAGE sql SECURITY DEFINER
+   AS $$
+     SELECT topic, year_group, COUNT(*) as count
+     FROM questions
+     WHERE validated = true
+     GROUP BY topic, year_group
+     ORDER BY topic, year_group;
+   $$;
 ══════════════════════════════════════════════════════ */
 
 export default async function handler(req, res) {
@@ -15,8 +27,8 @@ export default async function handler(req, res) {
   if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
 
   console.log('ENV CHECK:', {
-    hasSupabaseUrl:  !!process.env.NEXT_PUBLIC_SUPABASE_URL,
-    hasServiceKey:   !!process.env.SUPABASE_SERVICE_ROLE_KEY,
+    hasSupabaseUrl: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
+    hasServiceKey:  !!process.env.SUPABASE_SERVICE_ROLE_KEY,
   });
 
   const supabaseUrl    = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -27,26 +39,27 @@ export default async function handler(req, res) {
 
   try {
     const response = await fetch(
-      `${supabaseUrl}/rest/v1/questions?select=topic,year_group&validated=eq.true`,
+      `${supabaseUrl}/rest/v1/rpc/get_question_counts`,
       {
+        method: 'POST',
         headers: {
           'apikey':        serviceRoleKey,
           'Authorization': `Bearer ${serviceRoleKey}`,
-          'Range':         '0-99999',
-          'Prefer':        'count=exact',
+          'Content-Type':  'application/json',
         },
+        body: JSON.stringify({}),
       }
     );
 
     if (!response.ok) {
       const body = await response.text();
-      console.error('Supabase fetch error — status:', response.status, 'body:', body);
-      return res.status(500).json({ error: `Supabase error: ${response.status}`, detail: body });
+      console.error('Supabase RPC error — status:', response.status, 'body:', body);
+      return res.status(500).json({ error: `Supabase RPC error: ${response.status}`, detail: body });
     }
 
     const rows = await response.json();
 
-    // Group by topic_YearGroup key
+    // Transform [{ topic, year_group, count }] into { "punctuation_P6": 79, ... }
     const counts = {};
     let total = 0;
 
@@ -55,8 +68,8 @@ export default async function handler(req, res) {
       const yg    = row.year_group;
       if (!topic || (yg !== 'P6' && yg !== 'P7')) return;
       const key = `${topic}_${yg}`;
-      counts[key] = (counts[key] || 0) + 1;
-      total++;
+      counts[key] = Number(row.count);
+      total += Number(row.count);
     });
 
     console.log(`get-question-counts: ${total} validated questions across ${Object.keys(counts).length} buckets`);
