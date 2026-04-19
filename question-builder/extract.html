@@ -345,10 +345,27 @@ async function extractQuestions() {
     document.getElementById('results-section').style.display = 'block';
 
   } catch (err) {
-    document.getElementById('loading-section').style.display = 'none';
-    document.getElementById('form-card').style.display = 'block';
-    document.getElementById('form-error').textContent = err.message || 'Something went wrong. Please try again.';
-    document.getElementById('form-error').classList.add('visible');
+    // Always hide spinner and re-enable button first
+    try { document.getElementById('loading-section').style.display = 'none'; } catch (_) {}
+    try { document.getElementById('form-card').style.display = 'block'; } catch (_) {}
+    try {
+      const extractBtn = document.getElementById('extract-btn');
+      if (extractBtn) { extractBtn.disabled = false; extractBtn.textContent = 'Extract Questions'; }
+    } catch (_) {}
+
+    // Show error — fall back to alert() if DOM elements are unavailable
+    const msg = err.message || 'Something went wrong. Please try again.';
+    try {
+      const errEl = document.getElementById('form-error');
+      if (errEl) {
+        errEl.textContent = msg;
+        errEl.classList.add('visible');
+      } else {
+        alert('Extraction error: ' + msg);
+      }
+    } catch (_) {
+      alert('Extraction error: ' + msg);
+    }
   }
 }
 
