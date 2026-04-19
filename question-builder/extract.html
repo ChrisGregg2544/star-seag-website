@@ -305,25 +305,34 @@ function signOut() {
   window.location.href = 'index.html';
 }
 
+// Safe helpers — never throw on null elements
+function el(id) { return document.getElementById(id); }
+function setDisplay(id, val) { const e = el(id); if (e) e.style.display = val; }
+function setText(id, val)    { const e = el(id); if (e) e.textContent = val; }
+function setHtml(id, val)    { const e = el(id); if (e) e.innerHTML = val; }
+function addClass(id, cls)   { const e = el(id); if (e) e.classList.add(cls); }
+function removeClass(id, cls){ const e = el(id); if (e) e.classList.remove(cls); }
+
 let extractedQuestions = [];  // live array (tracks removes)
 
 async function extractQuestions() {
-  const content = document.getElementById('paper-content').value.trim();
-  const errEl   = document.getElementById('form-error');
-  errEl.classList.remove('visible');
+  const contentEl = el('paper-content');
+  const content   = contentEl ? contentEl.value.trim() : '';
+
+  removeClass('form-error', 'visible');
 
   if (!content) {
-    errEl.textContent = 'Please paste the paper content before extracting.';
-    errEl.classList.add('visible');
+    setText('form-error', 'Please paste the paper content before extracting.');
+    addClass('form-error', 'visible');
     return;
   }
 
-  const yearGroup    = document.getElementById('year-group').value;
-  const paperNumber  = document.getElementById('paper-number').value;
+  const yearGroup   = el('year-group')   ? el('year-group').value   : '';
+  const paperNumber = el('paper-number') ? el('paper-number').value : '';
 
-  document.getElementById('form-card').style.display = 'none';
-  document.getElementById('results-section').style.display = 'none';
-  document.getElementById('loading-section').style.display = 'block';
+  setDisplay('form-card',       'none');
+  setDisplay('results-section', 'none');
+  setDisplay('loading-section', 'block');
 
   try {
     const res = await fetch('/api/extract-paper', {
@@ -334,7 +343,7 @@ async function extractQuestions() {
 
     const json = await res.json();
 
-    document.getElementById('loading-section').style.display = 'none';
+    setDisplay('loading-section', 'none');
 
     if (!res.ok || json.error) {
       throw new Error(json.error || 'Extraction failed');
@@ -342,28 +351,21 @@ async function extractQuestions() {
 
     extractedQuestions = (json.questions || []).map((q, i) => ({ ...q, _id: i, _removed: false }));
     renderResults();
-    document.getElementById('results-section').style.display = 'block';
+    setDisplay('results-section', 'block');
 
   } catch (err) {
-    // Always hide spinner and re-enable button first
-    try { document.getElementById('loading-section').style.display = 'none'; } catch (_) {}
-    try { document.getElementById('form-card').style.display = 'block'; } catch (_) {}
-    try {
-      const extractBtn = document.getElementById('extract-btn');
-      if (extractBtn) { extractBtn.disabled = false; extractBtn.textContent = 'Extract Questions'; }
-    } catch (_) {}
+    setDisplay('loading-section', 'none');
+    setDisplay('form-card',       'block');
 
-    // Show error — fall back to alert() if DOM elements are unavailable
+    const extractBtn = el('extract-btn');
+    if (extractBtn) { extractBtn.disabled = false; extractBtn.textContent = 'Extract Questions'; }
+
     const msg = err.message || 'Something went wrong. Please try again.';
-    try {
-      const errEl = document.getElementById('form-error');
-      if (errEl) {
-        errEl.textContent = msg;
-        errEl.classList.add('visible');
-      } else {
-        alert('Extraction error: ' + msg);
-      }
-    } catch (_) {
+    const errEl = el('form-error');
+    if (errEl) {
+      errEl.textContent = msg;
+      errEl.classList.add('visible');
+    } else {
       alert('Extraction error: ' + msg);
     }
   }
@@ -371,11 +373,11 @@ async function extractQuestions() {
 
 function renderResults() {
   const active = extractedQuestions.filter(q => !q._removed);
-  document.getElementById('q-count').textContent = extractedQuestions.length;
-  document.getElementById('save-count-num').textContent = active.length;
+  setText('q-count',        extractedQuestions.length);
+  setText('save-count-num', active.length);
 
-  const tbody = document.getElementById('preview-tbody');
-  tbody.innerHTML = '';
+  const tbody = el('preview-tbody');
+  if (tbody) tbody.innerHTML = '';
 
   let displayNum = 0;
   extractedQuestions.forEach((q) => {
@@ -388,7 +390,7 @@ function renderResults() {
       `<option value="${d}" ${d === q.difficulty ? 'selected' : ''}>${d}</option>`
     ).join('');
 
-    tbody.innerHTML += `
+    if (tbody) tbody.innerHTML += `
       <tr id="${rowId}" ${q._removed ? 'class="removed"' : ''}>
         <td class="row-num">${displayNum}</td>
         <td class="q-text">${escHtml(q.question_text || '')}</td>
@@ -435,27 +437,25 @@ function restoreQuestion(id) {
 
 function updateSaveCount() {
   const active = extractedQuestions.filter(q => !q._removed).length;
-  document.getElementById('save-count-num').textContent = active;
+  setText('save-count-num', active);
 }
 
 async function saveQuestions() {
   const toSave = extractedQuestions.filter(q => !q._removed);
-  const errEl  = document.getElementById('save-error');
-  errEl.classList.remove('visible');
+  removeClass('save-error', 'visible');
 
   if (toSave.length === 0) {
-    errEl.textContent = 'No questions to save — restore some or extract again.';
-    errEl.classList.add('visible');
+    setText('save-error', 'No questions to save — restore some or extract again.');
+    addClass('save-error', 'visible');
     return;
   }
 
-  const yearGroup   = document.getElementById('year-group').value;
-  const paperNumber = document.getElementById('paper-number').value;
+  const yearGroup   = el('year-group')   ? el('year-group').value   : '';
+  const paperNumber = el('paper-number') ? el('paper-number').value : '';
   const paperSource = `catapult_${yearGroup.toLowerCase()}_paper${paperNumber}`;
 
-  const saveBtn = document.getElementById('save-btn');
-  saveBtn.disabled = true;
-  saveBtn.textContent = 'Saving…';
+  const saveBtn = el('save-btn');
+  if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = 'Saving…'; }
 
   try {
     const res = await fetch('/api/save-reference', {
@@ -473,40 +473,40 @@ async function saveQuestions() {
 
     if (!res.ok || json.error) throw new Error(json.error || 'Save failed');
 
-    document.getElementById('results-card').style.display = 'none';
-    document.getElementById('success-msg').textContent =
-      `${json.saved} question${json.saved !== 1 ? 's' : ''} saved to reference dataset.`;
-    document.getElementById('success-card').classList.add('visible');
+    setDisplay('results-card', 'none');
+    setText('success-msg', `${json.saved} question${json.saved !== 1 ? 's' : ''} saved to reference dataset.`);
+    addClass('success-card', 'visible');
 
   } catch (err) {
-    errEl.textContent = err.message || 'Save failed. Please try again.';
-    errEl.classList.add('visible');
-    saveBtn.disabled = false;
-    saveBtn.innerHTML = `Save <span id="save-count-num">${toSave.length}</span> Questions to Reference Dataset`;
+    setText('save-error', err.message || 'Save failed. Please try again.');
+    addClass('save-error', 'visible');
+    if (saveBtn) {
+      saveBtn.disabled = false;
+      saveBtn.innerHTML = `Save <span id="save-count-num">${toSave.length}</span> Questions to Reference Dataset`;
+    }
   }
 }
 
 function startOver() {
   extractedQuestions = [];
 
-  // Reset form
-  document.getElementById('paper-content').value = '';
-  document.getElementById('form-error').classList.remove('visible');
+  const contentEl = el('paper-content');
+  if (contentEl) contentEl.value = '';
 
-  // Reset results state — restore save-btn to original HTML so #save-count-num span exists
-  document.getElementById('preview-tbody').innerHTML = '';
-  document.getElementById('save-error').classList.remove('visible');
-  const saveBtn = document.getElementById('save-btn');
-  saveBtn.innerHTML = 'Save <span id="save-count-num">0</span> Questions to Reference Dataset';
-  saveBtn.disabled = false;
+  removeClass('form-error',  'visible');
+  setHtml('preview-tbody',   '');
+  removeClass('save-error',  'visible');
 
-  // Re-show results card (may have been hidden after successful save)
-  document.getElementById('results-card').style.display = 'block';
+  const saveBtn = el('save-btn');
+  if (saveBtn) {
+    saveBtn.innerHTML = 'Save <span id="save-count-num">0</span> Questions to Reference Dataset';
+    saveBtn.disabled = false;
+  }
 
-  // Hide results and success, show form
-  document.getElementById('results-section').style.display = 'none';
-  document.getElementById('success-card').classList.remove('visible');
-  document.getElementById('form-card').style.display = 'block';
+  setDisplay('results-card',     'block');
+  setDisplay('results-section',  'none');
+  removeClass('success-card',    'visible');
+  setDisplay('form-card',        'block');
 }
 
 function escHtml(str) {
