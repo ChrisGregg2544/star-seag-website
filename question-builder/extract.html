@@ -240,7 +240,7 @@
 
   <!-- RESULTS -->
   <div id="results-section">
-    <div class="card">
+    <div class="card" id="results-card">
       <div class="results-heading" id="results-heading">
         Extracted <span id="q-count">0</span> questions — review before saving
       </div>
@@ -456,7 +456,7 @@ async function saveQuestions() {
 
     if (!res.ok || json.error) throw new Error(json.error || 'Save failed');
 
-    document.getElementById('preview-table').closest('.card').style.display = 'none';
+    document.getElementById('results-card').style.display = 'none';
     document.getElementById('success-msg').textContent =
       `${json.saved} question${json.saved !== 1 ? 's' : ''} saved to reference dataset.`;
     document.getElementById('success-card').classList.add('visible');
@@ -471,16 +471,25 @@ async function saveQuestions() {
 
 function startOver() {
   extractedQuestions = [];
+
+  // Reset form
   document.getElementById('paper-content').value = '';
+  document.getElementById('form-error').classList.remove('visible');
+
+  // Reset results state — restore save-btn to original HTML so #save-count-num span exists
   document.getElementById('preview-tbody').innerHTML = '';
+  document.getElementById('save-error').classList.remove('visible');
+  const saveBtn = document.getElementById('save-btn');
+  saveBtn.innerHTML = 'Save <span id="save-count-num">0</span> Questions to Reference Dataset';
+  saveBtn.disabled = false;
+
+  // Re-show results card (may have been hidden after successful save)
+  document.getElementById('results-card').style.display = 'block';
+
+  // Hide results and success, show form
   document.getElementById('results-section').style.display = 'none';
   document.getElementById('success-card').classList.remove('visible');
-  document.getElementById('form-error').classList.remove('visible');
-  document.getElementById('save-error').classList.remove('visible');
   document.getElementById('form-card').style.display = 'block';
-  // Re-show the inner card if it was hidden after save
-  const innerCard = document.querySelector('#results-section .card');
-  if (innerCard) innerCard.style.display = 'block';
 }
 
 function escHtml(str) {
