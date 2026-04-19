@@ -265,7 +265,7 @@
         <button class="btn-primary" id="save-btn" onclick="saveQuestions()">
           Save <span id="save-count-num">0</span> Questions to Reference Dataset
         </button>
-        <button class="btn-outline" onclick="startOver()">Start Over</button>
+        <button class="btn-outline" onclick="window.location.reload()">Start Over</button>
         <span class="save-count" id="save-msg"></span>
       </div>
       <div class="msg-error" id="save-error"></div>
@@ -276,7 +276,7 @@
       <strong id="success-msg">Questions saved successfully!</strong>
       <span>They are now part of the reference dataset.</span>
       <div style="margin-top:16px;">
-        <button class="btn-primary" onclick="startOver()">Extract Another Paper</button>
+        <button class="btn-primary" onclick="window.location.reload()">Extract Another Paper</button>
       </div>
     </div>
   </div>
