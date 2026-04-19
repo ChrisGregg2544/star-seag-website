@@ -238,14 +238,23 @@
     </div>
 
     <label style="font-size:.78rem;font-weight:900;letter-spacing:.06em;text-transform:uppercase;color:#666;display:block;margin-bottom:8px;">
-      Paper PDF
+      Step 1 — Upload Question Paper PDF
     </label>
-    <div style="margin-bottom:18px;">
+    <div style="margin-bottom:24px;">
       <label for="pdf-upload" class="pdf-upload-label">📄 Choose PDF File</label>
       <input type="file" id="pdf-upload" accept=".pdf" style="display:none" onchange="onFileSelected(this)" />
       <br />
       <span id="pdf-filename" style="display:none; font-size:.88rem; font-weight:800; color:#FF6B00; margin-top:8px;"></span>
     </div>
+
+    <label style="font-size:.78rem;font-weight:900;letter-spacing:.06em;text-transform:uppercase;color:#666;display:block;margin-bottom:8px;">
+      Step 2 — Paste Answer Sheet Text
+    </label>
+    <textarea id="answer-sheet" rows="15"
+      style="font-family:'Nunito',sans-serif;font-size:.92rem;font-weight:700;border:2px solid #E0E0E0;border-radius:10px;padding:10px 12px;outline:none;color:#1A1A1A;transition:border-color .15s;background:#fff;width:100%;resize:vertical;margin-bottom:6px;line-height:1.55;"
+      placeholder="Paste the full answer sheet content here including answers and explanations..."
+      onfocus="this.style.borderColor='#FF6B00'" onblur="this.style.borderColor='#E0E0E0'"></textarea>
+    <p style="font-size:.75rem;font-weight:700;color:#AAA;margin-bottom:18px;">Copy and paste directly from the answer sheet PDF</p>
 
     <div>
       <button class="btn-primary" id="extract-btn" onclick="extractQuestions()">Extract Questions</button>
@@ -273,6 +282,7 @@
               <th>#</th>
               <th>Question Text</th>
               <th>Correct Answer</th>
+              <th>Explanation</th>
               <th>Category</th>
               <th>Difficulty</th>
               <th>Action</th>
@@ -363,7 +373,15 @@ async function extractQuestions() {
   removeClass('form-error', 'visible');
 
   if (!selectedPdfBase64) {
-    setText('form-error', 'Please select a PDF file before extracting.');
+    setText('form-error', 'Please select a question paper PDF before extracting.');
+    addClass('form-error', 'visible');
+    return;
+  }
+
+  const answerSheetEl = el('answer-sheet');
+  const answerSheet   = answerSheetEl ? answerSheetEl.value.trim() : '';
+  if (!answerSheet) {
+    setText('form-error', 'Please paste the answer sheet text before extracting.');
     addClass('form-error', 'visible');
     return;
   }
@@ -382,6 +400,7 @@ async function extractQuestions() {
       body: JSON.stringify({
         pdf_base64:   selectedPdfBase64,
         pdf_filename: selectedPdfName,
+        answer_sheet: answerSheet,
         year_group:   yearGroup,
         paper_number: paperNumber,
       }),
@@ -441,6 +460,8 @@ function renderResults() {
         <td class="row-num">${displayNum}</td>
         <td class="q-text">${escHtml(q.question_text || '')}</td>
         <td class="ans-cell">${escHtml(q.correct_answer || '')}</td>
+        <td style="font-size:.8rem;font-weight:600;color:#555;max-width:200px;line-height:1.4;"
+            title="${escHtml(q.explanation || '')}">${escHtml((q.explanation || '').slice(0, 80))}${(q.explanation || '').length > 80 ? '…' : ''}</td>
         <td>
           <select class="cat-select" onchange="updateField(${q._id},'category',this.value)"
                   ${q._removed ? 'disabled' : ''}>
@@ -508,8 +529,8 @@ async function saveQuestions() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        questions: toSave.map(({ question_text, correct_answer, category, difficulty }) =>
-          ({ question_text, correct_answer, category, difficulty })),
+        questions: toSave.map(({ question_text, correct_answer, explanation, category, difficulty, needs_diagram, diagram_description }) =>
+          ({ question_text, correct_answer, explanation, category, difficulty, needs_diagram, diagram_description })),
         year_group: yearGroup,
         paper_source: paperSource,
       }),

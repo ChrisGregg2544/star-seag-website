@@ -4,16 +4,7 @@
    Claude Haiku. Returns a JSON array of question objects.
 ══════════════════════════════════════════════════════ */
 
-const SYSTEM_PROMPT = `You are an expert at analysing SEAG transfer test papers for Northern Ireland P6 and P7 pupils (ages 10-11). Extract every question from the paper content provided. For each question return:
-- question_text: the full question text
-- correct_answer: the correct answer (letter A/B/C/D/E or N for punctuation/spelling, or full text for written answers)
-- category: one of: punctuation, grammar, spelling, vocabulary, comprehension_mc, comprehension_written, arithmetic, geometry, fractions_decimals, measurement, statistics, algebra_sequences
-- difficulty: easy, medium, or hard (based on P6/P7 SEAG standard)
-
-IMPORTANT for punctuation and spelling questions: the correct answer key must be A, B, C, D, or N (never E). N means 'no mistake'.
-
-Return ONLY a valid JSON array. No preamble, no explanation, no markdown. Example format:
-[{"question_text":"...","correct_answer":"B","category":"arithmetic","difficulty":"medium"}]`;
+const SYSTEM_PROMPT = `You are an expert at analysing SEAG transfer test papers for Northern Ireland P6 and P7 pupils (ages 10-11). You will be given a question paper PDF and an official answer sheet. Extract every question and return a JSON array.`;
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -23,26 +14,46 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const { content, pdf_base64, pdf_filename, year_group, paper_number } = req.body || {};
+  const { pdf_base64, pdf_filename, answer_sheet, year_group, paper_number } = req.body || {};
 
-  if (!content && !pdf_base64) return res.status(400).json({ error: 'content or pdf_base64 is required' });
-  if (!year_group)              return res.status(400).json({ error: 'year_group is required' });
-  if (!paper_number)            return res.status(400).json({ error: 'paper_number is required' });
+  if (!pdf_base64)    return res.status(400).json({ error: 'pdf_base64 is required' });
+  if (!answer_sheet)  return res.status(400).json({ error: 'answer_sheet is required' });
+  if (!year_group)    return res.status(400).json({ error: 'year_group is required' });
+  if (!paper_number)  return res.status(400).json({ error: 'paper_number is required' });
 
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) return res.status(500).json({ error: 'AI configuration error' });
 
-  const textPrompt = `Year group: ${year_group}\nPaper: ${paper_number || pdf_filename || ''}\n\nExtract all questions from this paper.`;
+  const instruction = `Year group: ${year_group}
+Paper: ${paper_number}
 
-  const userContent = pdf_base64
-    ? [
-        {
-          type: 'document',
-          source: { type: 'base64', media_type: 'application/pdf', data: pdf_base64 },
-        },
-        { type: 'text', text: textPrompt },
-      ]
-    : `Year group: ${year_group}\nPaper: ${paper_number}\n\n${content}`;
+The PDF contains the question paper. The text below contains the official answer sheet with correct answers and explanations.
+
+Extract all 56 questions. For each question return:
+- question_text: full question text from the PDF
+- correct_answer: exact answer from the answer sheet (letter A/B/C/D/E/N for MC, or exact text for written answers)
+- explanation: the explanation from the answer sheet for why this answer is correct (copy it accurately)
+- category: one of: punctuation, grammar, spelling, vocabulary, comprehension_mc, comprehension_written, arithmetic, geometry, fractions_decimals, measurement, statistics, algebra_sequences
+- difficulty: easy, medium, or hard
+- needs_diagram: true if the question requires a visual element such as a diagram, shape, graph, chart, table, pictogram, number line, grid, or clock. false if purely text-based.
+- diagram_description: brief plain-English description of the diagram if needs_diagram is true, otherwise null
+
+CRITICAL: Use the answer sheet as the source of truth for correct_answer and explanation. Do not guess answers.
+
+For punctuation and spelling questions: correct_answer must be A, B, C, D, or N only. Never E.
+
+Return ONLY a valid JSON array. No preamble, no markdown.
+
+Answer sheet content:
+${answer_sheet}`;
+
+  const userContent = [
+    {
+      type: 'document',
+      source: { type: 'base64', media_type: 'application/pdf', data: pdf_base64 },
+    },
+    { type: 'text', text: instruction },
+  ];
 
   try {
     const response = await fetch('https://api.anthropic.com/v1/messages', {
@@ -55,7 +66,7 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({
         model:      'claude-haiku-4-5-20251001',
-        max_tokens: 4000,
+        max_tokens: 8000,
         system:     SYSTEM_PROMPT,
         messages:   [{ role: 'user', content: userContent }],
       }),
@@ -71,21 +82,54 @@ export default async function handler(req, res) {
     const rawText = data.content?.[0]?.text || '';
 
     let questions;
+    let truncated = false;
+
+    // Helper: salvage a partial response by closing the array after the last complete object
+    function salvagePartial(text) {
+      // Find the opening bracket
+      const start = text.indexOf('[');
+      if (start === -1) return null;
+      // Find the last complete object — last occurrence of }
+      const lastClose = text.lastIndexOf('}');
+      if (lastClose === -1) return null;
+      const candidate = text.slice(start, lastClose + 1) + ']';
+      try {
+        const parsed = JSON.parse(candidate);
+        return Array.isArray(parsed) ? parsed : null;
+      } catch {
+        return null;
+      }
+    }
+
     try {
       questions = JSON.parse(rawText);
     } catch {
-      // Try to extract JSON array from the response in case of stray whitespace
+      // Try to extract JSON array in case of stray whitespace or preamble
       const match = rawText.match(/\[[\s\S]*\]/);
       if (match) {
         try {
           questions = JSON.parse(match[0]);
         } catch {
-          console.error('JSON parse failed. Raw:', rawText.slice(0, 300));
-          return res.status(500).json({ error: 'Could not parse AI response', raw: rawText.substring(0, 2000) });
+          // Response likely truncated — salvage complete objects up to the cutoff
+          questions = salvagePartial(rawText);
+          if (questions) {
+            truncated = true;
+            console.warn(`Truncated response salvaged: ${questions.length} questions recovered`);
+          } else {
+            console.error('JSON parse failed. Raw:', rawText.slice(0, 300));
+            return res.status(500).json({ error: 'Could not parse AI response', raw: rawText.substring(0, 2000) });
+          }
         }
       } else {
-        console.error('No JSON array found. Raw:', rawText.slice(0, 300));
-        return res.status(500).json({ error: 'Could not parse AI response', raw: rawText.substring(0, 2000) });
+        // No array brackets found — still try to salvage
+        questions = salvagePartial(rawText);
+        if (questions) {
+          truncated = true;
+          console.warn(`Truncated response salvaged: ${questions.length} questions recovered`);
+        } else {
+          console.error('No JSON array found. Raw:', rawText.slice(0, 300));
+          return res.status(500).json({ error: 'Could not parse AI response', raw: rawText.substring(0, 2000) });
+        }
       }
     }
 
@@ -93,8 +137,8 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: 'AI returned unexpected format' });
     }
 
-    console.log(`Extracted ${questions.length} questions from ${year_group} paper ${paper_number}`);
-    return res.status(200).json({ questions });
+    console.log(`Extracted ${questions.length} questions from ${year_group} paper ${paper_number}${truncated ? ' (truncated — partial salvage)' : ''}`);
+    return res.status(200).json({ questions, truncated });
 
   } catch (err) {
     console.error('extract-paper error:', err.message);

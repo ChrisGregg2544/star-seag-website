@@ -14,6 +14,10 @@
      paper_source text,
      extracted_at timestamp DEFAULT now()
    );
+
+   ALTER TABLE reference_questions ADD COLUMN explanation text;
+   ALTER TABLE reference_questions ADD COLUMN needs_diagram boolean DEFAULT false;
+   ALTER TABLE reference_questions ADD COLUMN diagram_description text;
 ══════════════════════════════════════════════════════ */
 
 export default async function handler(req, res) {
@@ -40,12 +44,15 @@ export default async function handler(req, res) {
 
   // Map questions to include year_group and paper_source
   const rows = questions.map(q => ({
-    question_text:  q.question_text,
-    correct_answer: q.correct_answer,
-    category:       q.category,
-    difficulty:     q.difficulty || 'medium',
+    question_text:       q.question_text,
+    correct_answer:      q.correct_answer,
+    category:            q.category,
+    difficulty:          q.difficulty || 'medium',
     year_group,
     paper_source,
+    explanation:         q.explanation || null,
+    needs_diagram:       q.needs_diagram || false,
+    diagram_description: q.diagram_description || null,
   }));
 
   try {
