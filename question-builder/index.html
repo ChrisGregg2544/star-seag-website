@@ -310,8 +310,8 @@ async function loadQuestionBank() {
   let data, fetchError;
   try {
     const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/questions?select=topic,year_group&validated=eq.true&limit=10000`,
-      { headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` } }
+      `${SUPABASE_URL}/rest/v1/questions?select=topic,year_group&validated=eq.true`,
+      { headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`, 'Range': '0-9999' } }
     );
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     data = await res.json();
