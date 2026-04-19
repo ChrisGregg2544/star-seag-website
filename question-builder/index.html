@@ -315,6 +315,8 @@ async function loadQuestionBank() {
     );
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     data = await res.json();
+    document.title = 'Rows: ' + data.length;
+    console.log('Raw row count:', data.length, 'Sample:', data.slice(0,3));
   } catch (err) {
     fetchError = err;
   }
