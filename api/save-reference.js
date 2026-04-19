@@ -32,10 +32,10 @@ export default async function handler(req, res) {
   if (!year_group)   return res.status(400).json({ error: 'year_group is required' });
   if (!paper_source) return res.status(400).json({ error: 'paper_source is required' });
 
-  const supabaseUrl     = process.env.SUPABASE_URL;
+  const supabaseUrl     = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const serviceRoleKey  = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-  if (!supabaseUrl)    return res.status(500).json({ error: 'Supabase URL not configured' });
+  if (!supabaseUrl)    return res.status(500).json({ error: 'NEXT_PUBLIC_SUPABASE_URL not configured' });
   if (!serviceRoleKey) return res.status(500).json({ error: 'Supabase service key not configured' });
 
   // Map questions to include year_group and paper_source

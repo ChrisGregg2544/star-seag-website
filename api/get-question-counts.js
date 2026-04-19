@@ -15,14 +15,14 @@ export default async function handler(req, res) {
   if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
 
   console.log('ENV CHECK:', {
-    hasSupabaseUrl:  !!process.env.SUPABASE_URL,
+    hasSupabaseUrl:  !!process.env.NEXT_PUBLIC_SUPABASE_URL,
     hasServiceKey:   !!process.env.SUPABASE_SERVICE_ROLE_KEY,
   });
 
-  const supabaseUrl    = process.env.SUPABASE_URL;
+  const supabaseUrl    = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-  if (!supabaseUrl)    return res.status(500).json({ error: 'SUPABASE_URL not configured' });
+  if (!supabaseUrl)    return res.status(500).json({ error: 'NEXT_PUBLIC_SUPABASE_URL not configured' });
   if (!serviceRoleKey) return res.status(500).json({ error: 'SUPABASE_SERVICE_ROLE_KEY not configured' });
 
   try {
