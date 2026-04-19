@@ -1,5 +1,5 @@
 /* ══════════════════════════════════════════════════════
-   /question-builder/api/extract-paper.js
+   /api/extract-paper.js
    Extracts questions from pasted paper content using
    Claude Haiku. Returns a JSON array of question objects.
 ══════════════════════════════════════════════════════ */

@@ -307,7 +307,7 @@ async function loadDashboard() {
 async function loadQuestionBank() {
   let counts, total, fetchError;
   try {
-    const res = await fetch('/question-builder/api/get-question-counts');
+    const res = await fetch('/api/get-question-counts');
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const json = await res.json();
     if (json.error) throw new Error(json.error);

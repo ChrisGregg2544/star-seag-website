@@ -1,5 +1,5 @@
 /* ══════════════════════════════════════════════════════
-   /question-builder/api/get-question-counts.js
+   /api/get-question-counts.js
    Fetches validated question counts from Supabase using
    the service role key (bypasses RLS row limits entirely)
    and groups by topic + year_group server-side.

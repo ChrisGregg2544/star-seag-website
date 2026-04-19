@@ -1,5 +1,5 @@
 /* ══════════════════════════════════════════════════════
-   /question-builder/api/save-reference.js
+   /api/save-reference.js
    Inserts extracted questions into the reference_questions
    table using the Supabase service role key.
 

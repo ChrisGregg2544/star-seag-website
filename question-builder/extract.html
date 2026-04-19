@@ -326,7 +326,7 @@ async function extractQuestions() {
   document.getElementById('loading-section').style.display = 'block';
 
   try {
-    const res = await fetch('/question-builder/api/extract-paper', {
+    const res = await fetch('/api/extract-paper', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ content, year_group: yearGroup, paper_number: paperNumber }),
@@ -441,7 +441,7 @@ async function saveQuestions() {
   saveBtn.textContent = 'Saving…';
 
   try {
-    const res = await fetch('/question-builder/api/save-reference', {
+    const res = await fetch('/api/save-reference', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
