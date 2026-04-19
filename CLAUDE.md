@@ -362,6 +362,7 @@ fractions_decimals, measurement, statistics, algebra_sequences
 - Vercel env vars must be set separately from .env — CC reads .env locally, Vercel needs dashboard config
 - Anthropic API key has been rotated multiple times — always use latest from console.anthropic.com
 - N option: stored as key "N" in options jsonb, displayed as "N. No mistake" — never "E. No mistake"
+- Supabase JS v2 client silently caps all SELECT responses at 1,000 rows (adds Range: 0-999 header with no warning). For any query that could return >1,000 rows always use direct REST API fetch with &limit=10000 instead of the supabase-js client .select() call.
 
 ---
 
