@@ -305,25 +305,36 @@ async function loadDashboard() {
 }
 
 async function loadQuestionBank() {
-  const { data, error } = await sb
-    .from('questions')
-    .select('topic, year_group')
-    .eq('validated', true);
+  // Use direct REST fetch with a high explicit limit to avoid supabase-js's
+  // default 1,000-row cap, which silently drops rows beyond that threshold.
+  let data, fetchError;
+  try {
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/questions?select=topic,year_group&validated=eq.true&limit=10000`,
+      { headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` } }
+    );
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    data = await res.json();
+  } catch (err) {
+    fetchError = err;
+  }
 
   document.getElementById('bank-loading').style.display = 'none';
 
-  if (error) {
-    document.getElementById('bank-loading').textContent = 'Error loading question bank: ' + error.message;
+  if (fetchError) {
+    document.getElementById('bank-loading').textContent = 'Error loading question bank: ' + fetchError.message;
     document.getElementById('bank-loading').style.display = 'block';
     return;
   }
 
-  // Build counts map
+  // Build counts map — lowercase both sides to guard against any case drift
   const counts = {};
   TOPICS.forEach(t => { counts[t] = { P6: 0, P7: 0 }; });
   (data || []).forEach(row => {
-    if (counts[row.topic] && (row.year_group === 'P6' || row.year_group === 'P7')) {
-      counts[row.topic][row.year_group]++;
+    const topic = (row.topic || '').toLowerCase();
+    const yg    = row.year_group;
+    if (counts[topic] && (yg === 'P6' || yg === 'P7')) {
+      counts[topic][yg]++;
     }
   });
 
@@ -360,7 +371,7 @@ async function loadQuestionBank() {
 
   document.getElementById('bank-table').style.display = 'table';
   document.getElementById('bank-updated').textContent =
-    `— ${(data || []).length.toLocaleString()} validated questions`;
+    `— ${(totalP6 + totalP7).toLocaleString()} validated questions`;
 }
 
 async function loadReferenceDataset() {
