@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Validator Test — STAR Question Builder</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Nunito', sans-serif;
+      background: #FFFBF0;
+      color: #1A1A1A;
+      min-height: 100vh;
+    }
+
+    /* ── HEADER ── */
+    .top-header {
+      background: #FF6B00;
+      height: 60px; padding: 0 24px;
+      display: flex; align-items: center; justify-content: space-between;
+      box-shadow: 0 3px 0 #CC5500;
+    }
+    .top-header h1 { font-size: 1.1rem; font-weight: 900; color: #fff; letter-spacing: .02em; }
+    .top-header h1 span { font-size: .75rem; font-weight: 700; color: rgba(255,255,255,.7); margin-left: 8px; }
+    .signout-link {
+      font-size: .78rem; font-weight: 700; color: rgba(255,255,255,.7);
+      cursor: pointer; text-decoration: underline; background: none; border: none;
+      font-family: 'Nunito', sans-serif;
+    }
+    .signout-link:hover { color: #fff; }
+
+    .sub-nav {
+      background: #fff;
+      border-bottom: 2px solid #F0E0C0;
+      padding: 0 24px;
+      display: flex; gap: 0;
+    }
+    .sub-nav a, .sub-nav span {
+      display: inline-block; padding: 12px 20px;
+      font-size: .82rem; font-weight: 800; letter-spacing: .04em;
+      text-transform: uppercase; text-decoration: none;
+      border-bottom: 3px solid transparent; margin-bottom: -2px;
+      transition: all .15s;
+    }
+    .sub-nav a.active { color: #FF6B00; border-bottom-color: #FF6B00; }
+    .sub-nav a:not(.active):not(.disabled) { color: #666; }
+    .sub-nav a:not(.active):not(.disabled):hover { color: #FF6B00; }
+    .sub-nav span.disabled { color: #CCC; cursor: not-allowed; }
+    .sub-nav span.disabled::after { content: ' (soon)'; font-size: .7rem; }
+
+    /* ── PAGE ── */
+    .page-wrap { max-width: 860px; margin: 0 auto; padding: 32px 20px 60px; }
+    .page-title { font-size: 1.4rem; font-weight: 900; color: #1A1A1A; margin-bottom: 6px; }
+    .page-sub { font-size: .9rem; font-weight: 600; color: #666; margin-bottom: 28px; }
+
+    .card {
+      background: #fff; border: 2px solid #E8D8B8;
+      border-radius: 16px; padding: 28px;
+      box-shadow: 0 2px 8px rgba(0,0,0,.05);
+      margin-bottom: 24px;
+    }
+
+    /* ── FORM ── */
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 18px; }
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-group.full { grid-column: 1 / -1; }
+    .form-group label {
+      font-size: .78rem; font-weight: 900; letter-spacing: .06em;
+      text-transform: uppercase; color: #666;
+    }
+    input[type="text"], select, textarea {
+      font-family: 'Nunito', sans-serif; font-size: .92rem; font-weight: 700;
+      border: 2px solid #E0E0E0; border-radius: 10px;
+      padding: 10px 12px; outline: none; color: #1A1A1A;
+      transition: border-color .15s; background: #fff;
+    }
+    input[type="text"]:focus, select:focus, textarea:focus { border-color: #FF6B00; }
+    textarea { width: 100%; resize: vertical; line-height: 1.55; }
+
+    .btn-primary {
+      padding: 13px 32px; border-radius: 10px; border: none;
+      background: #FF6B00; color: #fff;
+      font-family: 'Nunito', sans-serif; font-size: .95rem; font-weight: 900;
+      cursor: pointer; box-shadow: 0 4px 0 #CC5500; transition: all .15s;
+    }
+    .btn-primary:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 5px 0 #CC5500; }
+    .btn-primary:active:not(:disabled) { transform: translateY(2px); box-shadow: 0 2px 0 #CC5500; }
+    .btn-primary:disabled { opacity: .6; cursor: not-allowed; }
+
+    /* ── LOADING ── */
+    .loading-section { display: none; text-align: center; padding: 32px 20px; }
+    .spinner {
+      display: inline-block; width: 36px; height: 36px;
+      border: 4px solid #F0E0C0; border-top-color: #FF6B00;
+      border-radius: 50%; animation: spin .75s linear infinite; margin-bottom: 14px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-section p { font-size: .92rem; font-weight: 700; color: #666; }
+
+    /* ── RESULTS ── */
+    #results-section { display: none; }
+
+    .outcome-banner {
+      border-radius: 14px; padding: 20px 24px; margin-bottom: 24px;
+      display: flex; align-items: center; gap: 16px;
+    }
+    .outcome-banner.pass    { background: #E8F5E9; border: 2px solid #A5D6A7; }
+    .outcome-banner.rewrite { background: #FFF3E0; border: 2px solid #FFBA80; }
+    .outcome-banner.fail    { background: #FFEBEE; border: 2px solid #FFCDD2; }
+    .outcome-label {
+      font-size: 1.6rem; font-weight: 900; letter-spacing: .06em;
+    }
+    .outcome-banner.pass    .outcome-label { color: #2E7D32; }
+    .outcome-banner.rewrite .outcome-label { color: #E65100; }
+    .outcome-banner.fail    .outcome-label { color: #B71C1C; }
+    .outcome-meta { font-size: .88rem; font-weight: 700; color: #666; }
+
+    .validators-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    @media (max-width: 640px) { .validators-grid { grid-template-columns: 1fr; } }
+
+    .validator-card {
+      border-radius: 12px; padding: 18px 16px; border: 2px solid transparent;
+    }
+    .validator-card.score-pass    { background: #E8F5E9; border-color: #A5D6A7; }
+    .validator-card.score-warn    { background: #FFF3E0; border-color: #FFBA80; }
+    .validator-card.score-fail    { background: #FFEBEE; border-color: #FFCDD2; }
+
+    .v-title {
+      font-size: .72rem; font-weight: 900; letter-spacing: .08em;
+      text-transform: uppercase; color: #999; margin-bottom: 8px;
+    }
+    .v-score {
+      font-size: 2rem; font-weight: 900; line-height: 1; margin-bottom: 6px;
+    }
+    .validator-card.score-pass .v-score { color: #2E7D32; }
+    .validator-card.score-warn .v-score { color: #E65100; }
+    .validator-card.score-fail .v-score { color: #B71C1C; }
+    .v-verdict {
+      display: inline-block; font-size: .72rem; font-weight: 900;
+      letter-spacing: .06em; text-transform: uppercase;
+      border-radius: 20px; padding: 2px 10px; margin-bottom: 10px;
+    }
+    .validator-card.score-pass .v-verdict { background: #C8E6C9; color: #1B5E20; }
+    .validator-card.score-warn .v-verdict { background: #FFE0B2; color: #BF360C; }
+    .validator-card.score-fail .v-verdict { background: #FFCDD2; color: #B71C1C; }
+    .v-reason { font-size: .82rem; font-weight: 700; color: #444; line-height: 1.5; }
+
+    /* ── ERROR ── */
+    .msg-error {
+      display: none; background: rgba(239,68,68,.08); border: 2px solid rgba(239,68,68,.25);
+      border-radius: 10px; padding: 12px 16px; margin-top: 14px;
+      font-size: .85rem; font-weight: 700; color: #ef4444;
+    }
+    .msg-error.visible { display: block; }
+
+    /* ── AUTH GATE ── */
+    .auth-gate {
+      position: fixed; inset: 0; background: #FFFBF0;
+      display: flex; align-items: center; justify-content: center; z-index: 100;
+    }
+    .auth-card {
+      background: #fff; border: 2px solid #E8D8B8; border-radius: 20px;
+      padding: 40px 36px; width: 100%; max-width: 360px; text-align: center;
+      box-shadow: 0 4px 24px rgba(0,0,0,.08);
+    }
+    .auth-card h2 { font-size: 1.2rem; font-weight: 900; margin-bottom: 6px; }
+    .auth-card p  { font-size: .85rem; font-weight: 700; color: #888; margin-bottom: 20px; }
+    .auth-input {
+      width: 100%; font-family: 'Nunito', sans-serif; font-size: 1rem; font-weight: 700;
+      border: 2px solid #E0E0E0; border-radius: 10px; padding: 12px 14px;
+      outline: none; margin-bottom: 14px; text-align: center; letter-spacing: .08em;
+    }
+    .auth-input:focus { border-color: #FF6B00; }
+    .auth-input.shake { animation: shake .3s ease; }
+    @keyframes shake {
+      0%,100%{transform:translateX(0)}
+      20%,60%{transform:translateX(-6px)}
+      40%,80%{transform:translateX(6px)}
+    }
+    .auth-error { font-size: .8rem; font-weight: 800; color: #ef4444; margin-bottom: 10px; min-height: 18px; }
+
+    .page-footer {
+      text-align: center; padding: 20px;
+      font-size: .75rem; font-weight: 700; color: #CCC;
+      border-top: 2px solid #F0E0C0; margin-top: 8px;
+    }
+  </style>
+</head>
+<body>
+
+<!-- AUTH GATE -->
+<div class="auth-gate" id="auth-gate">
+  <div class="auth-card">
+    <h2>Question Builder</h2>
+    <p>Internal tool — enter password to continue</p>
+    <input class="auth-input" id="auth-input" type="password"
+           placeholder="Password" onkeydown="if(event.key==='Enter')checkAuth()" />
+    <div class="auth-error" id="auth-error"></div>
+    <button class="btn-primary" style="width:100%;" onclick="checkAuth()">Enter</button>
+  </div>
+</div>
+
+<header class="top-header">
+  <h1>STAR Question Builder <span>Internal Tool</span></h1>
+  <button class="signout-link" onclick="signOut()">Sign out</button>
+</header>
+<nav class="sub-nav">
+  <a href="index.html">Dashboard</a>
+  <a href="extract.html">Extract</a>
+  <a href="validate-test.html" class="active">Validator Test</a>
+  <span class="disabled">Generate</span>
+  <span class="disabled">Review Queue</span>
+</nav>
+
+<div class="page-wrap">
+  <h2 class="page-title">Validator Test</h2>
+  <p class="page-sub">Manually test all three validators on any question before wiring them into the generator.</p>
+
+  <!-- FORM CARD -->
+  <div class="card">
+    <div class="form-grid">
+      <div class="form-group full">
+        <label for="question-text">Question Text</label>
+        <textarea id="question-text" rows="4" placeholder="Enter the full question text…"></textarea>
+      </div>
+      <div class="form-group">
+        <label for="correct-answer">Correct Answer</label>
+        <input type="text" id="correct-answer" placeholder="e.g. B or 42" />
+      </div>
+      <div class="form-group">
+        <label for="category">Category</label>
+        <select id="category">
+          <option value="punctuation">Punctuation</option>
+          <option value="grammar">Grammar</option>
+          <option value="spelling">Spelling</option>
+          <option value="vocabulary">Vocabulary</option>
+          <option value="comprehension_mc">Comprehension MC</option>
+          <option value="comprehension_written">Comprehension Written</option>
+          <option value="arithmetic">Arithmetic</option>
+          <option value="geometry">Geometry</option>
+          <option value="fractions_decimals">Fractions / Decimals</option>
+          <option value="measurement">Measurement</option>
+          <option value="statistics">Statistics</option>
+          <option value="algebra_sequences">Algebra / Sequences</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="year-group">Year Group</label>
+        <select id="year-group">
+          <option value="P6">P6</option>
+          <option value="P7">P7</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="difficulty">Difficulty</label>
+        <select id="difficulty">
+          <option value="easy">Easy</option>
+          <option value="medium" selected>Medium</option>
+          <option value="hard">Hard</option>
+        </select>
+      </div>
+    </div>
+
+    <button class="btn-primary" id="run-btn" onclick="runValidators()">Run Validators</button>
+    <div class="msg-error" id="form-error"></div>
+  </div>
+
+  <!-- LOADING -->
+  <div class="loading-section" id="loading-section">
+    <div class="spinner"></div>
+    <p>Running three validators in parallel…</p>
+  </div>
+
+  <!-- RESULTS -->
+  <div id="results-section">
+
+    <!-- Overall outcome -->
+    <div class="outcome-banner" id="outcome-banner">
+      <div class="outcome-label" id="outcome-label">PASS</div>
+      <div class="outcome-meta" id="outcome-meta"></div>
+    </div>
+
+    <!-- Three validator cards -->
+    <div class="validators-grid">
+      <div class="validator-card" id="v1-card">
+        <div class="v-title">Validator 1 — Accuracy</div>
+        <div class="v-score" id="v1-score"></div>
+        <div class="v-verdict" id="v1-verdict"></div>
+        <div class="v-reason" id="v1-reason"></div>
+      </div>
+      <div class="validator-card" id="v2-card">
+        <div class="v-title">Validator 2 — Difficulty</div>
+        <div class="v-score" id="v2-score"></div>
+        <div class="v-verdict" id="v2-verdict"></div>
+        <div class="v-reason" id="v2-reason"></div>
+      </div>
+      <div class="validator-card" id="v3-card">
+        <div class="v-title">Validator 3 — Quality</div>
+        <div class="v-score" id="v3-score"></div>
+        <div class="v-verdict" id="v3-verdict"></div>
+        <div class="v-reason" id="v3-reason"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<footer class="page-footer">STAR Question Builder — Internal Tool Only</footer>
+
+<script>
+// ── AUTH ──
+(function init() {
+  if (sessionStorage.getItem('qb_auth') === 'true') {
+    document.getElementById('auth-gate').style.display = 'none';
+  }
+})();
+
+function checkAuth() {
+  const input = document.getElementById('auth-input');
+  if (input.value === 'StarAdmin2026') {
+    sessionStorage.setItem('qb_auth', 'true');
+    document.getElementById('auth-gate').style.display = 'none';
+  } else {
+    input.classList.remove('shake');
+    void input.offsetWidth;
+    input.classList.add('shake');
+    document.getElementById('auth-error').textContent = 'Incorrect password.';
+    input.value = '';
+  }
+}
+
+function signOut() {
+  sessionStorage.removeItem('qb_auth');
+  window.location.href = 'index.html';
+}
+
+// ── HELPERS ──
+function el(id) { return document.getElementById(id); }
+
+function scoreClass(score) {
+  if (score >= 7) return 'score-pass';
+  if (score >= 4) return 'score-warn';
+  return 'score-fail';
+}
+
+function renderValidator(prefix, label, data) {
+  const card    = el(`${prefix}-card`);
+  const cls     = scoreClass(data.score);
+  card.className = `validator-card ${cls}`;
+  el(`${prefix}-score`).textContent   = `${data.score}/10`;
+  el(`${prefix}-verdict`).textContent = data.verdict.toUpperCase();
+  el(`${prefix}-reason`).textContent  = data.reason;
+}
+
+// ── MAIN ──
+async function runValidators() {
+  const questionText  = el('question-text').value.trim();
+  const correctAnswer = el('correct-answer').value.trim();
+  const category      = el('category').value;
+  const yearGroup     = el('year-group').value;
+  const difficulty    = el('difficulty').value;
+
+  const errEl = el('form-error');
+  errEl.classList.remove('visible');
+
+  if (!questionText) {
+    errEl.textContent = 'Please enter a question.';
+    errEl.classList.add('visible');
+    return;
+  }
+  if (!correctAnswer) {
+    errEl.textContent = 'Please enter the correct answer.';
+    errEl.classList.add('visible');
+    return;
+  }
+
+  el('run-btn').disabled = true;
+  el('results-section').style.display = 'none';
+  el('loading-section').style.display = 'block';
+
+  try {
+    const res = await fetch('/api/run-validators', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        question_text:  questionText,
+        correct_answer: correctAnswer,
+        category,
+        year_group:     yearGroup,
+        difficulty,
+      }),
+    });
+
+    const json = await res.json();
+    el('loading-section').style.display = 'none';
+
+    if (!res.ok || json.error) throw new Error(json.error || 'Validation failed');
+
+    // Outcome banner
+    const banner = el('outcome-banner');
+    banner.className = `outcome-banner ${json.outcome}`;
+    el('outcome-label').textContent = json.outcome.toUpperCase();
+    el('outcome-meta').textContent  = `Combined score: ${json.combined_score}/10`;
+
+    // Individual validator cards
+    renderValidator('v1', 'Accuracy',   json.v1);
+    renderValidator('v2', 'Difficulty', json.v2);
+    renderValidator('v3', 'Quality',    json.v3);
+
+    el('results-section').style.display = 'block';
+
+  } catch (err) {
+    el('loading-section').style.display = 'none';
+    errEl.textContent = err.message || 'Something went wrong. Please try again.';
+    errEl.classList.add('visible');
+  } finally {
+    el('run-btn').disabled = false;
+  }
+}
+</script>
+</body>
+</html>
