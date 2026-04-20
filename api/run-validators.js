@@ -36,13 +36,18 @@ function anthropicHeaders(apiKey) {
   };
 }
 
+const PARSE_FALLBACK = { score: 5, reason: 'Could not parse validator response', verdict: 'warn' };
+
 function parseValidatorResponse(rawText) {
   try {
     return JSON.parse(rawText);
   } catch {
     const match = rawText.match(/\{[\s\S]*\}/);
-    if (match) return JSON.parse(match[0]);
-    throw new Error('Could not parse validator response');
+    if (match) {
+      try { return JSON.parse(match[0]); } catch { /* fall through */ }
+    }
+    console.warn('parseValidatorResponse: falling back to default. Raw:', rawText.slice(0, 200));
+    return PARSE_FALLBACK;
   }
 }
 
@@ -69,7 +74,7 @@ Is this answer correct? Score 7+ = pass, 4-6 = warn, 1-3 = fail.`;
     headers: anthropicHeaders(apiKey),
     body: JSON.stringify({
       model:      HAIKU_MODEL,
-      max_tokens: 256,
+      max_tokens: 500,
       system,
       messages: [{ role: 'user', content: userMessage }],
     }),
@@ -105,7 +110,7 @@ Is this question appropriate for ${year_group}? Score 7+ = pass, 4-6 = warn, 1-3
     headers: anthropicHeaders(apiKey),
     body: JSON.stringify({
       model:      HAIKU_MODEL,
-      max_tokens: 256,
+      max_tokens: 500,
       system,
       messages: [{ role: 'user', content: userMessage }],
     }),
@@ -141,7 +146,7 @@ Rate the quality of this question. Score 7+ = pass, 4-6 = warn, 1-3 = fail.`;
     headers: anthropicHeaders(apiKey),
     body: JSON.stringify({
       model:      HAIKU_MODEL,
-      max_tokens: 256,
+      max_tokens: 500,
       system,
       messages: [{ role: 'user', content: userMessage }],
     }),
