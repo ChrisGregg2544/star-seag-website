@@ -394,10 +394,11 @@ async function extractQuestions() {
   setDisplay('loading-section', 'block');
 
   try {
-    const res = await fetch('/api/extract-paper', {
+    const res = await fetch('/api/question-builder', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
+        action:       'extract-paper',
         pdf_base64:   selectedPdfBase64,
         pdf_filename: selectedPdfName,
         answer_sheet: answerSheet,
@@ -525,10 +526,11 @@ async function saveQuestions() {
   if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = 'Saving…'; }
 
   try {
-    const res = await fetch('/api/save-reference', {
+    const res = await fetch('/api/question-builder', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
+        action: 'save-reference',
         questions: toSave.map(({ question_text, correct_answer, explanation, category, difficulty, needs_diagram, diagram_description }) =>
           ({ question_text, correct_answer, explanation, category, difficulty, needs_diagram, diagram_description })),
         year_group: yearGroup,

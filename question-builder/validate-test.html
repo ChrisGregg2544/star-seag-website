@@ -382,10 +382,11 @@ async function runValidators() {
   el('loading-section').style.display = 'block';
 
   try {
-    const res = await fetch('/api/run-validators', {
+    const res = await fetch('/api/question-builder', {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
+        action:         'run-validators',
         question_text:  questionText,
         correct_answer: correctAnswer,
         category,
