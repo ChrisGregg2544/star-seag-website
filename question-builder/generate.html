@@ -499,8 +499,62 @@ async function runGenerate() {
 }
 
 // ── SAVE ALL PASSING ──
-function saveAllPassing() {
-  alert('Coming soon — /api/save-generated.js will be built next.');
+async function saveAllPassing() {
+  const passing = currentResults.filter(q => q.validation.outcome === 'pass');
+  if (!passing.length) {
+    alert('No passing questions to save.');
+    return;
+  }
+
+  const saveBtn = el('save-btn');
+  saveBtn.disabled = true;
+  saveBtn.textContent = 'Saving…';
+
+  const payload = passing.map(q => ({
+    question_text:  q.question_text,
+    correct_answer: q.correct_answer,
+    explanation:    q.explanation || null,
+    difficulty:     q.difficulty,
+    question_type:  q.question_type || 'Multiple_Choice',
+    options:        q.options || null,
+    category:       q.category,
+    year_group:     q.year_group,
+    source:         q.source || 'ai_generated_v2',
+    validation: {
+      outcome: q.validation.outcome,
+      v1: {
+        score:   q.validation.v1.score,
+        reason:  q.validation.v1.reason,
+        verdict: q.validation.v1.verdict,
+      },
+      v2: {
+        score:   q.validation.v2.score,
+        reason:  q.validation.v2.reason,
+        verdict: q.validation.v2.verdict,
+      },
+      v3: {
+        score:   q.validation.v3.score,
+        reason:  q.validation.v3.reason,
+        verdict: q.validation.v3.verdict,
+      },
+    },
+  }));
+
+  try {
+    const res = await fetch('/api/save-generated', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ questions: payload }),
+    });
+    const json = await res.json();
+    if (!res.ok || json.error) throw new Error(json.error || 'Save failed');
+    alert(`${json.saved} question${json.saved === 1 ? '' : 's'} saved to live bank!`);
+    saveBtn.textContent = 'Saved ✓';
+  } catch (err) {
+    saveBtn.disabled = false;
+    saveBtn.textContent = 'Save All Passing';
+    alert('Save failed: ' + (err.message || 'Unknown error'));
+  }
 }
 
 // ── DISCARD ALL ──
