@@ -53,21 +53,25 @@ function parseValidatorResponse(rawText) {
 
 // ── Validator 1: Accuracy ──────────────────────────────
 async function validateAccuracy({ question_text, correct_answer, category, year_group }, apiKey) {
-  const system = `You are an expert SEAG transfer test validator for Northern Ireland P6/P7 pupils (ages 10-11). Your job is to verify whether the given correct answer is actually correct for the question.
+  const system = `You are an expert SEAG transfer test validator for Northern Ireland P6/P7 pupils (ages 10-11). Your job is to verify whether a question has a clear, unambiguous correct answer.
 
-For maths questions: verify by calculation.
-For English questions: verify against grammar/spelling/punctuation rules.
-For comprehension: verify the answer is supported by the question text.
+For maths questions: solve the problem yourself and verify the stated answer value is correct.
+For English questions: verify the answer is correct according to grammar/spelling/punctuation rules.
+For comprehension: verify the answer makes sense given the question.
 
-Return ONLY a JSON object in this exact format:
+IMPORTANT: The correct_answer field may be a letter (A/B/C/D/E/N) for multiple choice questions, or a text value for written questions.
+- If it is a letter, solve the question yourself and give a high score (8-10) if the question has a clear correct answer, lower if ambiguous.
+- If it is a text value, verify the text answer is correct.
+
+Return ONLY a JSON object:
 {"score":<number 1-10>,"reason":"<brief explanation>","verdict":"<pass|warn|fail>"}`;
 
   const userMessage = `Category: ${category}
 Year group: ${year_group}
 Question: ${question_text}
-Correct answer: ${correct_answer}
+Stated correct answer: ${correct_answer}
 
-Is this answer correct? Score 7+ = pass, 4-6 = warn, 1-3 = fail.`;
+Verify this question has a clear correct answer. Score 7+ = pass, 4-6 = warn, 1-3 = fail.`;
 
   const response = await fetch(ANTHROPIC_URL, {
     method: 'POST',
