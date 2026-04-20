@@ -183,7 +183,7 @@ function buildPrompt({ category, year_group, batch_size, references, failReasons
   const passSection = passExamples.length
     ? `## HIGH-QUALITY EXAMPLES (these passed all three validators — aim for this standard)\n\n${
         passExamples.map((p, i) =>
-          `${i + 1}. ${p.question_text}\n   Answer: ${p.correct_answer}`
+          `${i + 1}. ${p.question_text}`
         ).join('\n\n')
       }`
     : '';
@@ -267,7 +267,7 @@ export default async function handler(req, res) {
     // ── Step 3: Fetch 10 highest-scoring PASS questions ─
     const passRows = await supabaseFetch(
       supabaseUrl, serviceKey,
-      `validation_results?select=question_text,correct_answer,v1_score,v2_score,v3_score&category=eq.${encodeURIComponent(category)}&year_group=eq.${encodeURIComponent(year_group)}&outcome=eq.pass&order=v1_score.desc,v2_score.desc,v3_score.desc&limit=10`
+      `validation_results?select=question_text,v1_score,v2_score,v3_score&category=eq.${encodeURIComponent(category)}&year_group=eq.${encodeURIComponent(year_group)}&outcome=eq.pass&order=v1_score.desc,v2_score.desc,v3_score.desc&limit=10`
     );
     console.log(`generate-questions: fetched ${passRows.length} high-quality pass examples`);
 
