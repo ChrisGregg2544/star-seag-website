@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bulk Revalidate — STAR Question Builder</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Nunito', sans-serif; background: #FFFBF0; color: #1A1A1A; min-height: 100vh; }
+
+    /* ── HEADER ── */
+    .top-header {
+      background: #FF6B00; height: 60px; padding: 0 24px;
+      display: flex; align-items: center; justify-content: space-between;
+      box-shadow: 0 3px 0 #CC5500;
+    }
+    .top-header h1 { font-size: 1.1rem; font-weight: 900; color: #fff; letter-spacing: .02em; }
+    .top-header h1 span { font-size: .75rem; font-weight: 700; color: rgba(255,255,255,.7); margin-left: 8px; }
+    .signout-link {
+      font-size: .78rem; font-weight: 700; color: rgba(255,255,255,.7);
+      cursor: pointer; text-decoration: underline; background: none; border: none;
+      font-family: 'Nunito', sans-serif;
+    }
+    .signout-link:hover { color: #fff; }
+
+    .sub-nav {
+      background: #fff; border-bottom: 2px solid #F0E0C0; padding: 0 24px; display: flex; gap: 0;
+    }
+    .sub-nav a, .sub-nav span {
+      display: inline-block; padding: 12px 20px;
+      font-size: .82rem; font-weight: 800; letter-spacing: .04em;
+      text-transform: uppercase; text-decoration: none;
+      border-bottom: 3px solid transparent; margin-bottom: -2px; transition: all .15s;
+    }
+    .sub-nav a.active { color: #FF6B00; border-bottom-color: #FF6B00; }
+    .sub-nav a:not(.active) { color: #666; }
+    .sub-nav a:not(.active):hover { color: #FF6B00; }
+    .sub-nav span.disabled { color: #CCC; cursor: not-allowed; }
+    .sub-nav span.disabled::after { content: ' (soon)'; font-size: .7rem; }
+
+    /* ── PAGE ── */
+    .page-wrap { max-width: 900px; margin: 0 auto; padding: 32px 20px 60px; }
+    .page-title { font-size: 1.4rem; font-weight: 900; margin-bottom: 6px; }
+    .page-sub { font-size: .9rem; font-weight: 600; color: #666; margin-bottom: 28px; }
+
+    .card {
+      background: #fff; border: 2px solid #E8D8B8; border-radius: 16px;
+      padding: 28px; box-shadow: 0 2px 8px rgba(0,0,0,.05); margin-bottom: 24px;
+    }
+
+    /* ── FORM ── */
+    .form-row { display: grid; grid-template-columns: repeat(4, auto) 1fr; gap: 16px; align-items: end; }
+    @media (max-width: 680px) { .form-row { grid-template-columns: 1fr 1fr; } }
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-group label { font-size: .78rem; font-weight: 900; letter-spacing: .06em; text-transform: uppercase; color: #666; }
+    select, input[type="number"] {
+      font-family: 'Nunito', sans-serif; font-size: .92rem; font-weight: 700;
+      border: 2px solid #E0E0E0; border-radius: 10px; padding: 10px 12px;
+      outline: none; color: #1A1A1A; transition: border-color .15s; background: #fff;
+    }
+    select:focus, input[type="number"]:focus { border-color: #FF6B00; }
+
+    .btn-primary {
+      padding: 12px 28px; border-radius: 10px; border: none;
+      background: #FF6B00; color: #fff;
+      font-family: 'Nunito', sans-serif; font-size: .95rem; font-weight: 900;
+      cursor: pointer; box-shadow: 0 4px 0 #CC5500; transition: all .15s; white-space: nowrap;
+    }
+    .btn-primary:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 5px 0 #CC5500; }
+    .btn-primary:active:not(:disabled) { transform: translateY(2px); box-shadow: 0 2px 0 #CC5500; }
+    .btn-primary:disabled { opacity: .6; cursor: not-allowed; }
+
+    /* ── PROGRESS ── */
+    .progress-bar-wrap {
+      height: 10px; background: #F0E0C0; border-radius: 999px; margin: 16px 0; overflow: hidden;
+    }
+    .progress-bar { height: 100%; background: #FF6B00; border-radius: 999px; transition: width .3s; }
+
+    .status-line {
+      font-size: .88rem; font-weight: 700; color: #666;
+      display: flex; justify-content: space-between; margin-bottom: 4px;
+    }
+
+    /* ── TALLY ── */
+    .tally-row { display: flex; gap: 20px; margin: 16px 0; flex-wrap: wrap; }
+    .tally { display: flex; align-items: center; gap: 6px; font-size: .88rem; font-weight: 800; }
+    .tally-dot { width: 10px; height: 10px; border-radius: 50%; }
+    .tally.pass    .tally-dot { background: #4CAF50; }
+    .tally.pass    { color: #2E7D32; }
+    .tally.warn    .tally-dot { background: #FF9800; }
+    .tally.warn    { color: #E65100; }
+    .tally.fail    .tally-dot { background: #f44336; }
+    .tally.fail    { color: #B71C1C; }
+
+    /* ── RESULT ROWS ── */
+    .result-list { display: flex; flex-direction: column; gap: 8px; max-height: 480px; overflow-y: auto; }
+
+    .result-row {
+      border-radius: 10px; padding: 12px 16px;
+      display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: center;
+      border: 2px solid transparent; font-size: .85rem;
+    }
+    .result-row.pass   { background: #F1F8F1; border-color: #A5D6A7; }
+    .result-row.warn   { background: #FFF8F0; border-color: #FFBA80; }
+    .result-row.fail   { background: #FFF0F0; border-color: #FFCDD2; }
+    .result-row.pending { background: #F5F5F5; border-color: #E0E0E0; }
+
+    .result-text { font-weight: 700; color: #1A1A1A; line-height: 1.45; margin-bottom: 3px; }
+    .result-meta { font-size: .75rem; font-weight: 700; color: #888; }
+
+    .outcome-badge {
+      display: inline-flex; align-items: center;
+      font-size: .72rem; font-weight: 900; letter-spacing: .06em; text-transform: uppercase;
+      border-radius: 20px; padding: 3px 12px; flex-shrink: 0;
+    }
+    .outcome-badge.pass   { background: #A5D6A7; color: #1B5E20; }
+    .outcome-badge.warn   { background: #FFBA80; color: #BF360C; }
+    .outcome-badge.fail   { background: #FFCDD2; color: #B71C1C; }
+    .outcome-badge.pending { background: #E0E0E0; color: #666; }
+
+    /* ── SUMMARY ── */
+    .summary-card {
+      background: #E8F5E9; border: 2px solid #A5D6A7; border-radius: 14px;
+      padding: 24px 28px; text-align: center; display: none;
+    }
+    .summary-card.visible { display: block; }
+    .summary-title { font-size: 1.1rem; font-weight: 900; color: #2E7D32; margin-bottom: 8px; }
+    .summary-sub { font-size: .88rem; font-weight: 700; color: #388E3C; margin-bottom: 20px; }
+
+    /* ── AUTH GATE ── */
+    .auth-gate {
+      position: fixed; inset: 0; background: #FFFBF0;
+      display: flex; align-items: center; justify-content: center; z-index: 100;
+    }
+    .auth-card {
+      background: #fff; border: 2px solid #E8D8B8; border-radius: 20px;
+      padding: 40px 36px; width: 100%; max-width: 360px; text-align: center;
+      box-shadow: 0 4px 24px rgba(0,0,0,.08);
+    }
+    .auth-card h2 { font-size: 1.2rem; font-weight: 900; margin-bottom: 6px; }
+    .auth-card p  { font-size: .85rem; font-weight: 700; color: #888; margin-bottom: 20px; }
+    .auth-input {
+      width: 100%; font-family: 'Nunito', sans-serif; font-size: 1rem; font-weight: 700;
+      border: 2px solid #E0E0E0; border-radius: 10px; padding: 12px 14px;
+      outline: none; margin-bottom: 14px; text-align: center; letter-spacing: .08em;
+    }
+    .auth-input:focus { border-color: #FF6B00; }
+    .auth-input.shake { animation: shake .3s ease; }
+    @keyframes shake {
+      0%,100%{transform:translateX(0)} 20%,60%{transform:translateX(-6px)} 40%,80%{transform:translateX(6px)}
+    }
+    .auth-error { font-size: .8rem; font-weight: 800; color: #ef4444; margin-bottom: 10px; min-height: 18px; }
+
+    .page-footer {
+      text-align: center; padding: 20px;
+      font-size: .75rem; font-weight: 700; color: #CCC;
+      border-top: 2px solid #F0E0C0; margin-top: 8px;
+    }
+
+    .spinner {
+      display: inline-block; width: 14px; height: 14px;
+      border: 2px solid #F0E0C0; border-top-color: #FF6B00;
+      border-radius: 50%; animation: spin .6s linear infinite; margin-right: 6px; vertical-align: middle;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+
+<!-- AUTH GATE -->
+<div class="auth-gate" id="auth-gate">
+  <div class="auth-card">
+    <h2>Question Builder</h2>
+    <p>Internal tool — enter password to continue</p>
+    <input class="auth-input" id="auth-input" type="password"
+           placeholder="Password" onkeydown="if(event.key==='Enter')checkAuth()" />
+    <div class="auth-error" id="auth-error"></div>
+    <button class="btn-primary" style="width:100%;" onclick="checkAuth()">Enter</button>
+  </div>
+</div>
+
+<header class="top-header">
+  <h1>STAR Question Builder <span>Internal Tool</span></h1>
+  <button class="signout-link" onclick="signOut()">Sign out</button>
+</header>
+<nav class="sub-nav">
+  <a href="index.html">Dashboard</a>
+  <a href="extract.html">Extract</a>
+  <a href="validate-test.html">Validator Test</a>
+  <a href="generate.html">Generate</a>
+  <a href="revalidate.html" class="active">Bulk Revalidate</a>
+</nav>
+
+<div class="page-wrap">
+  <h2 class="page-title">Bulk Revalidate Question Bank</h2>
+  <p class="page-sub">Run all three validators against existing questions and update their verdict. Use filters to target a specific source or year group.</p>
+
+  <!-- CONFIG CARD -->
+  <div class="card">
+    <div class="form-row">
+      <div class="form-group">
+        <label for="filter-source">Source</label>
+        <select id="filter-source">
+          <option value="">All sources</option>
+          <option value="ai_generated_v2" selected>ai_generated_v2</option>
+          <option value="ai_generated">ai_generated</option>
+          <option value="catapult_test">catapult_test</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="filter-year">Year Group</label>
+        <select id="filter-year">
+          <option value="">All years</option>
+          <option value="P6">P6</option>
+          <option value="P7">P7</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="batch-size">Batch Size</label>
+        <input type="number" id="batch-size" value="10" min="1" max="100" />
+      </div>
+      <div class="form-group">
+        <label>&nbsp;</label>
+        <button class="btn-primary" id="start-btn" onclick="startValidation()">Start Validation</button>
+      </div>
+    </div>
+    <div id="fetch-status" style="font-size:.82rem;font-weight:700;color:#999;margin-top:12px;"></div>
+  </div>
+
+  <!-- PROGRESS CARD -->
+  <div class="card" id="progress-card" style="display:none;">
+    <div class="status-line">
+      <span id="status-text">Starting…</span>
+      <span id="status-count">0 / 0</span>
+    </div>
+    <div class="progress-bar-wrap">
+      <div class="progress-bar" id="progress-bar" style="width:0%"></div>
+    </div>
+    <div class="tally-row">
+      <div class="tally pass"><div class="tally-dot"></div><span id="tally-pass">0 pass</span></div>
+      <div class="tally warn"><div class="tally-dot"></div><span id="tally-warn">0 rewrite</span></div>
+      <div class="tally fail"><div class="tally-dot"></div><span id="tally-fail">0 fail</span></div>
+    </div>
+    <div class="result-list" id="result-list"></div>
+  </div>
+
+  <!-- SUMMARY -->
+  <div class="summary-card" id="summary-card">
+    <div class="summary-title" id="summary-title">Batch complete!</div>
+    <div class="summary-sub" id="summary-sub"></div>
+    <button class="btn-primary" onclick="runAnother()">Run Another Batch</button>
+  </div>
+</div>
+
+<footer class="page-footer">STAR Question Builder — Internal Tool Only</footer>
+
+<script>
+const SUPABASE_URL  = 'https://iutcgogmxhaqgaxkznxu.supabase.co';
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml1dGNnb2dteGhhcWdheGt6bnh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM3NjE4MTQsImV4cCI6MjA4OTMzNzgxNH0.o0plRQzH8ezfttG_sEeWu3F4IUtKnyzcXtPEGJ9xRF0';
+
+// ── AUTH ──
+(function init() {
+  if (sessionStorage.getItem('qb_auth') === 'true') el('auth-gate').style.display = 'none';
+})();
+
+function checkAuth() {
+  const input = el('auth-input');
+  if (input.value === 'StarAdmin2026') {
+    sessionStorage.setItem('qb_auth', 'true');
+    el('auth-gate').style.display = 'none';
+  } else {
+    input.classList.remove('shake');
+    void input.offsetWidth;
+    input.classList.add('shake');
+    el('auth-error').textContent = 'Incorrect password.';
+    input.value = '';
+  }
+}
+
+function signOut() { sessionStorage.removeItem('qb_auth'); window.location.href = 'index.html'; }
+
+function el(id) { return document.getElementById(id); }
+
+function difficultyStr(d) {
+  const n = Number(d);
+  if (n <= 2) return 'easy';
+  if (n >= 4) return 'hard';
+  return 'medium';
+}
+
+function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+// ── FETCH QUESTIONS ──
+async function fetchQuestions(source, yearGroup, batchSize) {
+  let url = `${SUPABASE_URL}/rest/v1/questions?select=id,question_text,correct_answer,topic,year_group,difficulty&validated=eq.true&limit=${batchSize}&order=created_at.asc`;
+  if (source)    url += `&source=eq.${encodeURIComponent(source)}`;
+  if (yearGroup) url += `&year_group=eq.${encodeURIComponent(yearGroup)}`;
+
+  const res = await fetch(url, {
+    headers: {
+      'apikey':        SUPABASE_ANON,
+      'Authorization': `Bearer ${SUPABASE_ANON}`,
+      'Range':         `0-${batchSize - 1}`,
+      'Prefer':        'count=exact',
+    },
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Supabase fetch failed (${res.status}): ${text.slice(0, 200)}`);
+  }
+  return res.json();
+}
+
+// ── VALIDATE ONE QUESTION ──
+async function validateQuestion(q) {
+  const res = await fetch('/api/question-builder', {
+    method:  'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      action:         'run-validators',
+      question_text:  q.question_text,
+      correct_answer: q.correct_answer,
+      category:       q.topic,
+      year_group:     q.year_group,
+      difficulty:     difficultyStr(q.difficulty),
+    }),
+  });
+  const json = await res.json();
+  if (!res.ok || json.error) throw new Error(json.error || 'Validation failed');
+  return json;
+}
+
+// ── UPDATE VERDICT ──
+async function updateVerdict(q, validation) {
+  const outcomeMap = { pass: 'PASS', rewrite: 'WARN', fail: 'FAIL' };
+  const verdict    = outcomeMap[validation.outcome] || 'WARN';
+  const reason     = [
+    validation.v1?.reason ? `Accuracy: ${validation.v1.reason}`   : null,
+    validation.v2?.reason ? `Difficulty: ${validation.v2.reason}` : null,
+    validation.v3?.reason ? `Quality: ${validation.v3.reason}`    : null,
+  ].filter(Boolean).join(' | ');
+
+  const res = await fetch('/api/update-verdict', {
+    method:  'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ questionId: q.id, verdict, reason }),
+  });
+  const json = await res.json();
+  if (!res.ok || json.error) throw new Error(json.error || 'Update verdict failed');
+  return json;
+}
+
+// ── RENDER RESULT ROW ──
+function addResultRow(q, outcome, scores) {
+  const list = el('result-list');
+  const shortText = (q.question_text || '').slice(0, 100) + ((q.question_text || '').length > 100 ? '…' : '');
+  const scoreStr  = scores ? `${scores[0]}/${scores[1]}/${scores[2]}` : '';
+  const row = document.createElement('div');
+  row.className = `result-row ${outcome}`;
+  row.innerHTML = `
+    <div>
+      <div class="result-text">${escHtml(shortText)}</div>
+      <div class="result-meta">${escHtml(q.topic)} · ${escHtml(q.year_group)}${scoreStr ? ` · Scores: ${scoreStr}` : ''}</div>
+    </div>
+    <span class="outcome-badge ${outcome}">${outcome === 'rewrite' ? 'REWRITE' : outcome.toUpperCase()}</span>`;
+  list.appendChild(row);
+  list.scrollTop = list.scrollHeight;
+}
+
+function escHtml(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── MAIN ──
+let tallies = { pass: 0, warn: 0, fail: 0 };
+
+function updateTally() {
+  el('tally-pass').textContent = `${tallies.pass} pass`;
+  el('tally-warn').textContent = `${tallies.warn} rewrite`;
+  el('tally-fail').textContent = `${tallies.fail} fail`;
+}
+
+async function startValidation() {
+  const source    = el('filter-source').value;
+  const yearGroup = el('filter-year').value;
+  const batchSize = Math.max(1, Math.min(100, parseInt(el('batch-size').value, 10) || 10));
+
+  el('start-btn').disabled = true;
+  el('fetch-status').textContent = 'Fetching questions from Supabase…';
+  el('progress-card').style.display = 'none';
+  el('summary-card').classList.remove('visible');
+  el('result-list').innerHTML = '';
+  tallies = { pass: 0, warn: 0, fail: 0 };
+  updateTally();
+
+  let questions;
+  try {
+    questions = await fetchQuestions(source, yearGroup, batchSize);
+  } catch (err) {
+    el('fetch-status').textContent = 'Error fetching questions: ' + err.message;
+    el('start-btn').disabled = false;
+    return;
+  }
+
+  if (!questions.length) {
+    el('fetch-status').textContent = 'No questions found matching the selected filters.';
+    el('start-btn').disabled = false;
+    return;
+  }
+
+  el('fetch-status').textContent = '';
+  el('progress-card').style.display = 'block';
+  el('status-count').textContent = `0 / ${questions.length}`;
+  el('progress-bar').style.width = '0%';
+
+  for (let i = 0; i < questions.length; i++) {
+    const q = questions[i];
+    el('status-text').innerHTML = `<span class="spinner"></span>Validating question ${i + 1} of ${questions.length}…`;
+
+    let validation, outcome;
+    try {
+      validation = await validateQuestion(q);
+      outcome    = validation.outcome;
+
+      await updateVerdict(q, validation);
+
+      if (outcome === 'pass')    tallies.pass++;
+      else if (outcome === 'rewrite') tallies.warn++;
+      else                            tallies.fail++;
+
+      addResultRow(q, outcome, [validation.v1?.score, validation.v2?.score, validation.v3?.score]);
+
+    } catch (err) {
+      console.error(`Error on question ${q.id}:`, err.message);
+      addResultRow(q, 'fail', null);
+      tallies.fail++;
+    }
+
+    updateTally();
+    el('status-count').textContent = `${i + 1} / ${questions.length}`;
+    el('progress-bar').style.width = `${Math.round(((i + 1) / questions.length) * 100)}%`;
+
+    if (i < questions.length - 1) await delay(300);
+  }
+
+  el('status-text').textContent = 'Complete';
+  el('summary-title').textContent = `Batch complete — ${questions.length} question${questions.length === 1 ? '' : 's'} processed`;
+  el('summary-sub').textContent   = `Pass: ${tallies.pass}  ·  Rewrite: ${tallies.warn}  ·  Fail: ${tallies.fail}`;
+  el('summary-card').classList.add('visible');
+  el('start-btn').disabled = false;
+}
+
+function runAnother() {
+  el('summary-card').classList.remove('visible');
+  el('progress-card').style.display = 'none';
+  el('result-list').innerHTML = '';
+  tallies = { pass: 0, warn: 0, fail: 0 };
+  updateTally();
+}
+</script>
+</body>
+</html>
