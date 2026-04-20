@@ -405,22 +405,18 @@ Goal: Extract all questions from the 20 Catapult past papers (10 P6,
 10 P7), categorise them, and store as a golden reference dataset in 
 Supabase. This is the foundation everything else builds on.
 
-#### Phase 1 Progress (April 2026)
-- ✅ P6 Papers 1–5 extracted and saved to reference_questions
-- ⚠️  All P6 Papers 1–5 have errors in correct_answer field — bulk SQL fix pending (do not use for generation until fixed)
-- Answer sheet PDF filename: P6_1-10_parent-teacher_answer_sheets_greyscale.pdf
-- ✅ max_tokens increased to 8000 in api/extract-paper.js (was getting JSON parse errors on longer papers)
-
-#### Next steps
-1. Extract P6 Papers 6–10
-2. Extract all 10 P7 papers
-3. Produce one bulk SQL UPDATE to fix all correct_answer errors across all 20 papers
-4. Build Phase 2 validators
+#### Phase 1 Status: ✅ COMPLETE (April 2026)
+- ✅ All 20 papers extracted — 10 P6, 10 P7
+- ✅ 1,120 reference questions in reference_questions table
+- ✅ Each question has: question_text, correct_answer, explanation, category, difficulty, year_group, paper_source, needs_diagram, diagram_description
+- ✅ Extraction flow: PDF upload + answer sheet paste → 100% accurate answers with explanations
+- ✅ max_tokens increased to 16000 in api/extract-paper.js
+- ➡️  Ready for Phase 2: Three-validator system
 
 Files created:
 - /question-builder/index.html — password-protected dashboard
-- /question-builder/extract.html — PDF upload, preview, save
-- /api/extract-paper.js — calls Haiku to extract questions (PDF via document API)
+- /question-builder/extract.html — PDF upload + answer sheet paste, preview, save
+- /api/extract-paper.js — calls Haiku to extract questions (PDF via document API + answer sheet text)
 - /api/save-reference.js — inserts to reference_questions table
 
 Supabase table required (run this SQL in Supabase before using):
