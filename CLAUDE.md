@@ -576,3 +576,32 @@ Target: 250 per combination = 6,000 questions total
 - Reference dataset is read-only after extraction — never modified
 - Generator prompt always includes recent fail reasons to avoid patterns
 - All costs logged — alert if single run exceeds £5
+
+---
+
+## Question Bank Strategy (April 2026)
+
+### Current State
+- ~1,170 existing questions tagged source='ai_generated_v3' are live temporarily
+- These were generated without full answer options (options field is null or incomplete)
+- New questions are generated as source='ai_generated_v2' with full options (A/B/C/D/E or A/B/C/D/N)
+
+### Transition Plan
+- Keep ai_generated_v3 questions live until new bank reaches 2,000+ validated questions
+- Then bulk-delete ai_generated_v3 questions and replace entirely with ai_generated_v2
+- Do not revalidate ai_generated_v3 questions — they will be deleted, not repaired
+
+### Target
+- 250 questions per category per year group = 6,000 total
+- 12 categories × 2 year groups × 250 = 6,000
+- Weekly top-up runs post-launch to maintain 250 per bucket
+
+### Options Format (questions table)
+MC questions (all categories except comprehension_written):
+  { "A": "option text", "B": "option text", "C": "option text", "D": "option text", "E": "option text" }
+
+Punctuation and spelling MC:
+  { "A": "segment text", "B": "segment text", "C": "segment text", "D": "segment text", "N": "No mistake" }
+
+Written questions (comprehension_written):
+  null
