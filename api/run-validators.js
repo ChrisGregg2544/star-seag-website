@@ -1,7 +1,7 @@
 /* ══════════════════════════════════════════════════════
    /api/run-validators.js
-   Orchestrator — runs all three validators in parallel and
-   determines overall outcome. Logs result to Supabase.
+   Runs all three validators in parallel as internal functions
+   and determines overall outcome. Logs result to Supabase.
 
    Scoring logic:
    - All three score 7+  → outcome = 'pass'
@@ -25,6 +25,134 @@
    );
 ══════════════════════════════════════════════════════ */
 
+const ANTHROPIC_URL = 'https://api.anthropic.com/v1/messages';
+const HAIKU_MODEL   = 'claude-haiku-4-5-20251001';
+
+function anthropicHeaders(apiKey) {
+  return {
+    'x-api-key':         apiKey,
+    'anthropic-version': '2023-06-01',
+    'content-type':      'application/json',
+  };
+}
+
+function parseValidatorResponse(rawText) {
+  try {
+    return JSON.parse(rawText);
+  } catch {
+    const match = rawText.match(/\{[\s\S]*\}/);
+    if (match) return JSON.parse(match[0]);
+    throw new Error('Could not parse validator response');
+  }
+}
+
+// ── Validator 1: Accuracy ──────────────────────────────
+async function validateAccuracy({ question_text, correct_answer, category, year_group }, apiKey) {
+  const system = `You are an expert SEAG transfer test validator for Northern Ireland P6/P7 pupils (ages 10-11). Your job is to verify whether the given correct answer is actually correct for the question.
+
+For maths questions: verify by calculation.
+For English questions: verify against grammar/spelling/punctuation rules.
+For comprehension: verify the answer is supported by the question text.
+
+Return ONLY a JSON object in this exact format:
+{"score":<number 1-10>,"reason":"<brief explanation>","verdict":"<pass|warn|fail>"}`;
+
+  const userMessage = `Category: ${category}
+Year group: ${year_group}
+Question: ${question_text}
+Correct answer: ${correct_answer}
+
+Is this answer correct? Score 7+ = pass, 4-6 = warn, 1-3 = fail.`;
+
+  const response = await fetch(ANTHROPIC_URL, {
+    method: 'POST',
+    headers: anthropicHeaders(apiKey),
+    body: JSON.stringify({
+      model:      HAIKU_MODEL,
+      max_tokens: 256,
+      system,
+      messages: [{ role: 'user', content: userMessage }],
+    }),
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error?.message || 'validate-accuracy AI error');
+  const result = parseValidatorResponse(data.content?.[0]?.text || '');
+  return { score: Number(result.score), reason: result.reason || '', verdict: result.verdict || 'warn' };
+}
+
+// ── Validator 2: Difficulty ────────────────────────────
+async function validateDifficulty({ question_text, correct_answer, category, year_group, difficulty }, apiKey) {
+  const system = `You are an expert SEAG transfer test validator for Northern Ireland P6/P7 pupils (ages 10-11). Your job is to verify whether the question difficulty is appropriate for the target year group.
+
+P6 pupils are approximately 9-10 years old, early in their transfer test preparation.
+P7 pupils are approximately 10-11 years old, in final exam preparation.
+
+Consider: vocabulary level, mathematical complexity, reading demand, and whether the skill would be expected at that stage.
+
+Return ONLY a JSON object in this exact format:
+{"score":<number 1-10>,"reason":"<brief explanation>","verdict":"<pass|warn|fail>"}`;
+
+  const userMessage = `Category: ${category}
+Year group: ${year_group}
+Claimed difficulty: ${difficulty}
+Question: ${question_text}
+Correct answer: ${correct_answer}
+
+Is this question appropriate for ${year_group}? Score 7+ = pass, 4-6 = warn, 1-3 = fail.`;
+
+  const response = await fetch(ANTHROPIC_URL, {
+    method: 'POST',
+    headers: anthropicHeaders(apiKey),
+    body: JSON.stringify({
+      model:      HAIKU_MODEL,
+      max_tokens: 256,
+      system,
+      messages: [{ role: 'user', content: userMessage }],
+    }),
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error?.message || 'validate-difficulty AI error');
+  const result = parseValidatorResponse(data.content?.[0]?.text || '');
+  return { score: Number(result.score), reason: result.reason || '', verdict: result.verdict || 'warn' };
+}
+
+// ── Validator 3: Quality ───────────────────────────────
+async function validateQuality({ question_text, correct_answer, category, year_group }, apiKey) {
+  const system = `You are an expert SEAG transfer test validator for Northern Ireland P6/P7 pupils (ages 10-11). Your job is to verify question quality.
+
+Check:
+1. Is the question clearly and unambiguously worded?
+2. Are the wrong answer options (if present) plausible but definitely wrong?
+3. Does it follow SEAG question style?
+4. Is the question free from bias or culturally inappropriate content?
+
+Return ONLY a JSON object in this exact format:
+{"score":<number 1-10>,"reason":"<brief explanation>","verdict":"<pass|warn|fail>"}`;
+
+  const userMessage = `Category: ${category}
+Year group: ${year_group}
+Question: ${question_text}
+Correct answer: ${correct_answer}
+
+Rate the quality of this question. Score 7+ = pass, 4-6 = warn, 1-3 = fail.`;
+
+  const response = await fetch(ANTHROPIC_URL, {
+    method: 'POST',
+    headers: anthropicHeaders(apiKey),
+    body: JSON.stringify({
+      model:      HAIKU_MODEL,
+      max_tokens: 256,
+      system,
+      messages: [{ role: 'user', content: userMessage }],
+    }),
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error?.message || 'validate-quality AI error');
+  const result = parseValidatorResponse(data.content?.[0]?.text || '');
+  return { score: Number(result.score), reason: result.reason || '', verdict: result.verdict || 'warn' };
+}
+
+// ── Handler ────────────────────────────────────────────
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -41,30 +169,20 @@ export default async function handler(req, res) {
   if (!year_group)     return res.status(400).json({ error: 'year_group is required' });
   if (!difficulty)     return res.status(400).json({ error: 'difficulty is required' });
 
+  const apiKey         = process.env.ANTHROPIC_API_KEY;
   const supabaseUrl    = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-  // Build absolute base URL for internal API calls
-  const baseUrl = process.env.VERCEL_URL
-    ? `https://${process.env.VERCEL_URL}`
-    : 'http://localhost:3000';
+  if (!apiKey) return res.status(500).json({ error: 'AI configuration error' });
 
   const payload = { question_text, correct_answer, category, year_group, difficulty };
-  const headers = { 'Content-Type': 'application/json' };
 
   try {
-    // Run all three validators in parallel
-    const [r1, r2, r3] = await Promise.all([
-      fetch(`${baseUrl}/api/validate-accuracy`,   { method: 'POST', headers, body: JSON.stringify(payload) }),
-      fetch(`${baseUrl}/api/validate-difficulty`, { method: 'POST', headers, body: JSON.stringify(payload) }),
-      fetch(`${baseUrl}/api/validate-quality`,    { method: 'POST', headers, body: JSON.stringify(payload) }),
+    const [v1, v2, v3] = await Promise.all([
+      validateAccuracy(payload,   apiKey),
+      validateDifficulty(payload, apiKey),
+      validateQuality(payload,    apiKey),
     ]);
-
-    const [v1, v2, v3] = await Promise.all([r1.json(), r2.json(), r3.json()]);
-
-    if (v1.error) return res.status(500).json({ error: `validate-accuracy failed: ${v1.error}` });
-    if (v2.error) return res.status(500).json({ error: `validate-difficulty failed: ${v2.error}` });
-    if (v3.error) return res.status(500).json({ error: `validate-quality failed: ${v3.error}` });
 
     const scores = [v1.score, v2.score, v3.score];
     const combined_score = Math.round((scores.reduce((a, b) => a + b, 0) / 3) * 10) / 10;
