@@ -216,14 +216,25 @@ function buildGeneratePrompt({ category, year_group, batch_size, references, fai
         passExamples.map((p, i) => `${i + 1}. ${p.question_text}`).join('\n\n')}`
     : '';
 
-  const optionNote = isPunctuationOrSpelling
-    ? `IMPORTANT: For ${category} questions, options must be A, B, C, D, N only. Never use E. The N option means "No mistake".`
-    : `Options must be A, B, C, D, E.`;
+  const isWritten = category === 'comprehension_written';
+
+  const optionsFormat = isWritten
+    ? `- "question_type": "written"
+- "options": null`
+    : isPunctuationOrSpelling
+    ? `- "question_type": "Multiple_Choice"
+- "options": object with exactly these five keys, each mapping to a non-empty string:
+  { "A": "segment text", "B": "segment text", "C": "segment text", "D": "segment text", "N": "No mistake" }
+  IMPORTANT: Use N not E as the fifth key. "N" always has the value "No mistake".`
+    : `- "question_type": "Multiple_Choice"
+- "options": object with exactly these five keys, each mapping to a non-empty string:
+  { "A": "option text", "B": "option text", "C": "option text", "D": "option text", "E": "option text" }
+  Make wrong options (distractors) plausible but definitively incorrect.`;
 
   return `You are an expert creator of SEAG transfer test questions for Northern Ireland P6/P7 pupils (ages 10–11).
 
 ## TASK
-Generate exactly ${batch_size} original multiple-choice questions for:
+Generate exactly ${batch_size} original questions for:
 - Category: ${category}
 - Year group: ${year_group}
 - Use UK English spelling throughout (colour not color, organise not organize, etc.)
@@ -242,13 +253,10 @@ Return ONLY a valid JSON array with exactly ${batch_size} objects. No preamble, 
 
 Each object must have:
 - "question_text": full question text (string)
-- "correct_answer": correct option letter (${isPunctuationOrSpelling ? 'A/B/C/D/N' : 'A/B/C/D/E'})
+- "correct_answer": ${isWritten ? 'model answer (1–2 sentences)' : `correct option letter (${isPunctuationOrSpelling ? 'A/B/C/D/N' : 'A/B/C/D/E'})`}
 - "explanation": why this answer is correct (1–2 sentences, UK English)
 - "difficulty": integer 1–5 (1=very easy, 3=medium, 5=very hard) appropriate for ${year_group}
-- "question_type": "Multiple_Choice"
-- "options": object with keys ${isPunctuationOrSpelling ? '"A","B","C","D","N"' : '"A","B","C","D","E"'} each mapping to a string
-
-${optionNote}
+${optionsFormat}
 
 Make each question original — do not copy reference examples verbatim. Vary difficulty across the batch. Ensure every question has one and only one definitively correct answer.`;
 }
@@ -400,7 +408,7 @@ async function callValidator(systemPrompt, userMessage, apiKey) {
 }
 
 async function handleRunValidators(req, res) {
-  const { question_text, correct_answer, category, year_group, difficulty } = req.body;
+  const { question_text, correct_answer, category, year_group, difficulty, options } = req.body;
 
   if (!question_text)  return res.status(400).json({ error: 'question_text is required' });
   if (!correct_answer) return res.status(400).json({ error: 'correct_answer is required' });
@@ -413,6 +421,10 @@ async function handleRunValidators(req, res) {
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   if (!apiKey) return res.status(500).json({ error: 'AI configuration error' });
+
+  const optionsBlock = options && typeof options === 'object' && Object.keys(options).length
+    ? '\nAnswer options:\n' + Object.entries(options).map(([k, v]) => `  ${k}: ${v}`).join('\n')
+    : '';
 
   const v1System = `You are an expert SEAG transfer test validator for Northern Ireland P6/P7 pupils (ages 10-11). Your job is to verify whether a question has a clear, unambiguous correct answer.
 
@@ -431,7 +443,7 @@ Return ONLY a JSON object:
 
   const v1User = `Category: ${category}
 Year group: ${year_group}
-Question: ${question_text}
+Question: ${question_text}${optionsBlock}
 Stated correct answer: ${correct_answer}
 
 Verify this question has a clear correct answer. Score 7+ = pass, 4-6 = warn, 1-3 = fail.
@@ -450,7 +462,7 @@ Return ONLY a JSON object in this exact format:
   const v2User = `Category: ${category}
 Year group: ${year_group}
 Claimed difficulty: ${difficulty}
-Question: ${question_text}
+Question: ${question_text}${optionsBlock}
 Correct answer: ${correct_answer}
 
 Is this question appropriate for ${year_group}? Score 7+ = pass, 4-6 = warn, 1-3 = fail.`;
@@ -459,16 +471,18 @@ Is this question appropriate for ${year_group}? Score 7+ = pass, 4-6 = warn, 1-3
 
 Check:
 1. Is the question clearly and unambiguously worded?
-2. Are the wrong answer options (if present) plausible but definitely wrong?
+2. Are the wrong answer options (distractors) plausible but definitively incorrect?
 3. Does it follow SEAG question style?
 4. Is the question free from bias or culturally inappropriate content?
+
+When answer options are provided, assess whether the distractors are well-chosen — they should be tempting but clearly wrong on reflection.
 
 Return ONLY a JSON object in this exact format:
 {"score":<number 1-10>,"reason":"<brief explanation>","verdict":"<pass|warn|fail>"}`;
 
   const v3User = `Category: ${category}
 Year group: ${year_group}
-Question: ${question_text}
+Question: ${question_text}${optionsBlock}
 Correct answer: ${correct_answer}
 
 Rate the quality of this question. Score 7+ = pass, 4-6 = warn, 1-3 = fail.`;

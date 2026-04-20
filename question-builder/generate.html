@@ -476,6 +476,7 @@ async function runGenerate() {
           category:       q.category || category,
           year_group:     q.year_group || yearGroup,
           difficulty:     difficultyStr,
+          options:        q.options || null,
         }),
       });
       const valJson = await valRes.json();
