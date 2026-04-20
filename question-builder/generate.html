@@ -443,18 +443,14 @@ async function runGenerate() {
     return;
   }
 
-  alert('Coming soon — /api/generate-for-builder will be built next.\n\nThis page is ready and wired for live validation once the generator API is complete.');
-  return;
-
-  /* ── FUTURE: uncomment when /api/generate-for-builder exists ──
   el('generate-btn').disabled = true;
   el('results-section').style.display = 'none';
   el('loading-section').style.display = 'block';
-  el('loading-msg').textContent = `Generating ${batchSize} question(s)…`;
+  el('loading-msg').textContent = `Generating ${batchSize} question(s) for ${category} ${yearGroup}…`;
   currentResults = [];
 
   try {
-    const genRes = await fetch('/api/generate-for-builder', {
+    const genRes = await fetch('/api/generate-questions', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ category, year_group: yearGroup, batch_size: batchSize }),
@@ -463,9 +459,12 @@ async function runGenerate() {
     if (!genRes.ok || genJson.error) throw new Error(genJson.error || 'Generation failed');
 
     const questions = genJson.questions;
+    if (!questions.length) throw new Error('No questions generated (all may have been duplicates).');
+
     el('loading-msg').textContent = `Validating ${questions.length} question(s)…`;
 
     for (const q of questions) {
+      const difficultyStr = q.difficulty <= 2 ? 'easy' : q.difficulty >= 4 ? 'hard' : 'medium';
       const valRes = await fetch('/api/run-validators', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -474,7 +473,7 @@ async function runGenerate() {
           correct_answer: q.correct_answer,
           category:       q.category || category,
           year_group:     q.year_group || yearGroup,
-          difficulty:     q.difficulty || 'medium',
+          difficulty:     difficultyStr,
         }),
       });
       const valJson = await valRes.json();
@@ -483,7 +482,8 @@ async function runGenerate() {
     }
 
     el('loading-section').style.display = 'none';
-    el('results-title').textContent = `Results — ${category} ${yearGroup} (batch of ${batchSize})`;
+    const dupeNote = genJson.skipped_duplicates ? ` — ${genJson.skipped_duplicates} duplicate(s) skipped` : '';
+    el('results-title').textContent = `Results — ${category} ${yearGroup} (${questions.length} generated${dupeNote})`;
 
     const listEl = el('q-list');
     listEl.innerHTML = currentResults.map((q, i) => renderRow(q, i)).join('');
@@ -496,7 +496,6 @@ async function runGenerate() {
   } finally {
     el('generate-btn').disabled = false;
   }
-  */
 }
 
 // ── SAVE ALL PASSING ──
