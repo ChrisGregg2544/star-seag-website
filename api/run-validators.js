@@ -63,6 +63,8 @@ IMPORTANT: The correct_answer field may be a letter (A/B/C/D/E/N) for multiple c
 - If it is a letter, solve the question yourself and give a high score (8-10) if the question has a clear correct answer, lower if ambiguous.
 - If it is a text value, verify the text answer is correct.
 
+IMPORTANT SCORING RULE: If the correct_answer is a letter (A/B/C/D/E/N) and you can verify the underlying calculation or rule is correct, give a score of 8-9. Only give a low score if the question itself is mathematically wrong or has no clear correct answer. Do not penalise for missing answer options — the letter is just a label, focus on whether the question has a definitive correct answer.
+
 Return ONLY a JSON object:
 {"score":<number 1-10>,"reason":"<brief explanation>","verdict":"<pass|warn|fail>"}`;
 
@@ -71,7 +73,8 @@ Year group: ${year_group}
 Question: ${question_text}
 Stated correct answer: ${correct_answer}
 
-Verify this question has a clear correct answer. Score 7+ = pass, 4-6 = warn, 1-3 = fail.`;
+Verify this question has a clear correct answer. Score 7+ = pass, 4-6 = warn, 1-3 = fail.
+Note: if the answer is a letter, verify the question has a clear correct answer by solving it yourself. Score based on whether the maths/rule is correct, not on whether you can confirm the letter mapping.`;
 
   const response = await fetch(ANTHROPIC_URL, {
     method: 'POST',
