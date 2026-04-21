@@ -154,6 +154,14 @@
     .q-row.outcome-rewrite { border-color: #FFBA80; background: #FFF8F0; }
     .q-row.outcome-fail   { border-color: #FFCDD2; background: #FFF0F0; }
 
+    .q-options {
+      display: flex; flex-direction: column; gap: 3px;
+      margin: 8px 0; font-size: .85rem;
+    }
+    .q-option { font-weight: 700; color: #444; }
+    .q-option.correct { font-weight: 900; color: #1A1A1A; }
+    .q-option.correct .opt-letter { color: #FF6B00; }
+
     .q-text {
       font-size: .9rem; font-weight: 700; color: #1A1A1A;
       line-height: 1.55; margin-bottom: 8px;
@@ -384,10 +392,20 @@ function renderRow(q, index) {
   const v2 = q.validation.v2;
   const v3 = q.validation.v3;
 
+  const optionsHtml = q.options && typeof q.options === 'object'
+    ? `<div class="q-options">${
+        Object.entries(q.options).map(([key, val]) => {
+          const isCorrect = key === q.correct_answer;
+          return `<div class="q-option${isCorrect ? ' correct' : ''}"><span class="opt-letter">${escHtml(key)}.</span> ${escHtml(val)}${isCorrect ? ' ✓' : ''}</div>`;
+        }).join('')
+      }</div>`
+    : '';
+
   return `
     <div class="q-row outcome-${outcome}">
       <div>
         <div class="q-text">${escHtml(q.question_text)}</div>
+        ${optionsHtml}
         <div class="q-meta">
           <span>Answer: <strong>${escHtml(q.correct_answer)}</strong></span>
           <span>Category: ${escHtml(q.category)}</span>
