@@ -242,7 +242,31 @@ Generate exactly ${batch_size} original questions for:
 ## CATEGORY GUIDANCE
 ${categoryGuidance(category)}
 
-${year_group === 'P6' ? `## P6 DIFFICULTY GUIDANCE
+${isPunctuationOrSpelling ? `## PUNCTUATION/SPELLING FORMAT
+Present the full sentence with the error embedded naturally.
+DO NOT split into segments A/B/C/D in the question text.
+The question text should be the complete sentence only.
+
+Options format:
+A: first segment of sentence
+B: second segment
+C: third segment (contains the error)
+D: fourth segment
+N: No mistake
+
+Example question_text:
+'Frank, did you clean your room,' asked Mum. Unsurprisingly, there was no reply.
+
+Example options:
+A: 'Frank, did you clean your room,'
+B: asked Mum.
+C: Unsurprisingly, there was
+D: no reply.
+N: No mistake
+
+The correct answer is the letter of the segment containing the error, or N if no error exists.
+
+` : ''}${year_group === 'P6' ? `## P6 DIFFICULTY GUIDANCE
 P6 APPROPRIATE: Single-step calculations, times tables to 12x12, simple fractions (1/2, 1/4), basic shapes, telling time, money.
 TOO HARD: Multi-step word problems, division with remainders over 100, percentages beyond 10/25/50%, complex fractions.
 
