@@ -254,6 +254,20 @@ C: third segment (contains the error)
 D: fourth segment
 N: No mistake
 
+CRITICAL: Options A, B, C, D must ALL be consecutive segments from the SAME sentence in question_text. Do NOT add unrelated sentences as option D. Every word in the question sentence must appear in exactly one of the A/B/C/D segments.
+
+WRONG:
+Question: The children went to the park they played games.
+D: It was a sunny day. ❌ (unrelated sentence)
+
+CORRECT:
+Question: The children went to the park they played games.
+A: The children went to the park
+B: they played
+C: games.
+D: (unused - sentence only has 3 segments)
+N: No mistake
+
 Example question_text:
 'Frank, did you clean your room,' asked Mum. Unsurprisingly, there was no reply.
 
