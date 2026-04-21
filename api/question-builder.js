@@ -242,7 +242,11 @@ Generate exactly ${batch_size} original questions for:
 ## CATEGORY GUIDANCE
 ${categoryGuidance(category)}
 
-${refSection}
+${year_group === 'P6' ? `## P6 DIFFICULTY GUIDANCE
+P6 APPROPRIATE: Single-step calculations, times tables to 12x12, simple fractions (1/2, 1/4), basic shapes, telling time, money.
+TOO HARD: Multi-step word problems, division with remainders over 100, percentages beyond 10/25/50%, complex fractions.
+
+` : ''}${refSection}
 
 ${failSection}
 
@@ -255,7 +259,7 @@ Each object must have:
 - "question_text": full question text (string)
 - "correct_answer": ${isWritten ? 'model answer (1–2 sentences)' : `correct option letter (${isPunctuationOrSpelling ? 'A/B/C/D/N' : 'A/B/C/D/E'})`}
 - "explanation": why this answer is correct (1–2 sentences, UK English)
-- "difficulty": integer 1–5 (1=very easy, 3=medium, 5=very hard) appropriate for ${year_group}
+- "difficulty": integer 1–5 (1=very easy, 3=medium, 5=very hard) appropriate for ${year_group}${year_group === 'P6' ? ' — P6 questions should mostly be difficulty 1 or 2 (easy). Do not exceed 3.' : ' — P7 questions should be difficulty 2 or 3. Avoid difficulty 4–5 unless truly needed.'}
 ${optionsFormat}
 
 Make each question original — do not copy reference examples verbatim. Vary difficulty across the batch. Ensure every question has one and only one definitively correct answer.`;
@@ -281,7 +285,7 @@ async function handleGenerateQuestions(req, res) {
 
     const [refRows, failRows, passRows, existingRows] = await Promise.all([
       supabaseFetch(supabaseUrl, serviceKey,
-        `reference_questions?select=question_text,correct_answer,difficulty&category=eq.${encodeURIComponent(category)}&year_group=eq.${encodeURIComponent(year_group)}&limit=${refLimit}&order=extracted_at.desc`),
+        `reference_questions?select=question_text,correct_answer,difficulty&category=eq.${encodeURIComponent(category)}&year_group=eq.${encodeURIComponent(year_group)}&${year_group === 'P6' ? 'difficulty=lte.2' : 'difficulty=lte.3'}&limit=${refLimit}&order=extracted_at.desc`),
       supabaseFetch(supabaseUrl, serviceKey,
         `validation_results?select=v1_reason,v2_reason,v3_reason&category=eq.${encodeURIComponent(category)}&year_group=eq.${encodeURIComponent(year_group)}&outcome=eq.fail&order=created_at.desc&limit=20`),
       supabaseFetch(supabaseUrl, serviceKey,
@@ -465,7 +469,7 @@ Claimed difficulty: ${difficulty}
 Question: ${question_text}${optionsBlock}
 Correct answer: ${correct_answer}
 
-Is this question appropriate for ${year_group}? Score 7+ = pass, 4-6 = warn, 1-3 = fail.`;
+Is this question appropriate for ${year_group}? Score 6+ = pass, 4-5 = warn, 1-3 = fail.`;
 
   const v3System = `You are an expert SEAG transfer test validator for Northern Ireland P6/P7 pupils (ages 10-11). Your job is to verify question quality.
 
@@ -498,7 +502,7 @@ Rate the quality of this question. Score 7+ = pass, 4-6 = warn, 1-3 = fail.`;
     const combined_score = Math.round((scores.reduce((a, b) => a + b, 0) / 3) * 10) / 10;
 
     let outcome;
-    if (scores.every(s => s >= 7))  outcome = 'pass';
+    if (scores.every(s => s >= 6))  outcome = 'pass';
     else if (scores.some(s => s < 5)) outcome = 'fail';
     else                              outcome = 'rewrite';
 
