@@ -89,9 +89,23 @@ Rules: segments must be consecutive parts of the sentence. All words must appear
   if (!res.ok) throw new Error(data.error?.message || 'Anthropic API error');
 
   const raw = data.content?.[0]?.text || '';
+
+  // 1. Direct parse
+  try { return JSON.parse(raw); } catch { /* fall through */ }
+
+  // 2. Trim trailing content after last }
+  const lastBrace = raw.lastIndexOf('}');
+  if (lastBrace !== -1) {
+    try { return JSON.parse(raw.slice(0, lastBrace + 1)); } catch { /* fall through */ }
+  }
+
+  // 3. Regex extract first {...} block
   const match = raw.match(/\{[\s\S]*\}/);
-  if (!match) throw new Error(`No JSON found in response: ${raw.slice(0, 200)}`);
-  return JSON.parse(match[0]);
+  if (match) {
+    try { return JSON.parse(match[0]); } catch { /* fall through */ }
+  }
+
+  throw new Error(`No JSON found in response: ${raw.slice(0, 200)}`);
 }
 
 async function saveOptions(id, options) {
