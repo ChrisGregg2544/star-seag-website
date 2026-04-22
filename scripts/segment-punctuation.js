@@ -54,11 +54,21 @@ async function fetchQuestions() {
   return res.json();
 }
 
+function validateOptions(options) {
+  const required = ['A', 'B', 'C', 'D', 'N'];
+  const missing = required.filter(k => !(k in options));
+  if (missing.length) throw new Error(`Options missing keys: ${missing.join(', ')}`);
+  if (options.N !== 'No mistake') throw new Error(`N must be "No mistake", got: "${options.N}"`);
+}
+
 async function segmentQuestion(question_text, correct_answer, explanation) {
   const prompt = `Segment this SEAG punctuation question into A/B/C/D parts.
 Question: ${question_text}
 Correct answer: ${correct_answer}
 Explanation: ${explanation}
+
+CRITICAL: Response MUST include all 5 keys: A, B, C, D, N
+The N option is ALWAYS "No mistake" regardless of the answer.
 
 Return ONLY JSON:
 {
@@ -142,6 +152,7 @@ async function main() {
     process.stdout.write(`[${passed + failed + 1}/${questions.length}] ${q.id} ... `);
     try {
       const options = await segmentQuestion(q.question_text, q.correct_answer, q.explanation || '');
+      validateOptions(options);
       await saveOptions(q.id, options);
       console.log(`OK (answer: ${q.correct_answer})`);
       passed++;
