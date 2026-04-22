@@ -657,10 +657,17 @@ Rate the quality of this question. Score 7+ = pass, 4-6 = warn, 1-3 = fail.`;
 
     if (SPECIALIST_CATEGORIES.has(category)) {
       // Punctuation/spelling/grammar: V1 (Haiku) + V4 Specialist (Sonnet)
-      [v1, v4] = await Promise.all([
+      let v4Result;
+      [v1, v4Result] = await Promise.all([
         callValidator(v1System, v1User, apiKey),
         validatePunctuation(question_text, correct_answer, category, year_group, optionsBlock, apiKey),
       ]);
+      console.log('V4 result:', v4Result);
+      if (!v4Result || typeof v4Result.score === 'undefined') {
+        console.error('V4 validator returned invalid result:', v4Result);
+        return res.status(500).json({ error: 'Specialist validator returned invalid result', v4Result });
+      }
+      v4 = v4Result;
       scores = [v1.score, v4.score];
       combined_score = Math.round((scores.reduce((a, b) => a + b, 0) / 2) * 10) / 10;
       outcome = scores.every(s => s >= 6) ? 'pass' : scores.some(s => s < 4) ? 'fail' : 'rewrite';
