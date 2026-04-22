@@ -457,7 +457,7 @@ async function handleGenerateQuestions(req, res) {
     }
 
     console.log(`generate-questions: ${unique.length} unique, ${skipped} duplicates skipped`);
-    return res.status(200).json({ questions: unique, skipped_duplicates: skipped, total_generated: parsed.items.length, truncated: parsed.truncated });
+    return res.status(200).json({ questions: unique, skipped_duplicates: skipped, total_generated: allItems.length });
 
   } catch (err) {
     console.error('generate-questions error:', err.message);
