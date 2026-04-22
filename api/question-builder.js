@@ -376,19 +376,39 @@ async function handleGenerateQuestions(req, res) {
 
     const existingFingerprints = new Set(existingRows.map(r => fingerprint(r.question_text)));
 
-    let prompt;
+    let allItems = [];
 
     if (TEMPLATE_CATEGORIES.has(category)) {
-      // Template mode: fetch one random reference question with options as the template
+      // Template mode: fetch a pool of templates, then generate 1 variation per iteration
       const templateRows = await supabaseFetch(supabaseUrl, serviceKey,
         `reference_questions?select=question_text,correct_answer,options&category=eq.${encodeURIComponent(category)}&year_group=eq.${encodeURIComponent(year_group)}&options=not.is.null&limit=50`);
 
       if (!templateRows.length)
         return res.status(500).json({ error: `No segmented reference questions found for ${category} ${year_group}` });
 
-      const template = templateRows[Math.floor(Math.random() * templateRows.length)];
-      console.log(`generate-questions: template mode for ${category} ${year_group}, template: "${template.question_text.slice(0, 60)}..."`);
-      prompt = buildVariationPrompt(template, batch_size, year_group);
+      console.log(`generate-questions: template mode for ${category} ${year_group}, pool=${templateRows.length}, generating ${batch_size} variations`);
+
+      for (let i = 0; i < batch_size; i++) {
+        const template = templateRows[Math.floor(Math.random() * templateRows.length)];
+        const prompt = buildVariationPrompt(template, 1, year_group);
+
+        try {
+          const aiResponse = await fetch(ANTHROPIC_URL, {
+            method: 'POST',
+            headers: { 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
+            body: JSON.stringify({ model: HAIKU_MODEL, max_tokens: 1000, messages: [{ role: 'user', content: prompt }] }),
+          });
+          const aiData = await aiResponse.json();
+          if (!aiResponse.ok) { console.warn(`generate-questions: variation ${i + 1} AI error: ${aiData.error?.message}`); continue; }
+
+          const rawText = aiData.content?.[0]?.text || '';
+          const parsed  = parseJsonArray(rawText);
+          if (parsed?.items?.length) allItems.push(...parsed.items);
+          else console.warn(`generate-questions: variation ${i + 1} parse failed`);
+        } catch (e) {
+          console.warn(`generate-questions: variation ${i + 1} error: ${e.message}`);
+        }
+      }
 
     } else {
       // Standard mode: generate from scratch using references, fail patterns, pass examples
@@ -402,25 +422,26 @@ async function handleGenerateQuestions(req, res) {
           `validation_results?select=question_text,v1_score,v2_score,v3_score&category=eq.${encodeURIComponent(category)}&year_group=eq.${encodeURIComponent(year_group)}&outcome=eq.pass&order=v1_score.desc,v2_score.desc,v3_score.desc&limit=10`),
       ]);
       console.log(`generate-questions: standard mode for ${category} ${year_group}, refs=${refRows.length} fails=${failRows.length} passes=${passRows.length} existing=${existingFingerprints.size}`);
-      prompt = buildGeneratePrompt({ category, year_group, batch_size, references: refRows, failReasons: failRows, passExamples: passRows });
+
+      const prompt = buildGeneratePrompt({ category, year_group, batch_size, references: refRows, failReasons: failRows, passExamples: passRows });
+
+      const aiResponse = await fetch(ANTHROPIC_URL, {
+        method: 'POST',
+        headers: { 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
+        body: JSON.stringify({ model: HAIKU_MODEL, max_tokens: 8000, messages: [{ role: 'user', content: prompt }] }),
+      });
+      const aiData = await aiResponse.json();
+      if (!aiResponse.ok) return res.status(500).json({ error: aiData.error?.message || 'AI API error' });
+
+      const rawText = aiData.content?.[0]?.text || '';
+      const parsed  = parseJsonArray(rawText);
+      if (!parsed || !Array.isArray(parsed.items))
+        return res.status(500).json({ error: 'Could not parse AI response', raw: rawText.slice(0, 2000) });
+
+      allItems = parsed.items;
     }
 
-    const aiResponse = await fetch(ANTHROPIC_URL, {
-      method: 'POST',
-      headers: { 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
-      body: JSON.stringify({ model: HAIKU_MODEL, max_tokens: 8000, messages: [{ role: 'user', content: prompt }] }),
-    });
-
-    const aiData = await aiResponse.json();
-    if (!aiResponse.ok) return res.status(500).json({ error: aiData.error?.message || 'AI API error' });
-
-    const rawText = aiData.content?.[0]?.text || '';
-    const parsed  = parseJsonArray(rawText);
-
-    if (!parsed || !Array.isArray(parsed.items))
-      return res.status(500).json({ error: 'Could not parse AI response', raw: rawText.slice(0, 2000) });
-
-    const withUkCheck = parsed.items.map(q => {
+    const withUkCheck = allItems.map(q => {
       const warnings = [...ukEnglishWarnings(q.question_text || ''), ...ukEnglishWarnings(q.explanation || ''),
         ...Object.values(q.options || {}).flatMap(v => ukEnglishWarnings(v))];
       const unique = [...new Set(warnings)];
