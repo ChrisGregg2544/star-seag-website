@@ -331,12 +331,12 @@ async function validateGeneratedQuestion(q, apiKey) {
   const v1User = `Category: ${q.category}\nYear group: ${q.year_group}\nQuestion: ${q.question_text}${optionsBlock}\nStated correct answer: ${q.correct_answer}\n\nVerify this question has a clear correct answer. Score 7+ = pass, 4-6 = warn, 1-3 = fail.`;
 
   const [v1, v4] = await Promise.all([
-    callValidator(v1System, v1User, apiKey, SONNET_MODEL),
+    callValidator(v1System, v1User, apiKey),
     validatePunctuation(q.question_text, q.correct_answer, q.category, q.year_group, optionsBlock, apiKey),
   ]);
 
-  const scores = [v1.score, v4.score];
-  const validator_verdict = scores.every(s => s >= 6) ? 'pass' : scores.some(s => s < 4) ? 'fail' : 'rewrite';
+  // V4 (Sonnet specialist) is authoritative for English categories; V1 is informational only
+  const validator_verdict = v4.score >= 7 ? 'pass' : v4.score >= 5 ? 'rewrite' : 'fail';
 
   return { v1_score: v1.score, v1_reason: v1.reason, v4_score: v4.score, v4_reason: v4.reason, validator_verdict };
 }
