@@ -1,0 +1,200 @@
+/**
+ * resegment-grammar.js
+ * Reformats grammar reference questions that contain bracketed word choices
+ * like "Louisa [write/writes/wrote] was presented..." into clean sentences
+ * with proper A/B/C/D/N segment options.
+ *
+ * - If correct_answer is N: embeds the CORRECT word (sentence has no error)
+ * - If correct_answer is A/B/C/D: embeds an INCORRECT word in that segment
+ * - Removes all brackets from final question_text
+ *
+ * Usage: node scripts/resegment-grammar.js
+ */
+
+import { readFileSync } from 'fs';
+import { resolve, dirname } from 'path';
+import { fileURLToPath } from 'url';
+
+const __dir = dirname(fileURLToPath(import.meta.url));
+
+// ── Load .env ──────────────────────────────────────────────────────────────
+const envPath = resolve(__dir, '../.env');
+const envVars = {};
+for (const line of readFileSync(envPath, 'utf8').split('\n')) {
+  const [k, ...rest] = line.split('=');
+  if (k && rest.length) envVars[k.trim()] = rest.join('=').trim();
+}
+
+const ANTHROPIC_KEY = envVars.ANTHROPIC_API_KEY;
+const SUPABASE_URL  = 'https://iutcgogmxhaqgaxkznxu.supabase.co';
+const SERVICE_KEY   = envVars.SUPABASE_SERVICE_ROLE_KEY;
+
+if (!ANTHROPIC_KEY) { console.error('Missing ANTHROPIC_API_KEY'); process.exit(1); }
+if (!SERVICE_KEY)   { console.error('Missing SUPABASE_SERVICE_ROLE_KEY'); process.exit(1); }
+
+const ANTHROPIC_URL = 'https://api.anthropic.com/v1/messages';
+const MODEL         = 'claude-sonnet-4-6';
+
+function supabaseHeaders(extra = {}) {
+  return {
+    'apikey':        SERVICE_KEY,
+    'Authorization': `Bearer ${SERVICE_KEY}`,
+    'Content-Type':  'application/json',
+    ...extra,
+  };
+}
+
+async function fetchQuestions() {
+  const url = `${SUPABASE_URL}/rest/v1/reference_questions`
+    + `?select=id,question_text,correct_answer,explanation`
+    + `&category=eq.grammar`
+    + `&order=year_group.asc,id.asc`
+    + `&limit=1000`;
+
+  const res = await fetch(url, { headers: supabaseHeaders() });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Supabase fetch failed (${res.status}): ${text.slice(0, 200)}`);
+  }
+  return res.json();
+}
+
+function validateResult(result) {
+  if (!result.question_text) throw new Error('Missing question_text in result');
+  const required = ['A', 'B', 'C', 'D', 'N'];
+  const missing = required.filter(k => !(k in result));
+  if (missing.length) throw new Error(`Options missing keys: ${missing.join(', ')}`);
+  if (result.N !== 'No mistake') throw new Error(`N must be "No mistake", got: "${result.N}"`);
+  if (result.question_text.includes('[') || result.question_text.includes('_')) throw new Error('Invalid format: question_text contains brackets or underscores');
+}
+
+async function resegmentQuestion(question_text, correct_answer, explanation) {
+  const prompt = `You are a JSON generator. Return ONLY valid JSON, no other text.
+
+This SEAG grammar question contains bracketed word choices like [word1/word2/word3].
+Reformat it into a clean sentence and segment it into A/B/C/D/N parts.
+
+Original question: ${question_text}
+Correct answer: ${correct_answer}
+Explanation: ${explanation}
+
+Rules:
+- Use the explanation to identify which word is grammatically correct
+- If correct_answer is N: embed the CORRECT word so the sentence has NO error
+- If correct_answer is A/B/C/D: embed an INCORRECT word so the error falls in that segment
+- NEVER use blanks or underscores. NEVER use brackets. Embed the INCORRECT word naturally based on the explanation.
+- Remove ALL brackets from the final question_text
+- Segments A/B/C/D must be consecutive parts covering the whole sentence
+- All words must appear in exactly one segment
+- N is always "No mistake"
+
+Return this exact JSON structure:
+{
+  "question_text": "clean sentence with one word chosen, no brackets",
+  "A": "first segment of sentence",
+  "B": "second segment",
+  "C": "third segment",
+  "D": "fourth segment",
+  "N": "No mistake"
+}
+
+Return ONLY the JSON object. No explanation, no markdown, no code fences. Just the JSON.`;
+
+  const res = await fetch(ANTHROPIC_URL, {
+    method: 'POST',
+    headers: {
+      'x-api-key':         ANTHROPIC_KEY,
+      'anthropic-version': '2023-06-01',
+      'content-type':      'application/json',
+    },
+    body: JSON.stringify({
+      model:      MODEL,
+      max_tokens: 1000,
+      messages:   [{ role: 'user', content: prompt }],
+    }),
+  });
+
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error?.message || 'Anthropic API error');
+
+  const raw = (data.content?.[0]?.text || '')
+    .replace(/^```json\s*/i, '')
+    .replace(/```[\s\S]*$/, '')
+    .trim();
+
+  // 1. Direct parse
+  try { return JSON.parse(raw); } catch { /* fall through */ }
+
+  // 2. Walk from first { tracking brace depth to find true closing }
+  const start = raw.indexOf('{');
+  if (start !== -1) {
+    let depth = 0;
+    for (let i = start; i < raw.length; i++) {
+      if (raw[i] === '{') depth++;
+      else if (raw[i] === '}') { depth--; if (depth === 0) { try { return JSON.parse(raw.slice(start, i + 1)); } catch { break; } } }
+    }
+  }
+
+  // 3. Trim trailing content after last }
+  const lastBrace = raw.lastIndexOf('}');
+  if (lastBrace !== -1) {
+    try { return JSON.parse(raw.slice(0, lastBrace + 1)); } catch { /* fall through */ }
+  }
+
+  // 4. Regex extract first {...} block
+  const match = raw.match(/\{[\s\S]*\}/);
+  if (match) {
+    try { return JSON.parse(match[0]); } catch { /* fall through */ }
+  }
+
+  throw new Error(`No JSON found in response: ${raw.slice(0, 200)}`);
+}
+
+async function saveResult(id, question_text, options) {
+  const res = await fetch(
+    `${SUPABASE_URL}/rest/v1/reference_questions?id=eq.${id}`,
+    {
+      method:  'PATCH',
+      headers: supabaseHeaders({ 'Prefer': 'return=minimal' }),
+      body:    JSON.stringify({ question_text, options }),
+    }
+  );
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Supabase update failed (${res.status}): ${text.slice(0, 200)}`);
+  }
+}
+
+async function main() {
+  console.log('Fetching all grammar reference questions...');
+  const questions = await fetchQuestions();
+  console.log(`Found ${questions.length} questions to resegment.\n`);
+
+  if (!questions.length) {
+    console.log('Nothing to do.');
+    return;
+  }
+
+  let passed = 0, failed = 0;
+
+  for (const q of questions) {
+    process.stdout.write(`[${passed + failed + 1}/${questions.length}] ${q.id} ... `);
+    try {
+      const result = await resegmentQuestion(q.question_text, q.correct_answer, q.explanation || '');
+      validateResult(result);
+      const { question_text, ...options } = result;
+      await saveResult(q.id, question_text, options);
+      console.log(`OK (answer: ${q.correct_answer}) → "${question_text.slice(0, 60)}..."`);
+      passed++;
+    } catch (err) {
+      console.log(`FAILED: ${err.message}`);
+      failed++;
+    }
+
+    await new Promise(r => setTimeout(r, 300));
+  }
+
+  console.log(`\nDone. ${passed} resegmented, ${failed} failed.`);
+}
+
+main().catch(err => { console.error(err.message); process.exit(1); });
