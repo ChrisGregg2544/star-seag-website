@@ -526,11 +526,14 @@ function anthropicHeaders(apiKey) {
   return { 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' };
 }
 
-async function callValidator(systemPrompt, userMessage, apiKey) {
+const SONNET_MODEL = 'claude-sonnet-4-6';
+const SPECIALIST_CATEGORIES = new Set(['punctuation', 'spelling', 'grammar']);
+
+async function callValidator(systemPrompt, userMessage, apiKey, model = HAIKU_MODEL) {
   const response = await fetch(ANTHROPIC_URL, {
     method: 'POST',
     headers: anthropicHeaders(apiKey),
-    body: JSON.stringify({ model: HAIKU_MODEL, max_tokens: 500, system: systemPrompt, messages: [{ role: 'user', content: userMessage }] }),
+    body: JSON.stringify({ model, max_tokens: 500, system: systemPrompt, messages: [{ role: 'user', content: userMessage }] }),
   });
   const data = await response.json();
   if (!response.ok) throw new Error(data.error?.message || 'Validator AI error');
@@ -618,32 +621,72 @@ Correct answer: ${correct_answer}
 
 Rate the quality of this question. Score 7+ = pass, 4-6 = warn, 1-3 = fail.`;
 
+  const v4System = `You are a specialist SEAG punctuation, spelling, and grammar validator for Northern Ireland P6/P7 pupils (ages 10-11). Your job is to perform a deep check of punctuation/spelling/grammar questions.
+
+Check ALL of the following:
+1. Is there exactly ONE error in the stated segment (${correct_answer})?
+2. Is it a genuine error — not optional or stylistically acceptable UK punctuation?
+3. Are ALL other segments (those not labelled ${correct_answer}) completely error-free?
+4. Is the error clear and unambiguous for a P6/P7 pupil — not a debatable edge case?
+
+If correct_answer is N (no mistake), verify the sentence is genuinely error-free.
+
+Return ONLY a JSON object:
+{"score":<number 1-10>,"reason":"<specific explanation of what you checked>","verdict":"<pass|warn|fail>"}`;
+
+  const v4User = `Category: ${category}
+Year group: ${year_group}
+Question: ${question_text}${optionsBlock}
+Stated correct answer: ${correct_answer}
+
+Perform a deep punctuation/spelling/grammar check. Score 6+ = pass, 4-5 = warn, 1-3 = fail.`;
+
   try {
-    const [v1, v2, v3] = await Promise.all([
-      callValidator(v1System, v1User, apiKey),
-      callValidator(v2System, v2User, apiKey),
-      callValidator(v3System, v3User, apiKey),
-    ]);
+    let v1, v2, v3, v4, scores, outcome, combined_score;
 
-    const scores = [v1.score, v2.score, v3.score];
-    const combined_score = Math.round((scores.reduce((a, b) => a + b, 0) / 3) * 10) / 10;
+    if (SPECIALIST_CATEGORIES.has(category)) {
+      // Punctuation/spelling/grammar: V1 (Haiku) + V4 Specialist (Sonnet)
+      [v1, v4] = await Promise.all([
+        callValidator(v1System, v1User, apiKey),
+        callValidator(v4System, v4User, apiKey, SONNET_MODEL),
+      ]);
+      scores = [v1.score, v4.score];
+      combined_score = Math.round((scores.reduce((a, b) => a + b, 0) / 2) * 10) / 10;
+      outcome = scores.every(s => s >= 6) ? 'pass' : scores.some(s => s < 4) ? 'fail' : 'rewrite';
+      console.log(`run-validators: ${outcome} (v1=${v1.score}, v4=${v4.score}) — ${category} ${year_group}`);
 
-    let outcome;
-    if (scores.every(s => s >= 6))  outcome = 'pass';
-    else if (scores.some(s => s < 5)) outcome = 'fail';
-    else                              outcome = 'rewrite';
+      if (supabaseUrl && serviceRoleKey) {
+        fetch(`${supabaseUrl}/rest/v1/validation_results`, {
+          method: 'POST',
+          headers: supabaseHeaders(serviceRoleKey, { 'Prefer': 'return=minimal' }),
+          body: JSON.stringify({ question_text, category, year_group, v1_score: v1.score, v1_reason: v1.reason, v4_score: v4.score, v4_reason: v4.reason, outcome, attempts: 1 }),
+        }).catch(e => console.warn('run-validators: Supabase log failed:', e.message));
+      }
 
-    console.log(`run-validators: ${outcome} (${scores.join(', ')}) — ${category} ${year_group}`);
+      return res.status(200).json({ outcome, v1, v4, combined_score });
 
-    if (supabaseUrl && serviceRoleKey) {
-      fetch(`${supabaseUrl}/rest/v1/validation_results`, {
-        method: 'POST',
-        headers: supabaseHeaders(serviceRoleKey, { 'Prefer': 'return=minimal' }),
-        body: JSON.stringify({ question_text, category, year_group, v1_score: v1.score, v1_reason: v1.reason, v2_score: v2.score, v2_reason: v2.reason, v3_score: v3.score, v3_reason: v3.reason, outcome, attempts: 1 }),
-      }).catch(e => console.warn('run-validators: Supabase log failed:', e.message));
+    } else {
+      // All other categories: V1 + V2 + V3 (all Haiku)
+      [v1, v2, v3] = await Promise.all([
+        callValidator(v1System, v1User, apiKey),
+        callValidator(v2System, v2User, apiKey),
+        callValidator(v3System, v3User, apiKey),
+      ]);
+      scores = [v1.score, v2.score, v3.score];
+      combined_score = Math.round((scores.reduce((a, b) => a + b, 0) / 3) * 10) / 10;
+      outcome = scores.every(s => s >= 6) ? 'pass' : scores.some(s => s < 5) ? 'fail' : 'rewrite';
+      console.log(`run-validators: ${outcome} (${scores.join(', ')}) — ${category} ${year_group}`);
+
+      if (supabaseUrl && serviceRoleKey) {
+        fetch(`${supabaseUrl}/rest/v1/validation_results`, {
+          method: 'POST',
+          headers: supabaseHeaders(serviceRoleKey, { 'Prefer': 'return=minimal' }),
+          body: JSON.stringify({ question_text, category, year_group, v1_score: v1.score, v1_reason: v1.reason, v2_score: v2.score, v2_reason: v2.reason, v3_score: v3.score, v3_reason: v3.reason, outcome, attempts: 1 }),
+        }).catch(e => console.warn('run-validators: Supabase log failed:', e.message));
+      }
+
+      return res.status(200).json({ outcome, v1, v2, v3, combined_score });
     }
-
-    return res.status(200).json({ outcome, v1, v2, v3, combined_score });
 
   } catch (err) {
     console.error('run-validators error:', err.message);
