@@ -754,11 +754,16 @@ function deriveSubject(category) {
   return ENGLISH_TOPICS.has(category) ? 'english' : 'maths';
 }
 
-function combineReasons(v1, v2, v3) {
+function combineReasons(q) {
+  const v1reason = q.v1_reason || q.validation?.v1?.reason;
+  const v4reason = q.v4_reason || q.validation?.v4?.reason;
+  const v2reason = q.validation?.v2?.reason;
+  const v3reason = q.validation?.v3?.reason;
   return [
-    v1?.reason ? `Accuracy: ${v1.reason}`   : null,
-    v2?.reason ? `Difficulty: ${v2.reason}` : null,
-    v3?.reason ? `Quality: ${v3.reason}`    : null,
+    v1reason ? `Accuracy: ${v1reason}`    : null,
+    v4reason ? `Specialist: ${v4reason}`  : null,
+    v2reason ? `Difficulty: ${v2reason}`  : null,
+    v3reason ? `Quality: ${v3reason}`     : null,
   ].filter(Boolean).join(' | ') || null;
 }
 
@@ -774,32 +779,44 @@ async function handleSaveGenerated(req, res) {
   if (!supabaseUrl) return res.status(500).json({ error: 'NEXT_PUBLIC_SUPABASE_URL not configured' });
   if (!serviceKey)  return res.status(500).json({ error: 'Supabase service key not configured' });
 
-  const rows = questions.map(q => {
-    const v1 = q.validation?.v1 || {};
-    const v2 = q.validation?.v2 || {};
-    const v3 = q.validation?.v3 || {};
-    return {
-      subject:           deriveSubject(q.category),
-      topic:             q.category,
-      year_group:        q.year_group,
-      difficulty:        Number(q.difficulty) || 3,
-      question_type:     q.question_type || 'Multiple_Choice',
-      question_text:     q.question_text,
-      options:           q.options || null,
-      correct_answer:    q.correct_answer,
-      explanation:       q.explanation || null,
-      validated:         true,
-      source:            'ai_generated_v2',
-      validator_verdict: 'pass',
-      validator_reason:  combineReasons(v1, v2, v3),
-    };
-  });
+  const questionRows = questions.map(q => ({
+    subject:           deriveSubject(q.category),
+    topic:             q.category,
+    year_group:        q.year_group,
+    difficulty:        Number(q.difficulty) || 3,
+    question_type:     q.question_type || 'Multiple_Choice',
+    question_text:     q.question_text,
+    options:           q.options || null,
+    correct_answer:    q.correct_answer,
+    explanation:       q.explanation || null,
+    validated:         true,
+    source:            'ai_generated_v2',
+    validator_verdict: q.validator_verdict || q.validation?.outcome || 'pass',
+    validator_reason:  combineReasons(q),
+  }));
+
+  // Build validation_results rows — v4 mapped to v2 slot (table has no v4 columns)
+  const validationRows = questions
+    .filter(q => q.v1_score != null || q.v4_score != null || q.validation?.v1)
+    .map(q => ({
+      question_text: q.question_text,
+      category:      q.category,
+      year_group:    q.year_group,
+      v1_score:      q.v1_score ?? q.validation?.v1?.score ?? null,
+      v1_reason:     q.v1_reason ?? q.validation?.v1?.reason ?? null,
+      v2_score:      q.v4_score ?? q.validation?.v2?.score ?? null,
+      v2_reason:     q.v4_reason ?? q.validation?.v2?.reason ?? null,
+      v3_score:      q.validation?.v3?.score ?? null,
+      v3_reason:     q.validation?.v3?.reason ?? null,
+      outcome:       q.validator_verdict || q.validation?.outcome || 'pass',
+      attempts:      1,
+    }));
 
   try {
     const response = await fetch(`${supabaseUrl}/rest/v1/questions`, {
       method: 'POST',
       headers: supabaseHeaders(serviceKey, { 'Prefer': 'return=minimal' }),
-      body: JSON.stringify(rows),
+      body: JSON.stringify(questionRows),
     });
 
     if (!response.ok) {
@@ -808,8 +825,17 @@ async function handleSaveGenerated(req, res) {
       return res.status(500).json({ error: `Database error ${response.status}: ${errorBody.slice(0, 200)}` });
     }
 
-    console.log(`save-generated: inserted ${rows.length} questions`);
-    return res.status(200).json({ saved: rows.length });
+    // Save validation results (fire-and-forget)
+    if (validationRows.length) {
+      fetch(`${supabaseUrl}/rest/v1/validation_results`, {
+        method: 'POST',
+        headers: supabaseHeaders(serviceKey, { 'Prefer': 'return=minimal' }),
+        body: JSON.stringify(validationRows),
+      }).catch(e => console.warn('save-generated: validation_results insert failed:', e.message));
+    }
+
+    console.log(`save-generated: inserted ${questionRows.length} questions, ${validationRows.length} validation results`);
+    return res.status(200).json({ saved: questionRows.length });
 
   } catch (err) {
     console.error('save-generated error:', err.message);
