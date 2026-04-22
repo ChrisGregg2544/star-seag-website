@@ -336,9 +336,11 @@ async function validateGeneratedQuestion(q, apiKey) {
   ]);
 
   // V4 (Sonnet specialist) is authoritative for English categories; V1 is informational only
-  const validator_verdict = v4.score >= 7 ? 'pass' : v4.score >= 5 ? 'rewrite' : 'fail';
+  const v4_score = v4.score;
+  const validator_verdict = v4_score >= 7 ? 'pass' : v4_score >= 5 ? 'rewrite' : 'fail';
+  console.log('V4 score:', v4_score, 'Verdict:', validator_verdict);
 
-  return { v1_score: v1.score, v1_reason: v1.reason, v4_score: v4.score, v4_reason: v4.reason, validator_verdict };
+  return { v1_score: v1.score, v1_reason: v1.reason, v4_score, v4_reason: v4.reason, validator_verdict };
 }
 
 function buildVariationPrompt(template, batch_size, year_group) {
