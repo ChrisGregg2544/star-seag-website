@@ -88,7 +88,10 @@ Rules: segments must be consecutive parts of the sentence. All words must appear
   const data = await res.json();
   if (!res.ok) throw new Error(data.error?.message || 'Anthropic API error');
 
-  const raw = data.content?.[0]?.text || '';
+  const raw = (data.content?.[0]?.text || '')
+    .replace(/^```json\s*/i, '')
+    .replace(/```\s*$/, '')
+    .trim();
 
   // 1. Direct parse
   try { return JSON.parse(raw); } catch { /* fall through */ }
