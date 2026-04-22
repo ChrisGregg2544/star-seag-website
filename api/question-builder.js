@@ -337,6 +337,10 @@ Each variation must:
 - Have error in same segment position
 - Have same error type (missing comma/apostrophe/etc)
 - Use different vocabulary and context
+- Keep vocabulary and subject matter SIMPLE and appropriate for ${year_group} students (ages ${year_group === 'P6' ? '10-11' : '11-12'})
+- Use topics familiar to children: school, home, friends, pets, hobbies, sports, food, family
+- AVOID: academic subjects, scientific terminology, complex concepts, adult workplace scenarios
+- The punctuation rule can be challenging, but the sentence content must be child-friendly
 
 Return ONLY a valid JSON array of ${batch_size} objects. No preamble, no markdown.
 
