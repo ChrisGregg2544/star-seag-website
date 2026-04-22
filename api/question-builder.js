@@ -322,7 +322,7 @@ Make each question original — do not copy reference examples verbatim. Vary di
 
 const TEMPLATE_CATEGORIES = new Set(['punctuation', 'spelling']);
 
-function buildVariationPrompt(template, batch_size) {
+function buildVariationPrompt(template, batch_size, year_group) {
   return `Create ${batch_size} variations of this template question.
 Keep EXACT SAME error type and segment structure.
 Only change vocabulary and context.
@@ -388,7 +388,7 @@ async function handleGenerateQuestions(req, res) {
 
       const template = templateRows[Math.floor(Math.random() * templateRows.length)];
       console.log(`generate-questions: template mode for ${category} ${year_group}, template: "${template.question_text.slice(0, 60)}..."`);
-      prompt = buildVariationPrompt(template, batch_size);
+      prompt = buildVariationPrompt(template, batch_size, year_group);
 
     } else {
       // Standard mode: generate from scratch using references, fail patterns, pass examples
