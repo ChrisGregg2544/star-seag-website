@@ -320,7 +320,7 @@ ${optionsFormat}
 Make each question original — do not copy reference examples verbatim. Vary difficulty across the batch. Ensure every question has one and only one definitively correct answer.`;
 }
 
-const TEMPLATE_CATEGORIES = new Set(['punctuation', 'spelling']);
+const TEMPLATE_CATEGORIES = new Set(['punctuation', 'spelling', 'grammar']);
 
 async function validateGeneratedQuestion(q, apiKey) {
   const optionsBlock = q.options && typeof q.options === 'object' && Object.keys(q.options).length
