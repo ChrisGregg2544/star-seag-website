@@ -322,6 +322,25 @@ Make each question original — do not copy reference examples verbatim. Vary di
 
 const TEMPLATE_CATEGORIES = new Set(['punctuation', 'spelling']);
 
+async function validateGeneratedQuestion(q, apiKey) {
+  const optionsBlock = q.options && typeof q.options === 'object' && Object.keys(q.options).length
+    ? '\nAnswer options:\n' + Object.entries(q.options).map(([k, v]) => `  ${k}: ${v}`).join('\n')
+    : '';
+
+  const v1System = `You are an expert SEAG transfer test validator for Northern Ireland P6/P7 pupils (ages 10-11). Verify the question has a clear, unambiguous correct answer. Return ONLY a JSON object: {"score":<1-10>,"reason":"<brief explanation>","verdict":"<pass|warn|fail>"}`;
+  const v1User = `Category: ${q.category}\nYear group: ${q.year_group}\nQuestion: ${q.question_text}${optionsBlock}\nStated correct answer: ${q.correct_answer}\n\nVerify this question has a clear correct answer. Score 7+ = pass, 4-6 = warn, 1-3 = fail.`;
+
+  const [v1, v4] = await Promise.all([
+    callValidator(v1System, v1User, apiKey),
+    validatePunctuation(q.question_text, q.correct_answer, q.category, q.year_group, optionsBlock, apiKey),
+  ]);
+
+  const scores = [v1.score, v4.score];
+  const validator_verdict = scores.every(s => s >= 6) ? 'pass' : scores.some(s => s < 4) ? 'fail' : 'rewrite';
+
+  return { v1_score: v1.score, v1_reason: v1.reason, v4_score: v4.score, v4_reason: v4.reason, validator_verdict };
+}
+
 function buildVariationPrompt(template, batch_size, year_group) {
   return `Create ${batch_size} variations of this template question.
 Keep EXACT SAME error type and segment structure.
@@ -403,8 +422,17 @@ async function handleGenerateQuestions(req, res) {
 
           const rawText = aiData.content?.[0]?.text || '';
           const parsed  = parseJsonArray(rawText);
-          if (parsed?.items?.length) allItems.push(...parsed.items);
-          else console.warn(`generate-questions: variation ${i + 1} parse failed`);
+          if (!parsed?.items?.length) { console.warn(`generate-questions: variation ${i + 1} parse failed`); continue; }
+
+          const generated = { ...parsed.items[0], category, year_group };
+          try {
+            const validation = await validateGeneratedQuestion(generated, apiKey);
+            console.log(`generate-questions: variation ${i + 1} validated — ${validation.validator_verdict} (v1=${validation.v1_score}, v4=${validation.v4_score})`);
+            allItems.push({ ...generated, ...validation });
+          } catch (ve) {
+            console.warn(`generate-questions: variation ${i + 1} validation error: ${ve.message}`);
+            allItems.push(generated);
+          }
         } catch (e) {
           console.warn(`generate-questions: variation ${i + 1} error: ${e.message}`);
         }
