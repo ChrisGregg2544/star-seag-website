@@ -427,14 +427,8 @@ async function handleGenerateQuestions(req, res) {
           if (!parsed?.items?.length) { console.warn(`generate-questions: variation ${i + 1} parse failed`); continue; }
 
           const generated = { ...parsed.items[0], category, year_group };
-          try {
-            const validation = await validateGeneratedQuestion(generated, apiKey);
-            console.log(`generate-questions: variation ${i + 1} validated — ${validation.validator_verdict} (v1=${validation.v1_score}, v4=${validation.v4_score})`);
-            allItems.push({ ...generated, ...validation });
-          } catch (ve) {
-            console.warn(`generate-questions: variation ${i + 1} validation error: ${ve.message}`);
-            allItems.push(generated);
-          }
+          // Inline validation disabled to avoid timeouts
+          allItems.push(generated);
         } catch (e) {
           console.warn(`generate-questions: variation ${i + 1} error: ${e.message}`);
         }
