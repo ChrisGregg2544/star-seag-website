@@ -538,7 +538,38 @@ async function callValidator(systemPrompt, userMessage, apiKey, model = HAIKU_MO
   const data = await response.json();
   if (!response.ok) throw new Error(data.error?.message || 'Validator AI error');
   const result = parseValidatorResponse(data.content?.[0]?.text || '');
-  return { score: Number(result.score), reason: result.reason || '', verdict: result.verdict || 'warn' };
+  return { score: Number(result.score) || 0, reason: result.reason || '', verdict: result.verdict || 'warn' };
+}
+
+async function validatePunctuation(question_text, correct_answer, category, year_group, optionsBlock, apiKey) {
+  const system = `You are a specialist SEAG punctuation, spelling, and grammar validator for Northern Ireland P6/P7 pupils (ages 10-11). Your job is to perform a deep check of punctuation/spelling/grammar questions.
+
+Return ONLY a JSON object:
+{"score":<number 1-10>,"reason":"<specific explanation>","verdict":"<pass|warn|fail>"}`;
+
+  const user = `Category: ${category}
+Year group: ${year_group}
+Question: ${question_text}${optionsBlock}
+Stated correct answer: ${correct_answer}
+
+Check ALL of the following:
+1. Is there exactly ONE error in the stated segment (${correct_answer})?
+2. Is it a genuine error — not optional or stylistically acceptable UK punctuation?
+3. Are ALL other segments (those not labelled ${correct_answer}) completely error-free?
+4. Is the error clear and unambiguous for a P6/P7 pupil — not a debatable edge case?
+If correct_answer is N, verify the sentence is genuinely error-free.
+
+Score 6+ = pass, 4-5 = warn, 1-3 = fail.`;
+
+  const response = await fetch(ANTHROPIC_URL, {
+    method: 'POST',
+    headers: anthropicHeaders(apiKey),
+    body: JSON.stringify({ model: SONNET_MODEL, max_tokens: 500, system, messages: [{ role: 'user', content: user }] }),
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error?.message || 'Specialist validator AI error');
+  const result = parseValidatorResponse(data.content?.[0]?.text || '');
+  return { score: Number(result.score) || 0, reason: result.reason || '', verdict: result.verdict || 'warn' };
 }
 
 async function handleRunValidators(req, res) {
@@ -621,26 +652,6 @@ Correct answer: ${correct_answer}
 
 Rate the quality of this question. Score 7+ = pass, 4-6 = warn, 1-3 = fail.`;
 
-  const v4System = `You are a specialist SEAG punctuation, spelling, and grammar validator for Northern Ireland P6/P7 pupils (ages 10-11). Your job is to perform a deep check of punctuation/spelling/grammar questions.
-
-Check ALL of the following:
-1. Is there exactly ONE error in the stated segment (${correct_answer})?
-2. Is it a genuine error — not optional or stylistically acceptable UK punctuation?
-3. Are ALL other segments (those not labelled ${correct_answer}) completely error-free?
-4. Is the error clear and unambiguous for a P6/P7 pupil — not a debatable edge case?
-
-If correct_answer is N (no mistake), verify the sentence is genuinely error-free.
-
-Return ONLY a JSON object:
-{"score":<number 1-10>,"reason":"<specific explanation of what you checked>","verdict":"<pass|warn|fail>"}`;
-
-  const v4User = `Category: ${category}
-Year group: ${year_group}
-Question: ${question_text}${optionsBlock}
-Stated correct answer: ${correct_answer}
-
-Perform a deep punctuation/spelling/grammar check. Score 6+ = pass, 4-5 = warn, 1-3 = fail.`;
-
   try {
     let v1, v2, v3, v4, scores, outcome, combined_score;
 
@@ -648,7 +659,7 @@ Perform a deep punctuation/spelling/grammar check. Score 6+ = pass, 4-5 = warn, 
       // Punctuation/spelling/grammar: V1 (Haiku) + V4 Specialist (Sonnet)
       [v1, v4] = await Promise.all([
         callValidator(v1System, v1User, apiKey),
-        callValidator(v4System, v4User, apiKey, SONNET_MODEL),
+        validatePunctuation(question_text, correct_answer, category, year_group, optionsBlock, apiKey),
       ]);
       scores = [v1.score, v4.score];
       combined_score = Math.round((scores.reduce((a, b) => a + b, 0) / 2) * 10) / 10;
@@ -659,7 +670,7 @@ Perform a deep punctuation/spelling/grammar check. Score 6+ = pass, 4-5 = warn, 
         fetch(`${supabaseUrl}/rest/v1/validation_results`, {
           method: 'POST',
           headers: supabaseHeaders(serviceRoleKey, { 'Prefer': 'return=minimal' }),
-          body: JSON.stringify({ question_text, category, year_group, v1_score: v1.score, v1_reason: v1.reason, v4_score: v4.score, v4_reason: v4.reason, outcome, attempts: 1 }),
+          body: JSON.stringify({ question_text, category, year_group, v1_score: v1.score, v1_reason: v1.reason, v2_score: v4.score, v2_reason: v4.reason, outcome, attempts: 1 }),
         }).catch(e => console.warn('run-validators: Supabase log failed:', e.message));
       }
 
