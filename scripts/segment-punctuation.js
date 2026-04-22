@@ -90,7 +90,7 @@ Rules: segments must be consecutive parts of the sentence. All words must appear
 
   const raw = (data.content?.[0]?.text || '')
     .replace(/^```json\s*/i, '')
-    .replace(/```\s*$/, '')
+    .replace(/```[\s\S]*$/, '')
     .trim();
 
   // 1. Direct parse
