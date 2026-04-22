@@ -320,6 +320,35 @@ ${optionsFormat}
 Make each question original — do not copy reference examples verbatim. Vary difficulty across the batch. Ensure every question has one and only one definitively correct answer.`;
 }
 
+const TEMPLATE_CATEGORIES = new Set(['punctuation', 'spelling']);
+
+function buildVariationPrompt(template, batch_size) {
+  return `Create ${batch_size} variations of this template question.
+Keep EXACT SAME error type and segment structure.
+Only change vocabulary and context.
+
+Template:
+Question: ${template.question_text}
+Options: ${JSON.stringify(template.options)}
+Correct answer: ${template.correct_answer}
+
+Each variation must:
+- Have identical segment structure (A/B/C/D/N)
+- Have error in same segment position
+- Have same error type (missing comma/apostrophe/etc)
+- Use different vocabulary and context
+
+Return ONLY a valid JSON array of ${batch_size} objects. No preamble, no markdown.
+
+Each object must have:
+- "question_text": full sentence (string)
+- "correct_answer": letter of segment containing the error (A/B/C/D/N)
+- "explanation": why this answer is correct (1–2 sentences, UK English)
+- "difficulty": integer 1–5
+- "question_type": "Multiple_Choice"
+- "options": object with exactly keys A, B, C, D, N where N is always "No mistake"`;
+}
+
 async function handleGenerateQuestions(req, res) {
   const { category, year_group, batch_size } = req.body;
 
@@ -332,31 +361,49 @@ async function handleGenerateQuestions(req, res) {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const serviceKey  = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-  if (!apiKey)                    return res.status(500).json({ error: 'AI configuration error' });
+  if (!apiKey)                     return res.status(500).json({ error: 'AI configuration error' });
   if (!supabaseUrl || !serviceKey) return res.status(500).json({ error: 'Database configuration error' });
 
   try {
-    const refLimit = Math.min(15, Math.max(10, batch_size));
-
-    const [refRows, failRows, passRows, existingRows] = await Promise.all([
-      supabaseFetch(supabaseUrl, serviceKey,
-        `reference_questions?select=question_text,correct_answer,difficulty&category=eq.${encodeURIComponent(category)}&year_group=eq.${encodeURIComponent(year_group)}&${year_group === 'P6' ? 'difficulty=lte.2' : 'difficulty=lte.3'}&limit=${refLimit}&order=extracted_at.desc`),
-      supabaseFetch(supabaseUrl, serviceKey,
-        `validation_results?select=v1_reason,v2_reason,v3_reason&category=eq.${encodeURIComponent(category)}&year_group=eq.${encodeURIComponent(year_group)}&outcome=eq.fail&order=created_at.desc&limit=20`),
-      supabaseFetch(supabaseUrl, serviceKey,
-        `validation_results?select=question_text,v1_score,v2_score,v3_score&category=eq.${encodeURIComponent(category)}&year_group=eq.${encodeURIComponent(year_group)}&outcome=eq.pass&order=v1_score.desc,v2_score.desc,v3_score.desc&limit=10`),
+    const [existingRows] = await Promise.all([
       supabaseFetch(supabaseUrl, serviceKey,
         `questions?select=question_text&topic=eq.${encodeURIComponent(category)}&year_group=eq.${encodeURIComponent(year_group)}&limit=5000`),
     ]);
 
     const existingFingerprints = new Set(existingRows.map(r => fingerprint(r.question_text)));
-    console.log(`generate-questions: refs=${refRows.length} fails=${failRows.length} passes=${passRows.length} existing=${existingFingerprints.size}`);
 
-    const prompt = buildGeneratePrompt({ category, year_group, batch_size, references: refRows, failReasons: failRows, passExamples: passRows });
+    let prompt;
+
+    if (TEMPLATE_CATEGORIES.has(category)) {
+      // Template mode: fetch one random reference question with options as the template
+      const templateRows = await supabaseFetch(supabaseUrl, serviceKey,
+        `reference_questions?select=question_text,correct_answer,options&category=eq.${encodeURIComponent(category)}&year_group=eq.${encodeURIComponent(year_group)}&options=not.is.null&limit=50`);
+
+      if (!templateRows.length)
+        return res.status(500).json({ error: `No segmented reference questions found for ${category} ${year_group}` });
+
+      const template = templateRows[Math.floor(Math.random() * templateRows.length)];
+      console.log(`generate-questions: template mode for ${category} ${year_group}, template: "${template.question_text.slice(0, 60)}..."`);
+      prompt = buildVariationPrompt(template, batch_size);
+
+    } else {
+      // Standard mode: generate from scratch using references, fail patterns, pass examples
+      const refLimit = Math.min(15, Math.max(10, batch_size));
+      const [refRows, failRows, passRows] = await Promise.all([
+        supabaseFetch(supabaseUrl, serviceKey,
+          `reference_questions?select=question_text,correct_answer,difficulty&category=eq.${encodeURIComponent(category)}&year_group=eq.${encodeURIComponent(year_group)}&${year_group === 'P6' ? 'difficulty=lte.2' : 'difficulty=lte.3'}&limit=${refLimit}&order=extracted_at.desc`),
+        supabaseFetch(supabaseUrl, serviceKey,
+          `validation_results?select=v1_reason,v2_reason,v3_reason&category=eq.${encodeURIComponent(category)}&year_group=eq.${encodeURIComponent(year_group)}&outcome=eq.fail&order=created_at.desc&limit=20`),
+        supabaseFetch(supabaseUrl, serviceKey,
+          `validation_results?select=question_text,v1_score,v2_score,v3_score&category=eq.${encodeURIComponent(category)}&year_group=eq.${encodeURIComponent(year_group)}&outcome=eq.pass&order=v1_score.desc,v2_score.desc,v3_score.desc&limit=10`),
+      ]);
+      console.log(`generate-questions: standard mode for ${category} ${year_group}, refs=${refRows.length} fails=${failRows.length} passes=${passRows.length} existing=${existingFingerprints.size}`);
+      prompt = buildGeneratePrompt({ category, year_group, batch_size, references: refRows, failReasons: failRows, passExamples: passRows });
+    }
 
     const aiResponse = await fetch(ANTHROPIC_URL, {
       method: 'POST',
-      headers: { 'x-api-key': process.env.ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
+      headers: { 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
       body: JSON.stringify({ model: HAIKU_MODEL, max_tokens: 8000, messages: [{ role: 'user', content: prompt }] }),
     });
 
