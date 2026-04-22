@@ -62,7 +62,9 @@ function validateOptions(options) {
 }
 
 async function segmentQuestion(question_text, correct_answer, explanation) {
-  const prompt = `Segment this SEAG punctuation question into A/B/C/D parts.
+  const prompt = `You are a JSON generator. Return ONLY valid JSON, no other text.
+Segment this SEAG punctuation question into A/B/C/D/N parts.
+
 Question: ${question_text}
 Correct answer: ${correct_answer}
 Explanation: ${explanation}
@@ -70,7 +72,6 @@ Explanation: ${explanation}
 CRITICAL: Response MUST include all 5 keys: A, B, C, D, N
 The N option is ALWAYS "No mistake" regardless of the answer.
 
-Return ONLY JSON:
 {
   "A": "segment text",
   "B": "segment text",
@@ -79,7 +80,9 @@ Return ONLY JSON:
   "N": "No mistake"
 }
 
-Rules: segments must be consecutive parts of the sentence. All words must appear in exactly one segment. The segment containing the error is ${correct_answer}.`;
+Rules: segments must be consecutive parts of the sentence. All words must appear in exactly one segment. The segment containing the error is ${correct_answer}.
+
+Return ONLY the JSON object. No explanation, no markdown, no code fences. Just the JSON.`;
 
   const res = await fetch(ANTHROPIC_URL, {
     method: 'POST',
