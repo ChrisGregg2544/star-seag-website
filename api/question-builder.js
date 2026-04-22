@@ -268,15 +268,32 @@ C: games.
 D: (unused - sentence only has 3 segments)
 N: No mistake
 
-Example question_text:
-'Frank, did you clean your room,' asked Mum. Unsurprisingly, there was no reply.
-
-Example options:
-A: 'Frank, did you clean your room,'
-B: asked Mum.
-C: Unsurprisingly, there was
-D: no reply.
+Example 1 (comma missing in list):
+question_text: "The children collected apples oranges and pears from the garden."
+A: The children collected apples
+B: oranges and pears
+C: from the garden.
+D: (unused)
 N: No mistake
+correct_answer: A  ← missing comma after 'apples'
+
+Example 2 (no error):
+question_text: "The dogs were playing happily in the park all afternoon."
+A: The dogs
+B: were playing happily
+C: in the park all afternoon.
+D: (unused)
+N: No mistake
+correct_answer: N
+
+Example 3 (missing full stop):
+question_text: "Please return your books to the library before Friday"
+A: Please return your books
+B: to the library
+C: before Friday
+D: (unused)
+N: No mistake
+correct_answer: B  ← missing full stop after 'library'
 
 The correct answer is the letter of the segment containing the error, or N if no error exists.
 
