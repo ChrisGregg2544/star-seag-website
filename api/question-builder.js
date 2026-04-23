@@ -941,7 +941,8 @@ Rate the quality of this question. Score 7+ = pass, 4-6 = warn, 1-3 = fail.`;
       v4 = v4Result;
       scores = [v1.score, v4.score];
       combined_score = Math.round((scores.reduce((a, b) => a + b, 0) / 2) * 10) / 10;
-      outcome = scores.every(s => s >= 6) ? 'pass' : scores.some(s => s < 4) ? 'fail' : 'rewrite';
+      // V4 is authoritative for specialist categories
+      outcome = v4.score >= 7 ? 'pass' : v4.score >= 5 ? 'rewrite' : 'fail';
       console.log(`run-validators: ${outcome} (v1=${v1.score}, v4=${v4.score}) — ${category} ${year_group}`);
 
       if (supabaseUrl && serviceRoleKey) {
