@@ -1984,6 +1984,7 @@ function generateFractionsDecimalsQuestion(year_group) {
   const op = ops[randInt(0, ops.length - 1)];
 
   let question_text, correct_answer, explanation, difficulty;
+  let needs_diagram = false, diagram_description = null;
   const options_map = {};
 
   // ── Word problem contexts ────────────────────────────
@@ -2012,6 +2013,8 @@ function generateFractionsDecimalsQuestion(year_group) {
         explanation = `${frac(big.n, big.d)} = ${frac(base.n, base.d)} (divide top and bottom by ${mult})`;
       }
       difficulty = 1;
+      needs_diagram = true;
+      diagram_description = `fraction-grid: numerator ${base.n}, denominator ${base.d}`;
       // Distractors: wrong multipliers / off-by-one
       const wrong = [
         frac(big.n + 1, big.d),
@@ -2041,6 +2044,8 @@ function generateFractionsDecimalsQuestion(year_group) {
       correct_answer = frac(s.n, s.d);
       explanation = `${frac(n, d)} ÷ ${factor} = ${frac(s.n, s.d)}`;
       difficulty = 2;
+      needs_diagram = true;
+      diagram_description = `fraction-grid: numerator ${n}, denominator ${d}`;
       const wrong = [
         frac(n - 1, d),
         frac(s.n + 1, s.d),
@@ -2114,6 +2119,8 @@ function generateFractionsDecimalsQuestion(year_group) {
       question_text = `Which fraction is ${askBigger ? 'greater' : 'smaller'}: ${frac(a.n, a.d)} or ${frac(b.n, b.d)}?`;
       explanation = `${frac(a.n, a.d)} = ${(a.n/a.d).toFixed(3)}…, ${frac(b.n, b.d)} = ${(b.n/b.d).toFixed(3)}… so ${bigger} is greater.`;
       difficulty = isP7 ? 3 : 2;
+      needs_diagram = true;
+      diagram_description = `pie-chart: fraction1 ${frac(a.n, a.d)}, fraction2 ${frac(b.n, b.d)}`;
       const wrong = [askBigger ? smaller : bigger, frac(a.n + b.n, a.d + b.d), frac(a.n, b.d)].filter(w => w !== correct_answer);
       const distractors = shuffle([...new Set(wrong)]).slice(0, 3);
       const all = shuffle([correct_answer, ...distractors]);
@@ -2241,6 +2248,8 @@ function generateFractionsDecimalsQuestion(year_group) {
       correct_answer = v.a;
       explanation = v.exp;
       difficulty = 2;
+      needs_diagram = true;
+      diagram_description = `pie-chart: percentage ${f.pct}%`;
       // Distractors: nearby values
       const pctNeighbours = [`${f.pct + 10}%`, `${f.pct - 10}%`, `${f.pct + 25}%`, `${f.pct * 2}%`];
       const fracNeighbours = [frac(f.n+1, f.d), frac(f.n, f.d+1), frac(f.n, f.d*2)];
@@ -2268,8 +2277,8 @@ function generateFractionsDecimalsQuestion(year_group) {
     category: 'fractions_decimals',
     year_group,
     difficulty,
-    needs_diagram: false,
-    diagram_description: null,
+    needs_diagram,
+    diagram_description,
   };
 }
 
@@ -2292,6 +2301,7 @@ function generateMeasurementQuestion(year_group) {
   const op = ops[randInt(0, ops.length - 1)];
 
   let question_text, correct_answer, explanation, difficulty;
+  let needs_diagram = false, diagram_description = null;
 
   // ── Word problem contexts ────────────────────────────
   const TRAVEL = ['a car journey', 'a bike ride', 'a train trip', 'a school trip'];
@@ -2499,6 +2509,8 @@ function generateMeasurementQuestion(year_group) {
             a: `${reading} ml`,
             exp: `Each division = ${total} ÷ ${divisions} = ${each} ml; mark ${mark} = ${mark} × ${each} = ${reading} ml`,
             d: 2,
+            nd: true,
+            dd: `measurement-scale: weighing-dial, position ${reading}g`,
           };
         },
         () => {
@@ -2507,16 +2519,21 @@ function generateMeasurementQuestion(year_group) {
           const each = max / divs;
           const mark = randInt(1, divs - 1);
           const reading = Math.round(mark * each * 1000) / 1000;
+          const readingCm = Math.round(reading * 100);
           return {
             q: `A ruler goes from 0 to ${max} m split into ${divs} equal parts. An object reaches the ${mark}${mark === 1 ? 'st' : mark === 2 ? 'nd' : mark === 3 ? 'rd' : 'th'} mark. How long is it in metres?`,
             a: `${reading} m`,
             exp: `Each part = ${max} ÷ ${divs} = ${each} m; mark ${mark} = ${mark} × ${each} = ${reading} m`,
             d: 2,
+            nd: true,
+            dd: `measurement-scale: ruler, position ${readingCm}cm`,
           };
         },
       ];
       const v = variants[randInt(0, variants.length - 1)]();
       question_text = v.q; correct_answer = v.a; explanation = v.exp; difficulty = v.d;
+      needs_diagram = v.nd || false;
+      diagram_description = v.dd || null;
       break;
     }
 
@@ -2729,8 +2746,8 @@ function generateMeasurementQuestion(year_group) {
     category: 'measurement',
     year_group,
     difficulty,
-    needs_diagram: false,
-    diagram_description: null,
+    needs_diagram,
+    diagram_description,
   };
 }
 
