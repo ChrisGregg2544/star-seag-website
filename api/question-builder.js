@@ -1173,6 +1173,155 @@ async function handleSaveGenerated(req, res) {
 }
 
 // ══════════════════════════════════════════════════════
+// HANDLER: bulk-revalidate
+// ══════════════════════════════════════════════════════
+
+async function handleBulkRevalidate(req, res) {
+  const supabaseUrl    = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const apiKey         = process.env.ANTHROPIC_API_KEY;
+
+  if (!supabaseUrl || !serviceRoleKey) return res.status(500).json({ error: 'Missing Supabase env vars' });
+  if (!apiKey)                         return res.status(500).json({ error: 'Missing Anthropic API key' });
+
+  const { category_filter, year_group_filter, batch_size = 10, offset = 0 } = req.body;
+
+  // ── Build Supabase query URL ───────────────────────
+  let url = `${supabaseUrl}/rest/v1/reference_questions?select=*&order=id&limit=${batch_size}&offset=${offset}`;
+  if (category_filter)    url += `&category=eq.${encodeURIComponent(category_filter)}`;
+  if (year_group_filter)  url += `&year_group=eq.${encodeURIComponent(year_group_filter)}`;
+
+  const fetchRes = await fetch(url, { headers: supabaseHeaders(serviceRoleKey) });
+  if (!fetchRes.ok) {
+    const body = await fetchRes.text();
+    return res.status(500).json({ error: 'Failed to fetch reference questions', detail: body });
+  }
+  const questions = await fetchRes.json();
+  if (!questions.length) return res.json({ processed: 0, results: [], stats: {}, done: true });
+
+  // ── Get total count for progress tracking ──────────
+  let countUrl = `${supabaseUrl}/rest/v1/reference_questions?select=id`;
+  if (category_filter)   countUrl += `&category=eq.${encodeURIComponent(category_filter)}`;
+  if (year_group_filter) countUrl += `&year_group=eq.${encodeURIComponent(year_group_filter)}`;
+  const countRes = await fetch(countUrl, {
+    headers: { ...supabaseHeaders(serviceRoleKey), 'Prefer': 'count=exact', 'Range': '0-0' },
+  });
+  const totalCount = parseInt(countRes.headers.get('content-range')?.split('/')[1] || '0');
+
+  // ── Validate each question ─────────────────────────
+  const stats = {};
+  const results = [];
+
+  // Helper: build shared V1/V2/V3 prompts for a question
+  function buildV1System() {
+    return `You are an expert SEAG transfer test validator for Northern Ireland P6/P7 pupils (ages 10-11). Verify the question has a clear, unambiguous correct answer. Return ONLY a JSON object: {"score":<1-10>,"reason":"<brief explanation>","verdict":"<pass|warn|fail>"}`;
+  }
+  function buildV2System() {
+    return `You are an expert SEAG transfer test difficulty validator for Northern Ireland P6/P7 pupils (ages 10-11). Assess whether the difficulty level is appropriate. Return ONLY a JSON object: {"score":<1-10>,"reason":"<brief explanation>","verdict":"<pass|warn|fail>"}`;
+  }
+  function buildV3System() {
+    return `You are an expert SEAG transfer test quality validator for Northern Ireland P6/P7 pupils (ages 10-11). Assess overall question quality, clarity, and SEAG style. Return ONLY a JSON object: {"score":<1-10>,"reason":"<brief explanation>","verdict":"<pass|warn|fail>"}`;
+  }
+
+  for (const q of questions) {
+    const { id, question_text, correct_answer, category, year_group, options, passage } = q;
+    const cat = (category || '').toLowerCase();
+
+    const optionsBlock = options && typeof options === 'object' && Object.keys(options).length
+      ? '\nAnswer options:\n' + Object.entries(options).map(([k, v]) => `  ${k}: ${v}`).join('\n')
+      : '';
+
+    let outcome, v1_score, v1_reason, v4_score, v4_reason, combined_score;
+
+    try {
+      if (SPECIALIST_CATEGORIES.has(cat)) {
+        // V1 (Haiku accuracy) + V4 Specialist (Sonnet) — V4 authoritative
+        const v1User = `Category: ${cat}\nYear group: ${year_group}\nQuestion: ${question_text}${optionsBlock}\nStated correct answer: ${correct_answer}\n\nVerify this question has a clear correct answer. Score 7+ = pass, 4-6 = warn, 1-3 = fail.`;
+        const [v1, v4] = await Promise.all([
+          callValidator(buildV1System(), v1User, apiKey),
+          validateByCategory({ question_text, correct_answer, category: cat, year_group, options, passage }, apiKey),
+        ]);
+        v1_score = v1.score; v1_reason = v1.reason;
+        v4_score = v4.score; v4_reason = v4.reason;
+        combined_score = Math.round(((v1_score + v4_score) / 2) * 10) / 10;
+        outcome = v4_score >= 7 ? 'pass' : v4_score >= 5 ? 'warn' : 'fail';
+
+      } else if (cat === 'arithmetic') {
+        // V2 Difficulty authoritative
+        const v1User = `Category: ${cat}\nYear group: ${year_group}\nQuestion: ${question_text}${optionsBlock}\nStated correct answer: ${correct_answer}\n\nVerify this question has a clear correct answer. Score 7+ = pass, 4-6 = warn, 1-3 = fail.`;
+        const v2User = `Category: ${cat}\nYear group: ${year_group}\nQuestion: ${question_text}${optionsBlock}\nStated correct answer: ${correct_answer}\n\nAssess difficulty for ${year_group}. Score 7+ = pass, 4-6 = warn, 1-3 = fail.`;
+        const [v1, v2] = await Promise.all([
+          callValidator(buildV1System(), v1User, apiKey),
+          callValidator(buildV2System(), v2User, apiKey),
+        ]);
+        v1_score = v1.score; v1_reason = v1.reason;
+        v4_score = v2.score; v4_reason = v2.reason;
+        combined_score = Math.round(((v1_score + v4_score) / 2) * 10) / 10;
+        outcome = v4_score >= 7 ? 'pass' : v4_score >= 5 ? 'warn' : 'fail';
+
+      } else {
+        // V1 + V2 + V3 (all Haiku) — all-pass rule
+        const v1User = `Category: ${cat}\nYear group: ${year_group}\nQuestion: ${question_text}${optionsBlock}\nStated correct answer: ${correct_answer}\n\nVerify this question has a clear correct answer. Score 7+ = pass, 4-6 = warn, 1-3 = fail.`;
+        const v2User = `Category: ${cat}\nYear group: ${year_group}\nQuestion: ${question_text}${optionsBlock}\nStated correct answer: ${correct_answer}\n\nAssess difficulty for ${year_group}. Score 7+ = pass, 4-6 = warn, 1-3 = fail.`;
+        const v3User = `Category: ${cat}\nYear group: ${year_group}\nQuestion: ${question_text}${optionsBlock}\nCorrect answer: ${correct_answer}\n\nRate the quality of this question. Score 7+ = pass, 4-6 = warn, 1-3 = fail.`;
+        const [v1, v2, v3] = await Promise.all([
+          callValidator(buildV1System(), v1User, apiKey),
+          callValidator(buildV2System(), v2User, apiKey),
+          callValidator(buildV3System(), v3User, apiKey),
+        ]);
+        const scores = [v1.score, v2.score, v3.score];
+        v1_score = v1.score; v1_reason = v1.reason;
+        v4_score = v3.score; v4_reason = v3.reason;
+        combined_score = Math.round((scores.reduce((a, b) => a + b, 0) / 3) * 10) / 10;
+        outcome = scores.every(s => s >= 6) ? 'pass' : scores.some(s => s < 4) ? 'fail' : 'warn';
+      }
+
+      // Update reference_questions row with new validation scores
+      await fetch(`${supabaseUrl}/rest/v1/reference_questions?id=eq.${id}`, {
+        method: 'PATCH',
+        headers: supabaseHeaders(serviceRoleKey, { 'Prefer': 'return=minimal' }),
+        body: JSON.stringify({
+          validation_outcome: outcome,
+          v1_score,
+          v1_reason,
+          v4_score,
+          v4_reason,
+          combined_score,
+          revalidated_at: new Date().toISOString(),
+        }),
+      });
+
+      // Track stats per category
+      if (!stats[cat]) stats[cat] = { pass: 0, warn: 0, fail: 0, total: 0 };
+      stats[cat][outcome]++;
+      stats[cat].total++;
+
+      results.push({ id, category: cat, year_group, outcome, v1_score, v4_score, combined_score });
+      console.log(`bulk-revalidate: ${outcome} (v1=${v1_score}, v4=${v4_score}) — ${cat} ${year_group} id=${id}`);
+
+    } catch (err) {
+      console.error(`bulk-revalidate: error on id=${id}:`, err.message);
+      results.push({ id, category: cat, year_group, outcome: 'error', error: err.message });
+      if (!stats[cat]) stats[cat] = { pass: 0, warn: 0, fail: 0, total: 0 };
+      stats[cat].total++;
+    }
+  }
+
+  const nextOffset = offset + questions.length;
+  const done = nextOffset >= totalCount;
+
+  return res.json({
+    processed:   questions.length,
+    offset:      nextOffset,
+    total:       totalCount,
+    done,
+    progress_pct: Math.round((nextOffset / totalCount) * 100),
+    results,
+    stats,
+  });
+}
+
+// ══════════════════════════════════════════════════════
 // HANDLER: save-reference
 // ══════════════════════════════════════════════════════
 async function handleSaveReference(req, res) {
@@ -2903,6 +3052,7 @@ export default async function handler(req, res) {
       }
       return res.json({ questions: measTestQuestions });
     }
+    case 'bulk-revalidate':      return handleBulkRevalidate(req, res);
     case 'save-reference':      return handleSaveReference(req, res);
     default:
       return res.status(400).json({ error: `Unknown action: ${action}` });
