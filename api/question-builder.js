@@ -332,7 +332,7 @@ async function validateGeneratedQuestion(q, apiKey) {
 
   const [v1, v4] = await Promise.all([
     callValidator(v1System, v1User, apiKey),
-    validatePunctuation(q.question_text, q.correct_answer, q.category, q.year_group, optionsBlock, apiKey),
+    validateByCategory(q, apiKey),
   ]);
 
   // V4 (Sonnet specialist) is authoritative for English categories; V1 is informational only
@@ -566,7 +566,14 @@ async function callValidator(systemPrompt, userMessage, apiKey, model = HAIKU_MO
 }
 
 async function validatePunctuation(question_text, correct_answer, category, year_group, optionsBlock, apiKey) {
-  const system = `You are a specialist SEAG punctuation, spelling, and grammar validator for Northern Ireland P6/P7 pupils (ages 10-11). Your job is to perform a deep check of punctuation/spelling/grammar questions.
+  const system = `You are a specialist SEAG punctuation validator for Northern Ireland P6/P7 pupils (ages 10-11).
+
+FOCUS: Binary punctuation checks only.
+- Comma: present or missing?
+- Full stop: present or missing?
+- Apostrophe: correct position or wrong/missing?
+- Quotation marks: opening/closing matched?
+- Colon/semicolon: used correctly?
 
 Return ONLY a JSON object:
 {"score":<number 1-10>,"reason":"<specific explanation>","verdict":"<pass|warn|fail>"}`;
@@ -576,14 +583,13 @@ Year group: ${year_group}
 Question: ${question_text}${optionsBlock}
 Stated correct answer: ${correct_answer}
 
-Check ALL of the following:
-1. Is there exactly ONE error in the stated segment (${correct_answer})?
-2. Is it a genuine error — not optional or stylistically acceptable UK punctuation?
-3. Are ALL other segments (those not labelled ${correct_answer}) completely error-free?
-4. Is the error clear and unambiguous for a P6/P7 pupil — not a debatable edge case?
-If correct_answer is N, verify the sentence is genuinely error-free.
+BINARY CHECKS:
+1. Is there EXACTLY ONE punctuation error in segment ${correct_answer}?
+2. Is it a clear missing/wrong punctuation mark (not stylistic preference)?
+3. Are ALL other segments completely error-free?
+4. If correct_answer is N, is the sentence genuinely error-free?
 
-Score 6+ = pass, 4-5 = warn, 1-3 = fail.`;
+Score 7+ = pass, 5-6 = warn, 1-4 = fail.`;
 
   const response = await fetch(ANTHROPIC_URL, {
     method: 'POST',
@@ -591,9 +597,244 @@ Score 6+ = pass, 4-5 = warn, 1-3 = fail.`;
     body: JSON.stringify({ model: SONNET_MODEL, max_tokens: 500, system, messages: [{ role: 'user', content: user }] }),
   });
   const data = await response.json();
-  if (!response.ok) throw new Error(data.error?.message || 'Specialist validator AI error');
+  if (!response.ok) throw new Error(data.error?.message || 'Punctuation validator error');
   const result = parseValidatorResponse(data.content?.[0]?.text || '');
   return { score: Number(result.score) || 0, reason: result.reason || '', verdict: result.verdict || 'warn' };
+}
+
+async function validateSpelling(question_text, correct_answer, category, year_group, optionsBlock, apiKey) {
+  const system = `You are a specialist SEAG spelling validator for Northern Ireland P6/P7 pupils (ages 10-11).
+
+FOCUS: UK spelling correctness.
+- Is the word spelled according to UK English dictionary?
+- Common P6/P7 spelling errors (double letters, ie/ei, silent letters)
+- NOT American spellings (color, realize, etc.)
+
+Return ONLY a JSON object:
+{"score":<number 1-10>,"reason":"<specific explanation>","verdict":"<pass|warn|fail>"}`;
+
+  const user = `Category: ${category}
+Year group: ${year_group}
+Question: ${question_text}${optionsBlock}
+Stated correct answer: ${correct_answer}
+
+SPELLING CHECKS:
+1. Is there EXACTLY ONE misspelled word in segment ${correct_answer}?
+2. Is it a genuine spelling error (not a valid variant or regional spelling)?
+3. Are ALL other segments spelled correctly?
+4. If correct_answer is N, are all words spelled correctly?
+
+Common P6/P7 spelling errors to check:
+- receive/recieve, separate/seperate, necessary/neccessary
+- Double consonants: occurred, beginning, committed
+- Silent letters: knight, psychology, doubt
+
+Score 7+ = pass, 5-6 = warn, 1-4 = fail.`;
+
+  const response = await fetch(ANTHROPIC_URL, {
+    method: 'POST',
+    headers: anthropicHeaders(apiKey),
+    body: JSON.stringify({ model: SONNET_MODEL, max_tokens: 500, system, messages: [{ role: 'user', content: user }] }),
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error?.message || 'Spelling validator error');
+  const result = parseValidatorResponse(data.content?.[0]?.text || '');
+  return { score: Number(result.score) || 0, reason: result.reason || '', verdict: result.verdict || 'warn' };
+}
+
+async function validateGrammar(question_text, correct_answer, category, year_group, optionsBlock, apiKey) {
+  const system = `You are a specialist SEAG grammar validator for Northern Ireland P6/P7 pupils (ages 10-11).
+
+FOCUS: Clear, unambiguous grammatical errors only.
+- Subject-verb agreement: "The children was" → "were"
+- Verb tense: "Yesterday I walk" → "walked"
+- Pronoun agreement: clear errors only
+
+IGNORE dialectical/informal variations that are widely used in speech.
+ONLY flag errors that would be marked wrong in formal written English exams.
+
+Return ONLY a JSON object:
+{"score":<number 1-10>,"reason":"<specific explanation>","verdict":"<pass|warn|fail>"}`;
+
+  const user = `Category: ${category}
+Year group: ${year_group}
+Question: ${question_text}${optionsBlock}
+Stated correct answer: ${correct_answer}
+
+GRAMMAR CHECKS (lenient on dialectical variations):
+1. Is there ONE clear grammatical error in segment ${correct_answer}?
+2. Would this error be marked wrong in a formal written exam?
+3. Are ALL other segments grammatically correct?
+4. If correct_answer is N, is the sentence grammatically correct?
+
+CLEAR ERRORS (always fail):
+- Subject-verb disagreement: "The children was playing"
+- Wrong tense: "Yesterday I go to school"
+- Pronoun case: "Me and Sarah went shopping"
+
+DIALECTICAL (be lenient, score 6-7 not 9-10):
+- Preposition variation: "different to/from"
+- Since/for duration: "since three months" (informal but used)
+- Informal contractions in speech
+
+Score 6+ = pass, 4-5 = warn, 1-3 = fail.
+Note: Lower threshold (6 not 7) because grammar is inherently more subjective.`;
+
+  const response = await fetch(ANTHROPIC_URL, {
+    method: 'POST',
+    headers: anthropicHeaders(apiKey),
+    body: JSON.stringify({ model: SONNET_MODEL, max_tokens: 500, system, messages: [{ role: 'user', content: user }] }),
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error?.message || 'Grammar validator error');
+  const result = parseValidatorResponse(data.content?.[0]?.text || '');
+  return { score: Number(result.score) || 0, reason: result.reason || '', verdict: result.verdict || 'warn' };
+}
+
+async function validateArithmetic(question_text, correct_answer, options, year_group, apiKey) {
+  const optionsBlock = options && typeof options === 'object' && Object.keys(options).length
+    ? '\nAnswer options:\n' + Object.entries(options).map(([k, v]) => `  ${k}: ${v}`).join('\n')
+    : '';
+
+  const system = `You are a specialist SEAG arithmetic validator for Northern Ireland P6/P7 pupils (ages 10-11).
+
+FOCUS: Mathematical correctness.
+- Does the calculation yield the stated answer?
+- Are the numbers appropriate for the year group?
+- Is there exactly one correct answer?
+
+Return ONLY a JSON object:
+{"score":<number 1-10>,"reason":"<specific explanation>","verdict":"<pass|warn|fail>"}`;
+
+  const user = `Year group: ${year_group}
+Question: ${question_text}${optionsBlock}
+Stated correct answer: ${correct_answer}
+
+ARITHMETIC CHECKS:
+1. Solve the problem yourself - does it equal the stated answer?
+2. Are the numbers age-appropriate for ${year_group}?
+   - P6: Single/double digit operations, times tables to 12×12, simple fractions
+   - P7: More complex multi-digit, division with remainders, percentages
+3. Are wrong options (distractors) plausible but definitively incorrect?
+4. Is there exactly one correct answer?
+
+Score 8+ = pass, 6-7 = warn, 1-5 = fail.`;
+
+  const response = await fetch(ANTHROPIC_URL, {
+    method: 'POST',
+    headers: anthropicHeaders(apiKey),
+    body: JSON.stringify({ model: SONNET_MODEL, max_tokens: 600, system, messages: [{ role: 'user', content: user }] }),
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error?.message || 'Arithmetic validator error');
+  const result = parseValidatorResponse(data.content?.[0]?.text || '');
+  return { score: Number(result.score) || 0, reason: result.reason || '', verdict: result.verdict || 'warn' };
+}
+
+async function validateGeometry(question_text, correct_answer, options, year_group, apiKey) {
+  const optionsBlock = options && typeof options === 'object' && Object.keys(options).length
+    ? '\nAnswer options:\n' + Object.entries(options).map(([k, v]) => `  ${k}: ${v}`).join('\n')
+    : '';
+
+  const system = `You are a specialist SEAG geometry validator for Northern Ireland P6/P7 pupils (ages 10-11).
+
+FOCUS: Geometric accuracy and diagram clarity.
+- Are shape properties correct (angles, sides, area, perimeter)?
+- Do measurements make logical sense?
+- Would a P6/P7 pupil understand the diagram description?
+
+Return ONLY a JSON object:
+{"score":<number 1-10>,"reason":"<specific explanation>","verdict":"<pass|warn|fail>"}`;
+
+  const user = `Year group: ${year_group}
+Question: ${question_text}${optionsBlock}
+Stated correct answer: ${correct_answer}
+
+GEOMETRY CHECKS:
+1. Verify the geometric calculation - is the stated answer correct?
+2. Check shape properties (angles add to 180°/360°, parallel sides, etc.)
+3. Are measurements realistic and age-appropriate?
+4. If needs_diagram, is the description clear enough for a P6/P7 student?
+5. Is there exactly one correct answer?
+
+Age-appropriate for ${year_group}:
+- P6: Basic shapes (triangle, rectangle, circle), perimeter, simple area
+- P7: More complex shapes, composite shapes, volume of cuboids
+
+Score 8+ = pass, 6-7 = warn, 1-5 = fail.`;
+
+  const response = await fetch(ANTHROPIC_URL, {
+    method: 'POST',
+    headers: anthropicHeaders(apiKey),
+    body: JSON.stringify({ model: SONNET_MODEL, max_tokens: 600, system, messages: [{ role: 'user', content: user }] }),
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error?.message || 'Geometry validator error');
+  const result = parseValidatorResponse(data.content?.[0]?.text || '');
+  return { score: Number(result.score) || 0, reason: result.reason || '', verdict: result.verdict || 'warn' };
+}
+
+async function validateComprehension(question_text, correct_answer, passage, year_group, apiKey) {
+  const system = `You are a specialist SEAG comprehension validator for Northern Ireland P6/P7 pupils (ages 10-11).
+
+FOCUS: Answer derivability from passage.
+- Can the answer be found/inferred from the passage?
+- Is it unambiguous?
+- Does it test comprehension (not general knowledge)?
+
+Return ONLY a JSON object:
+{"score":<number 1-10>,"reason":"<specific explanation>","verdict":"<pass|warn|fail>"}`;
+
+  const user = `Year group: ${year_group}
+Passage: ${passage}
+
+Question: ${question_text}
+Stated correct answer: ${correct_answer}
+
+COMPREHENSION CHECKS:
+1. Can the answer be found or reasonably inferred from the passage?
+2. Is there exactly one defensible answer based on the text?
+3. Does the question test reading comprehension (not external knowledge)?
+4. Is the question clear and unambiguous for a ${year_group} student?
+5. Is the passage age-appropriate (vocabulary, length, complexity)?
+
+Score 8+ = pass, 6-7 = warn, 1-5 = fail.`;
+
+  const response = await fetch(ANTHROPIC_URL, {
+    method: 'POST',
+    headers: anthropicHeaders(apiKey),
+    body: JSON.stringify({ model: SONNET_MODEL, max_tokens: 600, system, messages: [{ role: 'user', content: user }] }),
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error?.message || 'Comprehension validator error');
+  const result = parseValidatorResponse(data.content?.[0]?.text || '');
+  return { score: Number(result.score) || 0, reason: result.reason || '', verdict: result.verdict || 'warn' };
+}
+
+async function validateByCategory(question, apiKey) {
+  const { question_text, correct_answer, category, year_group, options, passage } = question;
+
+  const optionsBlock = options && typeof options === 'object' && Object.keys(options).length
+    ? '\nAnswer options:\n' + Object.entries(options).map(([k, v]) => `  ${k}: ${v}`).join('\n')
+    : '';
+
+  switch (category) {
+    case 'punctuation':
+      return await validatePunctuation(question_text, correct_answer, category, year_group, optionsBlock, apiKey);
+    case 'spelling':
+      return await validateSpelling(question_text, correct_answer, category, year_group, optionsBlock, apiKey);
+    case 'grammar':
+      return await validateGrammar(question_text, correct_answer, category, year_group, optionsBlock, apiKey);
+    case 'arithmetic':
+      return await validateArithmetic(question_text, correct_answer, options, year_group, apiKey);
+    case 'geometry':
+      return await validateGeometry(question_text, correct_answer, options, year_group, apiKey);
+    case 'comprehension_mc':
+    case 'comprehension_written':
+      return await validateComprehension(question_text, correct_answer, passage, year_group, apiKey);
+    default:
+      return await validatePunctuation(question_text, correct_answer, category, year_group, optionsBlock, apiKey);
+  }
 }
 
 async function handleRunValidators(req, res) {
@@ -684,7 +925,7 @@ Rate the quality of this question. Score 7+ = pass, 4-6 = warn, 1-3 = fail.`;
       let v4Result;
       [v1, v4Result] = await Promise.all([
         callValidator(v1System, v1User, apiKey),
-        validatePunctuation(question_text, correct_answer, category, year_group, optionsBlock, apiKey),
+        validateByCategory({ question_text, correct_answer, category, year_group, options, passage: req.body.passage }, apiKey),
       ]);
       console.log('V4 result:', v4Result);
       if (!v4Result || typeof v4Result.score === 'undefined') {
