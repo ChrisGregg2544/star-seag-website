@@ -563,23 +563,20 @@ function generateSVGFromDescription(description) {
     return generateDiagram('cuboid', { length, width, height });
   }
   else if (description.includes('fraction-grid')) {
-    // "fraction-grid: numerator X, denominator Y"
-    const nums = description.match(/\d+/g).map(Number);
-    const [numerator, denominator] = nums;
-    return generateDiagram('fraction-grid', { rows: 1, cols: denominator, shaded: numerator });
-  }
-  else if (description.includes('pie-chart: fraction1')) {
-    // "pie-chart: fraction1 X/Y, fraction2 A/B"
-    const fracs = description.match(/(\d+)\/(\d+)/g);
-    const [f1, f2] = fracs.map(f => { const [n, d] = f.split('/').map(Number); return { n, d }; });
-    const pct1 = Math.round((f1.n / f1.d) * 100);
-    const pct2 = Math.round((f2.n / f2.d) * 100);
-    return generateDiagram('pie-chart', {
-      data: [
-        { label: `${f1.n}/${f1.d}`, value: pct1 },
-        { label: `${f2.n}/${f2.d}`, value: pct2 },
-      ],
+    const [num, denom] = description.match(/\d+/g).map(Number);
+    return generateDiagram('fraction-grid', {
+      rows: Math.min(denom, 10),
+      cols: 1,
+      shaded: num,
     });
+  }
+  else if (description.includes('pie-chart: fraction')) {
+    const fractions = description.match(/(\d+)\/(\d+)/g);
+    const data = fractions.map(f => {
+      const [n, d] = f.split('/').map(Number);
+      return { label: f, value: n / d };
+    });
+    return generateDiagram('pie-chart', { data });
   }
   else if (description.includes('pie-chart: percentage')) {
     // "pie-chart: percentage X%"
