@@ -1181,7 +1181,38 @@ async function handleSaveComprehensionSet(req, res) {
     }
 
     console.log(`save-comprehension-set: passage saved with id ${passage_id}`);
-    return res.status(200).json({ passage_id, saved_passage: true });
+
+    // Step 2: Insert all selected questions in parallel
+    await Promise.all(selected_questions.map(q =>
+      fetch(`${supabaseUrl}/rest/v1/reference_questions`, {
+        method:  'POST',
+        headers: supabaseHeaders(serviceRoleKey, { 'Prefer': 'return=minimal' }),
+        body:    JSON.stringify({
+          passage_id,
+          question_text:  q.question_text,
+          correct_answer: q.correct_answer,
+          explanation:    q.explanation    || null,
+          category:       q.category,
+          year_group,
+          difficulty:     q.difficulty     || 'medium',
+          options:        q.options        || null,
+          paper_source:   'ai_generated_comprehension',
+          needs_diagram:  false,
+        }),
+      }).then(async r => {
+        if (!r.ok) {
+          const body = await r.text();
+          throw new Error(`Question insert failed (${r.status}): ${body.slice(0, 100)}`);
+        }
+      })
+    ));
+
+    console.log(`save-comprehension-set: saved ${selected_questions.length} questions for passage ${passage_id}`);
+    return res.status(200).json({
+      success:        true,
+      passage_id,
+      questions_saved: selected_questions.length,
+    });
 
   } catch (err) {
     console.error('save-comprehension-set error:', err.message);
