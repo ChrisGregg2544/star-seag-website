@@ -346,6 +346,8 @@ async function validateGeneratedQuestion(q, apiKey) {
 function buildVariationPrompt(template, batch_size, year_group, category) {
   const categoryInstruction = category === 'grammar'
     ? `\nCRITICAL: Create GRAMMAR errors only - wrong verb tense, subject-verb disagreement, wrong word form. DO NOT create punctuation errors (missing commas, apostrophes) - those belong in the punctuation category.\n`
+    : category === 'spelling'
+    ? `\nCRITICAL: Ensure there is EXACTLY ONE clear, unambiguous spelling error. Use common P6/P7 misspellings: recieve/receive, seperate/separate, definately/definitely, freind/friend, beleive/believe, occured/occurred. DO NOT use compound words that could be spelled as one or two words (lunchtime/lunch time). If correct_answer is N, verify ALL words are spelled correctly.\n`
     : '';
 
   return `Create ${batch_size} variations of this template question.
