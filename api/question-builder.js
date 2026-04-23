@@ -1899,6 +1899,351 @@ function generateGeometryQuestion(year_group) {
 }
 
 // ══════════════════════════════════════════════════════
+// FRACTIONS & DECIMALS QUESTION GENERATION (programmatic, no AI)
+// ══════════════════════════════════════════════════════
+
+function generateFractionsDecimalsQuestion(year_group) {
+  const isP7 = year_group === 'P7';
+
+  // ── Common fractions lookup ──────────────────────────
+  const P6_FRACS = [
+    { n: 1, d: 2, dec: 0.5,   pct: 50  },
+    { n: 1, d: 4, dec: 0.25,  pct: 25  },
+    { n: 3, d: 4, dec: 0.75,  pct: 75  },
+    { n: 1, d: 3, dec: null,  pct: null },
+    { n: 2, d: 3, dec: null,  pct: null },
+    { n: 1, d: 5, dec: 0.2,   pct: 20  },
+    { n: 2, d: 5, dec: 0.4,   pct: 40  },
+    { n: 3, d: 5, dec: 0.6,   pct: 60  },
+    { n: 4, d: 5, dec: 0.8,   pct: 80  },
+    { n: 1, d: 10, dec: 0.1,  pct: 10  },
+    { n: 3, d: 10, dec: 0.3,  pct: 30  },
+    { n: 7, d: 10, dec: 0.7,  pct: 70  },
+    { n: 9, d: 10, dec: 0.9,  pct: 90  },
+  ];
+  const P7_EXTRA = [
+    { n: 1, d: 6, dec: null, pct: null },
+    { n: 5, d: 6, dec: null, pct: null },
+    { n: 1, d: 8, dec: 0.125, pct: 12.5 },
+    { n: 3, d: 8, dec: 0.375, pct: null },
+    { n: 5, d: 8, dec: 0.625, pct: null },
+    { n: 7, d: 8, dec: 0.875, pct: null },
+    { n: 2, d: 9, dec: null, pct: null },
+    { n: 4, d: 9, dec: null, pct: null },
+  ];
+  const FRACS = isP7 ? [...P6_FRACS, ...P7_EXTRA] : P6_FRACS;
+
+  function gcd(a, b) { return b === 0 ? a : gcd(b, a % b); }
+  function simplify(n, d) { const g = gcd(n, d); return { n: n / g, d: d / g }; }
+  function frac(n, d) { return `${n}/${d}`; }
+  function decStr(v) {
+    const s = v.toString();
+    return s.includes('.') ? s : s + '.0';
+  }
+
+  const P6_OPS = [
+    'equivalent_fractions', 'simplify_fraction', 'fraction_to_decimal',
+    'decimal_to_fraction', 'compare_fractions', 'add_fractions_same_denominator',
+  ];
+  const P7_OPS = [
+    ...P6_OPS,
+    'add_fractions_different_denominator', 'subtract_fractions',
+    'mixed_numbers', 'decimal_operations', 'percentage_basics',
+  ];
+  const ops = isP7 ? P7_OPS : P6_OPS;
+  const op = ops[randInt(0, ops.length - 1)];
+
+  let question_text, correct_answer, explanation, difficulty;
+  const options_map = {};
+
+  // ── Word problem contexts ────────────────────────────
+  const WP = [
+    (n, d) => `A pizza is cut into ${d} equal slices. Mia eats ${n} slice${n > 1 ? 's' : ''}.`,
+    (n, d) => `A jug holds 1 litre of juice. Sam pours out ${frac(n, d)} of a litre.`,
+    (n, d) => `A ribbon is ${d} metres long. ${n} metre${n > 1 ? 's' : ''} ${n > 1 ? 'are' : 'is'} used.`,
+    (n, d) => `In a class of ${d * 4} pupils, ${n * 4} walk to school.`,
+  ];
+
+  switch (op) {
+
+    case 'equivalent_fractions': {
+      // Pick a simple fraction and a multiplier 2-5
+      const base = P6_FRACS[randInt(0, 5)]; // halves/quarters/thirds/fifths only
+      const mult = randInt(2, 5);
+      const big = { n: base.n * mult, d: base.d * mult };
+      const isAskBig = Math.random() < 0.5;
+      if (isAskBig) {
+        question_text = `Which fraction is equivalent to ${frac(base.n, base.d)}?`;
+        correct_answer = frac(big.n, big.d);
+        explanation = `${frac(base.n, base.d)} = ${frac(big.n, big.d)} (multiply top and bottom by ${mult})`;
+      } else {
+        question_text = `Which fraction is equivalent to ${frac(big.n, big.d)}?`;
+        correct_answer = frac(base.n, base.d);
+        explanation = `${frac(big.n, big.d)} = ${frac(base.n, base.d)} (divide top and bottom by ${mult})`;
+      }
+      difficulty = 1;
+      // Distractors: wrong multipliers / off-by-one
+      const wrong = [
+        frac(big.n + 1, big.d),
+        frac(big.n, big.d + 1),
+        frac(base.n + 1, base.d),
+        frac(base.n, base.d + 1),
+      ].filter(w => w !== correct_answer);
+      const distractors = shuffle(wrong).slice(0, 3);
+      const all = shuffle([correct_answer, ...distractors]);
+      'ABCDE'.split('').slice(0, all.length).forEach((l, i) => { options_map[l] = all[i]; });
+      break;
+    }
+
+    case 'simplify_fraction': {
+      // Pick a simplifiable fraction: random numerator with GCD > 1
+      const denoms = [4, 6, 8, 9, 10, 12];
+      const d = denoms[randInt(0, denoms.length - 1)];
+      // Pick a numerator that shares a factor with d
+      const factors = [];
+      for (let i = 2; i < d; i++) { if (d % i === 0) factors.push(i); }
+      const factor = factors[randInt(0, factors.length - 1)];
+      const maxN = Math.floor((d - 1) / factor);
+      const nMult = randInt(1, maxN);
+      const n = nMult * factor;
+      const s = simplify(n, d);
+      question_text = `Simplify ${frac(n, d)} to its lowest terms.`;
+      correct_answer = frac(s.n, s.d);
+      explanation = `${frac(n, d)} ÷ ${factor} = ${frac(s.n, s.d)}`;
+      difficulty = 2;
+      const wrong = [
+        frac(n - 1, d),
+        frac(s.n + 1, s.d),
+        frac(s.n, s.d + 1),
+        frac(n, d - 1),
+      ].filter(w => w !== correct_answer && w !== frac(n, d));
+      const distractors = shuffle(wrong).slice(0, 3);
+      const all = shuffle([correct_answer, ...distractors]);
+      'ABCDE'.split('').slice(0, all.length).forEach((l, i) => { options_map[l] = all[i]; });
+      break;
+    }
+
+    case 'fraction_to_decimal': {
+      const candidates = FRACS.filter(f => f.dec !== null);
+      const f = candidates[randInt(0, candidates.length - 1)];
+      question_text = `What is ${frac(f.n, f.d)} as a decimal?`;
+      correct_answer = decStr(f.dec);
+      explanation = `${frac(f.n, f.d)} = ${decStr(f.dec)}`;
+      difficulty = 2;
+      const wrong = [f.dec + 0.1, f.dec - 0.1, f.dec + 0.05, f.dec * 2, f.n / (f.d + 1)]
+        .map(v => decStr(Math.round(v * 1000) / 1000))
+        .filter(w => w !== correct_answer && parseFloat(w) > 0 && parseFloat(w) < 2);
+      const distractors = shuffle([...new Set(wrong)]).slice(0, 3);
+      const all = shuffle([correct_answer, ...distractors]);
+      'ABCDE'.split('').slice(0, all.length).forEach((l, i) => { options_map[l] = all[i]; });
+      break;
+    }
+
+    case 'decimal_to_fraction': {
+      const candidates = FRACS.filter(f => f.dec !== null);
+      const f = candidates[randInt(0, candidates.length - 1)];
+      question_text = `What is ${decStr(f.dec)} as a fraction in its simplest form?`;
+      correct_answer = frac(f.n, f.d);
+      explanation = `${decStr(f.dec)} = ${frac(f.n, f.d)}`;
+      difficulty = 2;
+      const wrong = [
+        frac(f.n + 1, f.d),
+        frac(f.n, f.d + 1),
+        frac(f.n * 2, f.d * 2),
+        frac(f.n + 1, f.d + 1),
+      ].filter(w => w !== correct_answer);
+      const distractors = shuffle(wrong).slice(0, 3);
+      const all = shuffle([correct_answer, ...distractors]);
+      'ABCDE'.split('').slice(0, all.length).forEach((l, i) => { options_map[l] = all[i]; });
+      break;
+    }
+
+    case 'compare_fractions': {
+      // Pick two different fractions with same denominator for P6, or convert for P7
+      let a, b;
+      if (!isP7) {
+        // Same denominator: easy comparison
+        const d = [3, 4, 5, 8, 10][randInt(0, 4)];
+        const n1 = randInt(1, d - 2);
+        const n2 = randInt(n1 + 1, d - 1);
+        a = { n: n1, d }; b = { n: n2, d };
+      } else {
+        // Different denominators: e.g. 1/3 vs 1/4, 2/3 vs 3/4
+        const pairs = [
+          [{ n:1,d:3},{n:1,d:4}],[{n:2,d:3},{n:3,d:4}],[{n:1,d:2},{n:2,d:5}],
+          [{n:3,d:5},{n:2,d:3}],[{n:1,d:4},{n:2,d:9}],[{n:5,d:6},{n:3,d:4}],
+        ];
+        [a, b] = pairs[randInt(0, pairs.length - 1)];
+      }
+      const aVal = a.n / a.d;
+      const bVal = b.n / b.d;
+      const bigger = aVal >= bVal ? frac(a.n, a.d) : frac(b.n, b.d);
+      const smaller = aVal < bVal ? frac(a.n, a.d) : frac(b.n, b.d);
+      const askBigger = Math.random() < 0.5;
+      correct_answer = askBigger ? bigger : smaller;
+      question_text = `Which fraction is ${askBigger ? 'greater' : 'smaller'}: ${frac(a.n, a.d)} or ${frac(b.n, b.d)}?`;
+      explanation = `${frac(a.n, a.d)} = ${(a.n/a.d).toFixed(3)}…, ${frac(b.n, b.d)} = ${(b.n/b.d).toFixed(3)}… so ${bigger} is greater.`;
+      difficulty = isP7 ? 3 : 2;
+      const wrong = [askBigger ? smaller : bigger, frac(a.n + b.n, a.d + b.d), frac(a.n, b.d)].filter(w => w !== correct_answer);
+      const distractors = shuffle([...new Set(wrong)]).slice(0, 3);
+      const all = shuffle([correct_answer, ...distractors]);
+      'ABCDE'.split('').slice(0, all.length).forEach((l, i) => { options_map[l] = all[i]; });
+      break;
+    }
+
+    case 'add_fractions_same_denominator': {
+      const d = [3, 4, 5, 6, 8, 10][randInt(0, 5)];
+      const n1 = randInt(1, d - 2);
+      const n2 = randInt(1, d - 1 - n1);
+      const sum = simplify(n1 + n2, d);
+      const useWP = Math.random() < 0.4;
+      if (useWP) {
+        const ctx = WP[randInt(0, 1)](n1, d);
+        question_text = `${ctx} Then they take another ${frac(n2, d)}. What fraction is that in total?`;
+      } else {
+        question_text = `What is ${frac(n1, d)} + ${frac(n2, d)}?`;
+      }
+      correct_answer = frac(sum.n, sum.d);
+      explanation = `${frac(n1, d)} + ${frac(n2, d)} = ${frac(n1 + n2, d)}${sum.d !== d ? ` = ${frac(sum.n, sum.d)}` : ''}`;
+      difficulty = 1;
+      const wrong = [frac(n1 + n2, d * 2), frac(n1 + n2 + 1, d), frac(n1 + n2, d + 1), frac(n1 * n2, d)].filter(w => w !== correct_answer);
+      const distractors = shuffle([...new Set(wrong)]).slice(0, 3);
+      const all = shuffle([correct_answer, ...distractors]);
+      'ABCDE'.split('').slice(0, all.length).forEach((l, i) => { options_map[l] = all[i]; });
+      break;
+    }
+
+    case 'add_fractions_different_denominator': {
+      // Simple pairs with LCM ≤ 12
+      const pairs = [
+        [{n:1,d:2},{n:1,d:3},'5/6'],  [{n:1,d:2},{n:1,d:4},'3/4'],
+        [{n:1,d:3},{n:1,d:4},'7/12'], [{n:2,d:3},{n:1,d:4},'11/12'],
+        [{n:1,d:2},{n:2,d:5},'9/10'], [{n:1,d:3},{n:1,d:6},'1/2'],
+        [{n:1,d:4},{n:1,d:8},'3/8'],  [{n:3,d:4},{n:1,d:8},'7/8'],
+        [{n:2,d:3},{n:1,d:6},'5/6'],  [{n:1,d:2},{n:1,d:6},'2/3'],
+      ];
+      const [a, b, ans] = pairs[randInt(0, pairs.length - 1)];
+      question_text = `What is ${frac(a.n, a.d)} + ${frac(b.n, b.d)}?`;
+      correct_answer = ans;
+      const lcm = (a.d * b.d) / gcd(a.d, b.d);
+      explanation = `Convert to a common denominator of ${lcm}: ${frac(a.n * (lcm/a.d), lcm)} + ${frac(b.n * (lcm/b.d), lcm)} = ${ans}`;
+      difficulty = 3;
+      const s = ans.split('/').map(Number);
+      const wrong = [frac(s[0]+1,s[1]), frac(s[0],s[1]+1), frac(a.n+b.n,a.d+b.d), frac(s[0]-1,s[1])].filter(w => w !== ans);
+      const distractors = shuffle([...new Set(wrong)]).slice(0, 3);
+      const all = shuffle([correct_answer, ...distractors]);
+      'ABCDE'.split('').slice(0, all.length).forEach((l, i) => { options_map[l] = all[i]; });
+      break;
+    }
+
+    case 'subtract_fractions': {
+      const d = [4, 5, 6, 8, 10, 12][randInt(0, 5)];
+      const n1 = randInt(2, d - 1);
+      const n2 = randInt(1, n1 - 1);
+      const diff = simplify(n1 - n2, d);
+      question_text = `What is ${frac(n1, d)} − ${frac(n2, d)}?`;
+      correct_answer = frac(diff.n, diff.d);
+      explanation = `${frac(n1, d)} − ${frac(n2, d)} = ${frac(n1 - n2, d)}${diff.d !== d ? ` = ${frac(diff.n, diff.d)}` : ''}`;
+      difficulty = 2;
+      const wrong = [frac(n1-n2+1,d), frac(n1-n2-1,d), frac(diff.n+1,diff.d), frac(n1+n2,d)].filter(w => w !== correct_answer && !w.startsWith('-') && !w.startsWith('0/'));
+      const distractors = shuffle([...new Set(wrong)]).slice(0, 3);
+      const all = shuffle([correct_answer, ...distractors]);
+      'ABCDE'.split('').slice(0, all.length).forEach((l, i) => { options_map[l] = all[i]; });
+      break;
+    }
+
+    case 'mixed_numbers': {
+      // Convert improper → mixed or mixed → improper
+      const d = [2, 3, 4, 5, 6][randInt(0, 4)];
+      const whole = randInt(1, 4);
+      const num = randInt(1, d - 1);
+      const improper = whole * d + num;
+      const toImproper = Math.random() < 0.5;
+      if (toImproper) {
+        question_text = `Convert the mixed number ${whole} ${frac(num, d)} to an improper fraction.`;
+        correct_answer = frac(improper, d);
+        explanation = `${whole} × ${d} + ${num} = ${improper}, so ${whole} ${frac(num, d)} = ${frac(improper, d)}`;
+      } else {
+        question_text = `Convert ${frac(improper, d)} to a mixed number.`;
+        correct_answer = `${whole} ${frac(num, d)}`;
+        explanation = `${improper} ÷ ${d} = ${whole} remainder ${num}, so ${frac(improper, d)} = ${whole} ${frac(num, d)}`;
+      }
+      difficulty = 3;
+      const wrong = toImproper
+        ? [frac(improper+1,d), frac(improper-1,d), frac(whole*d,num), frac(improper,d+1)]
+        : [`${whole+1} ${frac(num,d)}`, `${whole} ${frac(num+1,d)}`, `${whole-1} ${frac(num,d)}`, `${whole} ${frac(d-num,d)}`];
+      const distractors = shuffle(wrong.filter(w => w !== correct_answer)).slice(0, 3);
+      const all = shuffle([correct_answer, ...distractors]);
+      'ABCDE'.split('').slice(0, all.length).forEach((l, i) => { options_map[l] = all[i]; });
+      break;
+    }
+
+    case 'decimal_operations': {
+      // Add or subtract decimals (tenths/hundredths)
+      const a = randInt(1, 9) * 0.1;
+      const b = randInt(1, 9) * 0.1;
+      const addOp = Math.random() < 0.5;
+      const result = addOp ? Math.round((a + b) * 100) / 100 : Math.abs(Math.round((a - b) * 100) / 100);
+      question_text = `What is ${decStr(a)} ${addOp ? '+' : '−'} ${decStr(b)}?`;
+      correct_answer = decStr(result);
+      explanation = `${decStr(a)} ${addOp ? '+' : '−'} ${decStr(b)} = ${decStr(result)}`;
+      difficulty = 2;
+      const wrong = [result + 0.1, result - 0.1, result + 0.2, result * 2]
+        .map(v => decStr(Math.round(v * 100) / 100))
+        .filter(w => w !== correct_answer && parseFloat(w) > 0);
+      const distractors = shuffle([...new Set(wrong)]).slice(0, 3);
+      const all = shuffle([correct_answer, ...distractors]);
+      'ABCDE'.split('').slice(0, all.length).forEach((l, i) => { options_map[l] = all[i]; });
+      break;
+    }
+
+    case 'percentage_basics': {
+      // Percentage ↔ fraction ↔ decimal equivalence questions
+      const candidates = FRACS.filter(f => f.dec !== null && f.pct !== null && Number.isInteger(f.pct));
+      const f = candidates[randInt(0, candidates.length - 1)];
+      const variants = [
+        { q: `What is ${f.pct}% as a fraction in its simplest form?`, a: frac(f.n, f.d), exp: `${f.pct}% = ${f.pct}/100 = ${frac(f.n, f.d)}` },
+        { q: `What is ${f.pct}% as a decimal?`, a: decStr(f.dec), exp: `${f.pct}% = ${decStr(f.dec)}` },
+        { q: `What percentage is equivalent to ${frac(f.n, f.d)}?`, a: `${f.pct}%`, exp: `${frac(f.n, f.d)} = ${f.pct}/100 = ${f.pct}%` },
+      ];
+      const v = variants[randInt(0, variants.length - 1)];
+      question_text = v.q;
+      correct_answer = v.a;
+      explanation = v.exp;
+      difficulty = 2;
+      // Distractors: nearby values
+      const pctNeighbours = [`${f.pct + 10}%`, `${f.pct - 10}%`, `${f.pct + 25}%`, `${f.pct * 2}%`];
+      const fracNeighbours = [frac(f.n+1, f.d), frac(f.n, f.d+1), frac(f.n, f.d*2)];
+      const decNeighbours = [decStr(f.dec + 0.1), decStr(f.dec - 0.1), decStr(f.dec * 2)].filter(w => parseFloat(w) > 0);
+      const pool = [...pctNeighbours, ...fracNeighbours, ...decNeighbours].filter(w => w !== correct_answer);
+      const distractors = shuffle([...new Set(pool)]).slice(0, 3);
+      const all = shuffle([correct_answer, ...distractors]);
+      'ABCDE'.split('').slice(0, all.length).forEach((l, i) => { options_map[l] = all[i]; });
+      break;
+    }
+
+    default:
+      return generateFractionsDecimalsQuestion(year_group);
+  }
+
+  // Assign answer letter
+  const options = options_map;
+  const correct_letter = Object.keys(options).find(k => options[k] === correct_answer) || 'A';
+
+  return {
+    question_text,
+    options,
+    correct_answer: correct_letter,
+    explanation,
+    category: 'fractions_decimals',
+    year_group,
+    difficulty,
+    needs_diagram: false,
+    diagram_description: null,
+  };
+}
+
+// ══════════════════════════════════════════════════════
 // MAIN ROUTER
 // ══════════════════════════════════════════════════════
 export default async function handler(req, res) {
@@ -1950,6 +2295,21 @@ export default async function handler(req, res) {
         geoTestQuestions.push(generateGeometryQuestion(req.body.year_group || 'P6'));
       }
       return res.json({ questions: geoTestQuestions });
+    }
+    case 'generate-fractions-batch': {
+      const fracCount = Math.min(req.body.count || 5, 50);
+      const fractionsQuestions = [];
+      for (let i = 0; i < fracCount; i++) {
+        fractionsQuestions.push(generateFractionsDecimalsQuestion(req.body.year_group || 'P6'));
+      }
+      return res.json({ questions: fractionsQuestions });
+    }
+    case 'test-fractions': {
+      const fracTestQuestions = [];
+      for (let i = 0; i < 5; i++) {
+        fracTestQuestions.push(generateFractionsDecimalsQuestion(req.body.year_group || 'P6'));
+      }
+      return res.json({ questions: fracTestQuestions });
     }
     case 'save-reference':      return handleSaveReference(req, res);
     default:
