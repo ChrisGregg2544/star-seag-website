@@ -557,7 +557,7 @@ function anthropicHeaders(apiKey) {
 }
 
 const SONNET_MODEL = 'claude-sonnet-4-6';
-const SPECIALIST_CATEGORIES = new Set(['punctuation', 'spelling', 'grammar', 'geometry']);
+const SPECIALIST_CATEGORIES = new Set(['punctuation', 'spelling', 'grammar', 'geometry', 'fractions_decimals']);
 
 async function callValidator(systemPrompt, userMessage, apiKey, model = HAIKU_MODEL) {
   const response = await fetch(ANTHROPIC_URL, {
@@ -2296,7 +2296,8 @@ export default async function handler(req, res) {
       }
       return res.json({ questions: geoTestQuestions });
     }
-    case 'generate-fractions-batch': {
+    case 'generate-fractions-batch':
+    case 'generate-fractions-decimals-batch': {
       const fracCount = Math.min(req.body.count || 5, 50);
       const fractionsQuestions = [];
       for (let i = 0; i < fracCount; i++) {
