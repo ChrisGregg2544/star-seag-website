@@ -1207,6 +1207,19 @@ Rules:
 - Keep language accessible for ${year_group} (age ${year_group === 'P6' ? '10-11' : '11-12'})
 - correct_answer should be a model answer
 
+CRITICAL RULES FOR MODEL ANSWERS:
+- Use ONLY facts explicitly stated in the passage
+- Do NOT add inferences or details not in the text
+- Avoid technical grammar terminology (adverbs, adjectives, metaphor) unless absolutely necessary
+- Keep answers simple: what a P6/P7 pupil who read carefully could write
+- If asking about writer's technique, use simple terms: "descriptive words", "action words", "word choice"
+
+Example BAD model answer: "The park was large so the dog could have gone far" (adds "large" not in text)
+Example GOOD model answer: "Biscuit had slipped his lead while chasing a squirrel" (only text facts)
+
+Example BAD model answer: "The writer uses adverbs like 'breathless' and 'desperately'" (wrong - breathless is adjective)
+Example GOOD model answer: "The writer uses descriptive words like 'breathless' and 'desperately' to show worry"
+
 Return ONLY a valid JSON array of 6 objects. Each object:
 {
   "question_text": "the question",
