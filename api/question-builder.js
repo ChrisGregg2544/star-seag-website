@@ -1581,6 +1581,160 @@ async function handleGeneratePassage(req, res) {
 }
 
 // ══════════════════════════════════════════════════════
+// ARITHMETIC QUESTION GENERATION (programmatic, no AI)
+// ══════════════════════════════════════════════════════
+
+function randInt(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+function buildDistractors(answer) {
+  const candidates = [
+    answer + 1, answer - 1,
+    answer + 10, answer - 10,
+    answer + 11, answer - 11,
+    answer + 9,  answer - 9,
+    answer + 2,  answer - 2,
+    answer + 100, answer - 100,
+    Math.round(answer * 1.1),
+    Math.round(answer * 0.9),
+  ].filter(v => v > 0 && v !== answer);
+
+  shuffle(candidates);
+  const seen = new Set([answer]);
+  const result = [];
+  for (const c of candidates) {
+    if (!seen.has(c)) { seen.add(c); result.push(c); }
+    if (result.length === 4) break;
+  }
+  // Fallback if not enough candidates
+  let filler = answer + 3;
+  while (result.length < 4) {
+    if (!seen.has(filler)) { seen.add(filler); result.push(filler); }
+    filler++;
+  }
+  return result;
+}
+
+function buildOptions(answer) {
+  const distractors = buildDistractors(answer);
+  const all = shuffle([answer, ...distractors]);
+  const letters = ['A', 'B', 'C', 'D', 'E'];
+  const options = {};
+  let correct_answer = 'A';
+  all.forEach((v, i) => {
+    options[letters[i]] = String(v);
+    if (v === answer) correct_answer = letters[i];
+  });
+  return { options, correct_answer };
+}
+
+function arithmeticWordProblemsP6() {
+  return shuffle([
+    () => { const n = randInt(3,8), p = randInt(5,15); return { answer: n*p, text: `Emma buys ${n} books. Each book costs £${p}. How much does she spend in total?`, explanation: `${n} × £${p} = £${n*p}` }; },
+    () => { const d = randInt(3,6), q = randInt(4,12); const total = d*q; return { answer: q, text: `${total} sweets are shared equally among ${d} children. How many sweets does each child get?`, explanation: `${total} ÷ ${d} = ${q}` }; },
+    () => { const start = randInt(60,200), spent = randInt(10, 50); return { answer: start-spent, text: `James has ${start}p. He spends ${spent}p on a snack. How much money does he have left?`, explanation: `${start}p − ${spent}p = ${start-spent}p` }; },
+    () => { const rows = randInt(3,8), cols = randInt(3,9); return { answer: rows*cols, text: `A classroom has ${rows} rows of desks with ${cols} desks in each row. How many desks are there altogether?`, explanation: `${rows} × ${cols} = ${rows*cols}` }; },
+    () => { const a = randInt(20,80), b = randInt(20,80); return { answer: a+b, text: `A baker makes ${a} buns in the morning and ${b} in the afternoon. How many buns does the baker make in total?`, explanation: `${a} + ${b} = ${a+b}` }; },
+  ]);
+}
+
+function arithmeticWordProblemsP7() {
+  return shuffle([
+    () => { const p = randInt(15,40), n = randInt(6,15); return { answer: p*n, text: `A shop sells tickets for £${p} each. A school group buys ${n} tickets. How much do they spend in total?`, explanation: `${n} × £${p} = £${p*n}` }; },
+    () => { const weeks = randInt(4,10), per = randInt(25,60); const total = weeks*per; return { answer: per, text: `A charity raises £${total} over ${weeks} weeks, the same amount each week. How much do they raise per week?`, explanation: `£${total} ÷ ${weeks} = £${per}` }; },
+    () => { const speed = randInt(40,70), hours = randInt(2,5); return { answer: speed*hours, text: `A car travels at ${speed} miles per hour for ${hours} hours. How far does it travel in total?`, explanation: `${speed} × ${hours} = ${speed*hours} miles` }; },
+    () => { const a = randInt(150,400), b = randInt(50,149); return { answer: a+b, text: `A factory makes ${a} items in the morning and ${b} items in the afternoon. How many items does it make altogether?`, explanation: `${a} + ${b} = ${a+b}` }; },
+    () => { const classes = randInt(6,12), pupils = randInt(25,32), extra = randInt(5,20); return { answer: classes*pupils+extra, text: `A school has ${classes} classes with ${pupils} pupils in each class. ${extra} more pupils join the school. How many pupils are there altogether?`, explanation: `(${classes} × ${pupils}) + ${extra} = ${classes*pupils} + ${extra} = ${classes*pupils+extra}` }; },
+  ]);
+}
+
+function generateArithmeticQuestion(year_group) {
+  const isP7 = year_group === 'P7';
+  const ops   = ['addition', 'subtraction', 'multiplication', 'division', 'word_problem'];
+  if (isP7) ops.push('multi_step');
+  const op = ops[randInt(0, ops.length - 1)];
+
+  let question_text, answer, explanation, difficulty;
+
+  switch (op) {
+    case 'addition': {
+      const [a, b] = isP7 ? [randInt(100,999), randInt(100,999)] : [randInt(10,99), randInt(10,99)];
+      answer = a + b;
+      question_text = `What is ${a} + ${b}?`;
+      explanation   = `${a} + ${b} = ${answer}`;
+      difficulty    = isP7 ? 2 : 1;
+      break;
+    }
+    case 'subtraction': {
+      const b = isP7 ? randInt(100,499) : randInt(10,49);
+      const a = b + (isP7 ? randInt(100,500) : randInt(10,50));
+      answer = a - b;
+      question_text = `What is ${a} − ${b}?`;
+      explanation   = `${a} − ${b} = ${answer}`;
+      difficulty    = isP7 ? 2 : 1;
+      break;
+    }
+    case 'multiplication': {
+      const [a, b] = isP7 ? [randInt(13,25), randInt(2,12)] : [randInt(2,12), randInt(2,12)];
+      answer = a * b;
+      question_text = `What is ${a} × ${b}?`;
+      explanation   = `${a} × ${b} = ${answer}`;
+      difficulty    = isP7 ? 2 : 1;
+      break;
+    }
+    case 'division': {
+      const divisor  = randInt(2, 12);
+      const quotient = isP7 ? randInt(13,25) : randInt(2,12);
+      const dividend = divisor * quotient;
+      answer = quotient;
+      question_text = `What is ${dividend} ÷ ${divisor}?`;
+      explanation   = `${dividend} ÷ ${divisor} = ${answer}`;
+      difficulty    = isP7 ? 2 : 1;
+      break;
+    }
+    case 'word_problem': {
+      const templates = isP7 ? arithmeticWordProblemsP7() : arithmeticWordProblemsP6();
+      const t = templates[0]();
+      answer        = t.answer;
+      question_text = t.text;
+      explanation   = t.explanation;
+      difficulty    = 2;
+      break;
+    }
+    case 'multi_step': {
+      const classes = randInt(4,10), pupils = randInt(20,30), extra = randInt(5,25);
+      answer        = classes * pupils + extra;
+      question_text = `A school has ${classes} classes with ${pupils} pupils in each class. ${extra} more pupils join. How many pupils are there altogether?`;
+      explanation   = `(${classes} × ${pupils}) + ${extra} = ${classes*pupils} + ${extra} = ${answer}`;
+      difficulty    = 3;
+      break;
+    }
+  }
+
+  const { options, correct_answer } = buildOptions(answer);
+
+  return {
+    question_text,
+    options,
+    correct_answer,
+    explanation,
+    category:     'arithmetic',
+    year_group,
+    difficulty,
+    needs_diagram: false,
+  };
+}
+
+// ══════════════════════════════════════════════════════
 // MAIN ROUTER
 // ══════════════════════════════════════════════════════
 export default async function handler(req, res) {
