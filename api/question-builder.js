@@ -562,6 +562,45 @@ function generateSVGFromDescription(description) {
     const [length, width, height] = description.match(/\d+/g).map(Number);
     return generateDiagram('cuboid', { length, width, height });
   }
+  else if (description.includes('fraction-grid')) {
+    // "fraction-grid: numerator X, denominator Y"
+    const nums = description.match(/\d+/g).map(Number);
+    const [numerator, denominator] = nums;
+    return generateDiagram('fraction-grid', { rows: 1, cols: denominator, shaded: numerator });
+  }
+  else if (description.includes('pie-chart: fraction1')) {
+    // "pie-chart: fraction1 X/Y, fraction2 A/B"
+    const fracs = description.match(/(\d+)\/(\d+)/g);
+    const [f1, f2] = fracs.map(f => { const [n, d] = f.split('/').map(Number); return { n, d }; });
+    const pct1 = Math.round((f1.n / f1.d) * 100);
+    const pct2 = Math.round((f2.n / f2.d) * 100);
+    return generateDiagram('pie-chart', {
+      data: [
+        { label: `${f1.n}/${f1.d}`, value: pct1 },
+        { label: `${f2.n}/${f2.d}`, value: pct2 },
+      ],
+    });
+  }
+  else if (description.includes('pie-chart: percentage')) {
+    // "pie-chart: percentage X%"
+    const percent = parseInt(description.match(/\d+/)[0]);
+    return generateDiagram('pie-chart', {
+      data: [
+        { label: `${percent}%`, value: percent },
+        { label: `${100 - percent}%`, value: 100 - percent },
+      ],
+    });
+  }
+  else if (description.includes('measurement-scale: ruler')) {
+    // "measurement-scale: ruler, position Xcm"
+    const pos = parseInt(description.match(/\d+/)[0]);
+    return generateDiagram('measurement-scale', { type: 'ruler', highlight: pos });
+  }
+  else if (description.includes('measurement-scale: weighing-dial')) {
+    // "measurement-scale: weighing-dial, position Xg"
+    const pos = parseInt(description.match(/\d+/)[0]);
+    return generateDiagram('measurement-scale', { type: 'weighing-dial', highlight: pos });
+  }
 
   return null;
 }
