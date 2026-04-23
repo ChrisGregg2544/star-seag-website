@@ -1137,6 +1137,59 @@ async function handleSaveReference(req, res) {
 }
 
 // ══════════════════════════════════════════════════════
+// HANDLER: save-comprehension-set
+// ══════════════════════════════════════════════════════
+async function handleSaveComprehensionSet(req, res) {
+  const { passage, title, topic, word_count, selected_questions, year_group } = req.body;
+
+  if (!passage)            return res.status(400).json({ error: 'passage is required' });
+  if (!year_group)         return res.status(400).json({ error: 'year_group is required' });
+  if (!selected_questions || !Array.isArray(selected_questions) || !selected_questions.length)
+    return res.status(400).json({ error: 'selected_questions array is required' });
+
+  const supabaseUrl    = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!supabaseUrl)    return res.status(500).json({ error: 'NEXT_PUBLIC_SUPABASE_URL not configured' });
+  if (!serviceRoleKey) return res.status(500).json({ error: 'Supabase service key not configured' });
+
+  try {
+    // Step 1: Insert passage into comprehension_passages, return id
+    const passageRes = await fetch(`${supabaseUrl}/rest/v1/comprehension_passages`, {
+      method:  'POST',
+      headers: supabaseHeaders(serviceRoleKey, { 'Prefer': 'return=representation' }),
+      body:    JSON.stringify({
+        title:      title      || 'Untitled Passage',
+        passage,
+        word_count: word_count || null,
+        year_group,
+        topic:      topic      || null,
+      }),
+    });
+
+    if (!passageRes.ok) {
+      const err = await passageRes.text();
+      console.error('save-comprehension-set: passage insert failed:', passageRes.status, err);
+      return res.status(500).json({ error: `Failed to save passage: ${passageRes.status}` });
+    }
+
+    const passageRows = await passageRes.json();
+    const passage_id  = passageRows?.[0]?.id;
+
+    if (!passage_id) {
+      return res.status(500).json({ error: 'Passage inserted but no id returned' });
+    }
+
+    console.log(`save-comprehension-set: passage saved with id ${passage_id}`);
+    return res.status(200).json({ passage_id, saved_passage: true });
+
+  } catch (err) {
+    console.error('save-comprehension-set error:', err.message);
+    return res.status(500).json({ error: err.message || 'Save failed' });
+  }
+}
+
+// ══════════════════════════════════════════════════════
 // COMPREHENSION QUESTION GENERATION
 // ══════════════════════════════════════════════════════
 
@@ -1515,6 +1568,7 @@ export default async function handler(req, res) {
     case 'save-generated':      return handleSaveGenerated(req, res);
     case 'generate-passage':               return handleGeneratePassage(req, res);
     case 'generate-comprehension-questions': return handleGenerateComprehensionQuestions(req, res);
+    case 'save-comprehension-set':           return handleSaveComprehensionSet(req, res);
     case 'save-reference':      return handleSaveReference(req, res);
     default:
       return res.status(400).json({ error: `Unknown action: ${action}` });
