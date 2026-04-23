@@ -540,6 +540,33 @@ async function handleGetQuestionCounts(req, res) {
 }
 
 // ══════════════════════════════════════════════════════
+// DIAGRAM HELPER
+// ══════════════════════════════════════════════════════
+
+function generateSVGFromDescription(description) {
+  if (!description) return null;
+
+  if (description.includes('triangle')) {
+    const angles = description.match(/(\d+)°/g).map(a => parseInt(a));
+    return generateDiagram('triangle', { angles });
+  }
+  else if (description.includes('rectangle')) {
+    const [length, width] = description.match(/\d+/g).map(Number);
+    return generateDiagram('shape', { subtype: 'rectangle', length, width });
+  }
+  else if (description.includes('square')) {
+    const side = parseInt(description.match(/\d+/)[0]);
+    return generateDiagram('shape', { subtype: 'square', side });
+  }
+  else if (description.includes('cuboid')) {
+    const [length, width, height] = description.match(/\d+/g).map(Number);
+    return generateDiagram('cuboid', { length, width, height });
+  }
+
+  return null;
+}
+
+// ══════════════════════════════════════════════════════
 // HANDLER: run-validators
 // ══════════════════════════════════════════════════════
 const PARSE_FALLBACK = { score: 5, reason: 'Could not parse validator response', verdict: 'warn' };
