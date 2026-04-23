@@ -2778,6 +2778,11 @@ export default async function handler(req, res) {
       for (let i = 0; i < geoCount; i++) {
         geometryQuestions.push(generateGeometryQuestion(req.body.year_group || 'P6'));
       }
+      for (const question of geometryQuestions) {
+        if (question.needs_diagram && question.diagram_description) {
+          question.diagram_svg = generateSVGFromDescription(question.diagram_description);
+        }
+      }
       return res.json({ questions: geometryQuestions });
     }
     case 'test-geometry': {
