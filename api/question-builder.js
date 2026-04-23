@@ -1761,7 +1761,7 @@ function generateGeometryQuestion(year_group) {
       explanation   = `Area = length × width = ${l} × ${w} = ${answer} cm²`;
       difficulty    = 1;
       needs_diagram = true;
-      diagram_description = `Rectangle with length ${l} cm and width ${w} cm, labelled`;
+      diagram_description = `A rectangle with length ${l}cm and width ${w}cm`;
       break;
     }
     case 'rectangle_perimeter': {
@@ -1772,7 +1772,7 @@ function generateGeometryQuestion(year_group) {
       explanation   = `Perimeter = 2 × (length + width) = 2 × (${l} + ${w}) = 2 × ${l + w} = ${answer} cm`;
       difficulty    = 1;
       needs_diagram = true;
-      diagram_description = `Rectangle with length ${l} cm and width ${w} cm, labelled`;
+      diagram_description = `A rectangle with length ${l}cm and width ${w}cm`;
       break;
     }
     case 'square_area': {
@@ -1782,7 +1782,7 @@ function generateGeometryQuestion(year_group) {
       explanation   = `Area = side × side = ${s} × ${s} = ${answer} cm²`;
       difficulty    = 1;
       needs_diagram = true;
-      diagram_description = `Square with sides of ${s} cm, labelled`;
+      diagram_description = `A square with sides of ${s}cm`;
       break;
     }
     case 'square_perimeter': {
@@ -1792,7 +1792,7 @@ function generateGeometryQuestion(year_group) {
       explanation   = `Perimeter = 4 × side = 4 × ${s} = ${answer} cm`;
       difficulty    = 1;
       needs_diagram = true;
-      diagram_description = `Square with sides of ${s} cm, labelled`;
+      diagram_description = `A square with sides of ${s}cm`;
       break;
     }
     case 'triangle_angles': {
@@ -1803,20 +1803,21 @@ function generateGeometryQuestion(year_group) {
         c = 180 - a - b;
       } while (c < 15 || c > 120);
       const asking = randInt(0, 2);
+      let knownX, knownY;
       if (asking === 0) {
         question_text = `A triangle has angles of ${b}° and ${c}°. What is the size of the missing angle?`;
-        answer = a;
+        answer = a; knownX = b; knownY = c;
       } else if (asking === 1) {
         question_text = `A triangle has angles of ${a}° and ${c}°. What is the size of the missing angle?`;
-        answer = b;
+        answer = b; knownX = a; knownY = c;
       } else {
         question_text = `A triangle has angles of ${a}° and ${b}°. What is the size of the missing angle?`;
-        answer = c;
+        answer = c; knownX = a; knownY = b;
       }
       explanation   = `Angles in a triangle add up to 180°. Missing angle = 180° − ${180 - answer}° = ${answer}°`;
       difficulty    = 2;
       needs_diagram = true;
-      diagram_description = `Triangle with two angles labelled and one angle marked with a question mark`;
+      diagram_description = `A triangle with angles ${knownX}° and ${knownY}°`;
       break;
     }
     case 'shape_properties': {
@@ -1848,7 +1849,7 @@ function generateGeometryQuestion(year_group) {
       explanation   = `Volume = length × width × height = ${l} × ${w} × ${h} = ${answer} cm³`;
       difficulty    = 2;
       needs_diagram = true;
-      diagram_description = `Cuboid with length ${l} cm, width ${w} cm and height ${h} cm, all dimensions labelled`;
+      diagram_description = `A cuboid with length ${l}cm, width ${w}cm, height ${h}cm`;
       break;
     }
     case 'composite_area': {
