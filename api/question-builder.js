@@ -1137,6 +1137,196 @@ async function handleSaveReference(req, res) {
 }
 
 // ══════════════════════════════════════════════════════
+// COMPREHENSION QUESTION GENERATION
+// ══════════════════════════════════════════════════════
+
+const QUESTION_TYPES = {
+  mc: [
+    { type: 'literal',    instruction: 'Ask a literal retrieval question — the answer is stated directly in the passage.' },
+    { type: 'inference',  instruction: 'Ask an inference question — the answer requires reading between the lines.' },
+    { type: 'vocabulary', instruction: 'Ask about the meaning of a specific word or phrase as used in the passage.' },
+    { type: 'structure',  instruction: 'Ask about how the passage is structured or why the writer made a particular choice.' },
+    { type: 'literal',    instruction: 'Ask a second literal retrieval question about a different part of the passage.' },
+    { type: 'inference',  instruction: 'Ask a second inference question requiring a different deduction.' },
+    { type: 'vocabulary', instruction: 'Ask about a second word or phrase from the passage.' },
+  ],
+  written: [
+    { type: 'explain',  instruction: 'Ask the pupil to explain in their own words why something happened or what something means.' },
+    { type: 'evidence', instruction: 'Ask the pupil to find and copy a phrase or sentence from the passage that shows something.' },
+    { type: 'opinion',  instruction: 'Ask the pupil for their opinion with evidence from the text.' },
+    { type: 'summary',  instruction: 'Ask the pupil to summarise a section of the passage in their own words.' },
+    { type: 'language', instruction: 'Ask the pupil to identify and comment on a language technique used in the passage.' },
+    { type: 'explain',  instruction: 'Ask a second explanation question about a different aspect of the passage.' },
+  ],
+};
+
+async function generateQuestionsForPassage(passage, title, year_group, apiKey) {
+  const mcPrompt = `You are an expert SEAG comprehension question writer for Northern Ireland P6/P7 pupils (ages 10-11).
+
+Passage title: ${title}
+Passage: ${passage}
+Year group: ${year_group}
+
+Write exactly 7 multiple-choice questions about this passage.
+Question types to include (one per question, in this order):
+${QUESTION_TYPES.mc.map((t, i) => `${i + 1}. ${t.type.toUpperCase()}: ${t.instruction}`).join('\n')}
+
+Rules:
+- Each question must have exactly 5 options: A, B, C, D, E
+- Only one option is correct; others are plausible distractors
+- Correct answers should be spread across A/B/C/D/E (not all the same letter)
+- Questions must be answerable from the passage only (no outside knowledge)
+- Use UK English throughout
+- Keep language accessible for ${year_group} (age ${year_group === 'P6' ? '10-11' : '11-12'})
+
+Return ONLY a valid JSON array of 7 objects. Each object:
+{
+  "question_text": "the question",
+  "options": {"A":"...","B":"...","C":"...","D":"...","E":"..."},
+  "correct_answer": "A|B|C|D|E",
+  "explanation": "why this answer is correct (1-2 sentences)",
+  "question_type": "Multiple_Choice",
+  "category": "comprehension_mc",
+  "difficulty": 1-5
+}`;
+
+  const writtenPrompt = `You are an expert SEAG comprehension question writer for Northern Ireland P6/P7 pupils (ages 10-11).
+
+Passage title: ${title}
+Passage: ${passage}
+Year group: ${year_group}
+
+Write exactly 6 short-answer (written) questions about this passage.
+Question types to include (one per question, in this order):
+${QUESTION_TYPES.written.map((t, i) => `${i + 1}. ${t.type.toUpperCase()}: ${t.instruction}`).join('\n')}
+
+Rules:
+- Each answer should be 1-3 sentences
+- Answers must be derivable from the passage
+- Use UK English throughout
+- Keep language accessible for ${year_group} (age ${year_group === 'P6' ? '10-11' : '11-12'})
+- correct_answer should be a model answer
+
+Return ONLY a valid JSON array of 6 objects. Each object:
+{
+  "question_text": "the question",
+  "options": null,
+  "correct_answer": "model answer text",
+  "explanation": "what a good answer should include",
+  "question_type": "written",
+  "category": "comprehension_written",
+  "difficulty": 1-5
+}`;
+
+  const [mcRes, writtenRes] = await Promise.all([
+    fetch(ANTHROPIC_URL, {
+      method: 'POST',
+      headers: anthropicHeaders(apiKey),
+      body: JSON.stringify({ model: SONNET_MODEL, max_tokens: 3000, messages: [{ role: 'user', content: mcPrompt }] }),
+    }),
+    fetch(ANTHROPIC_URL, {
+      method: 'POST',
+      headers: anthropicHeaders(apiKey),
+      body: JSON.stringify({ model: SONNET_MODEL, max_tokens: 2000, messages: [{ role: 'user', content: writtenPrompt }] }),
+    }),
+  ]);
+
+  const [mcData, writtenData] = await Promise.all([mcRes.json(), writtenRes.json()]);
+  if (!mcRes.ok)      throw new Error(mcData.error?.message      || 'MC question generation failed');
+  if (!writtenRes.ok) throw new Error(writtenData.error?.message  || 'Written question generation failed');
+
+  const parseJsonArray = (text) => {
+    const clean = (text || '').replace(/^```json\s*/i, '').replace(/```[\s\S]*$/, '').trim();
+    try { return JSON.parse(clean); } catch { /* fall through */ }
+    const match = clean.match(/\[[\s\S]*\]/);
+    if (match) { try { return JSON.parse(match[0]); } catch { /* fall through */ } }
+    throw new Error(`Could not parse JSON array: ${clean.slice(0, 200)}`);
+  };
+
+  const mcQuestions      = parseJsonArray(mcData.content?.[0]?.text      || '');
+  const writtenQuestions = parseJsonArray(writtenData.content?.[0]?.text  || '');
+
+  return [...mcQuestions, ...writtenQuestions].map(q => ({ ...q, year_group, passage }));
+}
+
+async function validateComprehensionQuestion(question, passage, apiKey) {
+  const { question_text, correct_answer, options, question_type, year_group } = question;
+
+  const optionsBlock = options && typeof options === 'object'
+    ? '\nOptions:\n' + Object.entries(options).map(([k, v]) => `  ${k}: ${v}`).join('\n')
+    : '';
+
+  const system = `You are a specialist SEAG comprehension question validator for Northern Ireland P6/P7 pupils (ages 10-11).
+Return ONLY a JSON object: {"score":<1-10>,"reason":"<explanation>","verdict":"<pass|warn|fail>"}`;
+
+  const user = `Passage: ${passage}
+
+Question: ${question_text}${optionsBlock}
+Correct answer: ${correct_answer}
+Type: ${question_type}
+Year group: ${year_group}
+
+Check:
+1. Is the answer clearly derivable from the passage?
+2. Is there exactly one correct/best answer?
+3. Is the question unambiguous for a ${year_group} pupil?
+4. For MC: are distractors plausible but definitely wrong?
+5. For written: is the model answer a fair expectation?
+
+Score 8+ = pass, 6-7 = warn, 1-5 = fail.`;
+
+  const res = await fetch(ANTHROPIC_URL, {
+    method: 'POST',
+    headers: anthropicHeaders(apiKey),
+    body: JSON.stringify({ model: SONNET_MODEL, max_tokens: 400, system, messages: [{ role: 'user', content: user }] }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error?.message || 'Question validation failed');
+  const result = parseValidatorResponse(data.content?.[0]?.text || '');
+  return { score: Number(result.score) || 0, reason: result.reason || '', verdict: result.verdict || 'warn' };
+}
+
+async function validateQuestionSet(questions, passage, apiKey) {
+  const validations = await Promise.all(
+    questions.map(q => validateComprehensionQuestion(q, passage, apiKey))
+  );
+
+  const results = questions.map((q, i) => ({ ...q, validation: validations[i] }));
+
+  const passed  = results.filter(q => q.validation.verdict === 'pass').length;
+  const warned  = results.filter(q => q.validation.verdict === 'warn').length;
+  const failed  = results.filter(q => q.validation.verdict === 'fail').length;
+  const avgScore = Math.round(
+    (validations.reduce((sum, v) => sum + v.score, 0) / validations.length) * 10
+  ) / 10;
+
+  return {
+    questions: results,
+    summary: { total: results.length, passed, warned, failed, avg_score: avgScore },
+  };
+}
+
+async function handleGenerateComprehensionQuestions(req, res) {
+  const { passage, title, year_group } = req.body;
+
+  if (!passage)    return res.status(400).json({ error: 'passage is required' });
+  if (!year_group) return res.status(400).json({ error: 'year_group is required' });
+
+  const apiKey = process.env.ANTHROPIC_API_KEY;
+  if (!apiKey) return res.status(500).json({ error: 'AI configuration error' });
+
+  try {
+    const passageTitle = title || 'Untitled Passage';
+    const questions    = await generateQuestionsForPassage(passage, passageTitle, year_group, apiKey);
+    const result       = await validateQuestionSet(questions, passage, apiKey);
+    return res.status(200).json(result);
+  } catch (err) {
+    console.error('generate-comprehension-questions error:', err.message);
+    return res.status(500).json({ error: err.message || 'Comprehension question generation failed' });
+  }
+}
+
+// ══════════════════════════════════════════════════════
 // PASSAGE GENERATION
 // ══════════════════════════════════════════════════════
 
@@ -1276,7 +1466,8 @@ export default async function handler(req, res) {
     case 'get-question-counts': return handleGetQuestionCounts(req, res);
     case 'run-validators':      return handleRunValidators(req, res);
     case 'save-generated':      return handleSaveGenerated(req, res);
-    case 'generate-passage':    return handleGeneratePassage(req, res);
+    case 'generate-passage':               return handleGeneratePassage(req, res);
+    case 'generate-comprehension-questions': return handleGenerateComprehensionQuestions(req, res);
     case 'save-reference':      return handleSaveReference(req, res);
     default:
       return res.status(400).json({ error: `Unknown action: ${action}` });
