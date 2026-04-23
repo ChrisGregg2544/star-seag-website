@@ -557,7 +557,7 @@ function anthropicHeaders(apiKey) {
 }
 
 const SONNET_MODEL = 'claude-sonnet-4-6';
-const SPECIALIST_CATEGORIES = new Set(['punctuation', 'spelling', 'grammar', 'geometry', 'fractions_decimals']);
+const SPECIALIST_CATEGORIES = new Set(['punctuation', 'spelling', 'grammar', 'geometry', 'fractions_decimals', 'measurement']);
 
 async function callValidator(systemPrompt, userMessage, apiKey, model = HAIKU_MODEL) {
   const response = await fetch(ANTHROPIC_URL, {
