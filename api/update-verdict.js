@@ -29,7 +29,6 @@ export default async function handler(req, res) {
   // Build the update payload based on verdict
   const update = { validator_verdict: verdict.toLowerCase(), validator_reason: reason || null };
   if (verdict === 'PASS') update.validated = true;
-  if (verdict === 'FAIL') update.source = 'rejected';
 
   const response = await fetch(
     `${SUPABASE_URL}/rest/v1/questions?id=eq.${encodeURIComponent(questionId)}`,
