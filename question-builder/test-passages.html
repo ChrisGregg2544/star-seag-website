@@ -58,7 +58,7 @@
     }
     .btn-primary:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 5px 0 #CC5500; }
     .btn-primary:active:not(:disabled) { transform: translateY(2px); box-shadow: 0 2px 0 #CC5500; }
-    .btn-primary:disabled { opacity: .6; cursor: not-allowed; }
+    .btn-primary:disabled { opacity: .5; cursor: not-allowed; box-shadow: 0 4px 0 #CC5500; }
 
     .btn-outline {
       padding: 12px 28px; border-radius: 10px;
@@ -68,6 +68,22 @@
     }
     .btn-outline:hover:not(:disabled) { border-color: #999; color: #333; }
     .btn-outline:disabled { opacity: .4; cursor: not-allowed; }
+
+    /* ── TOOLTIP WRAPPER ── */
+    .tooltip-wrap { position: relative; display: inline-block; }
+    .tooltip-wrap .tooltip {
+      display: none; position: absolute; bottom: calc(100% + 8px); left: 50%;
+      transform: translateX(-50%);
+      background: #333; color: #fff;
+      font-size: .75rem; font-weight: 700;
+      padding: 6px 12px; border-radius: 8px; white-space: nowrap;
+      pointer-events: none; z-index: 10;
+    }
+    .tooltip-wrap .tooltip::after {
+      content: ''; position: absolute; top: 100%; left: 50%; transform: translateX(-50%);
+      border: 5px solid transparent; border-top-color: #333;
+    }
+    .tooltip-wrap:hover .tooltip { display: block; }
 
     /* ── LOADING ── */
     .loading-section { display: none; text-align: center; padding: 32px 20px; }
@@ -132,8 +148,11 @@
 
     .summary-card {
       background: #fff; border: 2px solid #E8D8B8; border-radius: 14px;
-      padding: 20px 24px; margin-bottom: 20px;
+      padding: 20px 24px; margin-bottom: 12px;
+    }
+    .summary-top {
       display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;
+      margin-bottom: 14px;
     }
     .summary-title { font-size: 1rem; font-weight: 900; color: #1A1A1A; }
     .summary-pills { display: flex; gap: 10px; flex-wrap: wrap; }
@@ -141,22 +160,41 @@
       padding: 4px 12px; border-radius: 20px;
       font-size: .78rem; font-weight: 900; letter-spacing: .03em;
     }
-    .pill.pass { background: #E8F5E9; color: #2E7D32; }
-    .pill.warn { background: #FFF3E0; color: #E65100; }
-    .pill.fail { background: #FFEBEE; color: #B71C1C; }
-    .pill.total { background: #EEF4FF; color: #1565C0; }
+    .pill.pass    { background: #E8F5E9; color: #2E7D32; }
+    .pill.warn    { background: #FFF3E0; color: #E65100; }
+    .pill.fail    { background: #FFEBEE; color: #B71C1C; }
+    .pill.total   { background: #EEF4FF; color: #1565C0; }
+    .pill.selected { background: #E8F5E9; color: #1B5E20; border: 1px solid #A5D6A7; }
 
+    /* ── INCOMPLETE WARNING ── */
+    .incomplete-warning {
+      display: none;
+      background: #FFF3E0; border: 2px solid #FFBA80; border-radius: 12px;
+      padding: 14px 18px; margin-bottom: 14px;
+      font-size: .88rem; font-weight: 800; color: #E65100;
+      line-height: 1.5;
+    }
+    .incomplete-warning.visible { display: block; }
+
+    /* ── QUESTIONS ACTIONS ── */
+    .questions-actions { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; align-items: center; }
+
+    /* ── QUESTION ROWS ── */
     .q-list { display: flex; flex-direction: column; gap: 14px; }
 
-    .q-row {
-      background: #fff; border: 2px solid #E8D8B8; border-radius: 14px; padding: 20px 22px;
-    }
+    .q-row { background: #fff; border: 2px solid #E8D8B8; border-radius: 14px; padding: 20px 22px; }
     .q-row.outcome-pass { border-color: #A5D6A7; background: #F1F8F1; }
     .q-row.outcome-warn { border-color: #FFBA80; background: #FFF8F0; }
     .q-row.outcome-fail { border-color: #FFCDD2; background: #FFF0F0; }
 
     .q-row-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 10px; flex-wrap: wrap; }
-    .q-num { font-size: .72rem; font-weight: 900; letter-spacing: .06em; text-transform: uppercase; color: #888; margin-bottom: 4px; }
+    .q-num-row { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; flex-wrap: wrap; }
+    .q-num { font-size: .72rem; font-weight: 900; letter-spacing: .06em; text-transform: uppercase; color: #888; }
+    .q-selected-tag {
+      font-size: .68rem; font-weight: 900; letter-spacing: .04em; text-transform: uppercase;
+      padding: 2px 8px; border-radius: 20px;
+      background: #E8F5E9; color: #2E7D32; border: 1px solid #A5D6A7;
+    }
     .q-text { font-size: .92rem; font-weight: 800; color: #1A1A1A; line-height: 1.5; }
 
     .q-options { display: flex; flex-direction: column; gap: 3px; margin: 10px 0 0; }
@@ -173,12 +211,6 @@
 
     .q-validation { margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(0,0,0,.07); display: flex; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
     .q-val-reason { font-size: .82rem; font-weight: 700; color: #666; line-height: 1.5; flex: 1; min-width: 180px; }
-
-    .q-type-tag {
-      font-size: .7rem; font-weight: 900; letter-spacing: .04em; text-transform: uppercase;
-      padding: 3px 10px; border-radius: 20px; background: #EEF4FF; color: #1565C0;
-      white-space: nowrap; align-self: flex-start; flex-shrink: 0;
-    }
   </style>
 </head>
 <body>
@@ -259,15 +291,29 @@
     <!-- Questions loading -->
     <div class="questions-loading" id="questions-loading">
       <div class="spinner"></div>
-      <p>Generating 13 comprehension questions…</p>
+      <p>Generating 15 comprehension questions…</p>
     </div>
 
     <!-- Questions result -->
     <div id="questions-section">
 
       <div class="summary-card" id="summary-card">
-        <div class="summary-title" id="summary-title"></div>
-        <div class="summary-pills" id="summary-pills"></div>
+        <div class="summary-top">
+          <div class="summary-title" id="summary-title"></div>
+          <div class="summary-pills" id="summary-pills"></div>
+        </div>
+      </div>
+
+      <!-- Incomplete warning -->
+      <div class="incomplete-warning" id="incomplete-warning"></div>
+
+      <!-- Actions -->
+      <div class="questions-actions">
+        <div class="tooltip-wrap">
+          <button class="btn-primary" id="save-btn" disabled onclick="saveCompleteSet()">Save Complete Set</button>
+          <span class="tooltip" id="save-tooltip">Need 13 passing questions to save</span>
+        </div>
+        <button class="btn-outline" id="regen-failed-btn" onclick="runGenerateQuestions()">Regenerate Questions</button>
       </div>
 
       <div class="q-list" id="q-list"></div>
@@ -279,22 +325,24 @@
   <script>
     const el = id => document.getElementById(id);
 
-    let currentPassage = null;
-    let currentTitle   = null;
+    let currentPassage  = null;
+    let currentTitle    = null;
+    let currentSelected = null;
 
     async function runGenerate() {
       const yearGroup = el('year-group').value;
 
-      el('generate-btn').disabled        = true;
-      el('regen-btn').disabled           = true;
-      el('result-section').style.display = 'none';
+      el('generate-btn').disabled           = true;
+      el('regen-btn').disabled              = true;
+      el('result-section').style.display    = 'none';
       el('questions-section').style.display = 'none';
       el('questions-loading').style.display = 'none';
       el('loading-section').style.display   = 'block';
       el('loading-msg').textContent = `Generating ${yearGroup} passage…`;
 
-      currentPassage = null;
-      currentTitle   = null;
+      currentPassage  = null;
+      currentTitle    = null;
+      currentSelected = null;
 
       try {
         const res  = await fetch('/api/question-builder', {
@@ -323,23 +371,21 @@
       const reason  = validation?.reason  ?? '';
       const verdict = validation?.verdict ?? 'warn';
 
-      el('passage-card').className     = `passage-card verdict-${verdict}`;
-      el('passage-title').textContent  = title || '(untitled)';
-      el('meta-year').textContent      = yearGroup;
-      el('meta-words').textContent     = `${word_count ?? countWords(passage)} words`;
-      el('passage-body').textContent   = passage || '';
+      el('passage-card').className    = `passage-card verdict-${verdict}`;
+      el('passage-title').textContent = title || '(untitled)';
+      el('meta-year').textContent     = yearGroup;
+      el('meta-words').textContent    = `${word_count ?? countWords(passage)} words`;
+      el('passage-body').textContent  = passage || '';
 
-      const badge = el('verdict-badge');
-      badge.className = `verdict-badge ${verdict}`;
-      el('verdict-label').textContent = verdict.toUpperCase();
+      el('verdict-badge').className       = `verdict-badge ${verdict}`;
+      el('verdict-label').textContent     = verdict.toUpperCase();
+      el('score-chip').className          = `score-chip ${verdict}`;
+      el('score-num').textContent         = score;
+      el('score-reason').textContent      = reason;
 
-      el('score-chip').className      = `score-chip ${verdict}`;
-      el('score-num').textContent     = score;
-      el('score-reason').textContent  = reason;
-
-      el('gen-questions-btn').disabled     = false;
-      el('gen-questions-btn').textContent  = 'Generate Questions';
-      el('result-section').style.display   = 'block';
+      el('gen-questions-btn').disabled    = false;
+      el('gen-questions-btn').textContent = 'Generate Questions';
+      el('result-section').style.display  = 'block';
     }
 
     async function runGenerateQuestions() {
@@ -348,6 +394,8 @@
 
       el('gen-questions-btn').disabled      = true;
       el('regen-btn').disabled              = true;
+      el('regen-failed-btn').disabled       = true;
+      el('save-btn').disabled               = true;
       el('questions-section').style.display = 'none';
       el('questions-loading').style.display = 'block';
 
@@ -365,6 +413,7 @@
         const json = await res.json();
         if (!res.ok || json.error) throw new Error(json.error || 'Question generation failed');
 
+        currentSelected = json.selected;
         renderQuestions(json);
       } catch (err) {
         alert('Error: ' + (err.message || 'Something went wrong.'));
@@ -372,33 +421,55 @@
         el('questions-loading').style.display = 'none';
         el('gen-questions-btn').disabled      = false;
         el('regen-btn').disabled              = false;
+        el('regen-failed-btn').disabled       = false;
       }
     }
 
-    function renderQuestions({ questions, summary }) {
+    function renderQuestions({ questions, selected, summary }) {
+      // Build a set of selected question texts for fast lookup
+      const selectedTexts = new Set((selected || []).map(q => q.question_text));
+
       // Summary
-      el('summary-title').textContent = `${summary.passed}/${summary.total} questions passed  ·  avg score ${summary.avg_score}`;
+      el('summary-title').textContent = `${summary.selected}/${summary.total} questions selected  ·  avg score ${summary.avg_score}`;
       el('summary-pills').innerHTML = `
-        <span class="pill total">${summary.total} total</span>
-        <span class="pill pass">${summary.passed} pass</span>
+        <span class="pill total">${summary.total} generated</span>
+        <span class="pill pass">${summary.passed} passed</span>
+        <span class="pill selected">${summary.selected} selected</span>
         ${summary.warned ? `<span class="pill warn">${summary.warned} warn</span>` : ''}
-        ${summary.failed ? `<span class="pill fail">${summary.failed} fail</span>` : ''}
+        ${summary.failed ? `<span class="pill fail">${summary.failed} failed</span>` : ''}
       `;
+
+      // Incomplete warning / save button
+      const warning = el('incomplete-warning');
+      const saveBtn = el('save-btn');
+      const tooltip = el('save-tooltip');
+
+      if (summary.is_complete) {
+        warning.classList.remove('visible');
+        saveBtn.disabled      = false;
+        tooltip.style.display = 'none';
+      } else {
+        warning.textContent = `Incomplete set: Only ${summary.selected}/13 questions passed. Cannot save — regenerate to try again.`;
+        warning.classList.add('visible');
+        saveBtn.disabled      = true;
+        tooltip.textContent   = `Need 13 passing questions to save (have ${summary.selected})`;
+        tooltip.style.display = '';
+      }
 
       // Question rows
       el('q-list').innerHTML = questions.map((q, i) => {
-        const v       = q.validation || {};
-        const verdict = v.verdict ?? 'warn';
-        const score   = v.score   ?? 0;
-        const reason  = v.reason  ?? '';
-        const isMC    = q.question_type === 'Multiple_Choice';
-        const typeLabel = isMC ? 'Multiple Choice' : 'Written';
+        const v          = q.validation || {};
+        const verdict    = v.verdict ?? 'warn';
+        const score      = v.score   ?? 0;
+        const reason     = v.reason  ?? '';
+        const isMC       = q.question_type === 'Multiple_Choice';
+        const isSelected = selectedTexts.has(q.question_text);
 
         const optionsHtml = isMC && q.options
           ? `<div class="q-options">${
-              Object.entries(q.options).map(([k, v]) =>
+              Object.entries(q.options).map(([k, val]) =>
                 `<div class="q-option${k === q.correct_answer ? ' correct' : ''}">
-                  <span class="opt-letter">${k}.</span> ${escHtml(v)}
+                  <span class="opt-letter">${k}.</span> ${escHtml(val)}
                 </div>`
               ).join('')
             }</div>`
@@ -411,7 +482,10 @@
           <div class="q-row outcome-${verdict}">
             <div class="q-row-header">
               <div>
-                <div class="q-num">Q${i + 1} — ${isMC ? 'MC' : 'Written'}</div>
+                <div class="q-num-row">
+                  <span class="q-num">Q${i + 1} — ${isMC ? 'MC' : 'Written'}</span>
+                  ${isSelected ? '<span class="q-selected-tag">✓ Selected</span>' : ''}
+                </div>
                 <div class="q-text">${escHtml(q.question_text)}</div>
               </div>
               <div class="verdict-badge ${verdict}">
@@ -432,6 +506,11 @@
 
       el('questions-section').style.display = 'block';
       el('questions-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function saveCompleteSet() {
+      // TODO: implement save to Supabase
+      alert('Save not yet implemented — coming soon.');
     }
 
     function countWords(text) {
