@@ -1202,21 +1202,22 @@ async function handleBulkRevalidate(req, res) {
   const { category_filter, year_group_filter, batch_size = 10, offset = 0 } = req.body;
 
   // ── Build Supabase query URL ───────────────────────
-  let url = `${supabaseUrl}/rest/v1/reference_questions?select=*&order=id&limit=${batch_size}&offset=${offset}`;
-  if (category_filter)    url += `&category=eq.${encodeURIComponent(category_filter)}`;
-  if (year_group_filter)  url += `&year_group=eq.${encodeURIComponent(year_group_filter)}`;
+  let url = `${supabaseUrl}/rest/v1/questions?select=*&order=id&limit=${batch_size}&offset=${offset}`;
+  url += `&source=in.(ai_generated_v2,ai_generated_v3)`;
+  if (category_filter)   url += `&topic=eq.${encodeURIComponent(category_filter)}`;
+  if (year_group_filter) url += `&year_group=eq.${encodeURIComponent(year_group_filter)}`;
 
   const fetchRes = await fetch(url, { headers: supabaseHeaders(serviceRoleKey) });
   if (!fetchRes.ok) {
     const body = await fetchRes.text();
-    return res.status(500).json({ error: 'Failed to fetch reference questions', detail: body });
+    return res.status(500).json({ error: 'Failed to fetch questions', detail: body });
   }
   const questions = await fetchRes.json();
   if (!questions.length) return res.json({ processed: 0, results: [], stats: {}, done: true });
 
   // ── Get total count for progress tracking ──────────
-  let countUrl = `${supabaseUrl}/rest/v1/reference_questions?select=id`;
-  if (category_filter)   countUrl += `&category=eq.${encodeURIComponent(category_filter)}`;
+  let countUrl = `${supabaseUrl}/rest/v1/questions?select=id&source=in.(ai_generated_v2,ai_generated_v3)`;
+  if (category_filter)   countUrl += `&topic=eq.${encodeURIComponent(category_filter)}`;
   if (year_group_filter) countUrl += `&year_group=eq.${encodeURIComponent(year_group_filter)}`;
   const countRes = await fetch(countUrl, {
     headers: { ...supabaseHeaders(serviceRoleKey), 'Prefer': 'count=exact', 'Range': '0-0' },
@@ -1239,8 +1240,8 @@ async function handleBulkRevalidate(req, res) {
   }
 
   for (const q of questions) {
-    const { id, question_text, correct_answer, category, year_group, options, passage } = q;
-    const cat = (category || '').toLowerCase();
+    const { id, question_text, correct_answer, topic, year_group, options, passage } = q;
+    const cat = (topic || '').toLowerCase();
 
     const optionsBlock = options && typeof options === 'object' && Object.keys(options).length
       ? '\nAnswer options:\n' + Object.entries(options).map(([k, v]) => `  ${k}: ${v}`).join('\n')
@@ -1291,18 +1292,14 @@ async function handleBulkRevalidate(req, res) {
         outcome = scores.every(s => s >= 6) ? 'pass' : scores.some(s => s < 4) ? 'fail' : 'warn';
       }
 
-      // Update reference_questions row with new validation scores
-      await fetch(`${supabaseUrl}/rest/v1/reference_questions?id=eq.${id}`, {
+      // Update questions row with new validation verdict
+      const combinedReason = [v1_reason, v4_reason].filter(Boolean).join(' | ') || null;
+      await fetch(`${supabaseUrl}/rest/v1/questions?id=eq.${id}`, {
         method: 'PATCH',
         headers: supabaseHeaders(serviceRoleKey, { 'Prefer': 'return=minimal' }),
         body: JSON.stringify({
-          validation_outcome: outcome,
-          v1_score,
-          v1_reason,
-          v4_score,
-          v4_reason,
-          combined_score,
-          revalidated_at: new Date().toISOString(),
+          validator_verdict: outcome,
+          validator_reason:  combinedReason,
         }),
       });
 
