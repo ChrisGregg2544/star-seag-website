@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bulk Revalidate — STAR Question Builder</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Nunito', sans-serif; background: #FFFBF0; color: #1A1A1A; min-height: 100vh; }
+
+    /* ── HEADER ── */
+    .top-header {
+      background: #FF6B00; height: 60px; padding: 0 24px;
+      display: flex; align-items: center; justify-content: space-between;
+      box-shadow: 0 3px 0 #CC5500;
+    }
+    .top-header h1 { font-size: 1.1rem; font-weight: 900; color: #fff; letter-spacing: .02em; }
+    .top-header h1 span { font-size: .75rem; font-weight: 700; color: rgba(255,255,255,.7); margin-left: 8px; }
+    .signout-link {
+      font-size: .78rem; font-weight: 700; color: rgba(255,255,255,.7);
+      cursor: pointer; text-decoration: underline; background: none; border: none;
+      font-family: 'Nunito', sans-serif;
+    }
+    .signout-link:hover { color: #fff; }
+
+    .sub-nav {
+      background: #fff; border-bottom: 2px solid #F0E0C0;
+      padding: 0 24px; display: flex; gap: 0;
+    }
+    .sub-nav a {
+      display: inline-block; padding: 12px 20px;
+      font-size: .82rem; font-weight: 800; letter-spacing: .04em;
+      text-transform: uppercase; text-decoration: none;
+      border-bottom: 3px solid transparent; margin-bottom: -2px; transition: all .15s;
+    }
+    .sub-nav a.active { color: #FF6B00; border-bottom-color: #FF6B00; }
+    .sub-nav a:not(.active) { color: #666; }
+    .sub-nav a:not(.active):hover { color: #FF6B00; }
+
+    /* ── PAGE ── */
+    .page-wrap { max-width: 900px; margin: 0 auto; padding: 32px 20px 60px; }
+    .page-title { font-size: 1.4rem; font-weight: 900; color: #1A1A1A; margin-bottom: 6px; }
+    .page-sub   { font-size: .9rem; font-weight: 600; color: #666; margin-bottom: 28px; }
+
+    .card {
+      background: #fff; border: 2px solid #E8D8B8;
+      border-radius: 16px; padding: 28px;
+      box-shadow: 0 2px 8px rgba(0,0,0,.05); margin-bottom: 24px;
+    }
+    .card-title { font-size: 1rem; font-weight: 900; margin-bottom: 16px; color: #1A1A1A; }
+
+    /* ── CONTROLS ── */
+    .controls-row { display: flex; gap: 16px; align-items: flex-end; flex-wrap: wrap; }
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-group label {
+      font-size: .78rem; font-weight: 900; letter-spacing: .06em;
+      text-transform: uppercase; color: #666;
+    }
+    select {
+      font-family: 'Nunito', sans-serif; font-size: .92rem; font-weight: 700;
+      border: 2px solid #E0E0E0; border-radius: 10px;
+      padding: 10px 12px; outline: none; color: #1A1A1A;
+      transition: border-color .15s; background: #fff;
+    }
+    select:focus { border-color: #FF6B00; }
+
+    .btn-primary {
+      padding: 12px 28px; border-radius: 10px; border: none;
+      background: #FF6B00; color: #fff;
+      font-family: 'Nunito', sans-serif; font-size: .95rem; font-weight: 900;
+      cursor: pointer; box-shadow: 0 4px 0 #CC5500; transition: all .15s; white-space: nowrap;
+    }
+    .btn-primary:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 5px 0 #CC5500; }
+    .btn-primary:active:not(:disabled) { transform: translateY(2px); box-shadow: 0 2px 0 #CC5500; }
+    .btn-primary:disabled { opacity: .6; cursor: not-allowed; }
+
+    .btn-stop {
+      padding: 12px 24px; border-radius: 10px;
+      border: 2px solid #f44336; background: #fff; color: #f44336;
+      font-family: 'Nunito', sans-serif; font-size: .92rem; font-weight: 900;
+      cursor: pointer; transition: all .15s; white-space: nowrap;
+    }
+    .btn-stop:hover { background: #FFF0F0; }
+
+    /* ── PROGRESS ── */
+    #progress-section { display: none; }
+
+    .progress-bar-wrap {
+      background: #F0E0C0; border-radius: 20px; height: 24px;
+      overflow: hidden; margin-bottom: 10px;
+    }
+    .progress-bar-fill {
+      height: 100%; background: #FF6B00; border-radius: 20px;
+      transition: width .4s ease; min-width: 0%;
+    }
+    .progress-labels {
+      display: flex; justify-content: space-between;
+      font-size: .82rem; font-weight: 800; color: #888; margin-bottom: 20px;
+    }
+
+    .status-text {
+      font-size: .9rem; font-weight: 700; color: #555;
+      margin-bottom: 20px; min-height: 1.4em;
+    }
+
+    /* ── STATS TABLE ── */
+    .stats-table { width: 100%; border-collapse: collapse; font-size: .85rem; }
+    .stats-table th {
+      text-align: left; font-size: .72rem; font-weight: 900;
+      letter-spacing: .06em; text-transform: uppercase; color: #888;
+      padding: 6px 12px; border-bottom: 2px solid #F0E0C0;
+    }
+    .stats-table th.num { text-align: center; }
+    .stats-table td {
+      padding: 8px 12px; border-bottom: 1px solid #F5F0E8; font-weight: 700;
+    }
+    .stats-table td.num { text-align: center; }
+    .stats-table tr:last-child td { border-bottom: none; }
+    .stats-table .cat-name { text-transform: capitalize; color: #1A1A1A; }
+    .num.pass  { color: #2E7D32; font-weight: 900; }
+    .num.warn  { color: #E65100; font-weight: 900; }
+    .num.fail  { color: #B71C1C; font-weight: 900; }
+    .num.total { color: #555; }
+
+    .totals-row td { font-weight: 900; font-size: .88rem; border-top: 2px solid #E8D8B8; padding-top: 10px; }
+
+    /* ── BANNER ── */
+    .banner {
+      border-radius: 12px; padding: 16px 20px;
+      font-size: .95rem; font-weight: 800; display: none;
+    }
+    .banner.success { background: #E8F5E9; border: 2px solid #A5D6A7; color: #1B5E20; }
+    .banner.error   { background: #FFF0F0; border: 2px solid #FFCDD2; color: #B71C1C; }
+
+    /* ── AUTH GATE ── */
+    .auth-gate {
+      position: fixed; inset: 0; background: #FFFBF0;
+      display: flex; align-items: center; justify-content: center; z-index: 100;
+    }
+    .auth-card {
+      background: #fff; border: 2px solid #E8D8B8; border-radius: 20px;
+      padding: 40px 36px; width: 100%; max-width: 360px; text-align: center;
+      box-shadow: 0 4px 24px rgba(0,0,0,.08);
+    }
+    .auth-card h2 { font-size: 1.2rem; font-weight: 900; margin-bottom: 6px; }
+    .auth-card p  { font-size: .85rem; font-weight: 700; color: #888; margin-bottom: 20px; }
+    .auth-input {
+      width: 100%; font-family: 'Nunito', sans-serif; font-size: 1rem; font-weight: 700;
+      border: 2px solid #E0E0E0; border-radius: 10px; padding: 12px 14px;
+      outline: none; margin-bottom: 14px; text-align: center; letter-spacing: .08em;
+    }
+    .auth-input:focus { border-color: #FF6B00; }
+    .auth-input.shake { animation: shake .3s ease; }
+    @keyframes shake {
+      0%,100%{transform:translateX(0)} 25%{transform:translateX(-8px)} 75%{transform:translateX(8px)}
+    }
+    .auth-error { color: #f44336; font-size: .82rem; font-weight: 700; min-height: 1.2em; margin-bottom: 4px; }
+  </style>
+</head>
+<body>
+
+<!-- ── AUTH GATE ── -->
+<div class="auth-gate" id="auth-gate">
+  <div class="auth-card">
+    <h2>Question Builder</h2>
+    <p>Enter password to continue</p>
+    <input type="password" class="auth-input" id="auth-input" placeholder="Password" />
+    <div class="auth-error" id="auth-error"></div>
+    <button class="btn-primary" style="width:100%" onclick="checkAuth()">Enter</button>
+  </div>
+</div>
+
+<!-- ── HEADER ── -->
+<div class="top-header">
+  <h1>STAR Question Builder <span>Internal Tool</span></h1>
+  <button class="signout-link" onclick="signOut()">Sign out</button>
+</div>
+
+<!-- ── SUB NAV ── -->
+<nav class="sub-nav">
+  <a href="/question-builder/">Dashboard</a>
+  <a href="/question-builder/extract.html">Extract</a>
+  <a href="/question-builder/generate.html">Generate</a>
+  <a href="/question-builder/test-passages.html">Passages</a>
+  <a href="/question-builder/bulk-revalidate.html" class="active">Revalidate</a>
+</nav>
+
+<!-- ── PAGE ── -->
+<div class="page-wrap">
+  <div class="page-title">Bulk Revalidate Questions</div>
+  <div class="page-sub">Run all questions in the reference bank through the validator pipeline and update scores.</div>
+
+  <!-- Controls -->
+  <div class="card">
+    <div class="card-title">Revalidation Settings</div>
+    <div class="controls-row">
+      <div class="form-group">
+        <label>Category</label>
+        <select id="category-filter">
+          <option value="">All Categories</option>
+          <option value="punctuation">Punctuation</option>
+          <option value="spelling">Spelling</option>
+          <option value="grammar">Grammar</option>
+          <option value="vocabulary">Vocabulary</option>
+          <option value="comprehension_mc">Comprehension MC</option>
+          <option value="comprehension_written">Comprehension Written</option>
+          <option value="arithmetic">Arithmetic</option>
+          <option value="geometry">Geometry</option>
+          <option value="fractions_decimals">Fractions / Decimals</option>
+          <option value="measurement">Measurement</option>
+          <option value="statistics">Statistics</option>
+          <option value="algebra_sequences">Algebra / Sequences</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Year Group</label>
+        <select id="year-group-filter">
+          <option value="">Both</option>
+          <option value="P6">P6</option>
+          <option value="P7">P7</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Batch Size</label>
+        <select id="batch-size">
+          <option value="5">5 per batch</option>
+          <option value="10" selected>10 per batch</option>
+          <option value="20">20 per batch</option>
+        </select>
+      </div>
+      <button class="btn-primary" id="start-btn" onclick="startRevalidation()">Begin Revalidation</button>
+      <button class="btn-stop" id="stop-btn" style="display:none" onclick="stopRevalidation()">Stop</button>
+    </div>
+  </div>
+
+  <!-- Banner -->
+  <div class="banner" id="banner"></div>
+
+  <!-- Progress -->
+  <div class="card" id="progress-section">
+    <div class="card-title">Progress</div>
+    <div class="progress-bar-wrap">
+      <div class="progress-bar-fill" id="progress-fill" style="width:0%"></div>
+    </div>
+    <div class="progress-labels">
+      <span id="progress-label">0%</span>
+      <span id="progress-count">0 / 0 questions</span>
+    </div>
+    <div class="status-text" id="status-text">Starting…</div>
+
+    <table class="stats-table">
+      <thead>
+        <tr>
+          <th>Category</th>
+          <th class="num pass">Pass</th>
+          <th class="num warn">Warn</th>
+          <th class="num fail">Fail</th>
+          <th class="num total">Total</th>
+        </tr>
+      </thead>
+      <tbody id="stats-body">
+        <tr><td colspan="5" style="text-align:center;color:#aaa;padding:20px;font-weight:700">Waiting to start…</td></tr>
+      </tbody>
+      <tfoot id="stats-foot" style="display:none">
+        <tr class="totals-row">
+          <td class="cat-name">TOTAL</td>
+          <td class="num pass" id="total-pass">0</td>
+          <td class="num warn" id="total-warn">0</td>
+          <td class="num fail" id="total-fail">0</td>
+          <td class="num total" id="total-all">0</td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+</div>
+
+<script>
+  // ── Auth ───────────────────────────────────────────────
+  const AUTH_KEY = 'qb_auth';
+  const PASSWORD = 'star2024';
+
+  function checkAuth() {
+    const val = document.getElementById('auth-input').value;
+    if (val === PASSWORD) {
+      sessionStorage.setItem(AUTH_KEY, '1');
+      document.getElementById('auth-gate').style.display = 'none';
+    } else {
+      const inp = document.getElementById('auth-input');
+      document.getElementById('auth-error').textContent = 'Incorrect password';
+      inp.classList.add('shake');
+      setTimeout(() => inp.classList.remove('shake'), 400);
+    }
+  }
+  function signOut() { sessionStorage.removeItem(AUTH_KEY); location.reload(); }
+  document.getElementById('auth-input').addEventListener('keydown', e => { if (e.key === 'Enter') checkAuth(); });
+  if (sessionStorage.getItem(AUTH_KEY)) document.getElementById('auth-gate').style.display = 'none';
+
+  // ── State ──────────────────────────────────────────────
+  let running = false;
+  let allStats = {};   // { category: { pass, warn, fail, total } }
+
+  // ── Helpers ────────────────────────────────────────────
+  function el(id) { return document.getElementById(id); }
+
+  function showBanner(msg, type = 'success') {
+    const b = el('banner');
+    b.textContent = msg;
+    b.className = `banner ${type}`;
+    b.style.display = 'block';
+    if (type === 'success') b.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  function updateProgress(processed, total) {
+    const pct = total > 0 ? Math.round((processed / total) * 100) : 0;
+    el('progress-fill').style.width = `${pct}%`;
+    el('progress-label').textContent = `${pct}%`;
+    el('progress-count').textContent = `${processed} / ${total} questions`;
+  }
+
+  function mergeStats(newStats) {
+    for (const [cat, s] of Object.entries(newStats)) {
+      if (!allStats[cat]) allStats[cat] = { pass: 0, warn: 0, fail: 0, total: 0 };
+      allStats[cat].pass  += s.pass  || 0;
+      allStats[cat].warn  += s.warn  || 0;
+      allStats[cat].fail  += s.fail  || 0;
+      allStats[cat].total += s.total || 0;
+    }
+  }
+
+  function renderStats() {
+    const body = el('stats-body');
+    const cats = Object.keys(allStats).sort();
+    if (!cats.length) return;
+
+    let totalPass = 0, totalWarn = 0, totalFail = 0, totalAll = 0;
+    body.innerHTML = cats.map(cat => {
+      const s = allStats[cat];
+      totalPass += s.pass; totalWarn += s.warn; totalFail += s.fail; totalAll += s.total;
+      return `<tr>
+        <td class="cat-name">${cat.replace(/_/g, ' ')}</td>
+        <td class="num pass">${s.pass}</td>
+        <td class="num warn">${s.warn}</td>
+        <td class="num fail">${s.fail}</td>
+        <td class="num total">${s.total}</td>
+      </tr>`;
+    }).join('');
+
+    el('total-pass').textContent = totalPass;
+    el('total-warn').textContent = totalWarn;
+    el('total-fail').textContent = totalFail;
+    el('total-all').textContent  = totalAll;
+    el('stats-foot').style.display = '';
+  }
+
+  // ── Main loop ──────────────────────────────────────────
+  async function startRevalidation() {
+    if (running) return;
+    running = true;
+    allStats = {};
+
+    const categoryFilter  = el('category-filter').value;
+    const yearGroupFilter = el('year-group-filter').value;
+    const batchSize       = parseInt(el('batch-size').value);
+
+    el('start-btn').disabled = true;
+    el('stop-btn').style.display = '';
+    el('progress-section').style.display = 'block';
+    el('banner').style.display = 'none';
+    el('stats-foot').style.display = 'none';
+    el('stats-body').innerHTML = '<tr><td colspan="5" style="text-align:center;color:#aaa;padding:20px;font-weight:700">Processing…</td></tr>';
+    updateProgress(0, 0);
+
+    let offset = 0;
+    let batchNum = 0;
+    let total = 0;
+
+    try {
+      while (running) {
+        batchNum++;
+        el('status-text').textContent = `Processing batch ${batchNum}… (offset ${offset})`;
+
+        const res = await fetch('/api/question-builder', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action:             'bulk-revalidate',
+            batch_size:         batchSize,
+            offset,
+            category_filter:    categoryFilter  || undefined,
+            year_group_filter:  yearGroupFilter || undefined,
+          }),
+        });
+
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({ error: res.statusText }));
+          throw new Error(err.error || `HTTP ${res.status}`);
+        }
+
+        const json = await res.json();
+        total = json.total || total;
+
+        mergeStats(json.stats || {});
+        renderStats();
+        updateProgress(json.offset, total);
+
+        const batchLabel = categoryFilter
+          ? `${categoryFilter}${yearGroupFilter ? ' ' + yearGroupFilter : ''}`
+          : yearGroupFilter || 'all categories';
+        el('status-text').textContent = `Batch ${batchNum} complete — processed ${json.offset} of ${total} (${batchLabel})`;
+
+        if (json.done) {
+          running = false;
+          break;
+        }
+
+        offset = json.offset;
+
+        // Small delay between batches to avoid hammering the API
+        await new Promise(r => setTimeout(r, 500));
+      }
+
+      // ── Final summary ────────────────────────────────
+      const tp = parseInt(el('total-pass').textContent);
+      const tw = parseInt(el('total-warn').textContent);
+      const tf = parseInt(el('total-fail').textContent);
+      const tt = parseInt(el('total-all').textContent);
+
+      el('status-text').textContent = running === false
+        ? `Stopped after ${offset} questions.`
+        : `Finished all ${tt} questions.`;
+
+      showBanner(
+        running === false && offset < total
+          ? `Stopped at ${offset} / ${total}. Passed: ${tp} · Warned: ${tw} · Failed: ${tf}`
+          : `Complete! ${tt} questions revalidated. Passed: ${tp} · Warned: ${tw} · Failed: ${tf}`,
+        'success'
+      );
+
+    } catch (err) {
+      console.error('Revalidation error:', err);
+      el('status-text').textContent = `Error: ${err.message}`;
+      showBanner(`Error: ${err.message}`, 'error');
+    } finally {
+      running = false;
+      el('start-btn').disabled = false;
+      el('stop-btn').style.display = 'none';
+    }
+  }
+
+  function stopRevalidation() {
+    running = false;
+    el('status-text').textContent = 'Stopping after current batch…';
+    el('stop-btn').disabled = true;
+  }
+</script>
+</body>
+</html>
