@@ -467,6 +467,9 @@ async function runGenerate() {
   }
 
   el('generate-btn').disabled = true;
+  const saveBtn = el('save-btn');
+  saveBtn.disabled = false;
+  saveBtn.textContent = 'Save All Passing';
   el('results-section').style.display = 'none';
   el('loading-section').style.display = 'block';
   el('loading-msg').textContent = `Generating ${batchSize} question(s) for ${category} ${yearGroup}…`;
