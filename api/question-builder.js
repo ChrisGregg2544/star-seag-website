@@ -1149,6 +1149,8 @@ const QUESTION_TYPES = {
     { type: 'literal',    instruction: 'Ask a second literal retrieval question about a different part of the passage.' },
     { type: 'inference',  instruction: 'Ask a second inference question requiring a different deduction.' },
     { type: 'vocabulary', instruction: 'Ask about a second word or phrase from the passage.' },
+    { type: 'literal',    instruction: 'Ask a third literal retrieval question about a different detail in the passage.' },
+    { type: 'inference',  instruction: 'Ask a third inference question requiring a further deduction from the text.' },
   ],
   written: [
     { type: 'explain',  instruction: 'Ask the pupil to explain in their own words why something happened or what something means.' },
@@ -1167,7 +1169,7 @@ Passage title: ${title}
 Passage: ${passage}
 Year group: ${year_group}
 
-Write exactly 7 multiple-choice questions about this passage.
+Write exactly 9 multiple-choice questions about this passage.
 Question types to include (one per question, in this order):
 ${QUESTION_TYPES.mc.map((t, i) => `${i + 1}. ${t.type.toUpperCase()}: ${t.instruction}`).join('\n')}
 
@@ -1179,7 +1181,7 @@ Rules:
 - Use UK English throughout
 - Keep language accessible for ${year_group} (age ${year_group === 'P6' ? '10-11' : '11-12'})
 
-Return ONLY a valid JSON array of 7 objects. Each object:
+Return ONLY a valid JSON array of 9 objects. Each object:
 {
   "question_text": "the question",
   "options": {"A":"...","B":"...","C":"...","D":"...","E":"..."},
