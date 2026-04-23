@@ -544,25 +544,31 @@ async function handleGetQuestionCounts(req, res) {
 // ══════════════════════════════════════════════════════
 
 function generateSVGFromDescription(description) {
+  console.log('Generating SVG for:', description);
   if (!description) return null;
 
   if (description.includes('triangle')) {
+    console.log('Matched: triangle');
     const angles = description.match(/(\d+)°/g).map(a => parseInt(a));
     return generateDiagram('triangle', { angles });
   }
   else if (description.includes('rectangle')) {
+    console.log('Matched: rectangle');
     const [length, width] = description.match(/\d+/g).map(Number);
     return generateDiagram('shape', { subtype: 'rectangle', length, width });
   }
   else if (description.includes('square')) {
+    console.log('Matched: square');
     const side = parseInt(description.match(/\d+/)[0]);
     return generateDiagram('shape', { subtype: 'square', side });
   }
   else if (description.includes('cuboid')) {
+    console.log('Matched: cuboid');
     const [length, width, height] = description.match(/\d+/g).map(Number);
     return generateDiagram('cuboid', { length, width, height });
   }
   else if (description.includes('fraction-grid')) {
+    console.log('Matched fraction-grid');
     const [num, denom] = description.match(/\d+/g).map(Number);
     return generateDiagram('fraction-grid', {
       rows: Math.min(denom, 10),
@@ -571,6 +577,7 @@ function generateSVGFromDescription(description) {
     });
   }
   else if (description.includes('pie-chart: fraction')) {
+    console.log('Matched pie-chart fraction');
     const fractions = description.match(/(\d+)\/(\d+)/g);
     const data = fractions.map(f => {
       const [n, d] = f.split('/').map(Number);
@@ -579,6 +586,7 @@ function generateSVGFromDescription(description) {
     return generateDiagram('pie-chart', { data });
   }
   else if (description.includes('pie-chart: percentage')) {
+    console.log('Matched: pie-chart percentage');
     const percent = parseInt(description.match(/\d+/)[0]);
     return generateDiagram('pie-chart', {
       data: [
@@ -588,16 +596,17 @@ function generateSVGFromDescription(description) {
     });
   }
   else if (description.includes('measurement-scale: ruler')) {
-    // "measurement-scale: ruler, position Xcm"
+    console.log('Matched: measurement-scale ruler');
     const pos = parseInt(description.match(/\d+/)[0]);
     return generateDiagram('measurement-scale', { type: 'ruler', highlight: pos });
   }
   else if (description.includes('measurement-scale: weighing-dial')) {
-    // "measurement-scale: weighing-dial, position Xg"
+    console.log('Matched: measurement-scale weighing-dial');
     const pos = parseInt(description.match(/\d+/)[0]);
     return generateDiagram('measurement-scale', { type: 'weighing-dial', highlight: pos });
   }
 
+  console.log('No SVG match for:', description);
   return null;
 }
 
