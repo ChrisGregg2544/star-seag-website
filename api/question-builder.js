@@ -1757,6 +1757,14 @@ export default async function handler(req, res) {
     case 'generate-passage':               return handleGeneratePassage(req, res);
     case 'generate-comprehension-questions': return handleGenerateComprehensionQuestions(req, res);
     case 'save-comprehension-set':           return await handleSaveComprehensionSet(req, res);
+    case 'generate-arithmetic-batch': {
+      const count = Math.min(req.body.count || 5, 50);
+      const arithmeticQuestions = [];
+      for (let i = 0; i < count; i++) {
+        arithmeticQuestions.push(generateArithmeticQuestion(req.body.year_group || 'P6'));
+      }
+      return res.json({ questions: arithmeticQuestions });
+    }
     case 'test-arithmetic': {
       const testQuestions = [];
       for (let i = 0; i < 5; i++) {

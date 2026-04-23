@@ -476,10 +476,16 @@ async function runGenerate() {
   currentResults = [];
 
   try {
+    // Arithmetic uses programmatic generation; all other categories use AI template mode
+    const isArithmetic = category === 'arithmetic';
     const genRes = await fetch('/api/question-builder', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'generate-questions', category, year_group: yearGroup, batch_size: batchSize }),
+      body: JSON.stringify(
+        isArithmetic
+          ? { action: 'generate-arithmetic-batch', year_group: yearGroup, count: batchSize }
+          : { action: 'generate-questions', category, year_group: yearGroup, batch_size: batchSize }
+      ),
     });
     const genJson = await genRes.json();
     if (!genRes.ok || genJson.error) throw new Error(genJson.error || 'Generation failed');
@@ -490,7 +496,8 @@ async function runGenerate() {
     el('loading-msg').textContent = `Validating ${questions.length} question(s)…`;
 
     for (const q of questions) {
-      const difficultyStr = q.difficulty <= 2 ? 'easy' : q.difficulty >= 4 ? 'hard' : 'medium';
+      const difficultyStr = typeof q.difficulty === 'string' ? q.difficulty
+        : q.difficulty <= 1 ? 'easy' : q.difficulty >= 3 ? 'hard' : 'medium';
       const valRes = await fetch('/api/question-builder', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
