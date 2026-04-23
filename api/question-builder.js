@@ -13,6 +13,8 @@
      POST /api/question-builder  { action: 'save-reference', ...params }
 ══════════════════════════════════════════════════════ */
 
+import { generateDiagram } from '../diagram-generator.js';
+
 export const config = { maxDuration: 60 };
 
 const ANTHROPIC_URL = 'https://api.anthropic.com/v1/messages';
