@@ -1740,6 +1740,165 @@ function generateArithmeticQuestion(year_group) {
 }
 
 // ══════════════════════════════════════════════════════
+// GEOMETRY QUESTION GENERATION (programmatic, no AI)
+// ══════════════════════════════════════════════════════
+
+function generateGeometryQuestion(year_group) {
+  const isP7 = year_group === 'P7';
+
+  const ops = ['rectangle_area', 'rectangle_perimeter', 'square_area', 'square_perimeter', 'triangle_angles', 'shape_properties'];
+  if (isP7) ops.push('cuboid_volume', 'composite_area', 'circle_basics');
+  const op = ops[randInt(0, ops.length - 1)];
+
+  let question_text, answer, explanation, difficulty, needs_diagram, diagram_description;
+
+  switch (op) {
+    case 'rectangle_area': {
+      const l = isP7 ? randInt(8, 25) : randInt(3, 12);
+      const w = isP7 ? randInt(4, 15) : randInt(2, 10);
+      answer        = l * w;
+      question_text = `What is the area of a rectangle with length ${l} cm and width ${w} cm?`;
+      explanation   = `Area = length × width = ${l} × ${w} = ${answer} cm²`;
+      difficulty    = 1;
+      needs_diagram = true;
+      diagram_description = `Rectangle with length ${l} cm and width ${w} cm, labelled`;
+      break;
+    }
+    case 'rectangle_perimeter': {
+      const l = isP7 ? randInt(8, 25) : randInt(3, 12);
+      const w = isP7 ? randInt(4, 15) : randInt(2, 10);
+      answer        = 2 * (l + w);
+      question_text = `What is the perimeter of a rectangle with length ${l} cm and width ${w} cm?`;
+      explanation   = `Perimeter = 2 × (length + width) = 2 × (${l} + ${w}) = 2 × ${l + w} = ${answer} cm`;
+      difficulty    = 1;
+      needs_diagram = true;
+      diagram_description = `Rectangle with length ${l} cm and width ${w} cm, labelled`;
+      break;
+    }
+    case 'square_area': {
+      const s = isP7 ? randInt(8, 20) : randInt(2, 12);
+      answer        = s * s;
+      question_text = `What is the area of a square with sides of ${s} cm?`;
+      explanation   = `Area = side × side = ${s} × ${s} = ${answer} cm²`;
+      difficulty    = 1;
+      needs_diagram = true;
+      diagram_description = `Square with sides of ${s} cm, labelled`;
+      break;
+    }
+    case 'square_perimeter': {
+      const s = isP7 ? randInt(8, 25) : randInt(2, 15);
+      answer        = 4 * s;
+      question_text = `What is the perimeter of a square with sides of ${s} cm?`;
+      explanation   = `Perimeter = 4 × side = 4 × ${s} = ${answer} cm`;
+      difficulty    = 1;
+      needs_diagram = true;
+      diagram_description = `Square with sides of ${s} cm, labelled`;
+      break;
+    }
+    case 'triangle_angles': {
+      let a, b, c;
+      do {
+        a = randInt(30, 80);
+        b = randInt(20, 80);
+        c = 180 - a - b;
+      } while (c < 15 || c > 120);
+      const asking = randInt(0, 2);
+      if (asking === 0) {
+        question_text = `A triangle has angles of ${b}° and ${c}°. What is the size of the missing angle?`;
+        answer = a;
+      } else if (asking === 1) {
+        question_text = `A triangle has angles of ${a}° and ${c}°. What is the size of the missing angle?`;
+        answer = b;
+      } else {
+        question_text = `A triangle has angles of ${a}° and ${b}°. What is the size of the missing angle?`;
+        answer = c;
+      }
+      explanation   = `Angles in a triangle add up to 180°. Missing angle = 180° − ${180 - answer}° = ${answer}°`;
+      difficulty    = 2;
+      needs_diagram = true;
+      diagram_description = `Triangle with two angles labelled and one angle marked with a question mark`;
+      break;
+    }
+    case 'shape_properties': {
+      const shapes = [
+        { name: 'triangle', sides: 3 },
+        { name: 'square', sides: 4 },
+        { name: 'rectangle', sides: 4 },
+        { name: 'pentagon', sides: 5 },
+        { name: 'hexagon', sides: 6 },
+        { name: 'heptagon', sides: 7 },
+        { name: 'octagon', sides: 8 },
+      ];
+      const shape       = shapes[randInt(0, shapes.length - 1)];
+      const askVertices = randInt(0, 1);
+      answer        = shape.sides;
+      question_text = askVertices
+        ? `How many vertices (corners) does a ${shape.name} have?`
+        : `How many sides does a ${shape.name} have?`;
+      explanation   = `A ${shape.name} has ${shape.sides} ${askVertices ? 'vertices' : 'sides'}.`;
+      difficulty    = 1;
+      needs_diagram = false;
+      diagram_description = null;
+      break;
+    }
+    case 'cuboid_volume': {
+      const l = randInt(5, 15), w = randInt(3, 10), h = randInt(2, 8);
+      answer        = l * w * h;
+      question_text = `What is the volume of a cuboid with length ${l} cm, width ${w} cm and height ${h} cm?`;
+      explanation   = `Volume = length × width × height = ${l} × ${w} × ${h} = ${answer} cm³`;
+      difficulty    = 2;
+      needs_diagram = true;
+      diagram_description = `Cuboid with length ${l} cm, width ${w} cm and height ${h} cm, all dimensions labelled`;
+      break;
+    }
+    case 'composite_area': {
+      const l1 = randInt(6, 14), w1 = randInt(5, 10);
+      const l2 = randInt(2, l1 - 2), w2 = randInt(2, w1 - 1);
+      answer        = l1 * w1 - l2 * w2;
+      question_text = `An L-shaped figure is made by cutting a ${l2} cm × ${w2} cm rectangle from the corner of a ${l1} cm × ${w1} cm rectangle. What is the area of the L-shape?`;
+      explanation   = `Area = (${l1} × ${w1}) − (${l2} × ${w2}) = ${l1 * w1} − ${l2 * w2} = ${answer} cm²`;
+      difficulty    = 3;
+      needs_diagram = true;
+      diagram_description = `L-shaped figure: outer rectangle ${l1} cm × ${w1} cm with a ${l2} cm × ${w2} cm rectangle removed from one corner, all dimensions labelled`;
+      break;
+    }
+    case 'circle_basics': {
+      const choice = randInt(0, 1);
+      if (choice === 0) {
+        const r = randInt(3, 15);
+        answer        = r * 2;
+        question_text = `A circle has a radius of ${r} cm. What is its diameter?`;
+        explanation   = `Diameter = 2 × radius = 2 × ${r} = ${answer} cm`;
+        diagram_description = `Circle with radius ${r} cm labelled from centre to edge`;
+      } else {
+        const d = randInt(3, 15) * 2;
+        answer        = d / 2;
+        question_text = `A circle has a diameter of ${d} cm. What is its radius?`;
+        explanation   = `Radius = diameter ÷ 2 = ${d} ÷ 2 = ${answer} cm`;
+        diagram_description = `Circle with diameter ${d} cm labelled across the full width`;
+      }
+      difficulty    = 1;
+      needs_diagram = true;
+      break;
+    }
+  }
+
+  const { options, correct_answer } = buildOptions(answer);
+
+  return {
+    question_text,
+    options,
+    correct_answer,
+    explanation,
+    category:           'geometry',
+    year_group,
+    difficulty,
+    needs_diagram,
+    diagram_description: diagram_description || null,
+  };
+}
+
+// ══════════════════════════════════════════════════════
 // MAIN ROUTER
 // ══════════════════════════════════════════════════════
 export default async function handler(req, res) {
