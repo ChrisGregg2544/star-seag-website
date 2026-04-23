@@ -557,7 +557,7 @@ function anthropicHeaders(apiKey) {
 }
 
 const SONNET_MODEL = 'claude-sonnet-4-6';
-const SPECIALIST_CATEGORIES = new Set(['punctuation', 'spelling', 'grammar']);
+const SPECIALIST_CATEGORIES = new Set(['punctuation', 'spelling', 'grammar', 'geometry']);
 
 async function callValidator(systemPrompt, userMessage, apiKey, model = HAIKU_MODEL) {
   const response = await fetch(ANTHROPIC_URL, {
@@ -968,7 +968,7 @@ Rate the quality of this question. Score 7+ = pass, 4-6 = warn, 1-3 = fail.`;
         // V2 (Difficulty/correctness) is authoritative for programmatic math questions
         outcome = v2.score >= 7 ? 'pass' : v2.score >= 5 ? 'rewrite' : 'fail';
       } else {
-        outcome = scores.every(s => s >= 6) ? 'pass' : scores.some(s => s < 5) ? 'fail' : 'rewrite';
+        outcome = scores.every(s => s >= 6) ? 'pass' : scores.some(s => s < 4) ? 'fail' : 'rewrite';
       }
       console.log(`run-validators: ${outcome} (${scores.join(', ')}) — ${category} ${year_group}`);
 
