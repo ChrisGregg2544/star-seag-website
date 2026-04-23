@@ -452,6 +452,63 @@ ${scale}${arrowEl}`);
     return wrap(`<circle cx="${cx}" cy="${cy}" r="${dialR}" fill="white" stroke="${GREY}" stroke-width="1.5"/>${marks}${needle}`);
   }
 
+  if (type === 'measuring-jug') {
+    const maxV = highlight !== undefined && highlight <= 500 ? 500 : 1000;
+    const interval = maxV === 500 ? 100 : 200;
+
+    // Jug body geometry
+    const jugL = 100, jugTop = 15, jugH = 150, jugW = 60;
+    const jugR = jugL + jugW;
+    const toY = v => r2(jugTop + jugH - (v / maxV) * jugH);
+
+    // Water fill
+    const fillY = highlight !== undefined ? toY(highlight) : jugTop + jugH;
+    const fillH = r2(jugTop + jugH - fillY);
+    const waterEl = fillH > 0
+      ? `<rect x="${jugL + 2}" y="${fillY}" width="${jugW - 4}" height="${fillH}" fill="#BFDBFE" opacity="0.8"/>`
+      : '';
+
+    // Scale tick marks (right side of jug)
+    let ticks = '';
+    for (let v = 0; v <= maxV; v += interval) {
+      const ty = toY(v);
+      const isMajor = v % interval === 0;
+      ticks += `<line x1="${jugR}" y1="${ty}" x2="${jugR + (isMajor ? 10 : 6)}" y2="${ty}" stroke="${GREY}" stroke-width="${isMajor ? 1.5 : 1}"/>`;
+      if (isMajor) {
+        ticks += `<text x="${jugR + 14}" y="${ty + 4}" fill="${GREY}" font-size="9" dominant-baseline="middle">${v}</text>`;
+      }
+    }
+
+    // Minor ticks every 50ml
+    const minorInterval = maxV === 500 ? 50 : 100;
+    for (let v = 0; v <= maxV; v += minorInterval) {
+      if (v % interval === 0) continue;
+      const ty = toY(v);
+      ticks += `<line x1="${jugR}" y1="${ty}" x2="${jugR + 6}" y2="${ty}" stroke="${GREY}" stroke-width="0.8"/>`;
+    }
+
+    // Highlight arrow + label
+    const highlightEl = highlight !== undefined
+      ? `<line x1="${jugL - 2}" y1="${toY(highlight)}" x2="${jugL - 12}" y2="${toY(highlight)}" stroke="${PURPLE}" stroke-width="1.5"/>
+<text x="${jugL - 16}" y="${toY(highlight) + 4}" text-anchor="end" fill="${PURPLE}" font-size="11" font-weight="bold">${highlight} ml</text>`
+      : '';
+
+    // Spout (small rectangle top-right)
+    const spoutEl = `<rect x="${jugR}" y="${jugTop}" width="10" height="18" rx="3" fill="#f1f5f9" stroke="${GREY}" stroke-width="1.2"/>`;
+
+    // Handle (arc on left)
+    const hMidY = r2(jugTop + jugH * 0.55);
+    const handleEl = `<path d="M${jugL} ${jugTop + 30} Q${jugL - 22} ${hMidY} ${jugL} ${jugTop + 90}" fill="none" stroke="${GREY}" stroke-width="2"/>`;
+
+    return wrap(`
+${waterEl}
+<rect x="${jugL}" y="${jugTop}" width="${jugW}" height="${jugH}" fill="none" stroke="${BLUE}" stroke-width="2" rx="3"/>
+${spoutEl}
+${handleEl}
+${ticks}
+${highlightEl}`);
+  }
+
   // Default: ruler (0–15 cm)
   const ry = H / 2 - 12, lx = 18, rx = 262, rh = 38, maxCm = 15;
   const toX = v => r2(lx + (v / maxCm) * (rx - lx));
