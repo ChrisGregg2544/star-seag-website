@@ -544,7 +544,11 @@ async function handleGetQuestionCounts(req, res) {
 // ══════════════════════════════════════════════════════
 
 function generateSVGFromDescription(description) {
-  console.log('Generating SVG for:', description);
+  if (!generateDiagram) {
+    console.error('generateDiagram is not defined!');
+    return null;
+  }
+  console.log('generateDiagram exists, processing:', description);
   if (!description) return null;
 
   if (description.includes('triangle')) {
