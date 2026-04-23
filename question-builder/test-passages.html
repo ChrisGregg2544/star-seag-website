@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Test Passages — STAR Question Builder</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Nunito', sans-serif;
+      background: #FFFBF0;
+      color: #1A1A1A;
+      min-height: 100vh;
+    }
+
+    /* ── HEADER ── */
+    .top-header {
+      background: #FF6B00;
+      height: 60px; padding: 0 24px;
+      display: flex; align-items: center; justify-content: space-between;
+      box-shadow: 0 3px 0 #CC5500;
+    }
+    .top-header h1 { font-size: 1.1rem; font-weight: 900; color: #fff; letter-spacing: .02em; }
+    .top-header h1 span { font-size: .75rem; font-weight: 700; color: rgba(255,255,255,.7); margin-left: 8px; }
+
+    .sub-nav {
+      background: #fff;
+      border-bottom: 2px solid #F0E0C0;
+      padding: 0 24px;
+      display: flex; gap: 0;
+    }
+    .sub-nav a {
+      display: inline-block; padding: 12px 20px;
+      font-size: .82rem; font-weight: 800; letter-spacing: .04em;
+      text-transform: uppercase; text-decoration: none;
+      border-bottom: 3px solid transparent; margin-bottom: -2px;
+      transition: all .15s; color: #666;
+    }
+    .sub-nav a.active { color: #FF6B00; border-bottom-color: #FF6B00; }
+    .sub-nav a:not(.active):hover { color: #FF6B00; }
+
+    /* ── PAGE ── */
+    .page-wrap { max-width: 800px; margin: 0 auto; padding: 32px 20px 60px; }
+    .page-title { font-size: 1.4rem; font-weight: 900; color: #1A1A1A; margin-bottom: 6px; }
+    .page-sub { font-size: .9rem; font-weight: 600; color: #666; margin-bottom: 28px; }
+
+    .card {
+      background: #fff; border: 2px solid #E8D8B8;
+      border-radius: 16px; padding: 28px;
+      box-shadow: 0 2px 8px rgba(0,0,0,.05);
+      margin-bottom: 24px;
+    }
+
+    /* ── FORM ── */
+    .form-row { display: flex; gap: 16px; align-items: flex-end; }
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-group label {
+      font-size: .78rem; font-weight: 900; letter-spacing: .06em;
+      text-transform: uppercase; color: #666;
+    }
+    select {
+      font-family: 'Nunito', sans-serif; font-size: .92rem; font-weight: 700;
+      border: 2px solid #E0E0E0; border-radius: 10px;
+      padding: 10px 12px; outline: none; color: #1A1A1A;
+      transition: border-color .15s; background: #fff;
+    }
+    select:focus { border-color: #FF6B00; }
+
+    .btn-primary {
+      padding: 12px 28px; border-radius: 10px; border: none;
+      background: #FF6B00; color: #fff;
+      font-family: 'Nunito', sans-serif; font-size: .95rem; font-weight: 900;
+      cursor: pointer; box-shadow: 0 4px 0 #CC5500; transition: all .15s;
+      white-space: nowrap;
+    }
+    .btn-primary:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 5px 0 #CC5500; }
+    .btn-primary:active:not(:disabled) { transform: translateY(2px); box-shadow: 0 2px 0 #CC5500; }
+    .btn-primary:disabled { opacity: .6; cursor: not-allowed; }
+
+    .btn-outline {
+      padding: 12px 28px; border-radius: 10px;
+      border: 2px solid #E0E0E0; background: #fff; color: #666;
+      font-family: 'Nunito', sans-serif; font-size: .95rem; font-weight: 900;
+      cursor: pointer; transition: all .15s;
+    }
+    .btn-outline:hover:not(:disabled) { border-color: #999; color: #333; }
+    .btn-outline:disabled { opacity: .4; cursor: not-allowed; }
+
+    /* ── LOADING ── */
+    .loading-section { display: none; text-align: center; padding: 32px 20px; }
+    .spinner {
+      display: inline-block; width: 36px; height: 36px;
+      border: 4px solid #F0E0C0; border-top-color: #FF6B00;
+      border-radius: 50%; animation: spin .75s linear infinite; margin-bottom: 14px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-section p { font-size: .92rem; font-weight: 700; color: #666; }
+
+    /* ── RESULT ── */
+    #result-section { display: none; }
+
+    .passage-card {
+      background: #fff; border: 2px solid #E8D8B8; border-radius: 14px; padding: 24px;
+      margin-bottom: 16px;
+    }
+    .passage-card.verdict-pass   { border-color: #A5D6A7; background: #F1F8F1; }
+    .passage-card.verdict-warn   { border-color: #FFBA80; background: #FFF8F0; }
+    .passage-card.verdict-fail   { border-color: #FFCDD2; background: #FFF0F0; }
+
+    .passage-header {
+      display: flex; align-items: flex-start; justify-content: space-between;
+      gap: 16px; margin-bottom: 16px; flex-wrap: wrap;
+    }
+    .passage-title {
+      font-size: 1.1rem; font-weight: 900; color: #1A1A1A;
+    }
+    .passage-meta {
+      font-size: .78rem; font-weight: 700; color: #888; margin-top: 4px;
+    }
+    .passage-meta span { margin-right: 14px; }
+
+    .verdict-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 6px 14px; border-radius: 20px;
+      font-size: .8rem; font-weight: 900; letter-spacing: .04em; text-transform: uppercase;
+      white-space: nowrap; flex-shrink: 0;
+    }
+    .verdict-badge.pass   { background: #E8F5E9; color: #2E7D32; }
+    .verdict-badge.warn   { background: #FFF3E0; color: #E65100; }
+    .verdict-badge.fail   { background: #FFEBEE; color: #B71C1C; }
+    .verdict-dot { width: 8px; height: 8px; border-radius: 50%; }
+    .pass  .verdict-dot { background: #4CAF50; }
+    .warn  .verdict-dot { background: #FF9800; }
+    .fail  .verdict-dot { background: #f44336; }
+
+    .passage-body {
+      font-size: .92rem; font-weight: 600; color: #333;
+      line-height: 1.75; white-space: pre-wrap;
+      border-top: 2px solid rgba(0,0,0,.06); padding-top: 16px;
+      margin-top: 4px;
+    }
+
+    .validation-card {
+      background: #F8F4EC; border: 2px solid #E8D8B8; border-radius: 14px;
+      padding: 20px 24px; margin-bottom: 16px;
+    }
+    .validation-label {
+      font-size: .75rem; font-weight: 900; letter-spacing: .06em;
+      text-transform: uppercase; color: #888; margin-bottom: 10px;
+    }
+    .score-row {
+      display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+    }
+    .score-chip {
+      display: flex; flex-direction: column; align-items: center;
+      border-radius: 10px; padding: 8px 14px; min-width: 58px;
+      font-size: .7rem; font-weight: 900; letter-spacing: .04em; text-transform: uppercase;
+    }
+    .score-chip .score-num { font-size: 1.4rem; font-weight: 900; line-height: 1; margin-bottom: 2px; }
+    .score-chip.pass   { background: #E8F5E9; color: #2E7D32; }
+    .score-chip.warn   { background: #FFF3E0; color: #E65100; }
+    .score-chip.fail   { background: #FFEBEE; color: #B71C1C; }
+    .score-reason {
+      font-size: .85rem; font-weight: 700; color: #555; line-height: 1.5;
+      flex: 1; min-width: 200px;
+    }
+
+    .result-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+  </style>
+</head>
+<body>
+
+  <header class="top-header">
+    <h1>STAR Question Builder <span>Internal Tool</span></h1>
+  </header>
+
+  <nav class="sub-nav">
+    <a href="/question-builder/index.html">Dashboard</a>
+    <a href="/question-builder/generate.html">Generate</a>
+    <a href="/question-builder/test-passages.html" class="active">Passages</a>
+  </nav>
+
+  <main class="page-wrap">
+    <h2 class="page-title">Test Passage Generation</h2>
+    <p class="page-sub">Generate and validate comprehension passages before building question sets around them.</p>
+
+    <!-- Controls -->
+    <div class="card">
+      <div class="form-row">
+        <div class="form-group">
+          <label for="year-group">Year Group</label>
+          <select id="year-group">
+            <option value="P6">P6</option>
+            <option value="P7">P7</option>
+          </select>
+        </div>
+        <button class="btn-primary" id="generate-btn" onclick="runGenerate()">Generate Passage</button>
+      </div>
+    </div>
+
+    <!-- Loading -->
+    <div class="loading-section" id="loading-section">
+      <div class="spinner"></div>
+      <p id="loading-msg">Generating passage…</p>
+    </div>
+
+    <!-- Result -->
+    <div id="result-section">
+
+      <div class="passage-card" id="passage-card">
+        <div class="passage-header">
+          <div>
+            <div class="passage-title" id="passage-title"></div>
+            <div class="passage-meta">
+              <span id="meta-year"></span>
+              <span id="meta-words"></span>
+            </div>
+          </div>
+          <div class="verdict-badge" id="verdict-badge">
+            <span class="verdict-dot"></span>
+            <span id="verdict-label"></span>
+          </div>
+        </div>
+        <div class="passage-body" id="passage-body"></div>
+      </div>
+
+      <div class="validation-card">
+        <div class="validation-label">Validation Result</div>
+        <div class="score-row">
+          <div class="score-chip" id="score-chip">
+            <span class="score-num" id="score-num">—</span>
+            <span>Score</span>
+          </div>
+          <div class="score-reason" id="score-reason"></div>
+        </div>
+      </div>
+
+      <div class="result-actions">
+        <button class="btn-primary" id="regen-btn" onclick="runGenerate()">Regenerate</button>
+        <button class="btn-outline" id="copy-btn" onclick="copyPassage()">Copy Passage</button>
+      </div>
+
+    </div>
+  </main>
+
+  <script>
+    const el = id => document.getElementById(id);
+
+    async function runGenerate() {
+      const yearGroup = el('year-group').value;
+
+      el('generate-btn').disabled = true;
+      el('regen-btn').disabled    = true;
+      el('result-section').style.display  = 'none';
+      el('loading-section').style.display = 'block';
+      el('loading-msg').textContent = `Generating ${yearGroup} passage…`;
+
+      try {
+        const res = await fetch('/api/question-builder', {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body:    JSON.stringify({ action: 'generate-passage', year_group: yearGroup }),
+        });
+        const json = await res.json();
+        if (!res.ok || json.error) throw new Error(json.error || 'Generation failed');
+
+        renderResult(json, yearGroup);
+      } catch (err) {
+        alert('Error: ' + (err.message || 'Something went wrong.'));
+      } finally {
+        el('loading-section').style.display = 'none';
+        el('generate-btn').disabled = false;
+        el('regen-btn').disabled    = false;
+      }
+    }
+
+    function renderResult(json, yearGroup) {
+      const { title, passage, word_count, validation } = json;
+      const score   = validation?.score   ?? 0;
+      const reason  = validation?.reason  ?? '';
+      const verdict = validation?.verdict ?? 'warn';
+
+      // Passage card
+      const card = el('passage-card');
+      card.className = `passage-card verdict-${verdict}`;
+
+      el('passage-title').textContent = title || '(untitled)';
+      el('meta-year').textContent     = yearGroup;
+      el('meta-words').textContent    = `${word_count ?? countWords(passage)} words`;
+      el('passage-body').textContent  = passage || '';
+
+      // Verdict badge
+      const badge = el('verdict-badge');
+      badge.className = `verdict-badge ${verdict}`;
+      el('verdict-label').textContent = verdict.toUpperCase();
+
+      // Score chip
+      const chip = el('score-chip');
+      chip.className = `score-chip ${verdict}`;
+      el('score-num').textContent   = score;
+      el('score-reason').textContent = reason;
+
+      el('result-section').style.display = 'block';
+    }
+
+    function countWords(text) {
+      return (text || '').trim().split(/\s+/).filter(Boolean).length;
+    }
+
+    function copyPassage() {
+      const title   = el('passage-title').textContent;
+      const body    = el('passage-body').textContent;
+      const text    = title + '\n\n' + body;
+      navigator.clipboard.writeText(text).then(() => {
+        const btn = el('copy-btn');
+        btn.textContent = 'Copied ✓';
+        setTimeout(() => { btn.textContent = 'Copy Passage'; }, 2000);
+      });
+    }
+  </script>
+</body>
+</html>
