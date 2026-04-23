@@ -1335,22 +1335,34 @@ async function handleGenerateComprehensionQuestions(req, res) {
     const questions    = await generateQuestionsForPassage(passage, passageTitle, year_group, apiKey);
     const result       = await validateQuestionSet(questions, passage, apiKey);
 
-    // Sort all questions by validation score descending, then filter to PASS only
-    const sorted  = [...result.questions].sort((a, b) => (b.validation.score ?? 0) - (a.validation.score ?? 0));
-    const passing = sorted.filter(q => q.validation.verdict === 'pass');
-    const selected = passing.slice(0, 13);
+    // Sort by score descending, then select best passing MC (7) and Written (6) separately
+    const byScore = (a, b) => (b.validation.score ?? 0) - (a.validation.score ?? 0);
+
+    const passingMC      = result.questions.filter(q => q.question_type === 'Multiple_Choice' && q.validation.verdict === 'pass').sort(byScore);
+    const passingWritten = result.questions.filter(q => q.question_type === 'written'          && q.validation.verdict === 'pass').sort(byScore);
+
+    const selectedMC      = passingMC.slice(0, 7);
+    const selectedWritten = passingWritten.slice(0, 6);
+    const selected        = [...selectedMC, ...selectedWritten];
+
+    const mcPassed      = result.questions.filter(q => q.question_type === 'Multiple_Choice').filter(q => q.validation.verdict === 'pass').length;
+    const writtenPassed = result.questions.filter(q => q.question_type === 'written').filter(q => q.validation.verdict === 'pass').length;
 
     return res.status(200).json({
       questions: result.questions,
       selected,
       summary: {
-        total:       result.questions.length,
-        passed:      result.summary.passed,
-        warned:      result.summary.warned,
-        failed:      result.summary.failed,
-        avg_score:   result.summary.avg_score,
-        selected:    selected.length,
-        is_complete: selected.length === 13,
+        total:            result.questions.length,
+        passed:           result.summary.passed,
+        warned:           result.summary.warned,
+        failed:           result.summary.failed,
+        avg_score:        result.summary.avg_score,
+        mc_passed:        mcPassed,
+        written_passed:   writtenPassed,
+        mc_selected:      selectedMC.length,
+        written_selected: selectedWritten.length,
+        selected:         selected.length,
+        is_complete:      selectedMC.length >= 7 && selectedWritten.length >= 6,
       },
     });
   } catch (err) {
