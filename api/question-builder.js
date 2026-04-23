@@ -1334,7 +1334,25 @@ async function handleGenerateComprehensionQuestions(req, res) {
     const passageTitle = title || 'Untitled Passage';
     const questions    = await generateQuestionsForPassage(passage, passageTitle, year_group, apiKey);
     const result       = await validateQuestionSet(questions, passage, apiKey);
-    return res.status(200).json(result);
+
+    // Sort all questions by validation score descending, then filter to PASS only
+    const sorted  = [...result.questions].sort((a, b) => (b.validation.score ?? 0) - (a.validation.score ?? 0));
+    const passing = sorted.filter(q => q.validation.verdict === 'pass');
+    const selected = passing.slice(0, 13);
+
+    return res.status(200).json({
+      questions: result.questions,
+      selected,
+      summary: {
+        total:       result.questions.length,
+        passed:      result.summary.passed,
+        warned:      result.summary.warned,
+        failed:      result.summary.failed,
+        avg_score:   result.summary.avg_score,
+        selected:    selected.length,
+        is_complete: selected.length === 13,
+      },
+    });
   } catch (err) {
     console.error('generate-comprehension-questions error:', err.message);
     return res.status(500).json({ error: err.message || 'Comprehension question generation failed' });
