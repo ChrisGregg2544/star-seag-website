@@ -1159,6 +1159,8 @@ const QUESTION_TYPES = {
     { type: 'summary',  instruction: 'Ask the pupil to summarise a section of the passage in their own words.' },
     { type: 'language', instruction: 'Ask the pupil to identify and comment on a language technique used in the passage.' },
     { type: 'explain',  instruction: 'Ask a second explanation question about a different aspect of the passage.' },
+    { type: 'evidence', instruction: 'Ask the pupil to find and copy a second phrase or sentence that shows something different.' },
+    { type: 'opinion',  instruction: 'Ask a second opinion question about a different part of the passage, with text evidence.' },
   ],
 };
 
@@ -1198,7 +1200,7 @@ Passage title: ${title}
 Passage: ${passage}
 Year group: ${year_group}
 
-Write exactly 6 short-answer (written) questions about this passage.
+Write exactly 8 short-answer (written) questions about this passage.
 Question types to include (one per question, in this order):
 ${QUESTION_TYPES.written.map((t, i) => `${i + 1}. ${t.type.toUpperCase()}: ${t.instruction}`).join('\n')}
 
@@ -1222,7 +1224,7 @@ Example GOOD model answer: "Biscuit had slipped his lead while chasing a squirre
 Example BAD model answer: "The writer uses adverbs like 'breathless' and 'desperately'" (wrong - breathless is adjective)
 Example GOOD model answer: "The writer uses descriptive words like 'breathless' and 'desperately' to show worry"
 
-Return ONLY a valid JSON array of 6 objects. Each object:
+Return ONLY a valid JSON array of 8 objects. Each object:
 {
   "question_text": "the question",
   "options": null,
@@ -1338,8 +1340,8 @@ async function handleGenerateComprehensionQuestions(req, res) {
     // Sort by score descending, then select best passing MC (7) and Written (6) separately
     const byScore = (a, b) => (b.validation.score ?? 0) - (a.validation.score ?? 0);
 
-    const passingMC      = result.questions.filter(q => q.question_type === 'Multiple_Choice' && q.validation.verdict === 'pass').sort(byScore);
-    const passingWritten = result.questions.filter(q => q.question_type === 'written'          && q.validation.verdict === 'pass').sort(byScore);
+    const passingMC      = result.questions.filter(q => q.question_type === 'Multiple_Choice' && q.validation.verdict === 'pass' && (q.validation.score ?? 0) >= 8).sort(byScore);
+    const passingWritten = result.questions.filter(q => q.question_type === 'written'          && q.validation.verdict === 'pass' && (q.validation.score ?? 0) >= 7).sort(byScore);
 
     const selectedMC      = passingMC.slice(0, 7);
     const selectedWritten = passingWritten.slice(0, 6);
