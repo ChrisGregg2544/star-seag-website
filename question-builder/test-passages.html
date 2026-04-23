@@ -508,9 +508,45 @@
       el('questions-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
-    function saveCompleteSet() {
-      // TODO: implement save to Supabase
-      alert('Save not yet implemented — coming soon.');
+    async function saveCompleteSet() {
+      if (!currentPassage || !currentSelected || !currentSelected.length) return;
+      const yearGroup = el('year-group').value;
+
+      const saveBtn = el('save-btn');
+      saveBtn.disabled     = true;
+      saveBtn.textContent  = 'Saving…';
+
+      try {
+        const res  = await fetch('/api/question-builder', {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body:    JSON.stringify({
+            action:             'save-comprehension-set',
+            passage:            currentPassage,
+            title:              currentTitle,
+            word_count:         countWords(currentPassage),
+            selected_questions: currentSelected,
+            year_group:         yearGroup,
+          }),
+        });
+        const json = await res.json();
+        if (!res.ok || json.error) throw new Error(json.error || 'Save failed');
+
+        saveBtn.textContent = 'Saved ✓';
+        el('incomplete-warning').classList.remove('visible');
+
+        // Show success message above the question list
+        const msg = document.createElement('div');
+        msg.style.cssText = 'background:#E8F5E9;border:2px solid #A5D6A7;border-radius:12px;padding:14px 18px;margin-bottom:14px;font-size:.9rem;font-weight:800;color:#2E7D32;';
+        msg.textContent = `✅ Saved passage + ${json.questions_saved} questions (passage id: ${json.passage_id.slice(0, 8)}…)`;
+        el('q-list').before(msg);
+        el('q-list').scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+      } catch (err) {
+        saveBtn.disabled    = false;
+        saveBtn.textContent = 'Save Complete Set';
+        alert('Save failed: ' + (err.message || 'Something went wrong.'));
+      }
     }
 
     function countWords(text) {

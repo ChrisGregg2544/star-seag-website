@@ -1599,7 +1599,7 @@ export default async function handler(req, res) {
     case 'save-generated':      return handleSaveGenerated(req, res);
     case 'generate-passage':               return handleGeneratePassage(req, res);
     case 'generate-comprehension-questions': return handleGenerateComprehensionQuestions(req, res);
-    case 'save-comprehension-set':           return handleSaveComprehensionSet(req, res);
+    case 'save-comprehension-set':           return await handleSaveComprehensionSet(req, res);
     case 'save-reference':      return handleSaveReference(req, res);
     default:
       return res.status(400).json({ error: `Unknown action: ${action}` });
