@@ -2414,9 +2414,9 @@ function generateMeasurementQuestion(year_group) {
           const p1 = [99, 149, 199, 249, 299, 349, 399, 449, 499][randInt(0, 8)];
           const p2 = [50, 75, 99, 125, 149, 199][randInt(0, 5)];
           const total = p1 + p2;
-          const £ = Math.floor(total / 100);
+          const pounds = Math.floor(total / 100);
           const p = total % 100;
-          const ans = p === 0 ? `£${£}.00` : `£${£}.${p < 10 ? '0' + p : p}`;
+          const ans = p === 0 ? `£${pounds}.00` : `£${pounds}.${p < 10 ? '0' + p : p}`;
           return {
             q: `Sam buys items costing ${p1 < 100 ? p1 + 'p' : '£' + (p1/100).toFixed(2)} and ${p2 < 100 ? p2 + 'p' : '£' + (p2/100).toFixed(2)}. What is the total cost?`,
             a: ans,
@@ -2431,9 +2431,9 @@ function generateMeasurementQuestion(year_group) {
             ? [99, 149, 199, 249, 299, 349, 399, 449][randInt(0, 7)]
             : [199, 299, 399, 499, 599, 699, 799, 899][randInt(0, 7)];
           const change = note - spend;
-          const £ = Math.floor(change / 100);
+          const pounds = Math.floor(change / 100);
           const p = change % 100;
-          const ans = p === 0 ? `£${£}.00` : `£${£}.${p < 10 ? '0' + p : p}`;
+          const ans = p === 0 ? `£${pounds}.00` : `£${pounds}.${p < 10 ? '0' + p : p}`;
           const ctx = SHOP[randInt(0, SHOP.length - 1)];
           return {
             q: `A book costs £${(spend/100).toFixed(2)} ${ctx}. How much change do you get from £${note/100}?`,
