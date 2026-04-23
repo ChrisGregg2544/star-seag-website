@@ -2851,6 +2851,11 @@ export default async function handler(req, res) {
       for (let i = 0; i < fracCount; i++) {
         fractionsQuestions.push(generateFractionsDecimalsQuestion(req.body.year_group || 'P6'));
       }
+      for (const question of fractionsQuestions) {
+        if (question.needs_diagram && question.diagram_description) {
+          question.diagram_svg = generateSVGFromDescription(question.diagram_description);
+        }
+      }
       return res.json({ questions: fractionsQuestions });
     }
     case 'test-fractions': {
@@ -2865,6 +2870,11 @@ export default async function handler(req, res) {
       const measQuestions = [];
       for (let i = 0; i < measCount; i++) {
         measQuestions.push(generateMeasurementQuestion(req.body.year_group || 'P6'));
+      }
+      for (const question of measQuestions) {
+        if (question.needs_diagram && question.diagram_description) {
+          question.diagram_svg = generateSVGFromDescription(question.diagram_description);
+        }
       }
       return res.json({ questions: measQuestions });
     }
