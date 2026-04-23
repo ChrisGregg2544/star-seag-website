@@ -416,6 +416,7 @@ function renderRow(q, index) {
     <div class="q-row outcome-${outcome}">
       <div>
         <div class="q-text">${escHtml(q.question_text)}</div>
+        ${q.diagram_svg ? `<div class="diagram-container" style="margin:1rem 0">${q.diagram_svg}</div>` : ''}
         ${optionsHtml}
         <div class="q-meta">
           <span>Answer: <strong>${escHtml(q.correct_answer)}</strong></span>
