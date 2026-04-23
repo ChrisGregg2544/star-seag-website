@@ -1137,6 +1137,126 @@ async function handleSaveReference(req, res) {
 }
 
 // ══════════════════════════════════════════════════════
+// PASSAGE GENERATION
+// ══════════════════════════════════════════════════════
+
+const PASSAGE_TOPICS = {
+  P6: [
+    'A school trip to a local museum',
+    'Learning to ride a bicycle',
+    'A rainy day at the seaside',
+    'The class science fair project',
+    'Making a new friend at school',
+    'A surprise birthday party',
+    'Looking after a pet for the first time',
+    'A camping trip with the family',
+    'The school sports day',
+    'Finding a lost dog in the park',
+  ],
+  P7: [
+    'A conservation project to save local wildlife',
+    'The history of a famous Northern Ireland landmark',
+    'An inventor who changed everyday life',
+    'A young athlete training for a competition',
+    'How the local community came together after a flood',
+    'A journey on the first steam railway',
+    'A marine biologist studying ocean creatures',
+    'The life of a lighthouse keeper',
+    'How newspapers were made before the internet',
+    'A record-breaking explorer preparing for an expedition',
+  ],
+};
+
+async function generatePassage(year_group, topic, apiKey) {
+  const topics = PASSAGE_TOPICS[year_group] || PASSAGE_TOPICS.P6;
+  const chosenTopic = topic || topics[Math.floor(Math.random() * topics.length)];
+
+  const system = `You are an expert writer of reading comprehension passages for Northern Ireland SEAG Transfer Test (P6/P7, ages 10-11).
+
+Write engaging, age-appropriate passages that:
+- Are 180-220 words long
+- Use clear, accessible language appropriate for the year group
+- Have a clear narrative or informational structure
+- Contain rich detail that supports comprehension questions
+- Use UK English spelling throughout
+
+Return ONLY a JSON object:
+{"title":"<passage title>","passage":"<full passage text>","word_count":<integer>}`;
+
+  const user = `Year group: ${year_group}
+Topic: ${chosenTopic}
+
+Write a reading comprehension passage on this topic suitable for a ${year_group} pupil (age ${year_group === 'P6' ? '10-11' : '11-12'}).
+The passage should be 180-220 words. Return ONLY the JSON object.`;
+
+  const res = await fetch(ANTHROPIC_URL, {
+    method: 'POST',
+    headers: anthropicHeaders(apiKey),
+    body: JSON.stringify({ model: SONNET_MODEL, max_tokens: 800, system, messages: [{ role: 'user', content: user }] }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error?.message || 'Passage generation failed');
+
+  const raw = (data.content?.[0]?.text || '').replace(/^```json\s*/i, '').replace(/```[\s\S]*$/, '').trim();
+
+  try { return { ...JSON.parse(raw), topic: chosenTopic }; } catch { /* fall through */ }
+  const match = raw.match(/\{[\s\S]*\}/);
+  if (match) { try { return { ...JSON.parse(match[0]), topic: chosenTopic }; } catch { /* fall through */ } }
+  throw new Error(`Could not parse passage JSON: ${raw.slice(0, 200)}`);
+}
+
+async function validatePassage(passageData, year_group, apiKey) {
+  const { title, passage } = passageData;
+
+  const system = `You are a specialist SEAG comprehension passage validator for Northern Ireland P6/P7 pupils (ages 10-11).
+
+Evaluate the passage on:
+- Age-appropriate vocabulary and sentence complexity
+- Sufficient detail to support 7 MC + 6 written comprehension questions
+- Clear structure (beginning, middle, end or logical flow)
+- Engagement and interest level for the year group
+- UK English spelling and grammar
+- Word count in range 180-220
+
+Return ONLY a JSON object:
+{"score":<number 1-10>,"reason":"<specific explanation>","verdict":"<pass|warn|fail>"}`;
+
+  const user = `Year group: ${year_group}
+Title: ${title}
+Passage: ${passage}
+
+Score 8+ = pass (ready for question generation), 6-7 = warn (usable but could be improved), 1-5 = fail (regenerate).`;
+
+  const res = await fetch(ANTHROPIC_URL, {
+    method: 'POST',
+    headers: anthropicHeaders(apiKey),
+    body: JSON.stringify({ model: SONNET_MODEL, max_tokens: 500, system, messages: [{ role: 'user', content: user }] }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error?.message || 'Passage validation failed');
+  const result = parseValidatorResponse(data.content?.[0]?.text || '');
+  return { score: Number(result.score) || 0, reason: result.reason || '', verdict: result.verdict || 'warn' };
+}
+
+async function handleGeneratePassage(req, res) {
+  const { year_group, topic } = req.body;
+
+  if (!year_group) return res.status(400).json({ error: 'year_group is required' });
+
+  const apiKey = process.env.ANTHROPIC_API_KEY;
+  if (!apiKey) return res.status(500).json({ error: 'AI configuration error' });
+
+  try {
+    const passageData  = await generatePassage(year_group, topic || null, apiKey);
+    const validation   = await validatePassage(passageData, year_group, apiKey);
+    return res.status(200).json({ ...passageData, validation });
+  } catch (err) {
+    console.error('generate-passage error:', err.message);
+    return res.status(500).json({ error: err.message || 'Passage generation failed' });
+  }
+}
+
+// ══════════════════════════════════════════════════════
 // MAIN ROUTER
 // ══════════════════════════════════════════════════════
 export default async function handler(req, res) {
@@ -1156,6 +1276,7 @@ export default async function handler(req, res) {
     case 'get-question-counts': return handleGetQuestionCounts(req, res);
     case 'run-validators':      return handleRunValidators(req, res);
     case 'save-generated':      return handleSaveGenerated(req, res);
+    case 'generate-passage':    return handleGeneratePassage(req, res);
     case 'save-reference':      return handleSaveReference(req, res);
     default:
       return res.status(400).json({ error: `Unknown action: ${action}` });
