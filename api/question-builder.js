@@ -579,12 +579,11 @@ function generateSVGFromDescription(description) {
     return generateDiagram('pie-chart', { data });
   }
   else if (description.includes('pie-chart: percentage')) {
-    // "pie-chart: percentage X%"
     const percent = parseInt(description.match(/\d+/)[0]);
     return generateDiagram('pie-chart', {
       data: [
         { label: `${percent}%`, value: percent },
-        { label: `${100 - percent}%`, value: 100 - percent },
+        { label: 'Remaining', value: 100 - percent },
       ],
     });
   }
