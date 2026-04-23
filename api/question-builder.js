@@ -1118,6 +1118,7 @@ async function handleSaveGenerated(req, res) {
     options:           q.options || null,
     correct_answer:    q.correct_answer,
     explanation:       q.explanation || null,
+    diagram:           q.diagram_svg || q.diagram || null,
     validated:         true,
     source:            'ai_generated_v2',
     validator_verdict: q.validator_verdict || q.validation?.outcome || 'pass',
@@ -1144,14 +1145,28 @@ async function handleSaveGenerated(req, res) {
   try {
     const response = await fetch(`${supabaseUrl}/rest/v1/questions`, {
       method: 'POST',
-      headers: supabaseHeaders(serviceKey, { 'Prefer': 'return=minimal' }),
+      headers: supabaseHeaders(serviceKey, { 'Prefer': 'return=representation' }),
       body: JSON.stringify(questionRows),
     });
 
+    const responseText = await response.text();
+
     if (!response.ok) {
-      const errorBody = await response.text();
-      console.error('save-generated: Supabase insert error:', response.status, errorBody.slice(0, 300));
-      return res.status(500).json({ error: `Database error ${response.status}: ${errorBody.slice(0, 200)}` });
+      console.error('save-generated: Supabase insert error:', response.status, responseText.slice(0, 300));
+      return res.status(500).json({ error: `Database error ${response.status}: ${responseText.slice(0, 200)}` });
+    }
+
+    let insertedRows = [];
+    try {
+      insertedRows = JSON.parse(responseText);
+    } catch (e) {
+      console.warn('save-generated: could not parse Supabase response:', responseText.slice(0, 200));
+    }
+
+    const savedCount = Array.isArray(insertedRows) ? insertedRows.length : 0;
+    if (savedCount === 0) {
+      console.error('save-generated: 0 rows confirmed inserted. Status:', response.status, 'Body:', responseText.slice(0, 300));
+      return res.status(500).json({ error: 'Database insert returned 0 rows — check RLS policies and column constraints' });
     }
 
     // Save validation results (fire-and-forget)
@@ -1163,8 +1178,8 @@ async function handleSaveGenerated(req, res) {
       }).catch(e => console.warn('save-generated: validation_results insert failed:', e.message));
     }
 
-    console.log(`save-generated: inserted ${questionRows.length} questions, ${validationRows.length} validation results`);
-    return res.status(200).json({ saved: questionRows.length });
+    console.log(`save-generated: confirmed ${savedCount} rows inserted, ${validationRows.length} validation results queued`);
+    return res.status(200).json({ saved: savedCount });
 
   } catch (err) {
     console.error('save-generated error:', err.message);
