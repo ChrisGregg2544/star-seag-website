@@ -2244,6 +2244,467 @@ function generateFractionsDecimalsQuestion(year_group) {
 }
 
 // ══════════════════════════════════════════════════════
+// MEASUREMENT QUESTION GENERATION (programmatic, no AI)
+// ══════════════════════════════════════════════════════
+
+function generateMeasurementQuestion(year_group) {
+  const isP7 = year_group === 'P7';
+
+  const P6_OPS = [
+    'length_conversion', 'weight_conversion', 'capacity_conversion',
+    'time_duration', 'money_calculation', 'reading_scales',
+  ];
+  const P7_OPS = [
+    ...P6_OPS,
+    'multi_step_conversion', 'time_problems', 'area_units', 'compound_units',
+  ];
+  const ops = isP7 ? P7_OPS : P6_OPS;
+  const op = ops[randInt(0, ops.length - 1)];
+
+  let question_text, correct_answer, explanation, difficulty;
+
+  // ── Word problem contexts ────────────────────────────
+  const TRAVEL = ['a car journey', 'a bike ride', 'a train trip', 'a school trip'];
+  const COOK   = ['a recipe', 'a cake', 'a batch of biscuits', 'a smoothie'];
+  const SHOP   = ['at the market', 'at the supermarket', 'in a shop', 'at the bakery'];
+
+  switch (op) {
+
+    case 'length_conversion': {
+      // cm↔m, m↔km, mm↔cm — randomly pick direction and unit pair
+      const variants = [
+        // cm → m
+        () => {
+          const cm = [100, 150, 200, 250, 300, 350, 400, 450, 500, 750][randInt(0, 9)];
+          return { q: `Convert ${cm} cm to metres.`, a: `${cm / 100} m`, exp: `${cm} ÷ 100 = ${cm / 100} m`, d: 1 };
+        },
+        // m → cm
+        () => {
+          const m = randInt(1, 9);
+          return { q: `How many centimetres are in ${m} metre${m > 1 ? 's' : ''}?`, a: `${m * 100} cm`, exp: `${m} × 100 = ${m * 100} cm`, d: 1 };
+        },
+        // m → km
+        () => {
+          const m = [1000, 1500, 2000, 2500, 3000, 4000, 5000][randInt(0, 6)];
+          return { q: `Convert ${m} metres to kilometres.`, a: `${m / 1000} km`, exp: `${m} ÷ 1000 = ${m / 1000} km`, d: 1 };
+        },
+        // km → m
+        () => {
+          const km = randInt(1, 9);
+          return { q: `How many metres are in ${km} kilometre${km > 1 ? 's' : ''}?`, a: `${km * 1000} m`, exp: `${km} × 1000 = ${km * 1000} m`, d: 1 };
+        },
+        // mm → cm
+        () => {
+          const mm = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 150, 200][randInt(0, 11)];
+          return { q: `Convert ${mm} mm to centimetres.`, a: `${mm / 10} cm`, exp: `${mm} ÷ 10 = ${mm / 10} cm`, d: 1 };
+        },
+        // cm → mm
+        () => {
+          const cm = randInt(1, 12);
+          return { q: `How many millimetres are in ${cm} cm?`, a: `${cm * 10} mm`, exp: `${cm} × 10 = ${cm * 10} mm`, d: 1 };
+        },
+      ];
+      const v = variants[randInt(0, variants.length - 1)]();
+      question_text = v.q; correct_answer = v.a; explanation = v.exp; difficulty = v.d;
+      break;
+    }
+
+    case 'weight_conversion': {
+      const variants = [
+        // g → kg
+        () => {
+          const g = [500, 1000, 1500, 2000, 2500, 3000][randInt(0, 5)];
+          return { q: `Convert ${g} g to kilograms.`, a: `${g / 1000} kg`, exp: `${g} ÷ 1000 = ${g / 1000} kg`, d: 1 };
+        },
+        // kg → g
+        () => {
+          const kg = randInt(1, 5);
+          return { q: `How many grams are in ${kg} kg?`, a: `${kg * 1000} g`, exp: `${kg} × 1000 = ${kg * 1000} g`, d: 1 };
+        },
+        // word problem: shopping
+        () => {
+          const ctx = SHOP[randInt(0, SHOP.length - 1)];
+          const kg = randInt(1, 4);
+          const extra = [250, 500, 750][randInt(0, 2)];
+          const total = kg * 1000 + extra;
+          return {
+            q: `Mia buys ${kg} kg and ${extra} g of apples ${ctx}. How many grams is that altogether?`,
+            a: `${total} g`,
+            exp: `${kg} kg = ${kg * 1000} g; ${kg * 1000} + ${extra} = ${total} g`,
+            d: 2,
+          };
+        },
+      ];
+      const v = variants[randInt(0, variants.length - 1)]();
+      question_text = v.q; correct_answer = v.a; explanation = v.exp; difficulty = v.d;
+      break;
+    }
+
+    case 'capacity_conversion': {
+      const variants = [
+        // ml → l
+        () => {
+          const ml = [500, 1000, 1500, 2000, 2500][randInt(0, 4)];
+          return { q: `Convert ${ml} ml to litres.`, a: `${ml / 1000} l`, exp: `${ml} ÷ 1000 = ${ml / 1000} l`, d: 1 };
+        },
+        // l → ml
+        () => {
+          const l = randInt(1, 5);
+          return { q: `How many millilitres are in ${l} litre${l > 1 ? 's' : ''}?`, a: `${l * 1000} ml`, exp: `${l} × 1000 = ${l * 1000} ml`, d: 1 };
+        },
+        // word problem: cooking
+        () => {
+          const ctx = COOK[randInt(0, COOK.length - 1)];
+          const portions = randInt(2, 4);
+          const mlEach = [200, 250, 300, 400, 500][randInt(0, 4)];
+          const total = portions * mlEach;
+          return {
+            q: `A ${ctx} needs ${mlEach} ml of milk for each portion. How many ml is needed for ${portions} portions?`,
+            a: `${total} ml`,
+            exp: `${portions} × ${mlEach} = ${total} ml`,
+            d: 2,
+          };
+        },
+      ];
+      const v = variants[randInt(0, variants.length - 1)]();
+      question_text = v.q; correct_answer = v.a; explanation = v.exp; difficulty = v.d;
+      break;
+    }
+
+    case 'time_duration': {
+      const variants = [
+        // hours → minutes
+        () => {
+          const h = randInt(1, 5);
+          return { q: `How many minutes are in ${h} hour${h > 1 ? 's' : ''}?`, a: `${h * 60} minutes`, exp: `${h} × 60 = ${h * 60} minutes`, d: 1 };
+        },
+        // minutes → seconds
+        () => {
+          const m = [1, 2, 3, 4, 5, 10][randInt(0, 5)];
+          return { q: `How many seconds are in ${m} minute${m > 1 ? 's' : ''}?`, a: `${m * 60} seconds`, exp: `${m} × 60 = ${m * 60} seconds`, d: 1 };
+        },
+        // days → hours
+        () => {
+          const d = randInt(1, 5);
+          return { q: `How many hours are in ${d} day${d > 1 ? 's' : ''}?`, a: `${d * 24} hours`, exp: `${d} × 24 = ${d * 24} hours`, d: 1 };
+        },
+        // word problem: travel
+        () => {
+          const ctx = TRAVEL[randInt(0, TRAVEL.length - 1)];
+          const h = randInt(1, 3);
+          const extra = [15, 20, 30, 45][randInt(0, 3)];
+          const total = h * 60 + extra;
+          return {
+            q: `${ctx.charAt(0).toUpperCase() + ctx.slice(1)} lasts ${h} hour${h > 1 ? 's' : ''} and ${extra} minutes. How many minutes is that in total?`,
+            a: `${total} minutes`,
+            exp: `${h} hour${h > 1 ? 's' : ''} = ${h * 60} minutes; ${h * 60} + ${extra} = ${total} minutes`,
+            d: 2,
+          };
+        },
+      ];
+      const v = variants[randInt(0, variants.length - 1)]();
+      question_text = v.q; correct_answer = v.a; explanation = v.exp; difficulty = v.d;
+      break;
+    }
+
+    case 'money_calculation': {
+      const variants = [
+        // add two amounts
+        () => {
+          const p1 = [99, 149, 199, 249, 299, 349, 399, 449, 499][randInt(0, 8)];
+          const p2 = [50, 75, 99, 125, 149, 199][randInt(0, 5)];
+          const total = p1 + p2;
+          const £ = Math.floor(total / 100);
+          const p = total % 100;
+          const ans = p === 0 ? `£${£}.00` : `£${£}.${p < 10 ? '0' + p : p}`;
+          return {
+            q: `Sam buys items costing ${p1 < 100 ? p1 + 'p' : '£' + (p1/100).toFixed(2)} and ${p2 < 100 ? p2 + 'p' : '£' + (p2/100).toFixed(2)}. What is the total cost?`,
+            a: ans,
+            exp: `${p1}p + ${p2}p = ${total}p = ${ans}`,
+            d: 2,
+          };
+        },
+        // change from £5 or £10
+        () => {
+          const note = [500, 1000][randInt(0, 1)];
+          const spend = note === 500
+            ? [99, 149, 199, 249, 299, 349, 399, 449][randInt(0, 7)]
+            : [199, 299, 399, 499, 599, 699, 799, 899][randInt(0, 7)];
+          const change = note - spend;
+          const £ = Math.floor(change / 100);
+          const p = change % 100;
+          const ans = p === 0 ? `£${£}.00` : `£${£}.${p < 10 ? '0' + p : p}`;
+          const ctx = SHOP[randInt(0, SHOP.length - 1)];
+          return {
+            q: `A book costs £${(spend/100).toFixed(2)} ${ctx}. How much change do you get from £${note/100}?`,
+            a: ans,
+            exp: `£${(note/100).toFixed(2)} − £${(spend/100).toFixed(2)} = ${ans}`,
+            d: 2,
+          };
+        },
+        // pence ↔ pounds
+        () => {
+          const p = [50, 75, 125, 150, 175, 225, 250, 350][randInt(0, 7)];
+          const ans = `£${(p / 100).toFixed(2)}`;
+          return { q: `Write ${p}p in pounds (£).`, a: ans, exp: `${p}p ÷ 100 = ${ans}`, d: 1 };
+        },
+      ];
+      const v = variants[randInt(0, variants.length - 1)]();
+      question_text = v.q; correct_answer = v.a; explanation = v.exp; difficulty = v.d;
+      break;
+    }
+
+    case 'reading_scales': {
+      // Describe a scale and ask for the reading — programmatic but described in words
+      const variants = [
+        () => {
+          const total = [500, 1000][randInt(0, 1)];
+          const divisions = [5, 10][randInt(0, 1)];
+          const each = total / divisions;
+          const marks = [1, 2, 3, 4];
+          const mark = marks[randInt(0, marks.length - 1)];
+          const reading = mark * each;
+          return {
+            q: `A measuring jug is marked from 0 to ${total} ml in ${divisions} equal divisions. The water reaches the ${mark === 1 ? '1st' : mark === 2 ? '2nd' : mark === 3 ? '3rd' : '4th'} mark. How many ml is that?`,
+            a: `${reading} ml`,
+            exp: `Each division = ${total} ÷ ${divisions} = ${each} ml; mark ${mark} = ${mark} × ${each} = ${reading} ml`,
+            d: 2,
+          };
+        },
+        () => {
+          const max = [1, 2, 5][randInt(0, 2)];
+          const divs = [5, 10][randInt(0, 1)];
+          const each = max / divs;
+          const mark = randInt(1, divs - 1);
+          const reading = Math.round(mark * each * 1000) / 1000;
+          return {
+            q: `A ruler goes from 0 to ${max} m split into ${divs} equal parts. An object reaches the ${mark}${mark === 1 ? 'st' : mark === 2 ? 'nd' : mark === 3 ? 'rd' : 'th'} mark. How long is it in metres?`,
+            a: `${reading} m`,
+            exp: `Each part = ${max} ÷ ${divs} = ${each} m; mark ${mark} = ${mark} × ${each} = ${reading} m`,
+            d: 2,
+          };
+        },
+      ];
+      const v = variants[randInt(0, variants.length - 1)]();
+      question_text = v.q; correct_answer = v.a; explanation = v.exp; difficulty = v.d;
+      break;
+    }
+
+    case 'multi_step_conversion': {
+      // km → cm via m, or mm → m via cm
+      const variants = [
+        () => {
+          const km = randInt(1, 4);
+          const m = km * 1000;
+          const cm = m * 100;
+          return {
+            q: `How many centimetres are in ${km} km? (1 km = 1000 m, 1 m = 100 cm)`,
+            a: `${cm} cm`,
+            exp: `${km} km → ${m} m → ${cm} cm`,
+            d: 3,
+          };
+        },
+        () => {
+          const cm = [100, 200, 300, 400, 500, 1000][randInt(0, 5)];
+          const m = cm / 100;
+          const km = m / 1000;
+          return {
+            q: `Convert ${cm} cm to kilometres.`,
+            a: `${km} km`,
+            exp: `${cm} cm ÷ 100 = ${m} m; ${m} m ÷ 1000 = ${km} km`,
+            d: 3,
+          };
+        },
+        () => {
+          const kg = randInt(1, 5);
+          const g = kg * 1000;
+          const mg = g * 1000;
+          return {
+            q: `How many milligrams (mg) are in ${kg} kg? (1 kg = 1000 g, 1 g = 1000 mg)`,
+            a: `${mg.toLocaleString()} mg`,
+            exp: `${kg} kg → ${g.toLocaleString()} g → ${mg.toLocaleString()} mg`,
+            d: 3,
+          };
+        },
+      ];
+      const v = variants[randInt(0, variants.length - 1)]();
+      question_text = v.q; correct_answer = v.a; explanation = v.exp; difficulty = v.d;
+      break;
+    }
+
+    case 'time_problems': {
+      // Start/end/elapsed time problems
+      const variants = [
+        () => {
+          const startH = randInt(8, 14);
+          const startM = [0, 15, 30, 45][randInt(0, 3)];
+          const durH = randInt(0, 2);
+          const durM = [15, 20, 30, 45][randInt(0, 3)];
+          let endM = startM + durM;
+          let endH = startH + durH + Math.floor(endM / 60);
+          endM = endM % 60;
+          const fmt = (h, m) => `${h}:${m < 10 ? '0' + m : m}`;
+          return {
+            q: `A train departs at ${fmt(startH, startM)}. The journey takes ${durH > 0 ? durH + ' hour' + (durH > 1 ? 's' : '') + ' and ' : ''}${durM} minutes. What time does it arrive?`,
+            a: fmt(endH, endM),
+            exp: `${fmt(startH, startM)} + ${durH > 0 ? durH + 'h ' : ''}${durM}min = ${fmt(endH, endM)}`,
+            d: 3,
+          };
+        },
+        () => {
+          const startH = randInt(9, 13);
+          const startM = [0, 15, 30][randInt(0, 2)];
+          const endH = startH + randInt(1, 3);
+          const endM = [0, 15, 30, 45][randInt(0, 3)];
+          const totalMin = (endH - startH) * 60 + (endM - startM);
+          const fmt = (h, m) => `${h}:${m < 10 ? '0' + m : m}`;
+          if (totalMin <= 0) return { q: 'skip', a: '', exp: '', d: 3 };
+          return {
+            q: `A film starts at ${fmt(startH, startM)} and ends at ${fmt(endH, endM)}. How long does it last in minutes?`,
+            a: `${totalMin} minutes`,
+            exp: `${fmt(endH, endM)} − ${fmt(startH, startM)} = ${totalMin} minutes`,
+            d: 3,
+          };
+        },
+      ];
+      let v = variants[randInt(0, variants.length - 1)]();
+      if (v.q === 'skip') v = variants[0]();
+      question_text = v.q; correct_answer = v.a; explanation = v.exp; difficulty = v.d;
+      break;
+    }
+
+    case 'area_units': {
+      const variants = [
+        () => {
+          const m2 = randInt(1, 9);
+          return {
+            q: `How many cm² are in ${m2} m²? (1 m = 100 cm)`,
+            a: `${m2 * 10000} cm²`,
+            exp: `1 m² = 100 × 100 = 10,000 cm²; ${m2} × 10,000 = ${(m2 * 10000).toLocaleString()} cm²`,
+            d: 3,
+          };
+        },
+        () => {
+          const cm2 = [10000, 20000, 30000, 40000, 50000][randInt(0, 4)];
+          return {
+            q: `Convert ${cm2.toLocaleString()} cm² to m².`,
+            a: `${cm2 / 10000} m²`,
+            exp: `${cm2.toLocaleString()} ÷ 10,000 = ${cm2 / 10000} m²`,
+            d: 3,
+          };
+        },
+        () => {
+          const l = randInt(2, 8);
+          const w = randInt(2, 8);
+          const cm2 = l * w;
+          const ratio = 10000;
+          return {
+            q: `A garden is ${l} m long and ${w} m wide. What is its area in cm²?`,
+            a: `${(cm2 * ratio).toLocaleString()} cm²`,
+            exp: `Area = ${l} × ${w} = ${cm2} m² = ${cm2} × 10,000 = ${(cm2 * ratio).toLocaleString()} cm²`,
+            d: 4,
+          };
+        },
+      ];
+      const v = variants[randInt(0, variants.length - 1)]();
+      question_text = v.q; correct_answer = v.a; explanation = v.exp; difficulty = v.d;
+      break;
+    }
+
+    case 'compound_units': {
+      const variants = [
+        // speed: distance/time
+        () => {
+          const speed = [40, 50, 60, 80, 100][randInt(0, 4)];
+          const time = randInt(1, 4);
+          const dist = speed * time;
+          return {
+            q: `A car travels at ${speed} km/h for ${time} hour${time > 1 ? 's' : ''}. How far does it travel?`,
+            a: `${dist} km`,
+            exp: `Distance = speed × time = ${speed} × ${time} = ${dist} km`,
+            d: 3,
+          };
+        },
+        // price per kg
+        () => {
+          const price = [2, 3, 4, 5][randInt(0, 3)];
+          const kg = randInt(2, 5);
+          const total = price * kg;
+          const ctx = SHOP[randInt(0, SHOP.length - 1)];
+          return {
+            q: `Cheese costs £${price} per kg ${ctx}. How much does ${kg} kg cost?`,
+            a: `£${total}`,
+            exp: `${kg} × £${price} = £${total}`,
+            d: 3,
+          };
+        },
+        // litres per 100 km
+        () => {
+          const litresPer100 = [5, 6, 8, 10][randInt(0, 3)];
+          const hundredKms = randInt(2, 5);
+          const totalLitres = litresPer100 * hundredKms;
+          return {
+            q: `A car uses ${litresPer100} litres of fuel per 100 km. How many litres does it need for a ${hundredKms * 100} km journey?`,
+            a: `${totalLitres} litres`,
+            exp: `${hundredKms} × ${litresPer100} litres = ${totalLitres} litres`,
+            d: 4,
+          };
+        },
+      ];
+      const v = variants[randInt(0, variants.length - 1)]();
+      question_text = v.q; correct_answer = v.a; explanation = v.exp; difficulty = v.d;
+      break;
+    }
+
+    default:
+      return generateMeasurementQuestion(year_group);
+  }
+
+  // Build MC options
+  const numVal = parseFloat(correct_answer.replace(/[^0-9.]/g, ''));
+  const unit = correct_answer.replace(/[0-9.\s,]/g, '').trim();
+  let distractors;
+  if (!isNaN(numVal) && numVal > 0) {
+    const offsets = numVal > 1000
+      ? [numVal * 0.5, numVal * 2, numVal + 100, numVal - 100]
+      : numVal > 100
+      ? [numVal + 10, numVal - 10, numVal * 2, numVal / 2]
+      : numVal > 10
+      ? [numVal + 5, numVal - 5, numVal * 10, numVal / 10]
+      : [numVal + 1, numVal - 1, numVal * 10, numVal * 100];
+    distractors = shuffle([...new Set(
+      offsets
+        .map(v => Math.round(v * 1000) / 1000)
+        .filter(v => v > 0 && v !== numVal)
+        .map(v => {
+          const s = v % 1 === 0 ? v.toString() : v.toString();
+          return unit ? `${s} ${unit}` : s;
+        })
+    )]).slice(0, 3);
+  } else {
+    // Non-numeric answer (e.g. time strings like "10:45") — build nearby variants inline
+    distractors = ['A', 'B', 'C'].map((_, i) => `Option ${i + 2}`);
+  }
+
+  const all = shuffle([correct_answer, ...distractors]);
+  const options = {};
+  'ABCDE'.split('').slice(0, all.length).forEach((l, i) => { options[l] = all[i]; });
+  const correct_letter = Object.keys(options).find(k => options[k] === correct_answer) || 'A';
+
+  return {
+    question_text,
+    options,
+    correct_answer: correct_letter,
+    explanation,
+    category: 'measurement',
+    year_group,
+    difficulty,
+    needs_diagram: false,
+    diagram_description: null,
+  };
+}
+
+// ══════════════════════════════════════════════════════
 // MAIN ROUTER
 // ══════════════════════════════════════════════════════
 export default async function handler(req, res) {
@@ -2311,6 +2772,21 @@ export default async function handler(req, res) {
         fracTestQuestions.push(generateFractionsDecimalsQuestion(req.body.year_group || 'P6'));
       }
       return res.json({ questions: fracTestQuestions });
+    }
+    case 'generate-measurement-batch': {
+      const measCount = Math.min(req.body.count || 5, 50);
+      const measQuestions = [];
+      for (let i = 0; i < measCount; i++) {
+        measQuestions.push(generateMeasurementQuestion(req.body.year_group || 'P6'));
+      }
+      return res.json({ questions: measQuestions });
+    }
+    case 'test-measurement': {
+      const measTestQuestions = [];
+      for (let i = 0; i < 5; i++) {
+        measTestQuestions.push(generateMeasurementQuestion(req.body.year_group || 'P6'));
+      }
+      return res.json({ questions: measTestQuestions });
     }
     case 'save-reference':      return handleSaveReference(req, res);
     default:

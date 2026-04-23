@@ -476,20 +476,23 @@ async function runGenerate() {
   currentResults = [];
 
   try {
-    // Arithmetic, geometry, and fractions_decimals use programmatic generation; all others use AI template mode
-    const isArithmetic = category === 'arithmetic';
-    const isGeometry = category === 'geometry';
-    const isFractions = category === 'fractions_decimals';
+    // Programmatic generation (no AI) for maths categories; AI template mode for all others
+    const isArithmetic  = category === 'arithmetic';
+    const isGeometry    = category === 'geometry';
+    const isFractions   = category === 'fractions_decimals';
+    const isMeasurement = category === 'measurement';
     const genRes = await fetch('/api/question-builder', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(
         isArithmetic
-          ? { action: 'generate-arithmetic-batch', year_group: yearGroup, count: batchSize }
+          ? { action: 'generate-arithmetic-batch',   year_group: yearGroup, count: batchSize }
           : isGeometry
-          ? { action: 'generate-geometry-batch', year_group: yearGroup, count: batchSize }
+          ? { action: 'generate-geometry-batch',     year_group: yearGroup, count: batchSize }
           : isFractions
-          ? { action: 'generate-fractions-batch', year_group: yearGroup, count: batchSize }
+          ? { action: 'generate-fractions-batch',    year_group: yearGroup, count: batchSize }
+          : isMeasurement
+          ? { action: 'generate-measurement-batch',  year_group: yearGroup, count: batchSize }
           : { action: 'generate-questions', category, year_group: yearGroup, batch_size: batchSize }
       ),
     });
