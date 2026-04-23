@@ -343,11 +343,15 @@ async function validateGeneratedQuestion(q, apiKey) {
   return { v1_score: v1.score, v1_reason: v1.reason, v4_score, v4_reason: v4.reason, validator_verdict };
 }
 
-function buildVariationPrompt(template, batch_size, year_group) {
+function buildVariationPrompt(template, batch_size, year_group, category) {
+  const categoryInstruction = category === 'grammar'
+    ? `\nCRITICAL: Create GRAMMAR errors only - wrong verb tense, subject-verb disagreement, wrong word form. DO NOT create punctuation errors (missing commas, apostrophes) - those belong in the punctuation category.\n`
+    : '';
+
   return `Create ${batch_size} variations of this template question.
 Keep EXACT SAME error type and segment structure.
 Only change vocabulary and context.
-
+${categoryInstruction}
 Template:
 Question: ${template.question_text}
 Options: ${JSON.stringify(template.options)}
@@ -411,7 +415,7 @@ async function handleGenerateQuestions(req, res) {
 
       for (let i = 0; i < batch_size; i++) {
         const template = templateRows[Math.floor(Math.random() * templateRows.length)];
-        const prompt = buildVariationPrompt(template, 1, year_group);
+        const prompt = buildVariationPrompt(template, 1, year_group, category);
 
         try {
           const aiResponse = await fetch(ANTHROPIC_URL, {
