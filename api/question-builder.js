@@ -1228,16 +1228,7 @@ async function handleBulkRevalidate(req, res) {
   const stats = {};
   const results = [];
 
-  // Helper: build shared V1/V2/V3 prompts for a question
-  function buildV1System() {
-    return `You are an expert SEAG transfer test validator for Northern Ireland P6/P7 pupils (ages 10-11). Verify the question has a clear, unambiguous correct answer. Return ONLY a JSON object: {"score":<1-10>,"reason":"<brief explanation>","verdict":"<pass|warn|fail>"}`;
-  }
-  function buildV2System() {
-    return `You are an expert SEAG transfer test difficulty validator for Northern Ireland P6/P7 pupils (ages 10-11). Assess whether the difficulty level is appropriate. Return ONLY a JSON object: {"score":<1-10>,"reason":"<brief explanation>","verdict":"<pass|warn|fail>"}`;
-  }
-  function buildV3System() {
-    return `You are an expert SEAG transfer test quality validator for Northern Ireland P6/P7 pupils (ages 10-11). Assess overall question quality, clarity, and SEAG style. Return ONLY a JSON object: {"score":<1-10>,"reason":"<brief explanation>","verdict":"<pass|warn|fail>"}`;
-  }
+  const V1_SYSTEM = `You are an expert SEAG transfer test validator for Northern Ireland P6/P7 pupils (ages 10-11). Verify the question has a clear, unambiguous correct answer. Return ONLY a JSON object: {"score":<1-10>,"reason":"<brief explanation>","verdict":"<pass|warn|fail>"}`;
 
   for (const q of questions) {
     const { id, question_text, correct_answer, topic, year_group, options, passage } = q;
@@ -1247,50 +1238,23 @@ async function handleBulkRevalidate(req, res) {
       ? '\nAnswer options:\n' + Object.entries(options).map(([k, v]) => `  ${k}: ${v}`).join('\n')
       : '';
 
-    let outcome, v1_score, v1_reason, v4_score, v4_reason, combined_score;
-
     try {
-      if (SPECIALIST_CATEGORIES.has(cat)) {
-        // V1 (Haiku accuracy) + V4 Specialist (Sonnet) — V4 authoritative
-        const v1User = `Category: ${cat}\nYear group: ${year_group}\nQuestion: ${question_text}${optionsBlock}\nStated correct answer: ${correct_answer}\n\nVerify this question has a clear correct answer. Score 7+ = pass, 4-6 = warn, 1-3 = fail.`;
-        const [v1, v4] = await Promise.all([
-          callValidator(buildV1System(), v1User, apiKey),
-          validateByCategory({ question_text, correct_answer, category: cat, year_group, options, passage }, apiKey),
-        ]);
-        v1_score = v1.score; v1_reason = v1.reason;
-        v4_score = v4.score; v4_reason = v4.reason;
-        combined_score = Math.round(((v1_score + v4_score) / 2) * 10) / 10;
-        outcome = v4_score >= 7 ? 'pass' : v4_score >= 5 ? 'warn' : 'fail';
+      // V1: accuracy check (all categories, Haiku)
+      const v1User = `Category: ${cat}\nYear group: ${year_group}\nQuestion: ${question_text}${optionsBlock}\nStated correct answer: ${correct_answer}\n\nVerify this question has a clear correct answer. Score 7+ = pass, 4-6 = warn, 1-3 = fail.`;
 
-      } else if (cat === 'arithmetic') {
-        // V2 Difficulty authoritative
-        const v1User = `Category: ${cat}\nYear group: ${year_group}\nQuestion: ${question_text}${optionsBlock}\nStated correct answer: ${correct_answer}\n\nVerify this question has a clear correct answer. Score 7+ = pass, 4-6 = warn, 1-3 = fail.`;
-        const v2User = `Category: ${cat}\nYear group: ${year_group}\nQuestion: ${question_text}${optionsBlock}\nStated correct answer: ${correct_answer}\n\nAssess difficulty for ${year_group}. Score 7+ = pass, 4-6 = warn, 1-3 = fail.`;
-        const [v1, v2] = await Promise.all([
-          callValidator(buildV1System(), v1User, apiKey),
-          callValidator(buildV2System(), v2User, apiKey),
-        ]);
-        v1_score = v1.score; v1_reason = v1.reason;
-        v4_score = v2.score; v4_reason = v2.reason;
-        combined_score = Math.round(((v1_score + v4_score) / 2) * 10) / 10;
-        outcome = v4_score >= 7 ? 'pass' : v4_score >= 5 ? 'warn' : 'fail';
+      // V4: specialist validator routed by category (validateByCategory handles all routing)
+      const [v1, v4] = await Promise.all([
+        callValidator(V1_SYSTEM, v1User, apiKey),
+        validateByCategory({ question_text, correct_answer, category: cat, year_group, options, passage }, apiKey),
+      ]);
 
-      } else {
-        // V1 + V2 + V3 (all Haiku) — all-pass rule
-        const v1User = `Category: ${cat}\nYear group: ${year_group}\nQuestion: ${question_text}${optionsBlock}\nStated correct answer: ${correct_answer}\n\nVerify this question has a clear correct answer. Score 7+ = pass, 4-6 = warn, 1-3 = fail.`;
-        const v2User = `Category: ${cat}\nYear group: ${year_group}\nQuestion: ${question_text}${optionsBlock}\nStated correct answer: ${correct_answer}\n\nAssess difficulty for ${year_group}. Score 7+ = pass, 4-6 = warn, 1-3 = fail.`;
-        const v3User = `Category: ${cat}\nYear group: ${year_group}\nQuestion: ${question_text}${optionsBlock}\nCorrect answer: ${correct_answer}\n\nRate the quality of this question. Score 7+ = pass, 4-6 = warn, 1-3 = fail.`;
-        const [v1, v2, v3] = await Promise.all([
-          callValidator(buildV1System(), v1User, apiKey),
-          callValidator(buildV2System(), v2User, apiKey),
-          callValidator(buildV3System(), v3User, apiKey),
-        ]);
-        const scores = [v1.score, v2.score, v3.score];
-        v1_score = v1.score; v1_reason = v1.reason;
-        v4_score = v3.score; v4_reason = v3.reason;
-        combined_score = Math.round((scores.reduce((a, b) => a + b, 0) / 3) * 10) / 10;
-        outcome = scores.every(s => s >= 6) ? 'pass' : scores.some(s => s < 4) ? 'fail' : 'warn';
-      }
+      const v1_score     = v1.score;
+      const v1_reason    = v1.reason;
+      const v4_score     = v4.score;
+      const v4_reason    = v4.reason;
+      const combined_score = Math.round(((v1_score + v4_score) / 2) * 10) / 10;
+      // V4 (specialist) is authoritative for outcome
+      const outcome = v4_score >= 7 ? 'pass' : v4_score >= 5 ? 'warn' : 'fail';
 
       // Update questions row with new validation verdict
       const combinedReason = [v1_reason, v4_reason].filter(Boolean).join(' | ') || null;
