@@ -609,6 +609,11 @@ function generateSVGFromDescription(description) {
     const pos = parseInt(description.match(/\d+/)[0]);
     return generateDiagram('measurement-scale', { type: 'weighing-dial', highlight: pos });
   }
+  else if (description.includes('measurement-scale: measuring-jug')) {
+    console.log('Matched: measurement-scale measuring-jug');
+    const pos = parseInt(description.match(/\d+/)[0]);
+    return generateDiagram('measurement-scale', { type: 'measuring-jug', highlight: pos });
+  }
 
   console.log('No SVG match for:', description);
   return null;
@@ -2558,7 +2563,7 @@ function generateMeasurementQuestion(year_group) {
             exp: `Each division = ${total} ÷ ${divisions} = ${each} ml; mark ${mark} = ${mark} × ${each} = ${reading} ml`,
             d: 2,
             nd: true,
-            dd: `measurement-scale: weighing-dial, position ${reading}g`,
+            dd: `measurement-scale: measuring-jug, position ${reading}ml`,
           };
         },
         () => {
