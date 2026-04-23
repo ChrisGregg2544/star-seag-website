@@ -1203,7 +1203,7 @@ async function handleBulkRevalidate(req, res) {
 
   // ── Build Supabase query URL ───────────────────────
   // Filters must come before limit/offset so PostgREST paginates the filtered set, not the whole table
-  let url = `${supabaseUrl}/rest/v1/questions?select=*&source=in.(ai_generated_v2,ai_generated_v3)`;
+  let url = `${supabaseUrl}/rest/v1/questions?select=*&source=in.(ai_generated_v2,ai_generated_v3)&validator_verdict=is.null`;
   if (category_filter)   url += `&topic=eq.${encodeURIComponent(category_filter)}`;
   if (year_group_filter) url += `&year_group=eq.${encodeURIComponent(year_group_filter)}`;
   url += `&order=id&limit=${batch_size}&offset=${offset}`;
@@ -1217,7 +1217,7 @@ async function handleBulkRevalidate(req, res) {
   if (!questions.length) return res.json({ processed: 0, results: [], stats: {}, done: true });
 
   // ── Get total count for progress tracking ──────────
-  let countUrl = `${supabaseUrl}/rest/v1/questions?select=id&source=in.(ai_generated_v2,ai_generated_v3)`;
+  let countUrl = `${supabaseUrl}/rest/v1/questions?select=id&source=in.(ai_generated_v2,ai_generated_v3)&validator_verdict=is.null`;
   if (category_filter)   countUrl += `&topic=eq.${encodeURIComponent(category_filter)}`;
   if (year_group_filter) countUrl += `&year_group=eq.${encodeURIComponent(year_group_filter)}`;
   const countRes = await fetch(countUrl, {
