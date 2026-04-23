@@ -1202,10 +1202,11 @@ async function handleBulkRevalidate(req, res) {
   const { category_filter, year_group_filter, batch_size = 10, offset = 0 } = req.body;
 
   // ── Build Supabase query URL ───────────────────────
-  let url = `${supabaseUrl}/rest/v1/questions?select=*&order=id&limit=${batch_size}&offset=${offset}`;
-  url += `&source=in.(ai_generated_v2,ai_generated_v3)`;
+  // Filters must come before limit/offset so PostgREST paginates the filtered set, not the whole table
+  let url = `${supabaseUrl}/rest/v1/questions?select=*&source=in.(ai_generated_v2,ai_generated_v3)`;
   if (category_filter)   url += `&topic=eq.${encodeURIComponent(category_filter)}`;
   if (year_group_filter) url += `&year_group=eq.${encodeURIComponent(year_group_filter)}`;
+  url += `&order=id&limit=${batch_size}&offset=${offset}`;
 
   const fetchRes = await fetch(url, { headers: supabaseHeaders(serviceRoleKey) });
   if (!fetchRes.ok) {
