@@ -1936,6 +1936,21 @@ export default async function handler(req, res) {
       }
       return res.json({ questions: testQuestions });
     }
+    case 'generate-geometry-batch': {
+      const geoCount = Math.min(req.body.count || 5, 50);
+      const geometryQuestions = [];
+      for (let i = 0; i < geoCount; i++) {
+        geometryQuestions.push(generateGeometryQuestion(req.body.year_group || 'P6'));
+      }
+      return res.json({ questions: geometryQuestions });
+    }
+    case 'test-geometry': {
+      const geoTestQuestions = [];
+      for (let i = 0; i < 5; i++) {
+        geoTestQuestions.push(generateGeometryQuestion(req.body.year_group || 'P6'));
+      }
+      return res.json({ questions: geoTestQuestions });
+    }
     case 'save-reference':      return handleSaveReference(req, res);
     default:
       return res.status(400).json({ error: `Unknown action: ${action}` });

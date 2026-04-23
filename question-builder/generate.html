@@ -476,14 +476,17 @@ async function runGenerate() {
   currentResults = [];
 
   try {
-    // Arithmetic uses programmatic generation; all other categories use AI template mode
+    // Arithmetic and geometry use programmatic generation; all other categories use AI template mode
     const isArithmetic = category === 'arithmetic';
+    const isGeometry = category === 'geometry';
     const genRes = await fetch('/api/question-builder', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(
         isArithmetic
           ? { action: 'generate-arithmetic-batch', year_group: yearGroup, count: batchSize }
+          : isGeometry
+          ? { action: 'generate-geometry-batch', year_group: yearGroup, count: batchSize }
           : { action: 'generate-questions', category, year_group: yearGroup, batch_size: batchSize }
       ),
     });
