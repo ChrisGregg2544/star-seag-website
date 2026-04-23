@@ -964,7 +964,12 @@ Rate the quality of this question. Score 7+ = pass, 4-6 = warn, 1-3 = fail.`;
       ]);
       scores = [v1.score, v2.score, v3.score];
       combined_score = Math.round((scores.reduce((a, b) => a + b, 0) / 3) * 10) / 10;
-      outcome = scores.every(s => s >= 6) ? 'pass' : scores.some(s => s < 5) ? 'fail' : 'rewrite';
+      if (category === 'arithmetic') {
+        // V2 (Difficulty/correctness) is authoritative for programmatic math questions
+        outcome = v2.score >= 7 ? 'pass' : v2.score >= 5 ? 'rewrite' : 'fail';
+      } else {
+        outcome = scores.every(s => s >= 6) ? 'pass' : scores.some(s => s < 5) ? 'fail' : 'rewrite';
+      }
       console.log(`run-validators: ${outcome} (${scores.join(', ')}) — ${category} ${year_group}`);
 
       if (supabaseUrl && serviceRoleKey) {
