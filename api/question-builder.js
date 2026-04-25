@@ -1257,7 +1257,7 @@ async function handleBulkRevalidate(req, res) {
       // V4 (specialist) is authoritative for outcome
       const outcome = v4_score >= 7 ? 'pass' : v4_score >= 5 ? 'warn' : 'fail';
 
-      // Update questions row with new validation verdict
+      // Update questions row with full validation results
       const combinedReason = [v1_reason, v4_reason].filter(Boolean).join(' | ') || null;
       await fetch(`${supabaseUrl}/rest/v1/questions?id=eq.${id}`, {
         method: 'PATCH',
@@ -1265,6 +1265,10 @@ async function handleBulkRevalidate(req, res) {
         body: JSON.stringify({
           validator_verdict: outcome,
           validator_reason:  combinedReason,
+          v1_score,
+          v4_score,
+          combined_score,
+          revalidated_at:    new Date().toISOString(),
         }),
       });
 
