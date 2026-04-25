@@ -1197,6 +1197,7 @@ async function handleBulkRevalidate(req, res) {
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   const apiKey         = process.env.ANTHROPIC_API_KEY;
 
+  console.log('handleBulkRevalidate: serviceRoleKey present:', !!serviceRoleKey, 'prefix:', serviceRoleKey?.slice(0, 20));
   if (!supabaseUrl || !serviceRoleKey) return res.status(500).json({ error: 'Missing Supabase env vars' });
   if (!apiKey)                         return res.status(500).json({ error: 'Missing Anthropic API key' });
 
