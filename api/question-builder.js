@@ -1259,9 +1259,10 @@ async function handleBulkRevalidate(req, res) {
       const outcome = v4_score >= 7 ? 'pass' : v4_score >= 5 ? 'warn' : 'fail';
 
       // Update questions row with full validation results
-      console.log(`bulk-revalidate: about to PATCH id=${id} outcome=${outcome} v1=${v1_score} v4=${v4_score}`);
+      const patchUrl = `${supabaseUrl}/rest/v1/questions?id=eq.${id}`;
+      console.log(`bulk-revalidate: about to PATCH — url="${patchUrl}" outcome=${outcome} v1=${v1_score} v4=${v4_score}`);
       const combinedReason = [v1_reason, v4_reason].filter(Boolean).join(' | ') || null;
-      const patchRes = await fetch(`${supabaseUrl}/rest/v1/questions?id=eq.${id}`, {
+      const patchRes = await fetch(patchUrl, {
         method: 'PATCH',
         headers: supabaseHeaders(serviceRoleKey, { 'Prefer': 'return=minimal,count=exact' }),
         body: JSON.stringify({
