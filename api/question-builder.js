@@ -1259,9 +1259,9 @@ async function handleBulkRevalidate(req, res) {
 
       // Update questions row with full validation results
       const combinedReason = [v1_reason, v4_reason].filter(Boolean).join(' | ') || null;
-      await fetch(`${supabaseUrl}/rest/v1/questions?id=eq.${id}`, {
+      const patchRes = await fetch(`${supabaseUrl}/rest/v1/questions?id=eq.${id}`, {
         method: 'PATCH',
-        headers: supabaseHeaders(serviceRoleKey, { 'Prefer': 'return=minimal' }),
+        headers: supabaseHeaders(serviceRoleKey, { 'Prefer': 'return=minimal,count=exact' }),
         body: JSON.stringify({
           validator_verdict: outcome,
           validator_reason:  combinedReason,
@@ -1271,6 +1271,17 @@ async function handleBulkRevalidate(req, res) {
           revalidated_at:    new Date().toISOString(),
         }),
       });
+      if (!patchRes.ok) {
+        const errBody = await patchRes.text();
+        console.error(`bulk-revalidate: PATCH failed for id=${id} status=${patchRes.status}:`, errBody.slice(0, 300));
+      } else {
+        const rowsAffected = patchRes.headers.get('content-range');
+        if (rowsAffected === '*/0') {
+          console.error(`bulk-revalidate: PATCH matched 0 rows for id=${id} — UUID mismatch or row missing`);
+        } else {
+          console.log(`bulk-revalidate: PATCH ok id=${id} rows=${rowsAffected}`);
+        }
+      }
 
       // Track stats per category
       if (!stats[cat]) stats[cat] = { pass: 0, warn: 0, fail: 0, total: 0 };
