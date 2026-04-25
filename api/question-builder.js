@@ -1250,11 +1250,11 @@ async function handleBulkRevalidate(req, res) {
         validateByCategory({ question_text, correct_answer, category: cat, year_group, options, passage }, apiKey),
       ]);
 
-      const v1_score     = v1.score;
+      const v1_score     = Math.round(v1.score);
       const v1_reason    = v1.reason;
-      const v4_score     = v4.score;
+      const v4_score     = Math.round(v4.score);
       const v4_reason    = v4.reason;
-      const combined_score = Math.round(((v1_score + v4_score) / 2) * 10) / 10;
+      const combined_score = Math.round((v1_score + v4_score) / 2);
       // V4 (specialist) is authoritative for outcome
       const outcome = v4_score >= 7 ? 'pass' : v4_score >= 5 ? 'warn' : 'fail';
 
