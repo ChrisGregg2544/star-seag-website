@@ -1192,6 +1192,7 @@ async function handleSaveGenerated(req, res) {
 // ══════════════════════════════════════════════════════
 
 async function handleBulkRevalidate(req, res) {
+  console.log('handleBulkRevalidate: ENTERED — body keys:', Object.keys(req.body || {}));
   const supabaseUrl    = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   const apiKey         = process.env.ANTHROPIC_API_KEY;
