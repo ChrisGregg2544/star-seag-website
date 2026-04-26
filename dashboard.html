@@ -876,9 +876,9 @@ async function init() {
     let activated = false;
     for (let i = 0; i < 10; i++) {
       await new Promise(r => setTimeout(r, 2000));
-      const { data: p } = await sb.from('profiles')
+      const { data: p } = await sb.from('parent_subscriptions')
         .select('subscription_status')
-        .eq('id', parentId)
+        .eq('parent_id', parentId)
         .maybeSingle();
       if (p?.subscription_status === 'active' || p?.subscription_status === 'trialing') {
         activated = true;
@@ -899,13 +899,14 @@ async function init() {
     }
   }
 
-  // Subscription/billing data from parent profile; student data from child profile
-  const [{ data: parentProfile }, { data: profile }] = await Promise.all([
-    sb.from('profiles').select('subscription_status,free_sprints_used').eq('id', parentId).maybeSingle(),
+  // Subscription from parent_subscriptions; free_sprints_used from parent's profile; student data from child's profile
+  const [{ data: parentSub }, { data: parentProfile }, { data: profile }] = await Promise.all([
+    sb.from('parent_subscriptions').select('subscription_status').eq('parent_id', parentId).maybeSingle(),
+    sb.from('profiles').select('free_sprints_used').eq('id', parentId).maybeSingle(),
     sb.from('profiles').select('name,year_group,exam_year,sessions_per_week').eq('id', selectedChildId).maybeSingle(),
   ]);
 
-  const status = parentProfile?.subscription_status;
+  const status = parentSub?.subscription_status;
   const subscribed = status === 'active' || status === 'trialing';
 
   if (subscribed) {

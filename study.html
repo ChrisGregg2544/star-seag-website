@@ -1547,9 +1547,9 @@ async function checkAccess() {
       }
 
       const { data: parentProfile, error } = await sb
-        .from('profiles')
+        .from('parent_subscriptions')
         .select('subscription_status')
-        .eq('id', parentId)
+        .eq('parent_id', parentId)
         .maybeSingle();
 
       if (error) {

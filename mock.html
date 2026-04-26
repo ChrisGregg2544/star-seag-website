@@ -595,7 +595,7 @@ async function init() {
 
   // Subscription lives on the parent's profile; name/year live on the child's profile
   const [{ data: parentProfile }, { data: profile }] = await Promise.all([
-    sb.from('profiles').select('subscription_status').eq('id', parentId).maybeSingle(),
+    sb.from('parent_subscriptions').select('subscription_status').eq('parent_id', parentId).maybeSingle(),
     sb.from('profiles').select('name, year_group').eq('id', selectedChildId).maybeSingle(),
   ]);
 
