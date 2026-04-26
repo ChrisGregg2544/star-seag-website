@@ -881,20 +881,17 @@ async function init() {
   const urlMode  = params.get('mode');
   const urlTrack = params.get('track');
 
-  // Load year group + name from Supabase profile
-  const { data: authData } = await sb.auth.getSession();
-  if (authData?.session?.user) {
-    const { data: profile } = await sb.from('profiles')
-      .select('name, year_group')
-      .eq('id', authData.session.user.id)
-      .maybeSingle();
-    if (profile?.year_group) userYear = profile.year_group;
-    if (profile?.name) document.getElementById('nav-student-name').textContent = '· ' + profile.name;
-  } else {
-    userYear = urlTrack || sessionStorage.getItem('star_year') || 'P6';
-    const name = sessionStorage.getItem('star_name') || '';
-    if (name) document.getElementById('nav-student-name').textContent = '· ' + name;
-  }
+  // Use selectedChildId set by login.html (direct student) or child-selector.html (parent flow)
+  const selectedChildId = localStorage.getItem('selectedChildId');
+  if (!selectedChildId) { window.location.href = 'child-selector.html'; return; }
+
+  const { data: profile } = await sb.from('profiles')
+    .select('name, year_group')
+    .eq('id', selectedChildId)
+    .maybeSingle();
+  if (profile?.year_group) userYear = profile.year_group;
+  else userYear = urlTrack || sessionStorage.getItem('star_year') || 'P6';
+  if (profile?.name) document.getElementById('nav-student-name').textContent = '· ' + profile.name;
 
   document.getElementById('results-panel').classList.remove('visible');
   document.getElementById('complete-screen').classList.remove('visible');
@@ -1425,8 +1422,12 @@ function saveSessionToSupabase(missedQs) {
       console.log('No Supabase session — saved locally only');
       return;
     }
-    console.log('Saving to Supabase for:', data.session.user.email, '| userId:', data.session.user.id);
-    const userId = data.session.user.id;
+    const userId = localStorage.getItem('selectedChildId');
+    if (!userId) {
+      console.log('No selectedChildId — saved locally only');
+      return;
+    }
+    console.log('Saving to Supabase for child:', userId);
     const track  = sessionStorage.getItem('star_year') || 'P6';
 
     const { data: sessionData, error: sessionError } = await sb.from('sessions').insert({
@@ -1529,7 +1530,11 @@ async function checkAccess() {
       return false;
     }
 
-    const userId = data.session.user.id;
+    const selectedChildId = localStorage.getItem('selectedChildId');
+    if (!selectedChildId) { window.location.href = 'child-selector.html'; return false; }
+
+    // Subscription lives on the parent's profile; free sprint count is per child
+    const parentId = data.session.user.id;
 
     // If arriving from Stripe checkout, retry up to 4 times
     // to give the webhook time to update subscription_status
@@ -1541,10 +1546,10 @@ async function checkAccess() {
         await new Promise(resolve => setTimeout(resolve, 2000));
       }
 
-      const { data: profile, error } = await sb
+      const { data: parentProfile, error } = await sb
         .from('profiles')
-        .select('subscription_status, free_sprints_used')
-        .eq('id', userId)
+        .select('subscription_status')
+        .eq('id', parentId)
         .maybeSingle();
 
       if (error) {
@@ -1552,17 +1557,17 @@ async function checkAccess() {
         return true; // Fail open
       }
 
-      // No profile row yet — allow access rather than blocking
-      if (!profile) {
-        window._starAccess = { subscribed: false, freeUsed: 0, userId };
+      // No parent profile yet — allow access rather than blocking
+      if (!parentProfile) {
+        window._starAccess = { subscribed: false, freeUsed: 0, userId: selectedChildId };
         return true;
       }
 
-      const status = profile?.subscription_status;
+      const status = parentProfile?.subscription_status;
       console.log('Access check attempt ' + attempt + ': status = ' + status);
 
       if (status === 'active' || status === 'trialing') {
-        window._starAccess = { subscribed: true, freeUsed: 0, userId };
+        window._starAccess = { subscribed: true, freeUsed: 0, userId: selectedChildId };
         return true;
       }
 
@@ -1575,19 +1580,23 @@ async function checkAccess() {
       // Stripe confirmed payment — webhook will catch up
       if (justPaid) {
         console.log('Letting in post-checkout user — webhook pending');
-        window._starAccess = { subscribed: true, freeUsed: 0, userId };
+        window._starAccess = { subscribed: true, freeUsed: 0, userId: selectedChildId };
         return true;
       }
 
-      // No subscription — check free sprint allowance
-      // Use Math.max so localStorage is always a real safety net,
-      // not just a fallback when the column is absent
-      const dbFreeUsed = profile?.free_sprints_used ?? 0;
+      // No subscription — check child's free sprint allowance
+      const { data: childProfile } = await sb
+        .from('profiles')
+        .select('free_sprints_used')
+        .eq('id', selectedChildId)
+        .maybeSingle();
+
+      const dbFreeUsed = childProfile?.free_sprints_used ?? 0;
       const lsFreeUsed = parseInt(localStorage.getItem('star_free_sprints_used') || '0', 10);
       const freeUsed = Math.max(dbFreeUsed, lsFreeUsed);
 
       if (freeUsed < 2) {
-        window._starAccess = { subscribed: false, freeUsed, userId };
+        window._starAccess = { subscribed: false, freeUsed, userId: selectedChildId };
         return true;
       }
 

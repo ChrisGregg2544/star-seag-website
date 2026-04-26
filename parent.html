@@ -708,14 +708,16 @@ function formatDate(iso) {
   } catch { return ''; }
 }
 
-/* ── Init: check auth, then load dashboard ── */
+/* ── Init: check auth, then load selected child's data ── */
 window.addEventListener('DOMContentLoaded', async () => {
   const { data } = await sb.auth.getSession();
   if (!data?.session?.user) {
     window.location.href = 'login.html';
     return;
   }
-  currentUserId = data.session.user.id;
+  const selectedChildId = localStorage.getItem('selectedChildId');
+  if (!selectedChildId) { window.location.href = 'child-selector.html'; return; }
+  currentUserId = selectedChildId;
   buildDashboard();
 });
 </script>

@@ -249,6 +249,8 @@
       console.log('[smartRedirect] profile query →', 'data:', profileResult.data, 'error:', profileResult.error)
 
       if (!profileResult.error && profileResult.data?.onboarded === true) {
+        // Direct student (no children) — store own ID so student pages can read selectedChildId
+        localStorage.setItem('selectedChildId', userId)
         console.log('[smartRedirect] → study.html')
         window.location.href = 'study.html'
       } else {

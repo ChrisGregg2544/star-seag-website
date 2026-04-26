@@ -858,10 +858,14 @@ function buildWeeklySchedule(sessionsPerWeek, weekDone) {
 async function init() {
   const { data: authData } = await sb.auth.getSession();
   if (!authData?.session?.user) { window.location.href = 'login.html'; return; }
-  const userId = authData.session.user.id;
-  console.log('[dashboard] userId for session counter:', userId);
+  const parentId = authData.session.user.id;
 
-  // Handle post-Stripe-checkout redirect
+  const selectedChildId = localStorage.getItem('selectedChildId');
+  if (!selectedChildId) { window.location.href = 'child-selector.html'; return; }
+
+  console.log('[dashboard] parentId:', parentId, '| selectedChildId:', selectedChildId);
+
+  // Handle post-Stripe-checkout redirect — subscription is on the parent's profile
   const justPaid = new URLSearchParams(window.location.search).get('checkout') === 'success';
   if (justPaid) {
     const banner = document.getElementById('upgrade-banner');
@@ -874,7 +878,7 @@ async function init() {
       await new Promise(r => setTimeout(r, 2000));
       const { data: p } = await sb.from('profiles')
         .select('subscription_status')
-        .eq('id', userId)
+        .eq('id', parentId)
         .maybeSingle();
       if (p?.subscription_status === 'active' || p?.subscription_status === 'trialing') {
         activated = true;
@@ -895,11 +899,13 @@ async function init() {
     }
   }
 
-  const { data: profile } = await sb.from('profiles')
-    .select('name,year_group,exam_year,subscription_status,sessions_per_week,free_sprints_used')
-    .eq('id', userId).maybeSingle();
+  // Subscription/billing data from parent profile; student data from child profile
+  const [{ data: parentProfile }, { data: profile }] = await Promise.all([
+    sb.from('profiles').select('subscription_status,free_sprints_used').eq('id', parentId).maybeSingle(),
+    sb.from('profiles').select('name,year_group,exam_year,sessions_per_week').eq('id', selectedChildId).maybeSingle(),
+  ]);
 
-  const status = profile?.subscription_status;
+  const status = parentProfile?.subscription_status;
   const subscribed = status === 'active' || status === 'trialing';
 
   if (subscribed) {
@@ -907,7 +913,7 @@ async function init() {
   }
 
   if (!subscribed) {
-    const dbFreeUsed = profile?.free_sprints_used ?? 0;
+    const dbFreeUsed = parentProfile?.free_sprints_used ?? 0;
     const lsFreeUsed = parseInt(localStorage.getItem('star_free_sprints_used') || '0', 10);
     const freeUsed = Math.max(dbFreeUsed, lsFreeUsed);
     const freeLeft = Math.max(0, 2 - freeUsed);
@@ -936,13 +942,13 @@ async function init() {
   weekStart.setHours(0, 0, 0, 0);
 
   const [{ count: sessionsCount }, { count: weekDoneCount }] = await Promise.all([
-    sb.from('sessions').select('*', {count:'exact',head:true}).eq('user_id', userId),
-    sb.from('sessions').select('*', {count:'exact',head:true}).eq('user_id', userId).gte('completed_at', weekStart.toISOString()),
+    sb.from('sessions').select('*', {count:'exact',head:true}).eq('user_id', selectedChildId),
+    sb.from('sessions').select('*', {count:'exact',head:true}).eq('user_id', selectedChildId).gte('completed_at', weekStart.toISOString()),
   ]);
 
   const { data: progressData } = await sb.from('progress_summary')
     .select('last_score, last_total, topics_to_review')
-    .eq('user_id', userId).maybeSingle();
+    .eq('user_id', selectedChildId).maybeSingle();
 
   const toReview  = progressData?.topics_to_review || JSON.parse(localStorage.getItem('star_toReview')) || [];
   const lastScore = progressData?.last_score != null
@@ -995,7 +1001,7 @@ async function init() {
   }
 
   buildWeeklySchedule(sessionsPerWeek, weekDone);
-  buildSkillsMap(sessionsCount || 0, userId);
+  buildSkillsMap(sessionsCount || 0, selectedChildId);
   buildTopics(toReview, hasData);
 }
 

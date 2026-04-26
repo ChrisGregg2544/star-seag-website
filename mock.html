@@ -587,13 +587,19 @@ function showScreen(id) {
 async function init() {
   const { data: authData } = await sb.auth.getSession();
   if (!authData?.session?.user) { window.location.href = 'login.html'; return; }
-  userId = authData.session.user.id;
+  const parentId = authData.session.user.id;
 
-  const { data: profile } = await sb.from('profiles')
-    .select('name, year_group, subscription_status')
-    .eq('id', userId).single();
+  const selectedChildId = localStorage.getItem('selectedChildId');
+  if (!selectedChildId) { window.location.href = 'child-selector.html'; return; }
+  userId = selectedChildId;
 
-  const status = profile?.subscription_status;
+  // Subscription lives on the parent's profile; name/year live on the child's profile
+  const [{ data: parentProfile }, { data: profile }] = await Promise.all([
+    sb.from('profiles').select('subscription_status').eq('id', parentId).maybeSingle(),
+    sb.from('profiles').select('name, year_group').eq('id', selectedChildId).maybeSingle(),
+  ]);
+
+  const status = parentProfile?.subscription_status;
   if (status !== 'active' && status !== 'trialing') {
     window.location.href = 'pricing.html';
     return;
