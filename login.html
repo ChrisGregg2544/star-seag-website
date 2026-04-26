@@ -224,25 +224,35 @@
 
   /* ══════════════════════════════════════
      SMART REDIRECT
-     New users → onboarding.html
-     Returning users → dashboard.html
+     Parents with children → child-selector.html
+     Parents with no children → onboarding.html
+     Students (onboarded) → dashboard.html
+     Students (new) → onboarding.html
   ══════════════════════════════════════ */
   async function smartRedirect(userId) {
     try {
-      const { data: profile } = await client
-        .from('profiles')
-        .select('onboarded')
-        .eq('id', userId)
-        .single()
+      console.log('[smartRedirect] userId:', userId)
 
-      if (profile?.onboarded === true) {
+      const [childrenResult, profileResult] = await Promise.all([
+        client.from('profiles').select('id').eq('parent_id', userId).limit(5),
+        client.from('profiles').select('onboarded').eq('id', userId).maybeSingle()
+      ])
+
+      console.log('[smartRedirect] children query →', 'data:', childrenResult.data, 'error:', childrenResult.error)
+      console.log('[smartRedirect] profile query →', 'data:', profileResult.data, 'error:', profileResult.error)
+
+      if (childrenResult.data && childrenResult.data.length > 0) {
+        console.log('[smartRedirect] → child-selector.html')
+        window.location.href = 'child-selector.html'
+      } else if (profileResult.data?.onboarded === true) {
+        console.log('[smartRedirect] → dashboard.html')
         window.location.href = 'dashboard.html'
       } else {
+        console.log('[smartRedirect] → onboarding.html')
         window.location.href = 'onboarding.html'
       }
     } catch (err) {
-      // If check fails, send to onboarding to be safe
-      console.error('Redirect check error:', err.message)
+      console.error('[smartRedirect] caught error:', err.message)
       window.location.href = 'onboarding.html'
     }
   }
