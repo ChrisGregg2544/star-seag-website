@@ -1422,46 +1422,13 @@ function saveSessionToSupabase(missedQs) {
       console.log('No Supabase session — saved locally only');
       return;
     }
-    const userId = localStorage.getItem('selectedChildId');
-    if (!userId) {
+    const childId = localStorage.getItem('selectedChildId');
+    if (!childId) {
       console.log('No selectedChildId — saved locally only');
       return;
     }
-    console.log('Saving to Supabase for child:', userId);
-    const track  = sessionStorage.getItem('star_year') || 'P6';
-
-    const { data: sessionData, error: sessionError } = await sb.from('sessions').insert({
-      user_id:         userId,
-      session_type:    'mini_sprint',
-      track:           track,
-      score:           score.correct,
-      total_questions: QUESTIONS.length,
-      english_score:   QUESTIONS.filter((q,i) => q.type==='english' && answers[i]==='correct').length,
-      maths_score:     QUESTIONS.filter((q,i) => q.type==='maths'   && answers[i]==='correct').length,
-    }).select().maybeSingle();
-    console.log('Sessions save:', sessionError || 'OK');
-
-    if (sessionError) {
-      console.error('Supabase insert error:', sessionError.message);
-      return;
-    }
-
-    if (sessionData?.id) {
-      const results = QUESTIONS.map((q, i) => ({
-        session_id:    sessionData.id,
-        user_id:       userId,
-        question_id:   q._id,
-        topic:         q.topic,
-        question_type: q.type,
-        correct:       answers[i] === 'correct'
-      }));
-      const { error: qrError } = await sb.from('question_results').insert(results);
-      console.log('Question results save:', qrError || 'OK');
-
-      const history = QUESTIONS.map(q => ({ student_id: userId, question_id: q._id }));
-      const { error: histError } = await sb.from('student_question_history').insert(history);
-      console.log('Student history save:', histError || 'OK');
-    }
+    console.log('Saving to Supabase for child:', childId);
+    const track = sessionStorage.getItem('star_year') || 'P6';
 
     const toReviewForDb = missedQs
       .map(q => ({ topic: q.topic, videoTitle: q.videoTopic || q.topic, videoUrl: q.videoUrl, videoSource: q.videoSource, questionText: q.text }))
@@ -1469,25 +1436,51 @@ function saveSessionToSupabase(missedQs) {
 
     console.log('topics_to_review being saved:', JSON.stringify(toReviewForDb));
 
-    const { error: psError } = await sb.from('progress_summary').upsert({
-      user_id:          userId,
-      last_score:       score.correct,
-      last_total:       QUESTIONS.length,
-      topics_to_review: toReviewForDb,
-      last_session_at:  new Date().toISOString(),
-      updated_at:       new Date().toISOString()
-    }, { onConflict: 'user_id' });
-    console.log('Progress summary save:', psError || 'OK');
+    const newFreeSprintsUsed = !window._starAccess?.subscribed
+      ? (window._starAccess?.freeUsed || 0) + 1
+      : null;
 
-    if (!window._starAccess?.subscribed) {
-      const newCount = (window._starAccess?.freeUsed || 0) + 1;
-      const { error: fsuError } = await sb.from('profiles').update({ free_sprints_used: newCount }).eq('id', userId);
-      if (fsuError) console.error('free_sprints_used update failed:', fsuError.message);
-      localStorage.setItem('star_free_sprints_used', String(newCount));
-      if (window._starAccess) window._starAccess.freeUsed = newCount;
+    const payload = {
+      childId,
+      session: {
+        session_type:    'mini_sprint',
+        track,
+        score:           score.correct,
+        total_questions: QUESTIONS.length,
+        english_score:   QUESTIONS.filter((q, i) => q.type === 'english' && answers[i] === 'correct').length,
+        maths_score:     QUESTIONS.filter((q, i) => q.type === 'maths'   && answers[i] === 'correct').length,
+      },
+      questionResults: QUESTIONS.map((q, i) => ({
+        question_id:   q._id,
+        topic:         q.topic,
+        question_type: q.type,
+        correct:       answers[i] === 'correct',
+      })),
+      missedTopics:    toReviewForDb,
+      freeSprintsUsed: newFreeSprintsUsed,
+    };
+
+    const res = await fetch('/api/save-session', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${data.session.access_token}`,
+      },
+      body: JSON.stringify(payload),
+    });
+
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok || !json.ok) {
+      console.error('[save-session] API error:', json.error || res.status);
+      return;
     }
 
-    console.log('✅ Saved to Supabase!');
+    if (newFreeSprintsUsed !== null) {
+      localStorage.setItem('star_free_sprints_used', String(newFreeSprintsUsed));
+      if (window._starAccess) window._starAccess.freeUsed = newFreeSprintsUsed;
+    }
+
+    console.log('✅ Saved to Supabase! sessionId:', json.sessionId);
   });
 }
 
