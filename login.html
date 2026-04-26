@@ -224,29 +224,33 @@
 
   /* ══════════════════════════════════════
      SMART REDIRECT
-     Parents with children → child-selector.html
-     Parents with no children → onboarding.html
-     Students (onboarded) → dashboard.html
-     Students (new) → onboarding.html
+     1. Check for children (parent_id = user.id)
+        → found: child-selector.html
+     2. No children → check own profile (maybeSingle — null if missing, no 406)
+        → onboarded: study.html
+        → no profile / not onboarded: onboarding.html
   ══════════════════════════════════════ */
   async function smartRedirect(userId) {
     try {
       console.log('[smartRedirect] userId:', userId)
 
-      const [childrenResult, profileResult] = await Promise.all([
-        client.from('profiles').select('id').eq('parent_id', userId).limit(5),
-        client.from('profiles').select('onboarded').eq('id', userId).maybeSingle()
-      ])
-
+      // Step 1 — children check runs first
+      const childrenResult = await client.from('profiles').select('id').eq('parent_id', userId).limit(5)
       console.log('[smartRedirect] children query →', 'data:', childrenResult.data, 'error:', childrenResult.error)
-      console.log('[smartRedirect] profile query →', 'data:', profileResult.data, 'error:', profileResult.error)
 
-      if (childrenResult.data && childrenResult.data.length > 0) {
+      if (!childrenResult.error && childrenResult.data && childrenResult.data.length > 0) {
         console.log('[smartRedirect] → child-selector.html')
         window.location.href = 'child-selector.html'
-      } else if (profileResult.data?.onboarded === true) {
-        console.log('[smartRedirect] → dashboard.html')
-        window.location.href = 'dashboard.html'
+        return
+      }
+
+      // Step 2 — own profile check (maybeSingle returns null when row absent, never 406)
+      const profileResult = await client.from('profiles').select('onboarded').eq('id', userId).maybeSingle()
+      console.log('[smartRedirect] profile query →', 'data:', profileResult.data, 'error:', profileResult.error)
+
+      if (!profileResult.error && profileResult.data?.onboarded === true) {
+        console.log('[smartRedirect] → study.html')
+        window.location.href = 'study.html'
       } else {
         console.log('[smartRedirect] → onboarding.html')
         window.location.href = 'onboarding.html'
