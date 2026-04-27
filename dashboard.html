@@ -848,7 +848,7 @@ function buildWeeklySchedule(sessionsPerWeek, weekDone) {
     const isUpcoming = !isDone && !isNext;
 
     const card = document.createElement(isDone ? 'div' : 'a');
-    if (!isDone) card.href = sess.href;
+    if (!isDone) card.href = window._paywallActive ? 'pricing.html' : sess.href;
     card.className = 'week-card' + (isDone ? ' done' : isNext ? ' today' : ' upcoming');
 
     card.innerHTML =
@@ -909,7 +909,7 @@ async function init() {
   // Subscription from parent_subscriptions; free_sprints_used from parent's profile; student data from child's profile
   const [{ data: parentSub }, { data: parentProfile }, { data: profile }] = await Promise.all([
     sb.from('parent_subscriptions').select('subscription_status').eq('parent_id', parentId).maybeSingle(),
-    sb.from('profiles').select('free_sprints_used').eq('id', parentId).maybeSingle(),
+    sb.from('profiles').select('free_sprints_used').eq('id', selectedChildId).maybeSingle(),
     sb.from('profiles').select('name,year_group,exam_year,sessions_per_week').eq('id', selectedChildId).maybeSingle(),
   ]);
 
@@ -926,14 +926,31 @@ async function init() {
     const freeUsed = Math.max(dbFreeUsed, lsFreeUsed);
     const freeLeft = Math.max(0, 2 - freeUsed);
     const banner = document.getElementById('upgrade-banner');
-    const msg = document.getElementById('upgrade-banner-msg');
+    const msg    = document.getElementById('upgrade-banner-msg');
+
     if (freeLeft > 0) {
       msg.textContent = freeLeft === 1
         ? 'You have 1 free Mini Sprint remaining'
         : 'You have ' + freeLeft + ' free Mini Sprints remaining';
     } else {
-      msg.textContent = 'Your 2 free Mini Sprints are used up';
+      // Paywall reached — update banner and lock all sprint/mock entry points
+      msg.textContent = 'Your 2 free Mini Sprints are used up — subscribe to keep practising';
+      window._paywallActive = true;
+
+      // Lock today's recommended session card
+      const todayCard = document.getElementById('today-card');
+      if (todayCard) {
+        todayCard.href = 'pricing.html';
+        document.getElementById('today-title').textContent = '🔒 Subscribe to Continue';
+        document.getElementById('today-sub').textContent   = 'You\'ve used your 2 free sprints. Start your free trial to keep practising.';
+      }
+
+      // Lock Take a Mock and Study by Topic buttons
+      document.querySelectorAll('.ap-btn').forEach(btn => {
+        btn.href = 'pricing.html';
+      });
     }
+
     banner.classList.add('visible');
   }
 
