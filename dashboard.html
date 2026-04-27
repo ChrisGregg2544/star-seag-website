@@ -872,7 +872,23 @@ async function init() {
 
   console.log('[dashboard] parentId:', parentId, '| selectedChildId:', selectedChildId);
 
-  // Handle post-Stripe-checkout redirect — subscription is on the parent's profile
+  const accessToken = authData.session.access_token;
+
+  // Helper: check subscription via server-side endpoint (bypasses RLS)
+  async function checkSubscription() {
+    try {
+      const r = await fetch('/api/check-subscription', {
+        headers: { 'Authorization': `Bearer ${accessToken}` },
+      });
+      const j = await r.json();
+      return j.subscribed === true;
+    } catch (e) {
+      console.error('[dashboard] check-subscription failed:', e.message);
+      return false;
+    }
+  }
+
+  // Handle post-Stripe-checkout redirect
   const justPaid = new URLSearchParams(window.location.search).get('checkout') === 'success';
   if (justPaid) {
     const banner = document.getElementById('upgrade-banner');
@@ -883,20 +899,12 @@ async function init() {
     let activated = false;
     for (let i = 0; i < 10; i++) {
       await new Promise(r => setTimeout(r, 2000));
-      const { data: p } = await sb.from('parent_subscriptions')
-        .select('subscription_status')
-        .eq('parent_id', parentId)
-        .maybeSingle();
-      if (p?.subscription_status === 'active' || p?.subscription_status === 'trialing') {
-        activated = true;
-        break;
-      }
+      if (await checkSubscription()) { activated = true; break; }
     }
 
     if (activated) {
       msg.textContent = '🎉 Welcome to STAR AI Tutor! You\'re all set.';
       setTimeout(() => {
-        // Remove ?checkout=success from URL then reload
         window.history.replaceState({}, '', 'dashboard.html');
         location.reload();
       }, 2000);
@@ -906,15 +914,12 @@ async function init() {
     }
   }
 
-  // Subscription from parent_subscriptions; free_sprints_used from parent's profile; student data from child's profile
-  const [{ data: parentSub }, { data: parentProfile }, { data: profile }] = await Promise.all([
-    sb.from('parent_subscriptions').select('subscription_status').eq('parent_id', parentId).maybeSingle(),
+  // Subscription check (server-side) + student/child profiles (anon-key reads)
+  const [subscribed, { data: parentProfile }, { data: profile }] = await Promise.all([
+    checkSubscription(),
     sb.from('profiles').select('free_sprints_used').eq('id', selectedChildId).maybeSingle(),
     sb.from('profiles').select('name,year_group,exam_year,sessions_per_week').eq('id', selectedChildId).maybeSingle(),
   ]);
-
-  const status = parentSub?.subscription_status;
-  const subscribed = status === 'active' || status === 'trialing';
 
   if (subscribed) {
     document.getElementById('btn-manage-sub').classList.add('visible');

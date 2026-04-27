@@ -1512,7 +1512,6 @@ async function checkAccess() {
   try {
     const { data } = await sb.auth.getSession();
 
-    // Not logged in — redirect to login
     if (!data?.session?.user) {
       window.location.href = 'login.html';
       return false;
@@ -1521,52 +1520,28 @@ async function checkAccess() {
     const selectedChildId = localStorage.getItem('selectedChildId');
     if (!selectedChildId) { window.location.href = 'child-selector.html'; return false; }
 
-    // Subscription lives on the parent's profile; free sprint count is per child
-    const parentId = data.session.user.id;
-
-    // If arriving from Stripe checkout, retry up to 4 times
-    // to give the webhook time to update subscription_status
-    const justPaid = new URLSearchParams(window.location.search).get('checkout') === 'success';
+    const accessToken = data.session.access_token;
+    const justPaid    = new URLSearchParams(window.location.search).get('checkout') === 'success';
     const maxAttempts = justPaid ? 4 : 1;
 
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-      if (attempt > 1) {
-        await new Promise(resolve => setTimeout(resolve, 2000));
-      }
+      if (attempt > 1) await new Promise(r => setTimeout(r, 2000));
 
-      const { data: parentProfile, error } = await sb
-        .from('parent_subscriptions')
-        .select('subscription_status')
-        .eq('parent_id', parentId)
-        .maybeSingle();
-
-      if (error) {
-        console.error('Profile check error:', error.message);
+      // Server-side check — uses service role key so RLS can't interfere
+      let subscribed = false;
+      try {
+        const subRes = await fetch('/api/check-subscription', {
+          headers: { 'Authorization': `Bearer ${accessToken}` },
+        });
+        const subJson = await subRes.json();
+        subscribed = subJson.subscribed === true;
+        console.log('Access check attempt ' + attempt + ': status = ' + subJson.status);
+      } catch (fetchErr) {
+        console.error('check-subscription fetch failed:', fetchErr.message);
         return true; // Fail open
       }
 
-      // No parent_subscriptions row yet — still check the child's actual free sprint count
-      if (!parentProfile) {
-        const { data: childFree } = await sb
-          .from('profiles')
-          .select('free_sprints_used')
-          .eq('id', selectedChildId)
-          .maybeSingle();
-        const dbFree = childFree?.free_sprints_used ?? 0;
-        const lsFree = parseInt(localStorage.getItem('star_free_sprints_used') || '0', 10);
-        const freeUsed = Math.max(dbFree, lsFree);
-        if (freeUsed >= 2) {
-          window.location.href = 'pricing.html?reason=free_limit';
-          return false;
-        }
-        window._starAccess = { subscribed: false, freeUsed, userId: selectedChildId };
-        return true;
-      }
-
-      const status = parentProfile?.subscription_status;
-      console.log('Access check attempt ' + attempt + ': status = ' + status);
-
-      if (status === 'active' || status === 'trialing') {
+      if (subscribed) {
         window._starAccess = { subscribed: true, freeUsed: 0, userId: selectedChildId };
         return true;
       }
@@ -1576,15 +1551,13 @@ async function checkAccess() {
         continue;
       }
 
-      // After all retries, if they just paid let them in anyway
-      // Stripe confirmed payment — webhook will catch up
       if (justPaid) {
         console.log('Letting in post-checkout user — webhook pending');
         window._starAccess = { subscribed: true, freeUsed: 0, userId: selectedChildId };
         return true;
       }
 
-      // No subscription — check child's free sprint allowance
+      // Not subscribed — check child's free sprint count
       const { data: childProfile } = await sb
         .from('profiles')
         .select('free_sprints_used')
@@ -1593,14 +1566,13 @@ async function checkAccess() {
 
       const dbFreeUsed = childProfile?.free_sprints_used ?? 0;
       const lsFreeUsed = parseInt(localStorage.getItem('star_free_sprints_used') || '0', 10);
-      const freeUsed = Math.max(dbFreeUsed, lsFreeUsed);
+      const freeUsed   = Math.max(dbFreeUsed, lsFreeUsed);
 
       if (freeUsed < 2) {
         window._starAccess = { subscribed: false, freeUsed, userId: selectedChildId };
         return true;
       }
 
-      // Free limit reached — send to pricing
       window.location.href = 'pricing.html?reason=free_limit';
       return false;
     }
