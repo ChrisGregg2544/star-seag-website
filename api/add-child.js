@@ -48,13 +48,12 @@ export default async function handler(req, res) {
       'Prefer': 'return=representation',
     },
     body: JSON.stringify({
-      parent_id:           parentId,
-      name:                trimmedName,
+      parent_id:        parentId,
+      name:             trimmedName,
       year_group,
-      onboarded:           true,
-      subscription_status: 'inactive',
-      free_sprints_used:   0,
-      updated_at:          new Date().toISOString(),
+      onboarded:        true,
+      free_sprints_used: 0,
+      updated_at:       new Date().toISOString(),
     }),
   });
 
