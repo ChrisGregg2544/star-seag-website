@@ -166,6 +166,19 @@
     .btn-submit:active:not(:disabled) { transform: translateY(2px); box-shadow: 0 2px 0 var(--orange-dark); }
     .btn-submit:disabled { background: #FFAB76; box-shadow: 0 5px 0 #D4845A; cursor: not-allowed; }
 
+    /* ── Pricing info box ── */
+    .pricing-info {
+      background: #EFF6FF;
+      border: 1.5px solid #BFDBFE;
+      border-radius: 12px;
+      padding: 14px 16px;
+      font-size: .82rem;
+      color: #1E40AF;
+      line-height: 1.6;
+      margin-bottom: 24px;
+    }
+    .pricing-info strong { color: #1E3A8A; }
+
     /* ── Error message ── */
     .error-msg {
       display: none;
@@ -220,6 +233,8 @@
       <div class="card-title">Add a Child</div>
       <div class="card-sub">Enter your child's details and they'll appear on your dashboard straight away.</div>
 
+      <div class="pricing-info" id="pricing-info" style="display:none;"></div>
+
       <label class="field-label" for="inp-name">Child's first name</label>
       <input
         class="text-input"
@@ -271,11 +286,38 @@ const sb = createClient(
 let selectedYear = null;
 let accessToken  = null;
 
-// Redirect to login if not authenticated
+// Auth check + load current child count for pricing transparency
 (async () => {
   const { data } = await sb.auth.getSession();
   if (!data?.session?.user) { window.location.href = 'login.html'; return; }
   accessToken = data.session.access_token;
+
+  try {
+    const userId = data.session.user.id;
+    const { data: children } = await sb
+      .from('profiles')
+      .select('id')
+      .eq('parent_id', userId);
+
+    const currentCount = Array.isArray(children) ? children.length : 0;
+    const currentPrice = 15 + Math.max(0, currentCount - 1) * 10;
+    const newPrice     = 15 + currentCount * 10;
+
+    const infoEl = document.getElementById('pricing-info');
+    if (currentCount === 0) {
+      infoEl.innerHTML = `Adding your first child will set your subscription to <strong>£15/month</strong>.`;
+    } else {
+      const childWord = currentCount === 1 ? 'child' : 'children';
+      infoEl.innerHTML =
+        `You currently have <strong>${currentCount} ${childWord}</strong> on your subscription ` +
+        `(<strong>£${currentPrice}/month</strong>). ` +
+        `Adding another child will update your subscription to ` +
+        `<strong>£${newPrice}/month</strong> from your next billing cycle.`;
+    }
+    infoEl.style.display = 'block';
+  } catch (err) {
+    console.warn('[add-child] pricing info failed:', err.message);
+  }
 })();
 
 // Enable submit button only when both name and year are provided
@@ -344,8 +386,15 @@ async function submit() {
     document.getElementById('form-view').style.display = 'none';
     const successView = document.getElementById('success-view');
     document.getElementById('success-title').textContent = `${json.name} added! 🎉`;
+
+    const priceLine = json.childCount > 1 && json.newMonthlyGbp
+      ? ` Your subscription has been updated to £${json.newMonthlyGbp}/month.`
+      : json.childCount === 1 && json.newMonthlyGbp
+        ? ` Your subscription is £${json.newMonthlyGbp}/month.`
+        : '';
     document.getElementById('success-sub').textContent =
-      `${json.name} will now appear on your parent dashboard. You can start a sprint for them straight away.`;
+      `${json.name} will now appear on your parent dashboard.${priceLine}`;
+
     successView.classList.add('show');
 
     setTimeout(() => { window.location.href = 'parent-dashboard.html'; }, 2200);
