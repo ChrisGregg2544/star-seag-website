@@ -788,9 +788,16 @@ function buildTopics(toReview, hasData) {
   count.textContent = toReview.length + ' topic' + (toReview.length > 1 ? 's' : '');
   toReview.forEach(item => {
     const isCorbett = (item.videoSource||'').toLowerCase().includes('corbett');
-    const type = (item.videoSource||'').toLowerCase().includes('corbett') ? 'maths'
+    const type = isCorbett ? 'maths'
       : ['fraction','area','perimeter','multiplication','division','algebra','percentage','ratio','decimal','geometry']
           .some(k => (item.topic||'').toLowerCase().includes(k)) ? 'maths' : 'english';
+    let videoUrl = item.videoUrl || '';
+    if (!videoUrl) {
+      const searchTerm = encodeURIComponent(item.videoTitle || item.topic || '');
+      videoUrl = isCorbett
+        ? 'https://corbettmathsprimary.com/?s=' + searchTerm
+        : 'https://www.bbc.co.uk/bitesize/search?q=' + searchTerm;
+    }
     const card = document.createElement('div');
     card.className = 'topic-card';
     card.innerHTML = `
@@ -802,7 +809,7 @@ function buildTopics(toReview, hasData) {
         <div class="topic-name">${item.topic}</div>
         ${item.questionText?`<div class="topic-preview">${item.questionText}</div>`:''}
       </div>
-      <a class="btn-tutorial ${isCorbett?'btn-corbett':'btn-bitesize'}" href="${item.videoUrl}" target="_blank" rel="noopener">▶ Watch Tutorial</a>`;
+      <a class="btn-tutorial ${isCorbett?'btn-corbett':'btn-bitesize'}" href="${videoUrl}" target="_blank" rel="noopener">▶ Watch Tutorial</a>`;
     grid.appendChild(card);
   });
 }
