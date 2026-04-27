@@ -370,7 +370,7 @@
       <button class="btn-submit" id="btn-submit" disabled onclick="submitAnswer()">Check Answer</button>
       <button class="btn-next" id="btn-next" style="display:none;" onclick="nextQuestion()">Next →</button>
     </div>
-    <button class="btn-hint" id="btn-hint" onclick="toggleHint()">
+    <button class="btn-hint" id="btn-hint" onclick="toggleHint()" style="display:none;">
       <span class="hint-icon">🔍</span> Request Detective Hint from STAR
     </button>
     <div class="hint-panel" id="hint-panel">
@@ -611,7 +611,7 @@ function rebuildQuestionCard() {
         <button class="btn-submit" id="btn-submit" disabled onclick="submitAnswer()">Check Answer</button>
         <button class="btn-next" id="btn-next" style="display:none;" onclick="nextQuestion()">Next →</button>
       </div>
-      <button class="btn-hint" id="btn-hint" onclick="toggleHint()">
+      <button class="btn-hint" id="btn-hint" onclick="toggleHint()" style="display:none;">
         <span class="hint-icon">🔍</span> Request Detective Hint from STAR
       </button>
       <div class="hint-panel" id="hint-panel">

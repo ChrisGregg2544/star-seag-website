@@ -1079,12 +1079,7 @@ function renderQuestion() {
   const hintBtn   = document.getElementById('hint-btn');
   const hintPanel = document.getElementById('hint-panel');
   hintPanel.classList.remove('visible');
-  if (!retryMode && currentSection === 'practice') {
-    hintBtn.style.display = '';
-    document.getElementById('hint-text').textContent = q.hint || 'Think carefully about what the question is asking.';
-  } else {
-    hintBtn.style.display = 'none';
-  }
+  hintBtn.style.display = 'none';
 
   document.getElementById('btn-submit').disabled = hasFR; // FR starts disabled until input
   if (!hasFR) document.getElementById('btn-submit').disabled = true; // MC also starts disabled
