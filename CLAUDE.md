@@ -130,15 +130,17 @@ weeks_to_exam, created_at, updated_at
 | topic-sprint.html | Topic picker (redirects to study.html) | ✅ Live |
 | pricing.html | Stripe paywall | ✅ Live |
 | signup.html | Registration with Supabase auth | ✅ Live |
-| parent.html | Parent portal | ⚠️ Incomplete |
+| parent.html | Parent portal (legacy/incomplete — superseded by parent-dashboard.html) | ⚠️ Unused |
+| parent-dashboard.html | Parent portal — per-child progress, sessions, weak topics | ✅ Live |
+| add-child.html | Add Child form for parents — name + year group, posts to api/add-child | ✅ Live |
 | privacy.html | Privacy policy | ✅ Live |
 | terms.html | Terms of service | ✅ Live |
 
-### Admin/tooling pages (not linked from nav)
+### Admin/tooling pages (not linked from nav, password protected)
 | File | Purpose |
 |------|---------|
-| validate.html | AI auto-validator for question bank |
-| review.html | Manual review of WARN/FAIL questions |
+| validate.html | AI auto-validator for question bank — password: STAR2026admin |
+| review.html | Manual review of WARN/FAIL questions — password: STAR2026admin |
 | test-diagrams.html | Visual test for diagram-generator.js |
 
 ### Serverless functions (/api/)
@@ -150,6 +152,9 @@ weeks_to_exam, created_at, updated_at
 | save-feedback.js | Server-side validator feedback insert |
 | create-checkout.js | Stripe checkout session |
 | stripe-webhook.js | Stripe subscription status handler |
+| get-parent-stats.js | Returns sessions + progress for all of a parent's children (service role) |
+| save-session.js | Saves completed sprint/mock session server-side (service role) |
+| add-child.js | Creates new child profile row with parent_id (JWT-verified, service role) |
 
 ### Scripts (run locally, not deployed)
 | File | Purpose |
@@ -264,6 +269,11 @@ fractions_decimals, measurement, statistics, algebra_sequences
 - ✅ Validator auto-run — DONE (938 approved, 85 rejected, 0 pending)
 - ✅ Manual WARN/FAIL review — DONE (all 131 FAILs processed: bulk_reject.sql, fix_needed.sql, manual_review_fixes.sql applied)
 - ✅ Validator feedback system — DONE (see section below)
+- ✅ Parent dashboard — DONE (parent-dashboard.html: per-child progress cards, sessions, avg score, weak topics, orange/cream theme)
+- ✅ Add Child flow — DONE (add-child.html: name + year group form; api/add-child.js: JWT-verified insert with parent_id; both "+ Add Child" buttons updated)
+- ✅ Security audit — DONE (no service role key or Anthropic key leaks in client code; all auth-required pages redirect to login)
+- ✅ Stale anon key in star-chat.html — FIXED (updated to match current key used across all other pages)
+- ✅ Admin tool password protection — DONE (validate.html + review.html now prompt for "STAR2026admin" on load; wrong answer redirects to index.html)
 
 ---
 
@@ -289,7 +299,7 @@ fractions_decimals, measurement, statistics, algebra_sequences
 ### Phase 2 — Student Experience  
 - [x] 5. Personalised recommendations on dashboard (weak topics from history)
 - [x] 6. Remove Anthropic/Claude branding from all pages
-- [ ] 7. Parent section (child progress, weak topics, recent sessions)
+- [x] 7. Parent section (child progress, weak topics, recent sessions) — parent-dashboard.html + add-child.html + api/add-child.js
 - [x] 8. Google OAuth — publish app in Google Cloud Console
 - [ ] 9. Results history page
 - [x] 10. Function machine question type + SVG diagram
