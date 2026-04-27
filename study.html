@@ -708,7 +708,6 @@ function normalizeDBQuestion(dbQ) {
     answer:      String(dbQ.correct_answer || ''),
     explanation: dbQ.explanation || '',
     steps:       [],
-    hint:        'Think carefully about each option.',
     diagram:     dbQ.diagram    || null,
     videoTopic:  rawTopic,
     videoSource: type === 'english' ? 'BBC Bitesize' : 'CorbettMaths',
@@ -1003,7 +1002,7 @@ function loadQuestion(idx) {
   document.getElementById('hint-panel').className = 'hint-panel';
   document.getElementById('btn-hint').className = 'btn-hint';
   document.getElementById('btn-hint').innerHTML = '<span class="hint-icon">🔍</span> Request Detective Hint from STAR';
-  document.getElementById('hint-text').textContent = q.hint || 'Think carefully about each option.';
+  document.getElementById('hint-text').textContent = '';
   document.getElementById('btn-submit').style.display = 'inline-block';
   document.getElementById('btn-submit').textContent = 'Check Answer';
   document.getElementById('btn-next').style.display = 'none';
