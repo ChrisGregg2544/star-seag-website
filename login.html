@@ -232,29 +232,22 @@
   ══════════════════════════════════════ */
   async function smartRedirect(userId) {
     try {
-      console.log('[smartRedirect] userId:', userId)
-
       // Step 1 — children check runs first
       const childrenResult = await client.from('profiles').select('id').eq('parent_id', userId).limit(5)
-      console.log('[smartRedirect] children query →', 'data:', childrenResult.data, 'error:', childrenResult.error)
 
       if (!childrenResult.error && childrenResult.data && childrenResult.data.length > 0) {
-        console.log('[smartRedirect] → parent-dashboard.html')
         window.location.href = 'parent-dashboard.html'
         return
       }
 
       // Step 2 — own profile check (maybeSingle returns null when row absent, never 406)
       const profileResult = await client.from('profiles').select('onboarded').eq('id', userId).maybeSingle()
-      console.log('[smartRedirect] profile query →', 'data:', profileResult.data, 'error:', profileResult.error)
 
       if (!profileResult.error && profileResult.data?.onboarded === true) {
         // Direct student (no children) — store own ID so student pages can read selectedChildId
         localStorage.setItem('selectedChildId', userId)
-        console.log('[smartRedirect] → study.html')
         window.location.href = 'study.html'
       } else {
-        console.log('[smartRedirect] → onboarding.html')
         window.location.href = 'onboarding.html'
       }
     } catch (err) {

@@ -870,7 +870,6 @@ async function init() {
   const selectedChildId = localStorage.getItem('selectedChildId');
   if (!selectedChildId) { window.location.href = 'child-selector.html'; return; }
 
-  console.log('[dashboard] parentId:', parentId, '| selectedChildId:', selectedChildId);
 
   const accessToken = authData.session.access_token;
 

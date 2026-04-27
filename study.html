@@ -720,7 +720,6 @@ function normalizeDBQuestion(dbQ) {
    FETCH BATCH FROM DB
 ════════════════════════════════ */
 async function fetchBatch() {
-  console.log('fetchBatch called, sessionTotal:', sessionTotal, 'MAX_QUESTIONS:', MAX_QUESTIONS, 'caller:', new Error().stack.split('\n')[2]);
   if (sessionTotal >= MAX_QUESTIONS) return [];
 
   // Difficulty unlocks after 5 cumulative correct answers
@@ -829,7 +828,6 @@ async function startStudy(topic) {
    SHOW EXHAUSTED / RESULTS
 ════════════════════════════════ */
 function showExhausted() {
-  console.log('showExhausted called');
   if (loadingTipInterval) { clearInterval(loadingTipInterval); loadingTipInterval = null; }
   document.getElementById('question-card').style.display    = 'none';
   document.getElementById('progress-section').style.display = 'none';
@@ -1264,7 +1262,6 @@ function showResults() {
 }
 
 function _showResultsInternal() {
-  console.log('_showResultsInternal called, answers:', Object.keys(answers).length);
   sprintCount++;
 
   // When called from showExhausted, DOM elements for the results UI don't exist
@@ -1418,23 +1415,15 @@ function _showResultsInternal() {
 function saveSessionToSupabase(missedQs) {
   missedQs = missedQs || [];
   sb.auth.getSession().then(async ({ data }) => {
-    if (!data?.session?.user) {
-      console.log('No Supabase session — saved locally only');
-      return;
-    }
+    if (!data?.session?.user) return;
     const childId = localStorage.getItem('selectedChildId');
-    if (!childId) {
-      console.log('No selectedChildId — saved locally only');
-      return;
-    }
-    console.log('Saving to Supabase for child:', childId);
+    if (!childId) return;
     const track = sessionStorage.getItem('star_year') || 'P6';
 
     const toReviewForDb = missedQs
       .map(q => ({ topic: q.topic, videoTitle: q.videoTopic || q.topic, videoUrl: q.videoUrl, videoSource: q.videoSource, questionText: q.text }))
       .filter((item, idx, arr) => arr.findIndex(x => x.topic === item.topic) === idx);
 
-    console.log('topics_to_review being saved:', JSON.stringify(toReviewForDb));
 
     const payload = {
       childId,
@@ -1475,7 +1464,6 @@ function saveSessionToSupabase(missedQs) {
       if (window._starAccess) window._starAccess.freeUsed = json.newFreeSprintsUsed;
     }
 
-    console.log('✅ Saved to Supabase! sessionId:', json.sessionId);
   });
 }
 
@@ -1535,7 +1523,6 @@ async function checkAccess() {
         });
         const subJson = await subRes.json();
         subscribed = subJson.subscribed === true;
-        console.log('Access check attempt ' + attempt + ': status = ' + subJson.status);
       } catch (fetchErr) {
         console.error('check-subscription fetch failed:', fetchErr.message);
         return true; // Fail open
@@ -1547,12 +1534,10 @@ async function checkAccess() {
       }
 
       if (justPaid && attempt < maxAttempts) {
-        console.log('Webhook not yet received — retrying...');
         continue;
       }
 
       if (justPaid) {
-        console.log('Letting in post-checkout user — webhook pending');
         window._starAccess = { subscribed: true, freeUsed: 0, userId: selectedChildId };
         return true;
       }

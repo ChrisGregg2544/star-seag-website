@@ -343,13 +343,6 @@ function showFeedbackForm(q, yourDecision) {
 async function saveFeedback() {
   if (!pendingFeedback) { next(); return; }
   const reason = document.getElementById('feedback-input').value.trim() || null;
-  console.log('Sending feedback:', JSON.stringify({
-    questionId:     pendingFeedback.questionId,
-    originalResult: pendingFeedback.originalResult,
-    originalFlags:  pendingFeedback.originalFlags,
-    yourDecision:   pendingFeedback.yourDecision,
-    reason
-  }));
   try {
     const res = await fetch('/api/save-feedback', {
       method: 'POST',
@@ -362,10 +355,9 @@ async function saveFeedback() {
         reason
       })
     });
-    const result = await res.json();
-    console.log('Feedback response:', result);
+    await res.json();
   } catch (e) {
-    console.log('Feedback error:', e.message);
+    console.error('Feedback save error:', e.message);
   }
   hideFeedbackForm();
   next();

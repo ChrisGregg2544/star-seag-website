@@ -410,7 +410,6 @@ window.addEventListener('DOMContentLoaded', async () => {
   const allSessions = stats.sessions || [];
   const allProgress = stats.progress || [];
 
-  console.log('[parent-dashboard] sessions returned:', allSessions.length, '| progress rows:', allProgress.length);
 
   // 3. Group by child id
   const sessionsByChild = {};

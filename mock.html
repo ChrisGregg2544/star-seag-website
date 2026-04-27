@@ -815,7 +815,6 @@ async function assembleMathsFromDB() {
    FETCH SECTION QUESTIONS (DB-backed)
 ════════════════════════════════════════ */
 async function fetchSection(sectionMode, count, attempt = 0) {
-  console.log(`[mock] fetchSection (DB): ${sectionMode}`);
   try {
     if (sectionMode === 'mock_practice') return await assemblePracticeFromDB();
     if (sectionMode === 'mock_english')  return await assembleEnglishFromDB();
@@ -1318,7 +1317,6 @@ async function startMainTest() {
   try {
     if (firstSection === 'english') {
       if (!englishFetchPromise) englishFetchPromise = fetchSection('mock_english', 28);
-      console.log('[mock] startMainTest: awaiting mock_english');
       try { ENGLISH_QS = await englishFetchPromise; }
       catch(bgErr) {
         console.warn('[mock] Background mock_english rejected, re-fetching:', bgErr.message);
@@ -1327,7 +1325,6 @@ async function startMainTest() {
       if (!mathsFetchPromise) mathsFetchPromise = fetchSection('mock_maths', 28);
     } else {
       if (!mathsFetchPromise) mathsFetchPromise = fetchSection('mock_maths', 28);
-      console.log('[mock] startMainTest: awaiting mock_maths');
       try { MATHS_QS = await mathsFetchPromise; }
       catch(bgErr) {
         console.warn('[mock] Background mock_maths rejected, re-fetching:', bgErr.message);
@@ -1357,7 +1354,6 @@ async function startMathsTest() {
 
   try {
     if (!mathsFetchPromise) mathsFetchPromise = fetchSection('mock_maths', 28);
-    console.log('[mock] startMathsTest: awaiting mock_maths');
     try { MATHS_QS = await mathsFetchPromise; }
     catch(bgErr) {
       console.warn('[mock] Background mock_maths rejected, re-fetching:', bgErr.message);
@@ -1388,7 +1384,6 @@ async function startEnglishTest() {
 
   try {
     if (!englishFetchPromise) englishFetchPromise = fetchSection('mock_english', 28);
-    console.log('[mock] startEnglishTest: awaiting mock_english');
     try { ENGLISH_QS = await englishFetchPromise; }
     catch(bgErr) {
       console.warn('[mock] Background mock_english rejected, re-fetching:', bgErr.message);
@@ -1535,7 +1530,7 @@ function showRetryResults() {
    SAVE TO SUPABASE
 ════════════════════════════════════════ */
 async function saveMockToSupabase(totalCorrect, totalQ, englishCorrect, mathsCorrect, pct) {
-  if (!userId) { console.log('No userId — mock not saved to Supabase'); return; }
+  if (!userId) return;
   try {
     const timeTaken = mockStartTime ? Math.round((Date.now() - mockStartTime) / 1000) : null;
 
@@ -1572,9 +1567,7 @@ async function saveMockToSupabase(totalCorrect, totalQ, englishCorrect, mathsCor
       await sb.from('question_results').insert([...englishResults, ...mathsResults]);
 
       const history = [...ENGLISH_QS, ...MATHS_QS].map(q => ({ student_id: userId, question_id: q._id }));
-      console.log('Saving history for', history.length, 'questions');
       const histResult = await sb.from('student_question_history').insert(history);
-      console.log('History save result:', histResult.error || 'OK');
     }
 
     const topicStats = {};
@@ -1601,7 +1594,6 @@ async function saveMockToSupabase(totalCorrect, totalQ, englishCorrect, mathsCor
     localStorage.setItem('star_last_score', pct);
     localStorage.setItem('star_last_track', userYear);
 
-    console.log('✅ Mock saved to Supabase!');
   } catch(err) {
     console.error('Save error:', err.message);
   }
