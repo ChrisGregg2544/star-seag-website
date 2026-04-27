@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>STAR — Add a Child</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="cookie-consent.js"></script>
+  <style>
+    :root {
+      --orange:       #FF6D00;
+      --orange-dark:  #E65100;
+      --orange-light: #FF9E40;
+      --yellow:       #FFD54F;
+      --yellow-dark:  #F9A825;
+      --cream:        #FFF9E6;
+      --cream-border: #F0E0C0;
+      --card-border:  #E8D8B8;
+      --text-dark:    #333333;
+      --text-mid:     #666666;
+      --text-light:   #999999;
+      --green:        #58CC02;
+      --green-dark:   #46A302;
+      --red:          #EF4444;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { height: 100%; }
+    body {
+      background: var(--cream);
+      min-height: 100vh;
+      font-family: 'Nunito', sans-serif;
+      font-weight: 600;
+      color: var(--text-dark);
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── Nav ── */
+    .top-nav {
+      background: var(--orange);
+      box-shadow: 0 4px 0 var(--orange-dark);
+      height: 64px;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 24px;
+      flex-shrink: 0;
+    }
+    .nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+    .nav-logo-star {
+      width: 40px; height: 40px; border-radius: 10px;
+      background: var(--yellow); box-shadow: 0 3px 0 var(--yellow-dark);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.3rem; flex-shrink: 0;
+    }
+    .nav-logo-wordmark { display: flex; flex-direction: column; line-height: 1; gap: 2px; }
+    .nav-logo-name { font-size: 1.1rem; font-weight: 900; color: #fff; letter-spacing: .04em; }
+    .nav-logo-sub  { font-size: .48rem; font-weight: 700; color: rgba(255,255,255,.7); letter-spacing: .18em; text-transform: uppercase; }
+    .nav-right { display: flex; align-items: center; }
+    .nav-btn-back {
+      font-size: .72rem; font-weight: 800; letter-spacing: .05em; text-transform: uppercase;
+      padding: 7px 14px; border-radius: 8px; cursor: pointer; border: none;
+      font-family: 'Nunito', sans-serif; transition: all .15s; text-decoration: none; display: inline-block;
+      background: rgba(255,255,255,.2); color: #fff; border: 2px solid rgba(255,255,255,.4);
+    }
+    .nav-btn-back:hover { background: rgba(255,255,255,.32); }
+
+    /* ── Main content ── */
+    .main {
+      flex: 1;
+      display: flex; align-items: center; justify-content: center;
+      padding: 40px 20px 60px;
+    }
+
+    /* ── Card ── */
+    .card {
+      width: 100%; max-width: 480px;
+      background: #fff;
+      border: 2px solid var(--card-border);
+      border-radius: 24px;
+      padding: 40px 36px 36px;
+      box-shadow: 0 4px 16px rgba(0,0,0,.08);
+    }
+
+    .card-icon {
+      width: 64px; height: 64px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--orange), var(--orange-light));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.8rem;
+      box-shadow: 0 4px 14px rgba(255,109,0,.28);
+      margin: 0 auto 20px;
+    }
+
+    .card-title {
+      font-size: 1.5rem; font-weight: 900; color: var(--text-dark);
+      text-align: center; margin-bottom: 6px;
+    }
+    .card-sub {
+      font-size: .85rem; color: var(--text-mid); text-align: center;
+      line-height: 1.6; margin-bottom: 28px;
+    }
+
+    /* ── Form fields ── */
+    .field-label {
+      font-size: .7rem; font-weight: 900; letter-spacing: .1em; text-transform: uppercase;
+      color: var(--text-light); margin-bottom: 8px; display: block;
+    }
+    .text-input {
+      width: 100%; background: #fff;
+      border: 2px solid var(--card-border); border-radius: 12px;
+      padding: 14px 18px;
+      font-family: 'Nunito', sans-serif; font-size: 1rem; font-weight: 700;
+      color: var(--text-dark); outline: none; margin-bottom: 22px;
+      caret-color: var(--orange); transition: border-color .2s, box-shadow .2s;
+    }
+    .text-input::placeholder { color: #bbb; font-weight: 400; }
+    .text-input:focus {
+      border-color: var(--orange);
+      box-shadow: 0 0 0 3px rgba(255,109,0,.12);
+    }
+
+    /* ── Year group selector ── */
+    .year-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 28px; }
+    .yr-btn {
+      background: var(--cream);
+      border: 2px solid var(--cream-border);
+      border-radius: 14px;
+      padding: 18px 12px;
+      display: flex; flex-direction: column; align-items: center; gap: 5px;
+      font-family: 'Nunito', sans-serif; cursor: pointer;
+      transition: all .2s; position: relative; overflow: hidden;
+    }
+    .yr-btn:hover { border-color: var(--orange-light); background: #FFF3E8; transform: translateY(-2px); }
+    .yr-btn.sel {
+      border-color: var(--orange); background: #FFF3E8;
+      box-shadow: 0 3px 0 var(--orange-light);
+    }
+    .yr-btn.sel::after {
+      content: '';
+      position: absolute; top: 8px; right: 10px;
+      width: 16px; height: 16px; border-radius: 50%;
+      background: var(--orange);
+      -webkit-mask: url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='3' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E") center/11px no-repeat;
+      mask: url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='3' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E") center/11px no-repeat;
+    }
+    .yr-icon { font-size: 1.6rem; }
+    .yr-label { font-size: 1.2rem; font-weight: 900; color: var(--text-dark); }
+    .yr-sub { font-size: .68rem; font-weight: 700; color: var(--text-light); }
+
+    /* ── Submit button ── */
+    .btn-submit {
+      width: 100%;
+      background: var(--orange); color: #fff;
+      border: none; border-radius: 14px;
+      padding: 17px 28px;
+      font-family: 'Nunito', sans-serif; font-size: .95rem; font-weight: 900;
+      letter-spacing: .05em; text-transform: uppercase;
+      cursor: pointer;
+      box-shadow: 0 5px 0 var(--orange-dark);
+      transition: transform .18s, box-shadow .18s, opacity .2s;
+    }
+    .btn-submit:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 7px 0 var(--orange-dark); }
+    .btn-submit:active:not(:disabled) { transform: translateY(2px); box-shadow: 0 2px 0 var(--orange-dark); }
+    .btn-submit:disabled { background: #FFAB76; box-shadow: 0 5px 0 #D4845A; cursor: not-allowed; }
+
+    /* ── Error message ── */
+    .error-msg {
+      display: none;
+      background: rgba(239,68,68,.08); border: 1.5px solid rgba(239,68,68,.3);
+      border-radius: 10px; padding: 11px 14px;
+      font-size: .8rem; color: var(--red); font-weight: 700;
+      margin-top: 14px; text-align: center;
+    }
+    .error-msg.show { display: block; }
+
+    /* ── Success state ── */
+    .success-state { display: none; text-align: center; }
+    .success-state.show { display: block; }
+    .success-icon {
+      width: 72px; height: 72px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--green), #8BEA39);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2rem;
+      box-shadow: 0 4px 14px rgba(88,204,2,.3);
+      margin: 0 auto 18px;
+    }
+    .success-title { font-size: 1.4rem; font-weight: 900; color: var(--text-dark); margin-bottom: 8px; }
+    .success-sub   { font-size: .88rem; color: var(--text-mid); line-height: 1.6; margin-bottom: 24px; }
+    .success-redirect { font-size: .78rem; color: var(--text-light); font-weight: 700; }
+
+    @media (max-width: 520px) {
+      .card { padding: 32px 20px 28px; }
+    }
+  </style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <a href="index.html" class="nav-logo">
+    <div class="nav-logo-star">⭐</div>
+    <div class="nav-logo-wordmark">
+      <span class="nav-logo-name">STAR</span>
+      <span class="nav-logo-sub">AI&nbsp;TUTOR</span>
+    </div>
+  </a>
+  <div class="nav-right">
+    <a class="nav-btn-back" href="parent-dashboard.html">← Dashboard</a>
+  </div>
+</nav>
+
+<div class="main">
+  <div class="card">
+
+    <!-- Form view -->
+    <div id="form-view">
+      <div class="card-icon">👧</div>
+      <div class="card-title">Add a Child</div>
+      <div class="card-sub">Enter your child's details and they'll appear on your dashboard straight away.</div>
+
+      <label class="field-label" for="inp-name">Child's first name</label>
+      <input
+        class="text-input"
+        id="inp-name"
+        type="text"
+        placeholder="e.g. Emma"
+        autocomplete="off"
+        maxlength="64"
+      />
+
+      <label class="field-label">Year group</label>
+      <div class="year-row">
+        <button class="yr-btn" id="yr-p6" onclick="selectYear('P6')">
+          <span class="yr-icon">⚡</span>
+          <span class="yr-label">P6</span>
+          <span class="yr-sub">The Builder Track</span>
+        </button>
+        <button class="yr-btn" id="yr-p7" onclick="selectYear('P7')">
+          <span class="yr-icon">🏆</span>
+          <span class="yr-label">P7</span>
+          <span class="yr-sub">The Executor Track</span>
+        </button>
+      </div>
+
+      <button class="btn-submit" id="btn-submit" onclick="submit()" disabled>
+        + Add Child
+      </button>
+      <div class="error-msg" id="error-msg"></div>
+    </div>
+
+    <!-- Success view -->
+    <div class="success-state" id="success-view">
+      <div class="success-icon">✅</div>
+      <div class="success-title" id="success-title">Child added!</div>
+      <div class="success-sub" id="success-sub"></div>
+      <div class="success-redirect">Returning to your dashboard…</div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const { createClient } = supabase;
+const sb = createClient(
+  'https://iutcgogmxhaqgaxkznxu.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml1dGNnb2dteGhhcWdheGt6bnh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM3NjE4MTQsImV4cCI6MjA4OTMzNzgxNH0.o0plRQzH8ezfttG_sEeWu3F4IUtKnyzcXtPEGJ9xRF0'
+);
+
+let selectedYear = null;
+let accessToken  = null;
+
+// Redirect to login if not authenticated
+(async () => {
+  const { data } = await sb.auth.getSession();
+  if (!data?.session?.user) { window.location.href = 'login.html'; return; }
+  accessToken = data.session.access_token;
+})();
+
+// Enable submit button only when both name and year are provided
+const nameInput  = document.getElementById('inp-name');
+const submitBtn  = document.getElementById('btn-submit');
+
+nameInput.addEventListener('input', checkReady);
+nameInput.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !submitBtn.disabled) submit();
+});
+
+function checkReady() {
+  submitBtn.disabled = !(nameInput.value.trim().length > 0 && selectedYear);
+}
+
+function selectYear(yr) {
+  selectedYear = yr;
+  document.getElementById('yr-p6').classList.toggle('sel', yr === 'P6');
+  document.getElementById('yr-p7').classList.toggle('sel', yr === 'P7');
+  checkReady();
+}
+
+function showError(msg) {
+  const el = document.getElementById('error-msg');
+  el.textContent = msg;
+  el.classList.add('show');
+}
+
+function hideError() {
+  document.getElementById('error-msg').classList.remove('show');
+}
+
+async function submit() {
+  hideError();
+  const name = nameInput.value.trim();
+  if (!name || !selectedYear) return;
+
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Adding…';
+
+  try {
+    // Re-fetch session in case token refreshed since page load
+    const { data } = await sb.auth.getSession();
+    if (!data?.session) { window.location.href = 'login.html'; return; }
+    accessToken = data.session.access_token;
+
+    const res = await fetch('/api/add-child', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify({ name, year_group: selectedYear }),
+    });
+
+    const json = await res.json();
+
+    if (!res.ok || !json.ok) {
+      showError(json.error || 'Something went wrong. Please try again.');
+      submitBtn.disabled = false;
+      submitBtn.textContent = '+ Add Child';
+      return;
+    }
+
+    // Success
+    document.getElementById('form-view').style.display = 'none';
+    const successView = document.getElementById('success-view');
+    document.getElementById('success-title').textContent = `${json.name} added! 🎉`;
+    document.getElementById('success-sub').textContent =
+      `${json.name} will now appear on your parent dashboard. You can start a sprint for them straight away.`;
+    successView.classList.add('show');
+
+    setTimeout(() => { window.location.href = 'parent-dashboard.html'; }, 2200);
+
+  } catch (err) {
+    console.error('[add-child]', err);
+    showError('Network error. Please check your connection and try again.');
+    submitBtn.disabled = false;
+    submitBtn.textContent = '+ Add Child';
+  }
+}
+</script>
+</body>
+</html>
