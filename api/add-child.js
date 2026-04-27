@@ -102,13 +102,30 @@ export default async function handler(req, res) {
   // ── 6. Update Stripe subscription (non-fatal) ─────────
   if (stripeKey && childCount > 1) {
     try {
-      // Get stripe_subscription_id from parent's profile row
+      // Try profiles first, then parent_subscriptions as fallback.
+      // (The webhook now writes to both, but older accounts may only have it in one.)
       const parentProfileRes = await sbFetch(
         `profiles?id=eq.${parentId}&select=stripe_subscription_id`,
         'GET', undefined, serviceKey
       );
-      const [parentProfile]  = parentProfileRes.ok ? await parentProfileRes.json() : [];
-      const stripeSubId      = parentProfile?.stripe_subscription_id;
+      const [parentProfile] = parentProfileRes.ok ? await parentProfileRes.json() : [];
+      let stripeSubId = parentProfile?.stripe_subscription_id || null;
+
+      if (!stripeSubId) {
+        const parentSubRes = await sbFetch(
+          `parent_subscriptions?parent_id=eq.${parentId}&select=stripe_subscription_id,subscription_status`,
+          'GET', undefined, serviceKey
+        );
+        const [parentSub] = parentSubRes.ok ? await parentSubRes.json() : [];
+        const subStatus   = parentSub?.subscription_status;
+
+        if (subStatus === 'active' || subStatus === 'trialing') {
+          stripeSubId = parentSub?.stripe_subscription_id || null;
+          console.log(`[add-child] subscription_status='${subStatus}' — will update Stripe price`);
+        } else {
+          console.log(`[add-child] subscription_status='${subStatus || 'none'}' — skipping billing update`);
+        }
+      }
 
       if (stripeSubId) {
         // Fetch current subscription from Stripe
@@ -145,7 +162,7 @@ export default async function handler(req, res) {
           }
         }
       } else {
-        console.log('[add-child] No active Stripe subscription — skipping billing update');
+        console.log('[add-child] No stripe_subscription_id found in profiles or parent_subscriptions — skipping billing update');
       }
     } catch (err) {
       // Non-fatal — child was created successfully; log for manual review
