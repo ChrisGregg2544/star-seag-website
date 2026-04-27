@@ -1436,10 +1436,6 @@ function saveSessionToSupabase(missedQs) {
 
     console.log('topics_to_review being saved:', JSON.stringify(toReviewForDb));
 
-    const newFreeSprintsUsed = !window._starAccess?.subscribed
-      ? (window._starAccess?.freeUsed || 0) + 1
-      : null;
-
     const payload = {
       childId,
       session: {
@@ -1456,8 +1452,7 @@ function saveSessionToSupabase(missedQs) {
         question_type: q.type,
         correct:       answers[i] === 'correct',
       })),
-      missedTopics:    toReviewForDb,
-      freeSprintsUsed: newFreeSprintsUsed,
+      missedTopics: toReviewForDb,
     };
 
     const res = await fetch('/api/save-session', {
@@ -1475,9 +1470,9 @@ function saveSessionToSupabase(missedQs) {
       return;
     }
 
-    if (newFreeSprintsUsed !== null) {
-      localStorage.setItem('star_free_sprints_used', String(newFreeSprintsUsed));
-      if (window._starAccess) window._starAccess.freeUsed = newFreeSprintsUsed;
+    if (typeof json.newFreeSprintsUsed === 'number') {
+      localStorage.setItem('star_free_sprints_used', String(json.newFreeSprintsUsed));
+      if (window._starAccess) window._starAccess.freeUsed = json.newFreeSprintsUsed;
     }
 
     console.log('✅ Saved to Supabase! sessionId:', json.sessionId);
@@ -1550,9 +1545,21 @@ async function checkAccess() {
         return true; // Fail open
       }
 
-      // No parent profile yet — allow access rather than blocking
+      // No parent_subscriptions row yet — still check the child's actual free sprint count
       if (!parentProfile) {
-        window._starAccess = { subscribed: false, freeUsed: 0, userId: selectedChildId };
+        const { data: childFree } = await sb
+          .from('profiles')
+          .select('free_sprints_used')
+          .eq('id', selectedChildId)
+          .maybeSingle();
+        const dbFree = childFree?.free_sprints_used ?? 0;
+        const lsFree = parseInt(localStorage.getItem('star_free_sprints_used') || '0', 10);
+        const freeUsed = Math.max(dbFree, lsFree);
+        if (freeUsed >= 2) {
+          window.location.href = 'pricing.html?reason=free_limit';
+          return false;
+        }
+        window._starAccess = { subscribed: false, freeUsed, userId: selectedChildId };
         return true;
       }
 

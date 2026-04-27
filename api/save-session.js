@@ -45,7 +45,7 @@ export default async function handler(req, res) {
   const { id: parentId } = await userRes.json();
 
   // 2. Validate payload
-  const { childId, session, questionResults, missedTopics, freeSprintsUsed } = req.body || {};
+  const { childId, session, questionResults, missedTopics } = req.body || {};
   if (!childId || !session || !Array.isArray(questionResults)) {
     return res.status(400).json({ ok: false, error: 'Missing required fields: childId, session, questionResults' });
   }
@@ -137,21 +137,44 @@ export default async function handler(req, res) {
     console.error('[save-session] progress_summary upsert error:', text.slice(0, 200));
   }
 
-  // 8. UPDATE child's free_sprints_used (only sent when not subscribed)
-  if (typeof freeSprintsUsed === 'number') {
-    const fsuRes = await sbFetch(
-      `profiles?id=eq.${childId}`,
-      'PATCH',
-      { free_sprints_used: freeSprintsUsed },
-      serviceKey,
-      { 'Prefer': 'return=minimal' }
+  // 8. Server-side increment of free_sprints_used (not trusted from client)
+  let newFreeSprintsUsed = null;
+  try {
+    const parentSubRes = await sbFetch(
+      `parent_subscriptions?parent_id=eq.${parentId}&select=subscription_status`,
+      'GET', undefined, serviceKey
     );
-    if (!fsuRes.ok) {
-      const text = await fsuRes.text();
-      console.error('[save-session] free_sprints_used update error:', text.slice(0, 200));
+    const [parentSub] = parentSubRes.ok ? await parentSubRes.json() : [];
+    const isSubscribed = ['active', 'trialing'].includes(parentSub?.subscription_status);
+
+    if (!isSubscribed) {
+      const profileRes = await sbFetch(
+        `profiles?id=eq.${childId}&select=free_sprints_used`,
+        'GET', undefined, serviceKey
+      );
+      const [childProfile] = profileRes.ok ? await profileRes.json() : [];
+      const current = typeof childProfile?.free_sprints_used === 'number'
+        ? childProfile.free_sprints_used : 0;
+      newFreeSprintsUsed = current + 1;
+
+      const fsuRes = await sbFetch(
+        `profiles?id=eq.${childId}`,
+        'PATCH',
+        { free_sprints_used: newFreeSprintsUsed },
+        serviceKey,
+        { 'Prefer': 'return=minimal' }
+      );
+      if (!fsuRes.ok) {
+        const text = await fsuRes.text();
+        console.error('[save-session] free_sprints_used increment error:', text.slice(0, 200));
+      } else {
+        console.log(`[save-session] free_sprints_used incremented to ${newFreeSprintsUsed} for child ${childId}`);
+      }
     }
+  } catch (err) {
+    console.error('[save-session] free_sprints increment failed (non-fatal):', err.message);
   }
 
   console.log('[save-session] ✅ session', sessionId, 'saved for child', childId);
-  return res.status(200).json({ ok: true, sessionId });
+  return res.status(200).json({ ok: true, sessionId, newFreeSprintsUsed });
 }
