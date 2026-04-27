@@ -34,44 +34,55 @@ export default async function handler(req, res) {
   let childCount = 0;
 
   const jwt = (req.headers.authorization || '').replace(/^Bearer\s+/i, '');
+  console.log(`[create-checkout] jwt present: ${!!jwt}, userId from body: ${userId || 'none'}`);
+
   if (jwt) {
     try {
       const userRes = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
         headers: { 'apikey': serviceKey, 'Authorization': `Bearer ${jwt}` },
       });
+      console.log(`[create-checkout] JWT verify status: ${userRes.status}`);
+
       if (userRes.ok) {
-        const { id } = await userRes.json();
-        parentId = id;
+        const userJson = await userRes.json();
+        parentId = userJson.id;
+        console.log(`[create-checkout] JWT verified, parentId: ${parentId}`);
 
         // Count existing children
-        const countRes = await fetch(
-          `${SUPABASE_URL}/rest/v1/profiles?parent_id=eq.${parentId}&select=id`,
-          {
-            headers: {
-              'apikey':        serviceKey,
-              'Authorization': `Bearer ${serviceKey}`,
-            },
-          }
-        );
+        const countUrl = `${SUPABASE_URL}/rest/v1/profiles?parent_id=eq.${parentId}&select=id`;
+        const countRes = await fetch(countUrl, {
+          headers: {
+            'apikey':        serviceKey,
+            'Authorization': `Bearer ${serviceKey}`,
+          },
+        });
+        console.log(`[create-checkout] child count query status: ${countRes.status}`);
+
         if (countRes.ok) {
           const rows = await countRes.json();
           childCount = Array.isArray(rows) ? rows.length : 0;
+          console.log(`[create-checkout] child rows raw:`, JSON.stringify(rows));
+        } else {
+          const errText = await countRes.text();
+          console.error(`[create-checkout] child count query failed:`, errText.slice(0, 200));
         }
+      } else {
+        const errText = await userRes.text();
+        console.error(`[create-checkout] JWT verify failed:`, errText.slice(0, 200));
       }
     } catch (err) {
       console.warn('[create-checkout] JWT/child-count lookup failed (non-fatal):', err.message);
     }
+  } else {
+    console.log('[create-checkout] no JWT — skipping child count, will use childCount=0');
   }
 
   // ── 2. Calculate price: £15 first child + £10 each additional ──
-  // childCount is the number of children ALREADY added before this subscription starts.
-  // For a brand-new subscriber with no children yet, childCount === 0, so price = £15.
-  // If they already have children (added before subscribing), price reflects those too.
-  const totalChildren  = Math.max(1, childCount);   // at least 1 (they're subscribing for someone)
-  const amountPence    = 1500 + Math.max(0, totalChildren - 1) * 1000;
-  const amountGbp      = (amountPence / 100).toFixed(2);
+  const totalChildren = Math.max(1, childCount);
+  const amountPence   = 1500 + Math.max(0, totalChildren - 1) * 1000;
+  const amountGbp     = (amountPence / 100).toFixed(2);
 
-  console.log(`[create-checkout] parentId:${parentId} childCount:${childCount} → £${amountGbp}/month`);
+  console.log(`[create-checkout] childCount:${childCount} totalChildren:${totalChildren} amountPence:${amountPence} → £${amountGbp}/month`);
 
   try {
     // ── 3. Fetch the Stripe product ID from the existing price ──
@@ -80,13 +91,20 @@ export default async function handler(req, res) {
     const priceId = process.env.STRIPE_PRICE_ID;
     let productId = null;
 
+    console.log(`[create-checkout] STRIPE_PRICE_ID set: ${!!priceId} (${priceId || 'missing'})`);
+
     if (priceId) {
       const priceRes = await fetch(`https://api.stripe.com/v1/prices/${priceId}`, {
         headers: { 'Authorization': `Bearer ${secretKey}` },
       });
+      console.log(`[create-checkout] Stripe price lookup status: ${priceRes.status}`);
       if (priceRes.ok) {
         const priceObj = await priceRes.json();
         productId = priceObj.product;
+        console.log(`[create-checkout] resolved productId: ${productId}`);
+      } else {
+        const errText = await priceRes.text();
+        console.error(`[create-checkout] Stripe price lookup failed:`, errText.slice(0, 200));
       }
     }
 
@@ -96,17 +114,18 @@ export default async function handler(req, res) {
     params.append('payment_method_types[]',                 'card');
 
     if (productId) {
-      // Dynamic inline price — correct amount for this parent's child count
+      console.log(`[create-checkout] PATH: dynamic price_data — £${amountGbp} for product ${productId}`);
       params.append('line_items[0][price_data][currency]',                  'gbp');
       params.append('line_items[0][price_data][product]',                   productId);
       params.append('line_items[0][price_data][recurring][interval]',       'month');
       params.append('line_items[0][price_data][unit_amount]',               String(amountPence));
       params.append('line_items[0][quantity]',                              '1');
     } else if (priceId) {
-      // Fallback: use the fixed price ID if we couldn't resolve the product
+      console.log(`[create-checkout] PATH: fallback fixed priceId ${priceId} (product lookup failed) — will charge fixed amount, NOT £${amountGbp}`);
       params.append('line_items[0][price]',    priceId);
       params.append('line_items[0][quantity]', '1');
     } else {
+      console.error(`[create-checkout] PATH: no priceId and no productId — aborting`);
       return res.status(500).json({ error: 'Price configuration error' });
     }
 
