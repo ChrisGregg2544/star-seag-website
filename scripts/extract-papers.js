@@ -2,6 +2,7 @@ import Anthropic from '@anthropic-ai/sdk';
 import { readFileSync } from 'fs';
 import { dirname, resolve } from 'path';
 import { fileURLToPath } from 'url';
+import { randomUUID } from 'crypto';
 
 const __dir = dirname(fileURLToPath(import.meta.url));
 
@@ -14,8 +15,8 @@ for (const line of readFileSync(envPath, 'utf8').split('\n')) {
 }
 
 const ANTHROPIC_API_KEY   = envVars.ANTHROPIC_API_KEY;
-const SUPABASE_URL        = envVars.NEXT_PUBLIC_SUPABASE_URL;
-const SUPABASE_SERVICE_KEY = envVars.SUPABASE_SERVICE_ROLE_KEY;
+const SUPABASE_URL        = 'https://iutcgogmxhaqgaxkznxu.supabase.co';
+const SUPABASE_SERVICE_KEY = envVars.SUPABASE_SERVICE_ROLE_KEY || envVars.SUPABASE_SERVICE_KEY;
 const HAIKU_MODEL         = 'claude-haiku-4-5-20251001';
 const PAPERS_DIR          = resolve(__dir, '../catapult-papers');
 
@@ -59,9 +60,8 @@ function parseJsonArray(rawText) {
 }
 
 async function main() {
-  if (!ANTHROPIC_API_KEY)    { console.error('ANTHROPIC_API_KEY not set in .env');          process.exit(1); }
-  if (!SUPABASE_URL)          { console.error('NEXT_PUBLIC_SUPABASE_URL not set in .env');    process.exit(1); }
-  if (!SUPABASE_SERVICE_KEY)  { console.error('SUPABASE_SERVICE_ROLE_KEY not set in .env');   process.exit(1); }
+  if (!ANTHROPIC_API_KEY)   { console.error('ANTHROPIC_API_KEY not set in .env');                              process.exit(1); }
+  if (!SUPABASE_SERVICE_KEY) { console.error('SUPABASE_SERVICE_ROLE_KEY (or SUPABASE_SERVICE_KEY) not set in .env'); process.exit(1); }
 
   const pNum        = paperNumber || '1';
   const paperPath   = resolve(PAPERS_DIR, paperFile);
@@ -134,21 +134,22 @@ Return ONLY a valid JSON array. No preamble, no markdown.`;
     process.exit(1);
   }
 
-  const paperSource = `catapult_${yearGroup.toLowerCase()}_paper${pNum}`;
+  const diffMap = { easy: 1, medium: 3, hard: 5 };
 
   const rows = parsed.items.map(q => ({
+    id:                  randomUUID(),
     question_text:       q.question_text,
     correct_answer:      q.correct_answer,
     category:            q.category,
-    difficulty:          q.difficulty || 'medium',
+    difficulty:          diffMap[q.difficulty] ?? 3,
     year_group:          yearGroup,
-    paper_source:        paperSource,
     explanation:         q.explanation         || null,
     needs_diagram:       q.needs_diagram       || false,
     diagram_description: q.diagram_description || null,
   }));
 
-  console.log(`Saving ${rows.length} questions to Supabase (${paperSource})...`);
+  const label = `catapult_${yearGroup.toLowerCase()}_paper${pNum}`;
+  console.log(`Saving ${rows.length} questions to Supabase (${label})...`);
 
   const saveResp = await fetch(`${SUPABASE_URL}/rest/v1/reference_questions`, {
     method: 'POST',
@@ -167,7 +168,7 @@ Return ONLY a valid JSON array. No preamble, no markdown.`;
     process.exit(1);
   }
 
-  console.log(`Done! Saved ${rows.length} reference questions from ${paperSource}`);
+  console.log(`Done! Saved ${rows.length} reference questions (${label})`);
 }
 
 main().catch(err => {
