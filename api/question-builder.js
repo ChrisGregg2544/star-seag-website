@@ -96,8 +96,8 @@ Extract all 56 questions. For each question return:
 - explanation: the explanation from the answer sheet for why this answer is correct (copy it accurately)
 - category: one of: punctuation, grammar, spelling, vocabulary, comprehension_mc, comprehension_written, arithmetic, geometry, fractions_decimals, measurement, statistics, algebra_sequences
 - difficulty: easy, medium, or hard
-- needs_diagram: true if the question requires a visual element such as a diagram, shape, graph, chart, table, pictogram, number line, grid, or clock. false if purely text-based.
-- diagram_description: brief plain-English description of the diagram if needs_diagram is true, otherwise null
+- needs_diagram: true for ANY geometry, measurement, or statistics question that involves shapes, graphs, charts, tables, pictograms, number lines, grids, clocks, or visual representations. Default to true for these categories unless purely calculation-based.
+- diagram_description: DETAILED description for SVG generation. Include: exact shapes (triangle/rectangle/circle/cuboid), all dimensions with units (5cm, 12mm, 3.5m), labels, orientations, and any special features (right angle, parallel sides). Example: "Right-angled triangle with base 6cm, height 8cm, hypotenuse 10cm, right angle marked at bottom-left"
 
 CRITICAL: Use the answer sheet as the source of truth for correct_answer and explanation. Do not guess answers.
 
