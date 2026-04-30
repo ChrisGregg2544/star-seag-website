@@ -109,16 +109,14 @@ Return ONLY the JSON object. No explanation, no markdown, no code fences. Just t
   // 1. Direct parse
   try { return JSON.parse(raw); } catch { /* fall through */ }
 
-  // 2. Trim trailing content after last }
-  const lastBrace = raw.lastIndexOf('}');
-  if (lastBrace !== -1) {
-    try { return JSON.parse(raw.slice(0, lastBrace + 1)); } catch { /* fall through */ }
-  }
-
-  // 3. Regex extract first {...} block
-  const match = raw.match(/\{[\s\S]*\}/);
-  if (match) {
-    try { return JSON.parse(match[0]); } catch { /* fall through */ }
+  // 2. Scan for first complete top-level JSON object (handles model self-correction)
+  const start = raw.indexOf('{');
+  if (start !== -1) {
+    let depth = 0;
+    for (let i = start; i < raw.length; i++) {
+      if (raw[i] === '{') depth++;
+      else if (raw[i] === '}') { depth--; if (depth === 0) { try { return JSON.parse(raw.slice(start, i + 1)); } catch { break; } } }
+    }
   }
 
   throw new Error(`No JSON found in response: ${raw.slice(0, 200)}`);
