@@ -56,16 +56,22 @@ function supabaseHeaders(extra = {}) {
 }
 
 function extractFirstJson(raw) {
-  try { return JSON.parse(raw); } catch { /* fall through */ }
-  // Brace-counting scan for first complete top-level object or array
-  for (const open of ['{', '[']) {
-    const close = open === '{' ? '}' : ']';
-    const start = raw.indexOf(open);
+  // Strip markdown code fences
+  const cleaned = raw
+    .replace(/^```(?:json)?\s*/im, '')
+    .replace(/```[\s\S]*$/, '')
+    .trim();
+
+  try { return JSON.parse(cleaned); } catch { /* fall through */ }
+
+  // Brace-counting scan — try array [ before object { since we expect an array
+  for (const [open, close] of [['[', ']'], ['{', '}']]) {
+    const start = cleaned.indexOf(open);
     if (start === -1) continue;
     let depth = 0;
-    for (let i = start; i < raw.length; i++) {
-      if (raw[i] === open)  depth++;
-      if (raw[i] === close) { depth--; if (depth === 0) { try { return JSON.parse(raw.slice(start, i + 1)); } catch { break; } } }
+    for (let i = start; i < cleaned.length; i++) {
+      if (cleaned[i] === open)  depth++;
+      if (cleaned[i] === close) { depth--; if (depth === 0) { try { return JSON.parse(cleaned.slice(start, i + 1)); } catch { break; } } }
     }
   }
   return null;
