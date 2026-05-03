@@ -357,6 +357,42 @@
     .empty-topics h3 { font-size: 1.05rem; font-weight: 900; color: #2E7D32; margin-bottom: 4px; }
     .empty-topics p { font-size: .83rem; font-weight: 700; color: #388E3C; }
 
+    /* ── RECOMMENDATIONS ── */
+    .recs-card {
+      background: #fff; border: 2px solid #C7D2FE;
+      border-top: 4px solid #4F46E5; border-radius: var(--radius);
+      padding: 20px 24px; box-shadow: var(--card-shadow);
+    }
+    .recs-card-title {
+      font-size: 1rem; font-weight: 900; color: #3730A3; margin-bottom: 4px;
+    }
+    .recs-card-sub {
+      font-size: .78rem; font-weight: 700; color: #6366F1; margin-bottom: 16px;
+    }
+    .rec-item {
+      display: flex; align-items: center; gap: 14px;
+      padding: 12px 0; border-bottom: 1px solid #E0E7FF;
+    }
+    .rec-item:last-child { border-bottom: none; }
+    .rec-pct-badge {
+      min-width: 52px; text-align: center; padding: 5px 10px;
+      border-radius: 20px; font-size: .78rem; font-weight: 900;
+    }
+    .rec-pct-badge.red   { background: #FEE2E2; color: #B91C1C; }
+    .rec-pct-badge.amber { background: #FEF3C7; color: #92400E; }
+    .rec-topic-name {
+      flex: 1; font-size: .9rem; font-weight: 800; color: var(--text-dark);
+    }
+    .rec-btn {
+      flex-shrink: 0; display: inline-block; padding: 8px 16px;
+      background: #4F46E5; color: #fff; border-radius: var(--radius-btn);
+      font-family: 'Nunito', sans-serif; font-size: .78rem; font-weight: 900;
+      letter-spacing: .04em; text-transform: uppercase; text-decoration: none;
+      box-shadow: 0 3px 0 #3730A3; transition: transform .15s, box-shadow .15s;
+    }
+    .rec-btn:hover { transform: translateY(-2px); box-shadow: 0 5px 0 #3730A3; }
+    .rec-btn:active { transform: translateY(1px); box-shadow: 0 1px 0 #3730A3; }
+
     /* ── FOOTER ── */
     .star-footer {
       margin-top: 32px; padding-top: 28px;
@@ -515,11 +551,11 @@
       <div class="mode-name">Full Mock</div>
       <div class="mode-desc">56 questions, exam format</div>
     </a>
-    <a class="mode-card soon" href="#" onclick="comingSoon();return false;">
+    <a id="real-life-card" class="mode-card soon" href="#" onclick="comingSoon();return false;">
       <div class="mode-icon">🖨️</div>
       <div class="mode-name">Real Life Test</div>
       <div class="mode-desc">Print &amp; sit with a guardian</div>
-      <span class="mode-badge">Coming Soon</span>
+      <span class="mode-badge" id="real-life-badge">Coming Soon</span>
     </a>
     <a class="mode-card" href="star-chat.html">
       <div class="mode-icon">💬</div>
@@ -560,6 +596,15 @@
       <p style="font-size:.72rem;color:var(--text-light);font-weight:700;margin-top:6px;"><span id="sessions-done">0</span> of 3 sessions completed</p>
     </div>
   </div>
+</div>
+
+<!-- RECOMMENDATIONS -->
+<div class="section" id="recommendations-section" style="display:none">
+  <div class="section-header">
+    <h2 class="section-title">📚 Recommended Topics to Practice</h2>
+    <span class="section-sub">Based on your recent performance</span>
+  </div>
+  <div class="recs-card" id="recs-card"></div>
 </div>
 
 <!-- TOPICS -->
@@ -658,15 +703,26 @@ function weeksUntil(examYear) {
   return diff > 0 ? Math.ceil(diff / 604800000) : 0;
 }
 
-const SESSION_ROTATION = [
-  { icon: '⚡', name: 'Quick Sprint',  href: 'study.html' },
-  { icon: '🎯', name: 'Topic Sprint',  href: 'study.html?mode=topic' },
-  { icon: '⚡', name: 'Quick Sprint',  href: 'study.html' },
-  { icon: '📝', name: 'Full Mock',     href: 'mock.html' },
-  { icon: '🎯', name: 'Topic Sprint',  href: 'study.html?mode=topic' },
-  { icon: '⚡', name: 'Quick Sprint',  href: 'study.html' },
-  { icon: '📝', name: 'Full Mock',     href: 'mock.html' },
-];
+// Real Life Test is part of the P7 journey only — P6 students can access it
+// but it is not recommended as part of their default practice rotation.
+// When the feature goes live, change the href from '#' to the printable paper page.
+const REAL_LIFE_TEST = { icon: '🖨️', name: 'Real Life Test', href: '#' };
+
+function buildRotation(yearGroup) {
+  const base = [
+    { icon: '⚡', name: 'Quick Sprint',  href: 'study.html' },
+    { icon: '🎯', name: 'Topic Sprint',  href: 'study.html?mode=topic' },
+    { icon: '⚡', name: 'Quick Sprint',  href: 'study.html' },
+    { icon: '📝', name: 'Full Mock',     href: 'mock.html' },
+    { icon: '🎯', name: 'Topic Sprint',  href: 'study.html?mode=topic' },
+    { icon: '⚡', name: 'Quick Sprint',  href: 'study.html' },
+    { icon: '📝', name: 'Full Mock',     href: 'mock.html' },
+  ];
+  if (yearGroup === 'P7') {
+    base.push(REAL_LIFE_TEST);
+  }
+  return base;
+}
 
 const DAY_MAPS = {
   1: ['Wed'],
@@ -692,9 +748,10 @@ function getTodayRec(yearGroup, weeks, sessionsPerWeek, weekDone, weakTopic) {
     return { title: 'Bonus Sprint — Keep the Streak!', sub: 'You\'ve hit your weekly target. A bonus sprint keeps the momentum going!', href: 'study.html' };
   }
 
-  // Next session in rotation
-  const next = SESSION_ROTATION[done % SESSION_ROTATION.length];
-  const remaining = target - done;
+  // Build year-group-aware rotation; skip entries that are not yet live (href === '#')
+  const rotation     = buildRotation(yearGroup).filter(r => r.href !== '#');
+  const next         = rotation[done % rotation.length];
+  const remaining    = target - done;
 
   let href = next.href;
   let sub;
@@ -712,6 +769,8 @@ function getTodayRec(yearGroup, weeks, sessionsPerWeek, weekDone, weakTopic) {
       : `Session ${done + 1} of ${target} this week — 10 questions, instant feedback. Let's go!`;
   } else if (next.name === 'Full Mock') {
     sub = `Session ${done + 1} of ${target} — 56 questions in full exam format. Give it your best shot!`;
+  } else if (next.name === 'Real Life Test') {
+    sub = `Time for a printed test! Sit it under timed conditions and ask a parent to mark it using the answer key.`;
   } else {
     sub = `${remaining} session${remaining !== 1 ? 's' : ''} left this week.`;
   }
@@ -769,6 +828,53 @@ async function buildSkillsMap(count, userId) {
     grid.appendChild(chip);
   });
   container.appendChild(grid);
+  buildRecommendations(skills);
+}
+
+function formatTopicName(raw) {
+  const map = {
+    fractions_decimals: 'Fractions & Decimals',
+    comprehension_mc: 'Comprehension',
+    comprehension_written: 'Comprehension (Written)',
+    algebra_sequences: 'Algebra & Sequences',
+    arithmetic: 'Arithmetic',
+    geometry: 'Geometry',
+    measurement: 'Measurement',
+    statistics: 'Statistics',
+    punctuation: 'Punctuation',
+    grammar: 'Grammar',
+    spelling: 'Spelling',
+    vocabulary: 'Vocabulary',
+  };
+  return map[raw] || raw.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+}
+
+function buildRecommendations(skills) {
+  const weak = skills.filter(s => s.pct < 70).slice(0, 3);
+  if (weak.length === 0) return;
+
+  const section = document.getElementById('recommendations-section');
+  const card = document.getElementById('recs-card');
+  if (!section || !card) return;
+
+  const locked = window._paywallActive;
+  card.innerHTML = `
+    <div class="recs-card-title">Your weakest topics right now</div>
+    <div class="recs-card-sub">Practice these to boost your score</div>
+    ${weak.map(s => {
+      const label = formatTopicName(s.name);
+      const href = locked
+        ? 'pricing.html'
+        : `study.html?topic=${encodeURIComponent(s.name)}&mode=topic`;
+      return `
+        <div class="rec-item">
+          <span class="rec-pct-badge ${s.c}">${s.pct}%</span>
+          <span class="rec-topic-name">${label}</span>
+          <a class="rec-btn" href="${href}">Practice →</a>
+        </div>`;
+    }).join('')}
+  `;
+  section.style.display = '';
 }
 
 function buildTopics(toReview, hasData) {
@@ -989,6 +1095,12 @@ async function init() {
   document.getElementById('nav-hi').textContent     = 'Hi, ' + name + '!';
   document.getElementById('hero-name').innerHTML    = name + '<span style="color:var(--orange)">!</span>';
   document.getElementById('track-label').textContent = yearGroup === 'P7' ? 'P7 Champion Track 🏆' : 'P6 Champion Track ⚡';
+
+  // Real Life Test card: P7 journey only — P6 can access but badge signals it's not their default path
+  const rltBadge = document.getElementById('real-life-badge');
+  if (rltBadge && yearGroup === 'P6') {
+    rltBadge.textContent = 'P7 journey';
+  }
 
   // Countdown
   const weeks = weeksUntil(examYear);

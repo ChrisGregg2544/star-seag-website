@@ -198,6 +198,40 @@
     }
     .btn-action-secondary:hover { background: var(--cream); color: var(--text-dark); border-color: var(--cream-border); }
 
+    /* AI Insights */
+    .insights-toggle {
+      width: 100%; padding: 11px 22px;
+      background: #FFF9F0; border: none; border-top: 2px solid var(--cream-border);
+      font-family: 'Nunito', sans-serif; font-size: .75rem; font-weight: 800;
+      color: var(--orange); letter-spacing: .05em; text-transform: uppercase;
+      cursor: pointer; display: flex; align-items: center; justify-content: space-between;
+      transition: background .15s;
+    }
+    .insights-toggle:hover { background: var(--cream); }
+    .insights-panel {
+      padding: 16px 22px; background: #FAFAF8;
+      border-top: 1px solid var(--cream-border);
+    }
+    .insight-group { margin-bottom: 14px; }
+    .insight-group:last-child { margin-bottom: 0; }
+    .insight-group-title {
+      font-size: .6rem; font-weight: 900; letter-spacing: .12em; text-transform: uppercase;
+      color: var(--text-light); margin-bottom: 7px;
+    }
+    .insight-row {
+      display: flex; align-items: center; justify-content: space-between; gap: 8px;
+      padding: 6px 0; border-bottom: 1px solid #F0ECE4;
+    }
+    .insight-row:last-child { border-bottom: none; }
+    .insight-name { font-size: .81rem; font-weight: 700; color: var(--text-dark); }
+    .insight-badge {
+      flex-shrink: 0; font-size: .7rem; font-weight: 800;
+      padding: 3px 10px; border-radius: 99px;
+    }
+    .badge-weak      { background: #FEE2E2; color: #B91C1C; }
+    .badge-improving { background: #D1FAE5; color: #065F46; }
+    .badge-strong    { background: #DCFCE7; color: #166534; }
+
     /* Empty state */
     .empty-state {
       max-width: 480px; margin: 60px auto; text-align: center;
@@ -292,7 +326,109 @@ async function signOut() {
   window.location.href = 'login.html';
 }
 
-function buildCard(child, idx, sessions, progress) {
+function topicLabel(raw) {
+  return TOPIC_MAP[raw] || raw.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+}
+
+function toggleInsights(childId) {
+  const panel   = document.getElementById('insights-' + childId);
+  const chevron = document.getElementById('chevron-' + childId);
+  if (!panel) return;
+  const open = panel.style.display !== 'none';
+  panel.style.display = open ? 'none' : 'block';
+  if (chevron) chevron.textContent = open ? '▼' : '▲';
+}
+
+function computeInsights(sessions, qr) {
+  if (sessions.length < 3 || qr.length === 0) return null;
+
+  // Overall per-topic accuracy
+  const topicMap = {};
+  qr.forEach(r => {
+    if (!r.topic) return;
+    if (!topicMap[r.topic]) topicMap[r.topic] = { c: 0, t: 0 };
+    topicMap[r.topic].t++;
+    if (r.correct) topicMap[r.topic].c++;
+  });
+
+  const allTopics = Object.entries(topicMap)
+    .filter(([, v]) => v.t >= 3)
+    .map(([name, v]) => ({ name, pct: Math.round(v.c / v.t * 100) }));
+
+  const needsPractice = allTopics.filter(t => t.pct < 70).sort((a, b) => a.pct - b.pct).slice(0, 3);
+  const strongAreas   = allTopics.filter(t => t.pct >= 85).sort((a, b) => b.pct - a.pct).slice(0, 3);
+
+  // Improving: compare last 2 sessions vs all previous
+  const sorted    = [...sessions].sort((a, b) => new Date(b.completed_at) - new Date(a.completed_at));
+  const recentIds = new Set(sorted.slice(0, 2).map(s => s.id));
+  const prevIds   = new Set(sorted.slice(2).map(s => s.id));
+
+  const improving = [];
+  if (prevIds.size >= 1) {
+    const rec = {}, prev = {};
+    qr.forEach(r => {
+      if (!r.topic || !r.session_id) return;
+      const bucket = recentIds.has(r.session_id) ? rec : prevIds.has(r.session_id) ? prev : null;
+      if (!bucket) return;
+      if (!bucket[r.topic]) bucket[r.topic] = { c: 0, t: 0 };
+      bucket[r.topic].t++;
+      if (r.correct) bucket[r.topic].c++;
+    });
+    Object.entries(rec).forEach(([topic, rv]) => {
+      if (rv.t < 2) return;
+      const pv = prev[topic];
+      if (!pv || pv.t < 2) return;
+      const rPct = Math.round(rv.c / rv.t * 100);
+      const pPct = Math.round(pv.c / pv.t * 100);
+      if (rPct - pPct >= 10) improving.push({ name: topic, prevPct: pPct, nowPct: rPct });
+    });
+    improving.sort((a, b) => (b.nowPct - b.prevPct) - (a.nowPct - a.prevPct));
+  }
+
+  if (!needsPractice.length && !improving.length && !strongAreas.length) return null;
+  return { needsPractice, improving, strongAreas };
+}
+
+function buildInsightsHtml(insights, childId) {
+  if (!insights) return '';
+  const { needsPractice, improving, strongAreas } = insights;
+
+  const rows = (items, badgeClass, fmt) =>
+    items.map(t => `
+      <div class="insight-row">
+        <span class="insight-name">${esc(topicLabel(t.name))}</span>
+        <span class="insight-badge ${badgeClass}">${fmt(t)}</span>
+      </div>`).join('');
+
+  const needsHtml = needsPractice.length ? `
+    <div class="insight-group">
+      <div class="insight-group-title">📉 Needs Practice</div>
+      ${rows(needsPractice, 'badge-weak', t => `${t.pct}% accuracy`)}
+    </div>` : '';
+
+  const improvingHtml = improving.length ? `
+    <div class="insight-group">
+      <div class="insight-group-title">📈 Improving</div>
+      ${rows(improving, 'badge-improving', t => `${t.prevPct}% → ${t.nowPct}% ↗`)}
+    </div>` : '';
+
+  const strongHtml = strongAreas.length ? `
+    <div class="insight-group">
+      <div class="insight-group-title">💪 Strong Areas</div>
+      ${rows(strongAreas, 'badge-strong', t => `${t.pct}% accuracy`)}
+    </div>` : '';
+
+  return `
+    <button class="insights-toggle" onclick="toggleInsights('${childId}')">
+      📊 AI Insights
+      <span class="insights-chevron" id="chevron-${childId}">▼</span>
+    </button>
+    <div class="insights-panel" id="insights-${childId}" style="display:none">
+      ${needsHtml}${improvingHtml}${strongHtml}
+    </div>`;
+}
+
+function buildCard(child, idx, sessions, progress, insightsHtml = '') {
   const avatar     = AVATARS[idx % AVATARS.length];
   const yearLabel  = child.year_group === 'P7' ? 'P7' : 'P6';
   const lastActive = timeAgo(progress?.last_session_at ?? sessions[0]?.completed_at);
@@ -351,6 +487,7 @@ function buildCard(child, idx, sessions, progress) {
         <button class="btn-action btn-action-primary" onclick="goToPage('${child.id}','study.html')">▶ Start Sprint</button>
         <button class="btn-action btn-action-secondary" onclick="goToPage('${child.id}','dashboard.html')">View Progress</button>
       </div>
+      ${insightsHtml}
     </div>`;
 }
 
@@ -404,26 +541,31 @@ window.addEventListener('DOMContentLoaded', async () => {
     body: JSON.stringify({ childIds }),
   });
 
-  const stats = statsRes.ok ? await statsRes.json() : { sessions: [], progress: [] };
+  const stats = statsRes.ok ? await statsRes.json() : { sessions: [], progress: [], questionResults: [] };
   if (!statsRes.ok) console.error('[parent-dashboard] get-parent-stats error:', statsRes.status);
 
-  const allSessions = stats.sessions || [];
-  const allProgress = stats.progress || [];
-
+  const allSessions = stats.sessions        || [];
+  const allProgress = stats.progress        || [];
+  const allQR       = stats.questionResults || [];
 
   // 3. Group by child id
   const sessionsByChild = {};
   const progressByChild = {};
-  childIds.forEach(id => { sessionsByChild[id] = []; });
+  const qrByChild       = {};
+  childIds.forEach(id => { sessionsByChild[id] = []; qrByChild[id] = []; });
   allSessions.forEach(s => { if (sessionsByChild[s.user_id]) sessionsByChild[s.user_id].push(s); });
   allProgress.forEach(p => { progressByChild[p.user_id] = p; });
+  allQR.forEach(r => { if (qrByChild[r.user_id]) qrByChild[r.user_id].push(r); });
 
   // 4. Render
   const grid = document.createElement('div');
   grid.className = 'children-grid';
-  grid.innerHTML = kids.map((child, i) =>
-    buildCard(child, i, sessionsByChild[child.id] || [], progressByChild[child.id] || null)
-  ).join('');
+  grid.innerHTML = kids.map((child, i) => {
+    const childSessions = sessionsByChild[child.id] || [];
+    const insights      = computeInsights(childSessions, qrByChild[child.id] || []);
+    const insightsHtml  = buildInsightsHtml(insights, child.id);
+    return buildCard(child, i, childSessions, progressByChild[child.id] || null, insightsHtml);
+  }).join('');
   document.getElementById('content').replaceWith(grid);
 });
 </script>

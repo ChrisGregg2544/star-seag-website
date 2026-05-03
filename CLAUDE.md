@@ -1,5 +1,5 @@
 # STAR AI Tutor — CLAUDE.md Master Handover
-Last updated: April 2026
+Last updated: 28 April 2026
 Project: SEAG Transfer Test prep platform for Northern Ireland P6/P7 pupils (ages 10-11)
 URL: https://star-seag-website.vercel.app
 Repo: ChrisGregg2544/star-seag-website
@@ -275,6 +275,30 @@ fractions_decimals, measurement, statistics, algebra_sequences
 - ✅ Stale anon key in star-chat.html — FIXED (updated to match current key used across all other pages)
 - ✅ Admin tool password protection — DONE (validate.html + review.html now prompt for "STAR2026admin" on load; wrong answer redirects to index.html)
 
+## COMPLETED THIS SESSION (28 April 2026)
+
+- ✅ Stripe parent billing — FIXED end-to-end (£15 first child + £10 each additional; dynamic price_data inline, no pre-created price IDs)
+- ✅ Dynamic pricing display — pricing.html now fetches child count and shows live calculated price + breakdown
+- ✅ Pricing transparency on add-child.html — info box before form showing current cost and new cost after adding; success message shows new monthly amount
+- ✅ Stripe webhook database sync — FIXED (was using NEXT_PUBLIC_SUPABASE_URL which wasn't set → silent 500; now writes to BOTH profiles AND parent_subscriptions on every event)
+- ✅ Paywall system fixed — checkAccess() now routes through /api/check-subscription (service role, bypasses RLS) instead of direct anon-key query; trialing status correctly grants access
+- ✅ add-child.js Stripe billing update — FIXED (was skipping update during trial; now checks parent_subscriptions as fallback for stripe_subscription_id; handles both active + trialing)
+- ✅ Student AI recommendations — dashboard.html shows top 3 weakest topics (< 70% accuracy) as "📚 Recommended Topics to Practice" cards with Practice → buttons; only shown after 3+ sprints
+- ✅ Parent AI insights — parent-dashboard.html expandable "📊 AI Insights" panel per child card; shows Needs Practice / Improving / Strong Areas computed from question_results; only shown after 3+ sprints
+- ✅ Code cleanup — 41 debug console.log statements removed across 8 files (login.html, dashboard.html, study.html, mock.html, parent-dashboard.html, pricing.html, validate.html, review.html); all console.error/warn kept
+- ✅ Hint text removed — "Think carefully about each option" removed from mapDbQuestion() in study.html and mock.html; hint buttons already hidden
+
+---
+
+## CURRENT STATE (28 April 2026)
+
+- **Question bank**: 1,167 validated questions across all topics
+- **Test account**: 7 children linked, £75/month subscription (trialing)
+- **All core features working**: mock, study, paywall, billing, parent dashboard, AI insights, recommendations
+- **Billing**: Per-child pricing live on Stripe test keys — £15 + £10/child
+- **API endpoints**: create-checkout, stripe-webhook, check-subscription, get-parent-stats, add-child, save-session, mark-written all operational
+- **Known limit**: Supabase REST caps question_results at 1,000 rows — sufficient for ~50 sprints per child; not a concern pre-launch
+
 ---
 
 ## VALIDATOR FEEDBACK SYSTEM (built April 2026)
@@ -290,13 +314,22 @@ fractions_decimals, measurement, statistics, algebra_sequences
 
 ## LAUNCH PLAN (all items required before go-live)
 
+### NEXT 4 WEEKS — LAUNCH COUNTDOWN
+
+| Week | Priority | Status |
+|------|----------|--------|
+| Week 1 (now) | Printable SEAG test (Real Life Test — 56-question PDF) | 🔲 Next |
+| Week 2 | Tutorial videos integration | 🔲 Upcoming |
+| Week 3 | Full testing — end-to-end, mobile, cross-browser | 🔲 Upcoming |
+| Week 4 | Launch — switch to Stripe live keys, confirm email | 🔲 Launch |
+
 ### Phase 1 — Data Foundation
 - [x] 1. Top up thin P7/P6 topics via seed run (see thin topics below)
 - [x] 2. Remove Catapult questions (DELETE WHERE source='catapult_test')
 - [x] 3. Save study/mock results to Supabase (question_results + progress_summary)
 - [x] 4. Stripe end-to-end test — confirm profiles table updates on payment
 
-### Phase 2 — Student Experience  
+### Phase 2 — Student Experience
 - [x] 5. Personalised recommendations on dashboard (weak topics from history)
 - [x] 6. Remove Anthropic/Claude branding from all pages
 - [x] 7. Parent section (child progress, weak topics, recent sessions) — parent-dashboard.html + add-child.html + api/add-child.js
@@ -304,9 +337,11 @@ fractions_decimals, measurement, statistics, algebra_sequences
 - [ ] 9. Results history page
 - [x] 10. Function machine question type + SVG diagram
 - [x] 11. STAR Chat — SEAG-restricted help chatbot (Anthropic API, strict system prompt limiting to SEAG topics only)
+- [x] Parent AI insights — expandable per-child panel (Needs Practice / Improving / Strong Areas)
+- [x] Student AI topic recommendations — top 3 weakest topics shown on dashboard after 3+ sprints
 
 ### Phase 3 — Pre-Launch
-- [ ] 12. Real Life Test (printable 56-question paper)
+- [ ] 12. **Real Life Test** (printable 56-question paper) — WEEK 1 PRIORITY
 - [ ] 13. Full end-to-end user journey test (signup → onboarding → mock → study → payment)
 - [ ] 14. Full website QA walkthrough (every page, every button, every user journey tested)
 - [x] 15. Privacy Policy review — GDPR compliant, UK Children's Code, ICO registration C1909458
@@ -321,9 +356,35 @@ fractions_decimals, measurement, statistics, algebra_sequences
 - [ ] 24. Stripe switch to live keys
 - [x] 25. SMTP email configured via Resend.com for staraitutor.co.uk
 - [ ] 26. Confirm email enabled in Supabase Auth after SMTP verified
-- [ ] 27. CLAUDE.md final update
+- [x] 27. CLAUDE.md final update
+
+### Phase 4 — Printable Paper System
+- [ ] Question paper PDF generator (connected to Supabase) ← IN PROGRESS
+- [ ] Answer sheet PDF (matching SEAG format)
+- [ ] Parent answer key PDF (with correct answers marked)
+- [ ] QR code / reference number on answer key
+- [ ] Online marking page (staraitutor.co.uk/mark)
+- [ ] Results ingestion — parent submits wrong answers
+- [ ] AI recommendations update based on printable results
+- [ ] Diagram rendering in question paper
+
+### Phase 5 — Learning Journey
+- [ ] Stage detection — AI knows which stage each student is in
+- [ ] Progress timeline on parent/student dashboard
+- [ ] Stage transition triggers (time-based + performance-based)
+- [ ] "Stay sharp" mode for high performers
+- [ ] Late joiner detection and accelerated pathway
+- [ ] Post-exam feedback collection
+
+### Phase 6 — AI Recommendations Engine
+- [ ] Cross-stage performance tracking
+- [ ] Topic recovery detection
+- [ ] Time pressure effect detection (sprint vs mock performance gap)
+- [ ] Burnout prevention ("don't overdo it") messaging
+- [ ] Parent-facing plain English summaries of AI recommendations
 
 ### Post Launch
+- [ ] Results history page (deprioritised — not blocking launch)
 - [ ] GCSE expansion (2027)
 
 ---

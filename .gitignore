@@ -11,3 +11,5 @@ manual_review_feedback.sql
 flagged_questions.json
 flagged_review.json
 diagrams_sample.json
+
+.vercel

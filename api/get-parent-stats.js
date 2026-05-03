@@ -52,23 +52,30 @@ export default async function handler(req, res) {
   // 4. Fetch sessions + progress_summary in parallel using service role key
   const idList = verified.join(',');
 
-  const [sessionsRes, progressRes] = await Promise.all([
+  const [sessionsRes, progressRes, qrRes] = await Promise.all([
     fetch(
-      `${SUPABASE_URL}/rest/v1/sessions?user_id=in.(${idList})&select=user_id,score,total_questions,completed_at&order=completed_at.desc`,
+      `${SUPABASE_URL}/rest/v1/sessions?user_id=in.(${idList})&select=id,user_id,score,total_questions,completed_at&order=completed_at.desc`,
       { headers: { 'apikey': serviceKey, 'Authorization': `Bearer ${serviceKey}` } }
     ),
     fetch(
       `${SUPABASE_URL}/rest/v1/progress_summary?user_id=in.(${idList})&select=user_id,topics_to_review,last_session_at`,
       { headers: { 'apikey': serviceKey, 'Authorization': `Bearer ${serviceKey}` } }
     ),
+    // Supabase REST caps at 1,000 rows — sufficient for typical usage (~50 sprints × 20 questions)
+    fetch(
+      `${SUPABASE_URL}/rest/v1/question_results?user_id=in.(${idList})&select=user_id,session_id,topic,correct`,
+      { headers: { 'apikey': serviceKey, 'Authorization': `Bearer ${serviceKey}` } }
+    ),
   ]);
 
-  const sessions = sessionsRes.ok  ? await sessionsRes.json()  : [];
-  const progress = progressRes.ok  ? await progressRes.json()  : [];
+  const sessions        = sessionsRes.ok ? await sessionsRes.json() : [];
+  const progress        = progressRes.ok ? await progressRes.json() : [];
+  const questionResults = qrRes.ok       ? await qrRes.json()       : [];
 
-  if (!sessionsRes.ok)  console.error('[get-parent-stats] sessions error:', sessionsRes.status);
-  if (!progressRes.ok)  console.error('[get-parent-stats] progress error:', progressRes.status);
+  if (!sessionsRes.ok) console.error('[get-parent-stats] sessions error:', sessionsRes.status);
+  if (!progressRes.ok) console.error('[get-parent-stats] progress error:', progressRes.status);
+  if (!qrRes.ok)       console.error('[get-parent-stats] question_results error:', qrRes.status);
 
-  console.log(`[get-parent-stats] parentId:${parentId} children:${verified.length} sessions:${sessions.length}`);
-  return res.status(200).json({ ok: true, sessions, progress });
+  console.log(`[get-parent-stats] parentId:${parentId} children:${verified.length} sessions:${sessions.length} qr:${questionResults.length}`);
+  return res.status(200).json({ ok: true, sessions, progress, questionResults });
 }

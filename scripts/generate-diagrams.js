@@ -89,7 +89,7 @@ async function saveDiagram(id, svg) {
 // ── Claude ─────────────────────────────────────────────────────────────────────
 const SYSTEM = `You are a JSON generator. Return ONLY valid JSON, no other text.`;
 
-const TYPE_GUIDE = `Available types and their key options:
+const TYPE_GUIDE = `Available types and their key options (ONLY use these exact type names):
 
 triangle  — { subtype: "scalene|equilateral|isosceles|right-angled", sideA, sideB, sideC, angleA, angleB, angleC, unknownAngle: bool }
 shape     — { subtype: "rectangle|square|parallelogram|rhombus|trapezium|pentagon|hexagon|octagon", width, height, sideLabel }
@@ -103,8 +103,15 @@ number-line — { min: 0, max: 10, marked: [3, 7], unknown: 5, label }
 measurement-scale — { subtype: "ruler|thermometer|weighing-dial", value, min, max, unit }
 coordinate-grid — { points: [{x,y,label},...], xMin, xMax, yMin, yMax }
 cuboid    — { width: "5cm", height: "3cm", depth: "2cm" }
-pie-chart — { labels: ["A","B",...], values: [30,70,...] }
-function-machine — { rule: "× 3", input: "4", output: "12" }`;
+pie-chart — { data: [{"label": "A", "value": 30}, {"label": "B", "value": 70}] }
+function-machine — { rule: "× 3", input: "4", output: "12" }
+
+Mapping rules for unsupported diagram types:
+- tally chart, frequency table, carroll diagram, venn diagram → use bar-chart
+- L-shape, composite shape, irregular shape → use shape with subtype "rectangle"
+- magic square, number grid, number cards → use coordinate-grid
+- decision tree, flow chart → use function-machine
+- multiple diagrams needed → pick the MOST IMPORTANT single diagram only`;
 
 async function parseDescription(description) {
   const prompt = `Parse this SEAG maths diagram description into structured options for diagram-generator.js.
@@ -113,7 +120,8 @@ Description: ${description}
 
 ${TYPE_GUIDE}
 
-Choose the best matching type. Return ONLY this JSON:
+Choose the best matching type from the list above. Do NOT invent new type names.
+Return ONLY a single JSON object (never an array):
 {
   "type": "...",
   "options": { ... }
@@ -128,7 +136,7 @@ Choose the best matching type. Return ONLY this JSON:
     },
     body: JSON.stringify({
       model:      MODEL,
-      max_tokens: 500,
+      max_tokens: 800,
       system:     SYSTEM,
       messages:   [{ role: 'user', content: prompt }],
     }),

@@ -31,7 +31,7 @@ for (const line of readFileSync(resolve(__dir, '../.env'), 'utf8').split('\n')) 
 
 const SUPABASE_URL   = 'https://iutcgogmxhaqgaxkznxu.supabase.co';
 const SERVICE_KEY    = envVars.SUPABASE_SERVICE_ROLE_KEY || envVars.SUPABASE_SERVICE_KEY;
-const API_BASE       = process.env.API_BASE || 'http://localhost:3004/api/question-builder';
+const API_BASE       = process.env.API_BASE || 'http://localhost:3005/api/question-builder';
 const PROGRESS_FILE  = resolve(__dir, '../progress.json');
 const BATCH_SIZE     = 50;
 const BATCH_DELAY_MS = 5000;

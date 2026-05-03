@@ -1,0 +1,126 @@
+{
+  "started_at": "2026-05-03T16:06:24.296Z",
+  "buckets": {
+    "punctuation_P6": {
+      "generated": 388,
+      "saved": 388,
+      "batches": 12
+    },
+    "punctuation_P7": {
+      "generated": 398,
+      "saved": 398,
+      "batches": 12
+    },
+    "grammar_P6": {
+      "generated": 299,
+      "saved": 299,
+      "batches": 8
+    },
+    "grammar_P7": {
+      "generated": 100,
+      "saved": 100,
+      "batches": 3
+    },
+    "spelling_P6": {
+      "generated": 98,
+      "saved": 98,
+      "batches": 3
+    },
+    "spelling_P7": {
+      "generated": 100,
+      "saved": 100,
+      "batches": 4
+    },
+    "vocabulary_P6": {
+      "generated": 35,
+      "saved": 35,
+      "batches": 1
+    },
+    "vocabulary_P7": {
+      "generated": 40,
+      "saved": 40,
+      "batches": 1
+    },
+    "comprehension_mc_P6": {
+      "generated": 100,
+      "saved": 100,
+      "batches": 8
+    },
+    "comprehension_mc_P7": {
+      "generated": 100,
+      "saved": 100,
+      "batches": 4
+    },
+    "comprehension_written_P6": {
+      "generated": 75,
+      "saved": 75,
+      "batches": 4
+    },
+    "comprehension_written_P7": {
+      "generated": 75,
+      "saved": 75,
+      "batches": 2
+    },
+    "arithmetic_P6": {
+      "generated": 112,
+      "saved": 112,
+      "batches": 4
+    },
+    "arithmetic_P7": {
+      "generated": 150,
+      "saved": 150,
+      "batches": 4
+    },
+    "geometry_P6": {
+      "generated": 133,
+      "saved": 133,
+      "batches": 14
+    },
+    "geometry_P7": {
+      "generated": 150,
+      "saved": 150,
+      "batches": 5
+    },
+    "fractions_decimals_P6": {
+      "generated": 137,
+      "saved": 137,
+      "batches": 7
+    },
+    "fractions_decimals_P7": {
+      "generated": 150,
+      "saved": 150,
+      "batches": 5
+    },
+    "measurement_P6": {
+      "generated": 130,
+      "saved": 130,
+      "batches": 4
+    },
+    "measurement_P7": {
+      "generated": 150,
+      "saved": 150,
+      "batches": 4
+    },
+    "statistics_P6": {
+      "generated": 150,
+      "saved": 150,
+      "batches": 5
+    },
+    "statistics_P7": {
+      "generated": 152,
+      "saved": 152,
+      "batches": 4
+    },
+    "algebra_sequences_P6": {
+      "generated": 149,
+      "saved": 149,
+      "batches": 5
+    },
+    "algebra_sequences_P7": {
+      "generated": 150,
+      "saved": 150,
+      "batches": 4
+    }
+  },
+  "last_updated": "2026-05-03T18:48:42.830Z"
+}

@@ -1,0 +1,16 @@
+PUNCTUATION EXAMPLE 1 (comma missing in list):
+question_text: "The children collected apples oranges and pears from the garden."
+options: {"A": "The children collected apples", "B": "oranges and pears", "C": "from the garden.", "D": "", "N": "No mistake"}
+correct_answer: "A"
+(Error: missing comma after 'apples')
+
+PUNCTUATION EXAMPLE 2 (no error):
+question_text: "The dogs were playing happily in the park all afternoon."
+options: {"A": "The dogs", "B": "were playing happily", "C": "in the park all afternoon.", "D": "", "N": "No mistake"}
+correct_answer: "N"
+
+PUNCTUATION EXAMPLE 3 (missing full stop):
+question_text: "Please return your books to the library before Friday"
+options: {"A": "Please return your books", "B": "to the library", "C": "before Friday", "D": "", "N": "No mistake"}
+correct_answer: "B"
+(Error: missing full stop after 'library')
