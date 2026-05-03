@@ -34,12 +34,29 @@ function polyPts(cx, cy, radius, sides, startAngleDeg = 0) {
 // ── triangle ─────────────────────────────────────────────────────────────────
 
 function triangle(opts = {}) {
-  const {
+  let {
     subtype = 'scalene',
     sideA, sideB, sideC,
     angleA, angleB, angleC,
+    angles = [],
     unknownAngle = false,
   } = opts;
+
+  // Map angles array [a, b] or [a, b, c] to individual labels
+  if (angles.length >= 2) {
+    angleA = angles[0] != null ? `${angles[0]}°` : undefined;
+    angleB = angles[1] != null ? `${angles[1]}°` : undefined;
+    if (angles.length >= 3 && angles[2] != null) {
+      angleC = `${angles[2]}°`;
+    } else {
+      const third = 180 - Number(angles[0]) - Number(angles[1]);
+      if (third > 0 && third < 180) angleC = `${third}°`;
+    }
+    if (!opts.subtype) {
+      if (Number(angles[0]) === 90 || Number(angles[1]) === 90) subtype = 'right-angled';
+      else if (Number(angles[0]) === Number(angles[1])) subtype = 'isosceles';
+    }
+  }
 
   let pts;
   switch (subtype) {
@@ -89,30 +106,37 @@ function triangle(opts = {}) {
 // ── shape ─────────────────────────────────────────────────────────────────────
 
 function shape(opts = {}) {
-  const { subtype = 'rectangle', width = '', height = '', sideLabel = '' } = opts;
+  const { subtype = 'rectangle', length = '', width = '', height = '', side = '', sideLabel = '' } = opts;
   const cx = W / 2, cy = H / 2;
   let content = '';
 
   switch (subtype) {
     case 'square': {
       const s = 100;
+      const lbl = side || width || length || sideLabel;
       content = `<rect x="${cx-s/2}" y="${cy-s/2}" width="${s}" height="${s}" fill="${FILL}" stroke="${BLUE}" stroke-width="2.5"/>`;
-      if (width) content += `<text x="${cx}" y="${cy-s/2-8}" text-anchor="middle" fill="${PURPLE}" font-size="12">${width}</text>`;
+      if (lbl) {
+        content += `<text x="${cx}" y="${cy-s/2-10}" text-anchor="middle" fill="${PURPLE}" font-size="13" font-weight="bold">${lbl}</text>`;
+        content += `<text x="${cx+s/2+16}" y="${cy+5}" text-anchor="start" fill="${PURPLE}" font-size="13" font-weight="bold">${lbl}</text>`;
+      }
       break;
     }
     case 'rectangle': {
       const rw = 170, rh = 80;
+      // length → top label; width → right label when length present (old: width → top, height → right)
+      const topLabel   = length || width;
+      const rightLabel = length ? (width || height) : height;
       content = `<rect x="${cx-rw/2}" y="${cy-rh/2}" width="${rw}" height="${rh}" fill="${FILL}" stroke="${BLUE}" stroke-width="2.5"/>`;
-      if (width) content += `<text x="${cx}" y="${cy-rh/2-8}" text-anchor="middle" fill="${PURPLE}" font-size="12">${width}</text>`;
-      if (height) content += `<text x="${cx+rw/2+20}" y="${cy+5}" text-anchor="middle" fill="${PURPLE}" font-size="12">${height}</text>`;
+      if (topLabel)   content += `<text x="${cx}" y="${cy-rh/2-10}" text-anchor="middle" fill="${PURPLE}" font-size="13" font-weight="bold">${topLabel}</text>`;
+      if (rightLabel) content += `<text x="${cx+rw/2+16}" y="${cy+5}" text-anchor="start" fill="${PURPLE}" font-size="13" font-weight="bold">${rightLabel}</text>`;
       break;
     }
     case 'parallelogram': {
       const pw = 160, ph = 70, sl = 28;
       const pts = `${cx-pw/2+sl},${cy-ph/2} ${cx+pw/2+sl},${cy-ph/2} ${cx+pw/2-sl},${cy+ph/2} ${cx-pw/2-sl},${cy+ph/2}`;
       content = `<polygon points="${pts}" fill="${FILL}" stroke="${BLUE}" stroke-width="2.5"/>`;
-      if (width)  content += `<text x="${cx}" y="${cy-ph/2-8}" text-anchor="middle" fill="${PURPLE}" font-size="12">${width}</text>`;
-      if (height) content += `<text x="${cx+pw/2+sl+14}" y="${cy+5}" text-anchor="start" fill="${PURPLE}" font-size="12">${height}</text>`;
+      if (width)  content += `<text x="${cx}" y="${cy-ph/2-10}" text-anchor="middle" fill="${PURPLE}" font-size="13" font-weight="bold">${width}</text>`;
+      if (height) content += `<text x="${cx+pw/2+sl+14}" y="${cy+5}" text-anchor="start" fill="${PURPLE}" font-size="13" font-weight="bold">${height}</text>`;
       break;
     }
     case 'rhombus': {
@@ -124,7 +148,7 @@ function shape(opts = {}) {
       const tw = 110, bw = 190, th = 70;
       const pts = `${cx-tw/2},${cy-th/2} ${cx+tw/2},${cy-th/2} ${cx+bw/2},${cy+th/2} ${cx-bw/2},${cy+th/2}`;
       content = `<polygon points="${pts}" fill="${FILL}" stroke="${BLUE}" stroke-width="2.5"/>`;
-      if (width) content += `<text x="${cx}" y="${cy-th/2-8}" text-anchor="middle" fill="${PURPLE}" font-size="12">${width}</text>`;
+      if (width) content += `<text x="${cx}" y="${cy-th/2-10}" text-anchor="middle" fill="${PURPLE}" font-size="13" font-weight="bold">${width}</text>`;
       break;
     }
     case 'pentagon': {
