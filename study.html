@@ -497,6 +497,7 @@ let answered    = false;
 let selectedMC  = null;
 let sprintCount = 0;
 let loadingTipInterval = null;
+let currentUserId = null;
 
 // Study-mode state
 let userYear         = 'P6';
@@ -716,6 +717,19 @@ function normalizeDBQuestion(dbQ) {
 }
 
 /* ════════════════════════════════
+   QUESTION HISTORY TRACKING
+════════════════════════════════ */
+function trackQuestionSeen(questionId) {
+  if (!currentUserId || !questionId) return;
+  sb.from('student_question_history').insert({
+    student_id:  null,
+    question_id: questionId,
+    user_id:     currentUserId,
+    seen_at:     new Date().toISOString(),
+  }).then(() => {});
+}
+
+/* ════════════════════════════════
    FETCH BATCH FROM DB
 ════════════════════════════════ */
 async function fetchBatch() {
@@ -725,6 +739,18 @@ async function fetchBatch() {
   const diffTiers = correctCount >= 5 ? [1, 2, 3, 4] : [1, 2];
 
   const BATCH_SIZE = 10;
+
+  // Exclude questions seen in the last 30 days for logged-in users
+  let seenIds = [];
+  if (currentUserId) {
+    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+    const { data: seenData } = await sb
+      .from('student_question_history')
+      .select('question_id')
+      .eq('user_id', currentUserId)
+      .gt('seen_at', thirtyDaysAgo);
+    seenIds = (seenData || []).map(r => r.question_id).filter(Boolean);
+  }
 
   let query = sb
     .from('questions')
@@ -741,6 +767,10 @@ async function fetchBatch() {
     query = query.in('topic', ['comprehension_mc', 'comprehension_written']);
   } else {
     query = query.eq('topic', selectedTopic);
+  }
+
+  if (seenIds.length > 0) {
+    query = query.not('id', 'in', `(${seenIds.join(',')})`);
   }
 
   const { data, error } = await query;
@@ -890,6 +920,9 @@ async function init() {
   if (profile?.year_group) userYear = profile.year_group;
   else userYear = urlTrack || sessionStorage.getItem('star_year') || 'P6';
   if (profile?.name) document.getElementById('nav-student-name').textContent = '· ' + profile.name;
+
+  const { data: { session: _authSession } } = await sb.auth.getSession();
+  currentUserId = _authSession?.user?.id || null;
 
   document.getElementById('results-panel').classList.remove('visible');
   document.getElementById('complete-screen').classList.remove('visible');
@@ -1050,6 +1083,7 @@ async function submitAnswer() {
   if (answered) return;
   answered = true;
   const q = QUESTIONS[currentQ];
+  trackQuestionSeen(q.id);
   let isCorrect  = false;
   let aiFeedback = '';
 
