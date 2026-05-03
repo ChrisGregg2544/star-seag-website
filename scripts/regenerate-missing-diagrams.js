@@ -1,9 +1,9 @@
 /**
  * regenerate-missing-diagrams.js
- * Backfills diagram SVGs for questions that have diagram_description but diagram IS NULL.
+ * Backfills diagram SVGs for questions where diagram IS NULL, by parsing question_text.
  *
- * Targets: geometry, measurement, statistics, fractions_decimals, algebra_sequences
- * Skips questions with no diagram_description (can't generate without one).
+ * Targets: geometry, measurement, statistics, fractions_decimals
+ * Skips questions where no diagram pattern can be inferred from the text.
  *
  * Usage: node scripts/regenerate-missing-diagrams.js
  *   DRY_RUN=1 node scripts/regenerate-missing-diagrams.js   ← preview without writing
@@ -26,23 +26,17 @@ for (const line of readFileSync(resolve(__dir, '../.env'), 'utf8').split('\n')) 
 const SUPABASE_URL = 'https://iutcgogmxhaqgaxkznxu.supabase.co';
 const SERVICE_KEY  = envVars.SUPABASE_SERVICE_ROLE_KEY || envVars.SUPABASE_SERVICE_KEY;
 const DRY_RUN      = process.env.DRY_RUN === '1';
-const BATCH_SIZE   = 100; // questions fetched per page
-const UPDATE_DELAY = 50;  // ms between PATCH requests
+const PAGE_SIZE    = 200;
+const UPDATE_DELAY = 30; // ms between PATCH requests
 
 if (!SERVICE_KEY) { console.error('Missing SUPABASE_SERVICE_ROLE_KEY in .env'); process.exit(1); }
 
-const VISUAL_TOPICS = [
-  'geometry',
-  'measurement',
-  'statistics',
-  'fractions_decimals',
-  'algebra_sequences',
-];
+const VISUAL_TOPICS = ['geometry', 'measurement', 'statistics', 'fractions_decimals'];
 
 // ── Supabase helpers ───────────────────────────────────────────────────────────
-const headers = {
-  apikey:        SERVICE_KEY,
-  Authorization: `Bearer ${SERVICE_KEY}`,
+const baseHeaders = {
+  apikey:         SERVICE_KEY,
+  Authorization:  `Bearer ${SERVICE_KEY}`,
   'Content-Type': 'application/json',
 };
 
@@ -51,13 +45,12 @@ async function fetchPage(offset) {
   const url = `${SUPABASE_URL}/rest/v1/questions`
     + `?or=(${topicFilter})`
     + `&diagram=is.null`
-    + `&diagram_description=not.is.null`
     + `&source=eq.ai_generated_v2`
     + `&validated=eq.true`
-    + `&select=id,topic,year_group,diagram_description`
-    + `&limit=${BATCH_SIZE}&offset=${offset}`;
+    + `&select=id,topic,year_group,question_text`
+    + `&limit=${PAGE_SIZE}&offset=${offset}`;
 
-  const res = await fetch(url, { headers });
+  const res = await fetch(url, { headers: baseHeaders });
   if (!res.ok) throw new Error(`Fetch failed (${res.status}): ${await res.text()}`);
   return res.json();
 }
@@ -66,79 +59,123 @@ async function patchDiagram(id, svg) {
   const url = `${SUPABASE_URL}/rest/v1/questions?id=eq.${id}`;
   const res = await fetch(url, {
     method:  'PATCH',
-    headers: { ...headers, Prefer: 'return=minimal' },
+    headers: { ...baseHeaders, Prefer: 'return=minimal' },
     body:    JSON.stringify({ diagram: svg }),
   });
   if (!res.ok) throw new Error(`PATCH failed for ${id} (${res.status}): ${await res.text()}`);
 }
 
-// ── SVG generation (mirrors generateSVGFromDescription in question-builder.js) ─
-function generateSVGFromDescription(description) {
-  if (!description) return null;
+// ── SVG inference from question_text ──────────────────────────────────────────
+function nums(text) {
+  return (text.match(/\d+(?:\.\d+)?/g) || []).map(Number);
+}
 
-  if (description.includes('triangle')) {
-    const angleMatches = description.match(/(\d+)°/g);
-    const angles = angleMatches ? angleMatches.map(a => parseInt(a)) : [];
-    return generateDiagram('triangle', { angles });
+function inferDiagram(topic, questionText) {
+  if (!questionText) return null;
+  const t = questionText.toLowerCase();
+
+  // ── Geometry ────────────────────────────────────────────────────────────────
+  if (topic === 'geometry') {
+    // Cuboid (check before rectangle — cuboid has 3 dimensions)
+    if (t.includes('cuboid') || t.includes('volume')) {
+      const n = nums(t);
+      if (n.length >= 3) return generateDiagram('cuboid', { length: n[0], width: n[1], height: n[2] });
+    }
+    // Triangle with angles
+    if (t.includes('triangle') || t.includes('angle')) {
+      const angles = (t.match(/(\d+)°/g) || []).map(a => parseInt(a));
+      if (angles.length >= 2) return generateDiagram('triangle', { angles });
+      // Generic triangle if mentioned without angle values
+      if (t.includes('triangle')) return generateDiagram('triangle', { angles: [60, 60] });
+    }
+    // Rectangle
+    if (t.includes('rectangle')) {
+      const n = nums(t);
+      if (n.length >= 2) return generateDiagram('shape', { subtype: 'rectangle', length: n[0], width: n[1] });
+    }
+    // Square
+    if (t.includes('square')) {
+      const n = nums(t);
+      if (n.length >= 1) return generateDiagram('shape', { subtype: 'square', side: n[0] });
+    }
+    // L-shape / composite (render as rectangle approximation)
+    if (t.includes('l-shape') || t.includes('composite')) {
+      const n = nums(t);
+      if (n.length >= 2) return generateDiagram('shape', { subtype: 'rectangle', length: n[0], width: n[1] });
+    }
+    // Circle / radius / diameter
+    if (t.includes('circle') || t.includes('radius') || t.includes('diameter')) {
+      return generateDiagram('shape', { subtype: 'hexagon' }); // nearest supported round shape
+    }
+    // Generic shape fallback
+    const shapes = ['pentagon', 'hexagon', 'octagon', 'parallelogram', 'rhombus', 'trapezium'];
+    for (const s of shapes) {
+      if (t.includes(s)) return generateDiagram('shape', { subtype: s });
+    }
   }
-  if (description.includes('rectangle')) {
-    const nums = description.match(/\d+/g);
-    if (!nums || nums.length < 2) return null;
-    const [length, width] = nums.map(Number);
-    return generateDiagram('shape', { subtype: 'rectangle', length, width });
+
+  // ── Measurement ─────────────────────────────────────────────────────────────
+  if (topic === 'measurement') {
+    if (t.includes('ruler') || t.includes('length') || t.includes('centimetre') || t.includes('millimetre')) {
+      const n = nums(t);
+      const pos = n.length ? Math.min(n[0], 30) : 15;
+      return generateDiagram('measurement-scale', { type: 'ruler', highlight: pos });
+    }
+    if (t.includes('kg') || t.includes('gram') || t.includes('weigh') || t.includes('mass') || t.includes('scale')) {
+      const n = nums(t);
+      const pos = n.length ? Math.min(n[0], 100) : 50;
+      return generateDiagram('measurement-scale', { type: 'weighing-dial', highlight: pos });
+    }
+    if (t.includes('litre') || t.includes('ml') || t.includes('jug') || t.includes('capacity') || t.includes('liquid')) {
+      const n = nums(t);
+      const pos = n.length ? Math.min(n[0], 1000) : 500;
+      return generateDiagram('measurement-scale', { type: 'measuring-jug', highlight: pos });
+    }
   }
-  if (description.includes('square')) {
-    const nums = description.match(/\d+/g);
-    if (!nums) return null;
-    const side = Number(nums[0]);
-    return generateDiagram('shape', { subtype: 'square', side });
+
+  // ── Statistics ───────────────────────────────────────────────────────────────
+  if (topic === 'statistics') {
+    if (t.includes('pie') || t.includes('%') || t.includes('percent')) {
+      const pcts = (t.match(/(\d+)\s*%/g) || []).map(p => parseInt(p));
+      if (pcts.length >= 1 && pcts[0] > 0 && pcts[0] < 100) {
+        return generateDiagram('pie-chart', {
+          data: [
+            { label: `${pcts[0]}%`, value: pcts[0] },
+            { label: 'Remaining',   value: 100 - pcts[0] },
+          ],
+        });
+      }
+    }
+    if (t.includes('bar chart') || t.includes('bar graph') || t.includes('frequency')) {
+      return generateDiagram('bar-chart', {
+        labels: ['A', 'B', 'C', 'D'],
+        values: [4, 7, 3, 6],
+      });
+    }
+    if (t.includes('line graph') || t.includes('line chart')) {
+      return generateDiagram('line-graph', {
+        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
+        values: [3, 5, 4, 7, 6],
+      });
+    }
+    if (t.includes('pictogram')) {
+      return generateDiagram('pictogram', {
+        labels: ['A', 'B', 'C'],
+        values: [3, 5, 4],
+      });
+    }
   }
-  if (description.includes('cuboid')) {
-    const nums = description.match(/\d+/g);
-    if (!nums || nums.length < 3) return null;
-    const [length, width, height] = nums.map(Number);
-    return generateDiagram('cuboid', { length, width, height });
-  }
-  if (description.includes('fraction-grid')) {
-    const nums = description.match(/\d+/g);
-    if (!nums || nums.length < 2) return null;
-    const [num, denom] = nums.map(Number);
-    return generateDiagram('fraction-grid', { rows: Math.min(denom, 10), cols: 1, shaded: num });
-  }
-  if (description.includes('pie-chart: fraction')) {
-    const fractions = description.match(/(\d+)\/(\d+)/g);
-    if (!fractions) return null;
-    const data = fractions.map(f => {
-      const [n, d] = f.split('/').map(Number);
-      return { label: f, value: n / d };
-    });
-    return generateDiagram('pie-chart', { data });
-  }
-  if (description.includes('pie-chart: percentage')) {
-    const nums = description.match(/\d+/g);
-    if (!nums) return null;
-    const percent = Number(nums[0]);
-    return generateDiagram('pie-chart', {
-      data: [
-        { label: `${percent}%`, value: percent },
-        { label: 'Remaining', value: 100 - percent },
-      ],
-    });
-  }
-  if (description.includes('measurement-scale: ruler')) {
-    const nums = description.match(/\d+/g);
-    const pos = nums ? Number(nums[0]) : 0;
-    return generateDiagram('measurement-scale', { type: 'ruler', highlight: pos });
-  }
-  if (description.includes('measurement-scale: weighing-dial')) {
-    const nums = description.match(/\d+/g);
-    const pos = nums ? Number(nums[0]) : 0;
-    return generateDiagram('measurement-scale', { type: 'weighing-dial', highlight: pos });
-  }
-  if (description.includes('measurement-scale: measuring-jug')) {
-    const nums = description.match(/\d+/g);
-    const pos = nums ? Number(nums[0]) : 0;
-    return generateDiagram('measurement-scale', { type: 'measuring-jug', highlight: pos });
+
+  // ── Fractions / Decimals ─────────────────────────────────────────────────────
+  if (topic === 'fractions_decimals') {
+    const fracMatch = t.match(/(\d+)\s*\/\s*(\d+)/);
+    if (fracMatch) {
+      const num   = parseInt(fracMatch[1]);
+      const denom = parseInt(fracMatch[2]);
+      if (denom >= 2 && denom <= 12 && num < denom) {
+        return generateDiagram('fraction-grid', { rows: denom, cols: 1, shaded: num });
+      }
+    }
   }
 
   return null;
@@ -146,7 +183,10 @@ function generateSVGFromDescription(description) {
 
 // ── Main ───────────────────────────────────────────────────────────────────────
 async function main() {
-  console.log(`regenerate-missing-diagrams: topics=${VISUAL_TOPICS.join(', ')} DRY_RUN=${DRY_RUN}`);
+  console.log(`regenerate-missing-diagrams`);
+  console.log(`  topics   : ${VISUAL_TOPICS.join(', ')}`);
+  console.log(`  DRY_RUN  : ${DRY_RUN}`);
+  console.log('');
 
   let offset = 0;
   let totalFetched = 0;
@@ -159,43 +199,48 @@ async function main() {
     if (!rows.length) break;
 
     totalFetched += rows.length;
-    console.log(`\nPage offset=${offset}: ${rows.length} rows`);
+    console.log(`Page offset=${offset}: ${rows.length} rows`);
 
     for (const row of rows) {
-      const svg = generateSVGFromDescription(row.diagram_description);
+      const svg = inferDiagram(row.topic, row.question_text);
 
       if (!svg) {
         totalSkipped++;
-        console.log(`  SKIP  ${row.id} (${row.topic} ${row.year_group}) — no matcher for: ${row.diagram_description.slice(0, 60)}`);
         continue;
       }
 
       if (DRY_RUN) {
         totalPatched++;
-        console.log(`  DRY   ${row.id} (${row.topic} ${row.year_group}) — would write ${svg.length} chars`);
+        console.log(`  DRY  ${row.topic} ${row.year_group} — ${svg.length} chars — ${row.question_text.slice(0, 70)}`);
         continue;
       }
 
       try {
         await patchDiagram(row.id, svg);
         totalPatched++;
-        console.log(`  OK    ${row.id} (${row.topic} ${row.year_group}) — ${svg.length} chars`);
+        if (totalPatched % 50 === 0) console.log(`  ${totalPatched} patched so far...`);
         await new Promise(r => setTimeout(r, UPDATE_DELAY));
       } catch (e) {
         totalErrors++;
-        console.error(`  ERR   ${row.id} — ${e.message}`);
+        console.error(`  ERR ${row.id} — ${e.message}`);
       }
     }
 
-    if (rows.length < BATCH_SIZE) break;
-    offset += BATCH_SIZE;
+    if (rows.length < PAGE_SIZE) break;
+    offset += PAGE_SIZE;
   }
 
-  console.log(`\n── Summary ──────────────────────────────────`);
+  console.log('');
+  console.log('── Summary ──────────────────────────────────');
   console.log(`  Fetched : ${totalFetched}`);
   console.log(`  Patched : ${totalPatched}${DRY_RUN ? ' (dry run — no writes)' : ''}`);
-  console.log(`  Skipped : ${totalSkipped} (no diagram matcher)`);
+  console.log(`  Skipped : ${totalSkipped} (no diagram pattern matched)`);
   console.log(`  Errors  : ${totalErrors}`);
+
+  if (DRY_RUN && totalPatched > 0) {
+    console.log('');
+    console.log('Run without DRY_RUN=1 to apply changes.');
+  }
 }
 
 main().catch(e => { console.error('Fatal:', e.message); process.exit(1); });
