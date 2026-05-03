@@ -1,33 +1,28 @@
 # Post-Bulk-Generation Tasks
 
-## Status
-Bulk generation running — complete these tasks once generation finishes and questions are tested.
+## Completed
+
+✅ **Student Authentication** — using existing Supabase Auth (login.html + Google OAuth)
+
+✅ **Question History Tracking** — `student_question_history` table; both study.html and mock.html insert rows with `student_id`, `user_id`, and `seen_at` on every answered question
+
+✅ **Question Repeat Prevention** — 30-day exclusion filter applied at fetch time in both study mode (`fetchBatch`) and mock mode (`fetchPool`); logged-out users unaffected
 
 ---
 
-## 1. Student Authentication System
-- Login / signup pages
-- Session management
-- User profiles
+## Remaining
 
-## 2. Question Repeat Prevention
-- Track `question_id` + `student_id` in `student_question_history`
-- Filter queries to exclude questions seen in last 30 days
-- Works in both study mode and mock mode
-
-## 3. Student Progress Tracking
-- Overall accuracy per category
-- Strengths / weaknesses dashboard
+### Student Progress Dashboard
+- Overall accuracy per category (strengths / weaknesses)
 - Historical performance graphs
+- Session history page
+
+### Admin Monitoring
+- Low stock alerts when a category drops below a threshold
+- Automated top-up trigger when buckets run low
 
 ---
 
 ## Timing
 
-Add authentication **before** public launch.
-
-- Easier to launch with auth from day 1 — no migration needed later
-- Better data from the start (all sessions tied to a real user)
-- Do **after** bulk generation completes + testing passes
-
-Estimated: 6–8 hours for full auth + tracking system.
+Progress dashboard is the next priority after bulk generation completes and question bank is verified.
