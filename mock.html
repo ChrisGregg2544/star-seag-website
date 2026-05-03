@@ -486,6 +486,10 @@ let MATHS_QS       = [];
 let englishFetchPromise = null;
 let mathsFetchPromise   = null;
 
+// Repeat prevention
+let mockAuthUserId = null;
+let mockSeenIds    = [];
+
 /* ════════════════════════════════════════
    LOADING TIPS
 ════════════════════════════════════════ */
@@ -588,6 +592,16 @@ async function init() {
   const { data: authData } = await sb.auth.getSession();
   if (!authData?.session?.user) { window.location.href = 'login.html'; return; }
   const parentId = authData.session.user.id;
+  mockAuthUserId = authData.session.user.id;
+
+  // Load recently seen question IDs for repeat prevention
+  const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+  const { data: seenData } = await sb
+    .from('student_question_history')
+    .select('question_id')
+    .eq('user_id', mockAuthUserId)
+    .gt('seen_at', thirtyDaysAgo);
+  mockSeenIds = (seenData || []).map(r => r.question_id).filter(Boolean);
 
   const selectedChildId = localStorage.getItem('selectedChildId');
   if (!selectedChildId) { window.location.href = 'child-selector.html'; return; }
@@ -721,6 +735,7 @@ function normalizeDBQuestion(dbQ) {
 // Fetch a shuffled subset of N questions for the student's year group,
 // excluding any IDs already used in the practice section.
 async function fetchPool(subject, topic, count, excludeIds = []) {
+  const allExcluded = [...new Set([...excludeIds, ...mockSeenIds])];
   let query = sb
     .from('questions')
     .select('id,subject,topic,year_group,difficulty,question_type,question_text,passage,options,correct_answer,explanation,diagram')
@@ -730,8 +745,8 @@ async function fetchPool(subject, topic, count, excludeIds = []) {
     .eq('source',     'ai_generated_v3')
     .eq('active',     true)
     .limit(count * 5); // over-fetch so shuffle gives good variety
-  if (excludeIds.length > 0) {
-    query = query.not('id', 'in', `(${excludeIds.join(',')})`);
+  if (allExcluded.length > 0) {
+    query = query.not('id', 'in', `(${allExcluded.join(',')})`);
   }
   const { data, error } = await query;
   if (error) throw new Error(`DB fetch failed (${subject}/${topic}): ${error.message}`);
@@ -1568,8 +1583,14 @@ async function saveMockToSupabase(totalCorrect, totalQ, englishCorrect, mathsCor
       }));
       await sb.from('question_results').insert([...englishResults, ...mathsResults]);
 
-      const history = [...ENGLISH_QS, ...MATHS_QS].map(q => ({ student_id: userId, question_id: q._id }));
-      const histResult = await sb.from('student_question_history').insert(history);
+      const seenAt  = new Date().toISOString();
+      const history = [...ENGLISH_QS, ...MATHS_QS].map(q => ({
+        student_id:  userId,
+        question_id: q._id,
+        user_id:     mockAuthUserId,
+        seen_at:     seenAt,
+      }));
+      await sb.from('student_question_history').insert(history);
     }
 
     const topicStats = {};
