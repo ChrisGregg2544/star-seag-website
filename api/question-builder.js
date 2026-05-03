@@ -1118,7 +1118,7 @@ async function handleSaveGenerated(req, res) {
     options:           q.options || null,
     correct_answer:    q.correct_answer,
     explanation:       q.explanation || null,
-    diagram:           q.diagram_svg || q.diagram || null,
+    diagram:           q.diagram_svg || q.diagram || (q.diagram_description ? generateSVGFromDescription(q.diagram_description) : null),
     validated:         true,
     source:            'ai_generated_v2',
     validator_verdict: q.validator_verdict || q.validation?.outcome || 'pass',
