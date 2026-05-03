@@ -447,7 +447,7 @@ async function handleGenerateQuestions(req, res) {
       const refLimit = Math.min(15, Math.max(10, batch_size));
       const [refRows, failRows, passRows] = await Promise.all([
         supabaseFetch(supabaseUrl, serviceKey,
-          `reference_questions?select=question_text,correct_answer,difficulty&category=eq.${encodeURIComponent(category)}&year_group=eq.${encodeURIComponent(year_group)}&${year_group === 'P6' ? 'difficulty=lte.2' : 'difficulty=lte.3'}&limit=${refLimit}&order=extracted_at.desc`),
+          `reference_questions?select=question_text,correct_answer,difficulty&category=eq.${encodeURIComponent(category)}&year_group=eq.${encodeURIComponent(year_group)}&${year_group === 'P6' ? 'difficulty=lte.2' : 'difficulty=lte.3'}&limit=${refLimit}&order=created_at.desc`),
         supabaseFetch(supabaseUrl, serviceKey,
           `validation_results?select=v1_reason,v2_reason,v3_reason&category=eq.${encodeURIComponent(category)}&year_group=eq.${encodeURIComponent(year_group)}&outcome=eq.fail&order=created_at.desc&limit=20`),
         supabaseFetch(supabaseUrl, serviceKey,
