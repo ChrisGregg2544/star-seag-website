@@ -215,11 +215,9 @@
         <thead>
           <tr>
             <th>Topic</th>
-            <th style="text-align:center;">P6 Count</th>
-            <th style="text-align:center;">P7 Count</th>
             <th style="text-align:center;">Target</th>
-            <th style="text-align:center;">P6 %</th>
-            <th style="text-align:center;">P7 %</th>
+            <th style="text-align:center;">P6</th>
+            <th style="text-align:center;">P7</th>
           </tr>
         </thead>
         <tbody id="bank-tbody"></tbody>
@@ -262,7 +260,20 @@ const TOPICS = [
   'arithmetic', 'geometry', 'fractions_decimals',
   'measurement', 'statistics', 'algebra_sequences'
 ];
-const TARGET = 250;
+const TARGETS = {
+  punctuation:           400,
+  grammar:               400,
+  spelling:              400,
+  vocabulary:            200,
+  comprehension_mc:      300,
+  comprehension_written: 300,
+  arithmetic:            400,
+  geometry:              400,
+  fractions_decimals:    400,
+  measurement:           400,
+  statistics:            400,
+  algebra_sequences:     400,
+};
 const PASSWORD = 'StarAdmin2026';
 
 function checkAuth() {
@@ -296,10 +307,11 @@ function signOut() {
   window.location.reload();
 }
 
-function pctPill(count) {
-  const pct = Math.round(count / TARGET * 100);
-  const cls = pct >= 80 ? 'pct-green' : pct >= 50 ? 'pct-orange' : 'pct-red';
-  return `<span class="pct-pill ${cls}">${pct}%</span>`;
+function statusPill(count, target) {
+  if (count >= target) return `<span class="pct-pill pct-green">✓ ${count}</span>`;
+  const pct = Math.round(count / target * 100);
+  const cls = pct >= 80 ? 'pct-orange' : 'pct-red';
+  return `<span class="pct-pill ${cls}">${count} (${pct}%)</span>`;
 }
 
 async function loadDashboard() {
@@ -330,32 +342,29 @@ async function loadQuestionBank() {
   const tbody = document.getElementById('bank-tbody');
   let totalP6 = 0, totalP7 = 0;
 
+  let totalTarget = 0;
   TOPICS.forEach(topic => {
     const p6 = counts[`${topic}_P6`] || 0;
     const p7 = counts[`${topic}_P7`] || 0;
-    totalP6 += p6; totalP7 += p7;
+    const target = TARGETS[topic] || 400;
+    totalP6 += p6; totalP7 += p7; totalTarget += target;
     const displayName = topic.replace(/_/g, ' ');
     tbody.innerHTML += `
       <tr>
         <td class="topic-name">${displayName}</td>
-        <td class="count-cell">${p6}</td>
-        <td class="count-cell">${p7}</td>
-        <td class="count-cell" style="color:#999;">${TARGET}</td>
-        <td class="count-cell">${pctPill(p6)}</td>
-        <td class="count-cell">${pctPill(p7)}</td>
+        <td class="count-cell" style="color:#999;">${target}</td>
+        <td class="count-cell">${statusPill(p6, target)}</td>
+        <td class="count-cell">${statusPill(p7, target)}</td>
       </tr>`;
   });
 
   // Totals row
-  const totalTarget = TARGET * TOPICS.length;
   tbody.innerHTML += `
     <tr class="totals-row">
       <td class="topic-name">TOTAL</td>
-      <td class="count-cell">${totalP6}</td>
-      <td class="count-cell">${totalP7}</td>
       <td class="count-cell" style="color:#999;">${totalTarget}</td>
-      <td class="count-cell">${pctPill(totalP6 / TOPICS.length)}</td>
-      <td class="count-cell">${pctPill(totalP7 / TOPICS.length)}</td>
+      <td class="count-cell">${totalP6.toLocaleString()}</td>
+      <td class="count-cell">${totalP7.toLocaleString()}</td>
     </tr>`;
 
   document.getElementById('bank-table').style.display = 'table';
