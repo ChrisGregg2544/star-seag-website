@@ -7,120 +7,120 @@
       "batches": 12
     },
     "punctuation_P7": {
-      "generated": 398,
-      "saved": 398,
-      "batches": 12
+      "generated": 400,
+      "saved": 400,
+      "batches": 13
     },
     "grammar_P6": {
-      "generated": 299,
-      "saved": 299,
-      "batches": 8
+      "generated": 393,
+      "saved": 393,
+      "batches": 13
     },
     "grammar_P7": {
-      "generated": 100,
-      "saved": 100,
-      "batches": 3
+      "generated": 399,
+      "saved": 399,
+      "batches": 13
     },
     "spelling_P6": {
-      "generated": 98,
-      "saved": 98,
-      "batches": 3
+      "generated": 398,
+      "saved": 398,
+      "batches": 13
     },
     "spelling_P7": {
-      "generated": 100,
-      "saved": 100,
-      "batches": 4
+      "generated": 400,
+      "saved": 400,
+      "batches": 16
     },
     "vocabulary_P6": {
-      "generated": 35,
-      "saved": 35,
-      "batches": 1
+      "generated": 195,
+      "saved": 195,
+      "batches": 10
     },
     "vocabulary_P7": {
-      "generated": 40,
-      "saved": 40,
-      "batches": 1
+      "generated": 200,
+      "saved": 200,
+      "batches": 6
     },
     "comprehension_mc_P6": {
-      "generated": 100,
-      "saved": 100,
-      "batches": 8
+      "generated": 294,
+      "saved": 294,
+      "batches": 24
     },
     "comprehension_mc_P7": {
-      "generated": 100,
-      "saved": 100,
-      "batches": 4
+      "generated": 155,
+      "saved": 155,
+      "batches": 6
     },
     "comprehension_written_P6": {
-      "generated": 75,
-      "saved": 75,
-      "batches": 4
+      "generated": 300,
+      "saved": 300,
+      "batches": 10
     },
     "comprehension_written_P7": {
-      "generated": 75,
-      "saved": 75,
-      "batches": 2
+      "generated": 300,
+      "saved": 300,
+      "batches": 9
     },
     "arithmetic_P6": {
-      "generated": 112,
-      "saved": 112,
-      "batches": 4
+      "generated": 262,
+      "saved": 262,
+      "batches": 11
     },
     "arithmetic_P7": {
-      "generated": 150,
-      "saved": 150,
-      "batches": 4
+      "generated": 400,
+      "saved": 400,
+      "batches": 11
     },
     "geometry_P6": {
-      "generated": 133,
-      "saved": 133,
-      "batches": 14
+      "generated": 240,
+      "saved": 240,
+      "batches": 32
     },
     "geometry_P7": {
-      "generated": 150,
-      "saved": 150,
-      "batches": 5
+      "generated": 400,
+      "saved": 400,
+      "batches": 13
     },
     "fractions_decimals_P6": {
-      "generated": 137,
-      "saved": 137,
-      "batches": 7
+      "generated": 386,
+      "saved": 386,
+      "batches": 24
     },
     "fractions_decimals_P7": {
-      "generated": 150,
-      "saved": 150,
-      "batches": 5
+      "generated": 399,
+      "saved": 399,
+      "batches": 14
     },
     "measurement_P6": {
-      "generated": 130,
-      "saved": 130,
-      "batches": 4
+      "generated": 380,
+      "saved": 380,
+      "batches": 18
     },
     "measurement_P7": {
-      "generated": 150,
-      "saved": 150,
-      "batches": 4
+      "generated": 356,
+      "saved": 356,
+      "batches": 11
     },
     "statistics_P6": {
-      "generated": 150,
-      "saved": 150,
-      "batches": 5
+      "generated": 272,
+      "saved": 272,
+      "batches": 8
     },
     "statistics_P7": {
-      "generated": 152,
-      "saved": 152,
-      "batches": 4
+      "generated": 400,
+      "saved": 400,
+      "batches": 12
     },
     "algebra_sequences_P6": {
-      "generated": 149,
-      "saved": 149,
-      "batches": 5
+      "generated": 399,
+      "saved": 399,
+      "batches": 12
     },
     "algebra_sequences_P7": {
-      "generated": 150,
-      "saved": 150,
-      "batches": 4
+      "generated": 400,
+      "saved": 400,
+      "batches": 11
     }
   },
-  "last_updated": "2026-05-03T18:48:42.830Z"
+  "last_updated": "2026-05-03T21:17:48.748Z"
 }
