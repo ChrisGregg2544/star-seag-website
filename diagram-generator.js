@@ -24,6 +24,16 @@ function wrap(content) {
 
 function r2(n) { return Math.round(n * 100) / 100; }
 
+function niceMax(val) {
+  if (val <= 5)  return 5;
+  if (val <= 10) return 10;
+  if (val <= 20) return 20;
+  if (val <= 25) return 25;
+  if (val <= 50) return 50;
+  if (val <= 100) return 100;
+  return Math.ceil(val / 10) * 10;
+}
+
 function polyPts(cx, cy, radius, sides, startAngleDeg = 0) {
   return Array.from({ length: sides }, (_, i) => {
     const a = (startAngleDeg + i * (360 / sides)) * Math.PI / 180;
@@ -267,11 +277,19 @@ function fractionGrid(opts = {}) {
 // ── bar-chart ─────────────────────────────────────────────────────────────────
 
 function barChart(opts = {}) {
-  const {
-    data   = [{ label: 'Mon', value: 4 }, { label: 'Tue', value: 7 }, { label: 'Wed', value: 5 }, { label: 'Thu', value: 3 }],
-    yMax   = 10,
-    title  = '',
-  } = opts;
+  let { data, labels, values, yMax, title = '' } = opts;
+
+  // Accept labels+values arrays as alternative to data objects
+  if (!data || !data.length) {
+    if (labels && values && labels.length) {
+      data = labels.map((lbl, i) => ({ label: String(lbl), value: Number(values[i]) || 0 }));
+    } else {
+      data = [{ label: 'A', value: 4 }, { label: 'B', value: 7 }, { label: 'C', value: 5 }, { label: 'D', value: 3 }, { label: 'E', value: 6 }];
+    }
+  }
+
+  // Auto-scale Y-axis from actual data
+  if (!yMax) yMax = niceMax(Math.max(...data.map(d => d.value)));
 
   const left = 34, bottom = 152, right = 268, top = 20;
   const pw = right - left, ph = bottom - top;
@@ -294,8 +312,9 @@ function barChart(opts = {}) {
     const x = r2(left + i * slotW + (slotW - bw) / 2);
     const bh = r2((d.value / yMax) * ph);
     const y = r2(bottom - bh);
+    const lbl = String(d.label).slice(0, 5); // truncate long labels
     return `<rect x="${x}" y="${y}" width="${r2(bw)}" height="${bh}" fill="${BLUE}" opacity="0.85"/>
-<text x="${r2(x + bw/2)}" y="${bottom + 13}" text-anchor="middle" fill="${GREY}" font-size="10">${d.label}</text>`;
+<text x="${r2(x + bw/2)}" y="${bottom + 13}" text-anchor="middle" fill="${GREY}" font-size="10">${lbl}</text>`;
   }).join('');
 
   const titleEl = title
@@ -308,19 +327,26 @@ function barChart(opts = {}) {
 // ── line-graph ────────────────────────────────────────────────────────────────
 
 function lineGraph(opts = {}) {
-  const {
-    data      = [{ x: 1, y: 3 }, { x: 2, y: 6 }, { x: 3, y: 4 }, { x: 4, y: 8 }, { x: 5, y: 5 }],
-    xLabel    = '',
-    yLabel    = '',
-    title     = '',
-  } = opts;
+  let { data, labels, values, xLabel = '', yLabel = '', title = '' } = opts;
+
+  // Accept labels+values arrays as alternative to data objects
+  if (!data || !data.length) {
+    if (labels && values && labels.length) {
+      data = labels.map((lbl, i) => ({ x: i + 1, y: Number(values[i]) || 0, label: String(lbl) }));
+    } else {
+      data = [
+        { x: 1, y: 3, label: 'A' }, { x: 2, y: 6, label: 'B' }, { x: 3, y: 4, label: 'C' },
+        { x: 4, y: 8, label: 'D' }, { x: 5, y: 5, label: 'E' },
+      ];
+    }
+  }
 
   const left = 40, bottom = 150, right = 258, top = 22;
   const pw = right - left, ph = bottom - top;
 
   const xs = data.map(d => d.x), ys = data.map(d => d.y);
   const xMin = Math.min(...xs), xMax = Math.max(...xs);
-  const yMax = Math.ceil(Math.max(...ys) * 1.15);
+  const yMax = niceMax(Math.max(...ys)); // round Y-axis max
 
   const toX = v => r2(left + ((v - xMin) / (xMax - xMin || 1)) * pw);
   const toY = v => r2(bottom - (v / yMax) * ph);
@@ -328,10 +354,11 @@ function lineGraph(opts = {}) {
   let axes = `<line x1="${left}" y1="${top}" x2="${left}" y2="${bottom}" stroke="${GREY}" stroke-width="1.5"/>
 <line x1="${left}" y1="${bottom}" x2="${right}" y2="${bottom}" stroke="${GREY}" stroke-width="1.5"/>`;
 
-  // X-axis labels
+  // X-axis labels — use real category label if present, fall back to numeric index
   data.forEach(d => {
+    const lbl = String(d.label || d.x).slice(0, 5);
     axes += `<line x1="${toX(d.x)}" y1="${bottom}" x2="${toX(d.x)}" y2="${bottom + 4}" stroke="${GREY}" stroke-width="1"/>
-<text x="${toX(d.x)}" y="${bottom + 13}" text-anchor="middle" fill="${GREY}" font-size="10">${d.x}</text>`;
+<text x="${toX(d.x)}" y="${bottom + 13}" text-anchor="middle" fill="${GREY}" font-size="10">${lbl}</text>`;
   });
 
   // Y-axis ticks
@@ -355,10 +382,16 @@ function lineGraph(opts = {}) {
 // ── pictogram ─────────────────────────────────────────────────────────────────
 
 function pictogram(opts = {}) {
-  const {
-    data     = [{ label: 'Cats', count: 3 }, { label: 'Dogs', count: 5 }, { label: 'Birds', count: 2 }],
-    keyValue = 1,
-  } = opts;
+  let { data, labels, values, keyValue = 1 } = opts;
+
+  // Accept labels+values arrays as alternative to data objects
+  if (!data || !data.length) {
+    if (labels && values && labels.length) {
+      data = labels.map((lbl, i) => ({ label: String(lbl), count: Number(values[i]) || 0 }));
+    } else {
+      data = [{ label: 'A', count: 3 }, { label: 'B', count: 5 }, { label: 'C', count: 2 }, { label: 'D', count: 4 }];
+    }
+  }
 
   const left = 55, top = 18, symSize = 16, symGap = 4, rowH = 36;
   let rows = '';

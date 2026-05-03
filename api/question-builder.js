@@ -615,6 +615,52 @@ function generateSVGFromDescription(description) {
     return generateDiagram('measurement-scale', { type: 'measuring-jug', highlight: pos });
   }
 
+  else if (description.includes('bar chart') || description.includes('bar-chart') || description.includes('bar graph')) {
+    // Try to parse "Label: value" or "Label value" pairs from description
+    const pairs = [...description.matchAll(/([A-Za-z][a-zA-Z]{0,9})\s*[:\-]\s*(\d+)/g)];
+    if (pairs.length >= 2) {
+      return generateDiagram('bar-chart', {
+        labels: pairs.map(m => m[1].slice(0, 5)),
+        values: pairs.map(m => Number(m[2])),
+      });
+    }
+    const nums = (description.match(/\b\d+\b/g) || []).map(Number).filter(n => n > 0 && n < 200);
+    if (nums.length >= 3) {
+      return generateDiagram('bar-chart', {
+        labels: nums.map((_, i) => String.fromCharCode(65 + i)),
+        values: nums.slice(0, 6),
+      });
+    }
+    return generateDiagram('bar-chart', {});
+  }
+  else if (description.includes('line graph') || description.includes('line-graph') || description.includes('line chart')) {
+    const pairs = [...description.matchAll(/([A-Za-z][a-zA-Z]{0,9})\s*[:\-]\s*(\d+)/g)];
+    if (pairs.length >= 2) {
+      return generateDiagram('line-graph', {
+        labels: pairs.map(m => m[1].slice(0, 5)),
+        values: pairs.map(m => Number(m[2])),
+      });
+    }
+    const nums = (description.match(/\b\d+\b/g) || []).map(Number).filter(n => n > 0 && n < 200);
+    if (nums.length >= 3) {
+      return generateDiagram('line-graph', {
+        labels: nums.map((_, i) => String.fromCharCode(65 + i)),
+        values: nums.slice(0, 6),
+      });
+    }
+    return generateDiagram('line-graph', {});
+  }
+  else if (description.includes('pictogram')) {
+    const pairs = [...description.matchAll(/([A-Za-z][a-zA-Z]{0,9})\s*[:\-]\s*(\d+)/g)];
+    if (pairs.length >= 2) {
+      return generateDiagram('pictogram', {
+        labels: pairs.map(m => m[1].slice(0, 8)),
+        values: pairs.map(m => Number(m[2])),
+      });
+    }
+    return generateDiagram('pictogram', {});
+  }
+
   console.log('No SVG match for:', description);
   return null;
 }

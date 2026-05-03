@@ -55,6 +55,21 @@ async function fetchPage(offset) {
   return res.json();
 }
 
+// Second-pass fetch: statistics questions that already have a diagram (overwrite with improved generator)
+async function fetchStatisticsExisting(offset) {
+  const url = `${SUPABASE_URL}/rest/v1/questions`
+    + `?topic=eq.statistics`
+    + `&diagram=not.is.null`
+    + `&source=eq.ai_generated_v2`
+    + `&validated=eq.true`
+    + `&select=id,topic,year_group,question_text`
+    + `&limit=${PAGE_SIZE}&offset=${offset}`;
+
+  const res = await fetch(url, { headers: baseHeaders });
+  if (!res.ok) throw new Error(`Fetch failed (${res.status}): ${await res.text()}`);
+  return res.json();
+}
+
 async function patchDiagram(id, svg) {
   const url = `${SUPABASE_URL}/rest/v1/questions?id=eq.${id}`;
   const res = await fetch(url, {
@@ -68,6 +83,54 @@ async function patchDiagram(id, svg) {
 // ── SVG inference from question_text ──────────────────────────────────────────
 function nums(text) {
   return (text.match(/\d+(?:\.\d+)?/g) || []).map(Number);
+}
+
+// Try to extract chart data points from question text.
+// Returns { labels, values } or null if nothing found.
+function extractChartData(text) {
+  // Pattern 1: "Label: number" or "Label - number" pairs (e.g. "Dogs: 8, Cats: 5")
+  const pairPat = /\b([A-Z][a-zA-Z]{1,10})\s*[:\-–]\s*(\d+)/g;
+  const pairs = [...text.matchAll(pairPat)];
+  if (pairs.length >= 3) {
+    return {
+      labels: pairs.slice(0, 6).map(m => m[1].slice(0, 5)),
+      values: pairs.slice(0, 6).map(m => Number(m[2])),
+    };
+  }
+
+  // Pattern 2: day names followed by a number
+  const dayPat = /\b(Mon(?:day)?|Tue(?:sday)?|Wed(?:nesday)?|Thu(?:rsday)?|Fri(?:day)?|Sat(?:urday)?|Sun(?:day)?)\w*[\s,:]+(\d+)/gi;
+  const days = [...text.matchAll(dayPat)];
+  if (days.length >= 2) {
+    return {
+      labels: days.slice(0, 7).map(m => m[1].slice(0, 3)),
+      values: days.slice(0, 7).map(m => Number(m[2])),
+    };
+  }
+
+  // Pattern 3: month names followed by a number
+  const monthPat = /\b(Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\w*[\s,:]+(\d+)/gi;
+  const months = [...text.matchAll(monthPat)];
+  if (months.length >= 2) {
+    return {
+      labels: months.slice(0, 6).map(m => m[1].slice(0, 3)),
+      values: months.slice(0, 6).map(m => Number(m[2])),
+    };
+  }
+
+  // Pattern 4: a run of 3–7 comma-separated small integers (e.g. "3, 7, 2, 5, 4")
+  const commaMatch = text.match(/\b\d+\b(?:\s*,\s*\b\d+\b){2,6}/);
+  if (commaMatch) {
+    const vals = commaMatch[0].split(/\s*,\s*/).map(Number).filter(n => n > 0 && n < 200);
+    if (vals.length >= 3 && vals.length <= 7) {
+      return {
+        labels: vals.map((_, i) => String.fromCharCode(65 + i)),
+        values: vals,
+      };
+    }
+  }
+
+  return null;
 }
 
 function inferDiagram(topic, questionText) {
@@ -135,6 +198,7 @@ function inferDiagram(topic, questionText) {
 
   // ── Statistics ───────────────────────────────────────────────────────────────
   if (topic === 'statistics') {
+    // Pie/percent — extract actual percentage from question text
     if (t.includes('pie') || t.includes('%') || t.includes('percent')) {
       const pcts = (t.match(/(\d+)\s*%/g) || []).map(p => parseInt(p));
       if (pcts.length >= 1 && pcts[0] > 0 && pcts[0] < 100) {
@@ -146,22 +210,28 @@ function inferDiagram(topic, questionText) {
         });
       }
     }
-    if (t.includes('bar chart') || t.includes('bar graph') || t.includes('frequency')) {
+
+    // Try to extract real data from question text (uses original-case text for Name: value pattern)
+    const chartData = extractChartData(questionText);
+    const labels = chartData?.labels || null;
+    const values = chartData?.values || null;
+
+    if (t.includes('bar chart') || t.includes('bar graph') || t.includes('tally') || t.includes('frequency')) {
       return generateDiagram('bar-chart', {
-        labels: ['A', 'B', 'C', 'D'],
-        values: [4, 7, 3, 6],
+        labels: labels || ['A', 'B', 'C', 'D', 'E'],
+        values: values || [4, 7, 3, 6, 5],
       });
     }
     if (t.includes('line graph') || t.includes('line chart')) {
       return generateDiagram('line-graph', {
-        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
-        values: [3, 5, 4, 7, 6],
+        labels: labels || ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
+        values: values || [3, 5, 4, 7, 6],
       });
     }
     if (t.includes('pictogram')) {
       return generateDiagram('pictogram', {
-        labels: ['A', 'B', 'C'],
-        values: [3, 5, 4],
+        labels: labels || ['A', 'B', 'C', 'D'],
+        values: values || [3, 5, 2, 4],
       });
     }
   }
@@ -181,6 +251,30 @@ function inferDiagram(topic, questionText) {
   return null;
 }
 
+// ── Shared patch loop ─────────────────────────────────────────────────────────
+async function processRows(rows, counters) {
+  for (const row of rows) {
+    const svg = inferDiagram(row.topic, row.question_text);
+    if (!svg) { counters.skipped++; continue; }
+
+    if (DRY_RUN) {
+      counters.patched++;
+      console.log(`  DRY  ${row.topic} ${row.year_group} — ${svg.length} chars — ${row.question_text.slice(0, 70)}`);
+      continue;
+    }
+
+    try {
+      await patchDiagram(row.id, svg);
+      counters.patched++;
+      if (counters.patched % 50 === 0) console.log(`  ${counters.patched} patched so far...`);
+      await new Promise(r => setTimeout(r, UPDATE_DELAY));
+    } catch (e) {
+      counters.errors++;
+      console.error(`  ERR ${row.id} — ${e.message}`);
+    }
+  }
+}
+
 // ── Main ───────────────────────────────────────────────────────────────────────
 async function main() {
   console.log(`regenerate-missing-diagrams`);
@@ -188,56 +282,42 @@ async function main() {
   console.log(`  DRY_RUN  : ${DRY_RUN}`);
   console.log('');
 
-  let offset = 0;
-  let totalFetched = 0;
-  let totalPatched = 0;
-  let totalSkipped = 0;
-  let totalErrors  = 0;
+  const counters = { fetched: 0, patched: 0, skipped: 0, errors: 0 };
 
+  // Pass 1: all visual topics where diagram IS NULL
+  console.log('── Pass 1: fill missing diagrams ────────────');
+  let offset = 0;
   while (true) {
     const rows = await fetchPage(offset);
     if (!rows.length) break;
-
-    totalFetched += rows.length;
+    counters.fetched += rows.length;
     console.log(`Page offset=${offset}: ${rows.length} rows`);
+    await processRows(rows, counters);
+    if (rows.length < PAGE_SIZE) break;
+    offset += PAGE_SIZE;
+  }
 
-    for (const row of rows) {
-      const svg = inferDiagram(row.topic, row.question_text);
-
-      if (!svg) {
-        totalSkipped++;
-        continue;
-      }
-
-      if (DRY_RUN) {
-        totalPatched++;
-        console.log(`  DRY  ${row.topic} ${row.year_group} — ${svg.length} chars — ${row.question_text.slice(0, 70)}`);
-        continue;
-      }
-
-      try {
-        await patchDiagram(row.id, svg);
-        totalPatched++;
-        if (totalPatched % 50 === 0) console.log(`  ${totalPatched} patched so far...`);
-        await new Promise(r => setTimeout(r, UPDATE_DELAY));
-      } catch (e) {
-        totalErrors++;
-        console.error(`  ERR ${row.id} — ${e.message}`);
-      }
-    }
-
+  // Pass 2: statistics only — overwrite existing diagrams with improved generator
+  console.log('\n── Pass 2: overwrite statistics diagrams ────');
+  offset = 0;
+  while (true) {
+    const rows = await fetchStatisticsExisting(offset);
+    if (!rows.length) break;
+    counters.fetched += rows.length;
+    console.log(`Page offset=${offset}: ${rows.length} rows`);
+    await processRows(rows, counters);
     if (rows.length < PAGE_SIZE) break;
     offset += PAGE_SIZE;
   }
 
   console.log('');
   console.log('── Summary ──────────────────────────────────');
-  console.log(`  Fetched : ${totalFetched}`);
-  console.log(`  Patched : ${totalPatched}${DRY_RUN ? ' (dry run — no writes)' : ''}`);
-  console.log(`  Skipped : ${totalSkipped} (no diagram pattern matched)`);
-  console.log(`  Errors  : ${totalErrors}`);
+  console.log(`  Fetched : ${counters.fetched}`);
+  console.log(`  Patched : ${counters.patched}${DRY_RUN ? ' (dry run — no writes)' : ''}`);
+  console.log(`  Skipped : ${counters.skipped} (no diagram pattern matched)`);
+  console.log(`  Errors  : ${counters.errors}`);
 
-  if (DRY_RUN && totalPatched > 0) {
+  if (DRY_RUN && counters.patched > 0) {
     console.log('');
     console.log('Run without DRY_RUN=1 to apply changes.');
   }
