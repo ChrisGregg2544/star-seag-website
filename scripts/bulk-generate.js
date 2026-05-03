@@ -31,7 +31,7 @@ for (const line of readFileSync(resolve(__dir, '../.env'), 'utf8').split('\n')) 
 
 const SUPABASE_URL   = 'https://iutcgogmxhaqgaxkznxu.supabase.co';
 const SERVICE_KEY    = envVars.SUPABASE_SERVICE_ROLE_KEY || envVars.SUPABASE_SERVICE_KEY;
-const API_BASE       = process.env.API_BASE || 'http://localhost:3000/api/question-builder';
+const API_BASE       = process.env.API_BASE || 'http://localhost:3004/api/question-builder';
 const PROGRESS_FILE  = resolve(__dir, '../progress.json');
 const BATCH_SIZE     = 50;
 const BATCH_DELAY_MS = 5000;
@@ -40,30 +40,30 @@ if (!SERVICE_KEY) { console.error('Missing SUPABASE_SERVICE_ROLE_KEY in .env'); 
 
 // ── Generation plan ────────────────────────────────────────────────────────────
 const PLAN = [
-  { category: 'punctuation',           year_group: 'P6', target: 100 },
-  { category: 'punctuation',           year_group: 'P7', target: 100 },
-  { category: 'grammar',               year_group: 'P6', target: 100 },
-  { category: 'grammar',               year_group: 'P7', target: 100 },
-  { category: 'spelling',              year_group: 'P6', target: 100 },
-  { category: 'spelling',              year_group: 'P7', target: 100 },
-  { category: 'vocabulary',            year_group: 'P6', target: 40  },
-  { category: 'vocabulary',            year_group: 'P7', target: 40  },
-  { category: 'comprehension_mc',      year_group: 'P6', target: 100 },
-  { category: 'comprehension_mc',      year_group: 'P7', target: 100 },
-  { category: 'comprehension_written', year_group: 'P6', target: 75  },
-  { category: 'comprehension_written', year_group: 'P7', target: 75  },
-  { category: 'arithmetic',            year_group: 'P6', target: 150 },
-  { category: 'arithmetic',            year_group: 'P7', target: 150 },
-  { category: 'geometry',              year_group: 'P6', target: 150 },
-  { category: 'geometry',              year_group: 'P7', target: 150 },
-  { category: 'fractions_decimals',    year_group: 'P6', target: 150 },
-  { category: 'fractions_decimals',    year_group: 'P7', target: 150 },
-  { category: 'measurement',           year_group: 'P6', target: 150 },
-  { category: 'measurement',           year_group: 'P7', target: 150 },
-  { category: 'statistics',            year_group: 'P6', target: 150 },
-  { category: 'statistics',            year_group: 'P7', target: 150 },
-  { category: 'algebra_sequences',     year_group: 'P6', target: 150 },
-  { category: 'algebra_sequences',     year_group: 'P7', target: 150 },
+  { category: 'punctuation',           year_group: 'P6', target: 400 },
+  { category: 'punctuation',           year_group: 'P7', target: 400 },
+  { category: 'grammar',               year_group: 'P6', target: 400 },
+  { category: 'grammar',               year_group: 'P7', target: 400 },
+  { category: 'spelling',              year_group: 'P6', target: 400 },
+  { category: 'spelling',              year_group: 'P7', target: 400 },
+  { category: 'vocabulary',            year_group: 'P6', target: 200 },
+  { category: 'vocabulary',            year_group: 'P7', target: 200 },
+  { category: 'comprehension_mc',      year_group: 'P6', target: 300 },
+  { category: 'comprehension_mc',      year_group: 'P7', target: 300 },
+  { category: 'comprehension_written', year_group: 'P6', target: 300 },
+  { category: 'comprehension_written', year_group: 'P7', target: 300 },
+  { category: 'arithmetic',            year_group: 'P6', target: 400 },
+  { category: 'arithmetic',            year_group: 'P7', target: 400 },
+  { category: 'geometry',              year_group: 'P6', target: 400 },
+  { category: 'geometry',              year_group: 'P7', target: 400 },
+  { category: 'fractions_decimals',    year_group: 'P6', target: 400 },
+  { category: 'fractions_decimals',    year_group: 'P7', target: 400 },
+  { category: 'measurement',           year_group: 'P6', target: 400 },
+  { category: 'measurement',           year_group: 'P7', target: 400 },
+  { category: 'statistics',            year_group: 'P6', target: 400 },
+  { category: 'statistics',            year_group: 'P7', target: 400 },
+  { category: 'algebra_sequences',     year_group: 'P6', target: 400 },
+  { category: 'algebra_sequences',     year_group: 'P7', target: 400 },
 ];
 
 const TOTAL_TARGET = PLAN.reduce((s, p) => s + p.target, 0);
