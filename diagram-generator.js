@@ -42,20 +42,13 @@ function triangle(opts = {}) {
     unknownAngle = false,
   } = opts;
 
-  // Map angles array [a, b] or [a, b, c] to individual labels
-  if (angles.length >= 2) {
-    angleA = angles[0] != null ? `${angles[0]}°` : undefined;
-    angleB = angles[1] != null ? `${angles[1]}°` : undefined;
-    if (angles.length >= 3 && angles[2] != null) {
-      angleC = `${angles[2]}°`;
-    } else {
-      const third = 180 - Number(angles[0]) - Number(angles[1]);
-      if (third > 0 && third < 180) angleC = `${third}°`;
-    }
-    if (!opts.subtype) {
-      if (Number(angles[0]) === 90 || Number(angles[1]) === 90) subtype = 'right-angled';
-      else if (Number(angles[0]) === Number(angles[1])) subtype = 'isosceles';
-    }
+  // Map angles array [a, b] or [a, b, c] to individual labels — only show what's given
+  if (angles.length >= 1) angleA = angles[0] != null ? `${angles[0]}°` : undefined;
+  if (angles.length >= 2) angleB = angles[1] != null ? `${angles[1]}°` : undefined;
+  if (angles.length >= 3) angleC = angles[2] != null ? `${angles[2]}°` : undefined;
+  if (angles.length >= 1 && !opts.subtype) {
+    if (Number(angles[0]) === 90 || Number(angles[1]) === 90) subtype = 'right-angled';
+    else if (Number(angles[0]) === Number(angles[1])) subtype = 'isosceles';
   }
 
   let pts;
