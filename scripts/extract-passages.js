@@ -76,30 +76,52 @@ function extractFirstArray(raw) {
 }
 
 function normalize(text) {
-  return (text || '').trim().replace(/\s+/g, ' ').toLowerCase();
+  return (text || '')
+    .trim()
+    .replace(/[‘’‚‛′‵]/g, "'")  // curly single quotes → straight
+    .replace(/[“”„‟″‶]/g, '"')  // curly double quotes → straight
+    .replace(/–|—/g, '-')                            // en/em dash → hyphen
+    .replace(/\s+/g, ' ')
+    .toLowerCase();
 }
 
 function findMatch(questionText, candidates) {
-  const n60 = normalize(questionText).slice(0, 60);
-  const n40 = n60.slice(0, 40);
-  return (
-    candidates.find(r => normalize(r.question_text).startsWith(n60)) ||
-    candidates.find(r => normalize(r.question_text).startsWith(n40)) ||
-    null
-  );
+  const n = normalize(questionText);
+  for (const len of [60, 40, 30]) {
+    const prefix = n.slice(0, len);
+    const hit = candidates.find(r => normalize(r.question_text).startsWith(prefix));
+    if (hit) return hit;
+  }
+  return null;
 }
 
 // ── Supabase ──────────────────────────────────────────────────────────────────
 
 async function fetchComprehensionQuestions(yearGroup) {
+  // Fetch ALL categories — comprehension questions are sometimes miscategorised
+  // as grammar/vocabulary when extract-papers.js sees a language-focused question
+  // that is actually about the passage.
   const url = `${SUPABASE_URL}/rest/v1/reference_questions`
     + `?year_group=eq.${yearGroup}`
-    + `&category=in.(comprehension_mc,comprehension_written)`
-    + `&select=id,question_text`
-    + `&limit=500`;
+    + `&select=id,question_text,category`
+    + `&limit=2000`;
   const res = await fetch(url, { headers: supabaseHeaders() });
   if (!res.ok) throw new Error(`Supabase fetch failed (${res.status}): ${await res.text()}`);
   return res.json();
+}
+
+async function findExistingPassage(title, yearGroup) {
+  if (!title) return null;
+  const url = `${SUPABASE_URL}/rest/v1/passages`
+    + `?title=eq.${encodeURIComponent(title)}`
+    + `&year_group=eq.${yearGroup}`
+    + `&source=eq.catapult`
+    + `&select=id`
+    + `&limit=1`;
+  const res = await fetch(url, { headers: supabaseHeaders() });
+  if (!res.ok) return null;
+  const rows = await res.json();
+  return rows[0]?.id || null;
 }
 
 async function insertPassage(row) {
@@ -193,20 +215,27 @@ CRITICAL:
   let totalPassages = 0, totalLinked = 0, totalMissed = 0;
 
   for (const p of passages) {
-    const passageId       = randomUUID();
     const questionTexts   = Array.isArray(p.question_texts)   ? p.question_texts   : [];
     const questionNumbers = Array.isArray(p.question_numbers) ? p.question_numbers : [];
 
     console.log(`─── "${p.title || '(untitled)'}"  [${questionTexts.length} questions]`);
 
-    await insertPassage({
-      id:         passageId,
-      title:      p.title  || null,
-      content:    p.content,
-      year_group: yearGroup,
-      source:     'catapult',
-    });
-    totalPassages++;
+    // Skip insert if this passage already exists (safe to re-run)
+    const existingId = await findExistingPassage(p.title, yearGroup);
+    const passageId  = existingId || randomUUID();
+
+    if (existingId) {
+      console.log(`  (passage already exists — reusing ${existingId})`);
+    } else {
+      await insertPassage({
+        id:         passageId,
+        title:      p.title  || null,
+        content:    p.content,
+        year_group: yearGroup,
+        source:     'catapult',
+      });
+      totalPassages++;
+    }
 
     for (let i = 0; i < questionTexts.length; i++) {
       const qt  = questionTexts[i];
