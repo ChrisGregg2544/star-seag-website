@@ -31,7 +31,7 @@ for (const line of readFileSync(resolve(__dir, '../.env'), 'utf8').split('\n')) 
 
 const SUPABASE_URL   = 'https://iutcgogmxhaqgaxkznxu.supabase.co';
 const SERVICE_KEY    = envVars.SUPABASE_SERVICE_ROLE_KEY || envVars.SUPABASE_SERVICE_KEY;
-const API_BASE       = process.env.API_BASE || 'http://localhost:3000';
+const API_BASE       = process.env.API_BASE || 'https://www.staraitutor.co.uk/api/question-builder';
 const PROGRESS_FILE  = resolve(__dir, '../progress.json');
 const BATCH_SIZE     = 50;
 const BATCH_DELAY_MS = 5000;
@@ -105,7 +105,7 @@ async function getCurrentCount(category, year_group) {
 
 // ── API calls (requires vercel dev running) ────────────────────────────────────
 async function generateBatch(category, year_group, batch_size) {
-  const res = await fetch(`${API_BASE}/api/question-builder`, {
+  const res = await fetch(API_BASE, {
     method:  'POST',
     headers: { 'Content-Type': 'application/json' },
     body:    JSON.stringify({ action: 'generate-questions', category, year_group, batch_size }),
@@ -117,7 +117,7 @@ async function generateBatch(category, year_group, batch_size) {
 }
 
 async function saveBatch(questions) {
-  const res = await fetch(`${API_BASE}/api/question-builder`, {
+  const res = await fetch(API_BASE, {
     method:  'POST',
     headers: { 'Content-Type': 'application/json' },
     body:    JSON.stringify({ action: 'save-generated', questions }),
