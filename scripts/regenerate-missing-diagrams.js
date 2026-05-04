@@ -1,12 +1,14 @@
 /**
  * regenerate-missing-diagrams.js
- * Backfills diagram SVGs for questions where diagram IS NULL, by parsing question_text.
+ * Backfills / overwrites diagram SVGs by parsing question_text.
  *
- * Targets: geometry, measurement, statistics, fractions_decimals
- * Skips questions where no diagram pattern can be inferred from the text.
+ * Pass 1 — fill missing diagrams (diagram IS NULL) for visual topics
+ * Pass 2 — overwrite ALL statistics diagrams (null and non-null) with
+ *           data extracted directly from question_text
  *
- * Usage: node scripts/regenerate-missing-diagrams.js
- *   DRY_RUN=1 node scripts/regenerate-missing-diagrams.js   ← preview without writing
+ * Usage:
+ *   node scripts/regenerate-missing-diagrams.js
+ *   DRY_RUN=1 node scripts/regenerate-missing-diagrams.js   ← preview only
  */
 
 import { readFileSync } from 'fs';
@@ -27,7 +29,7 @@ const SUPABASE_URL = 'https://iutcgogmxhaqgaxkznxu.supabase.co';
 const SERVICE_KEY  = envVars.SUPABASE_SERVICE_ROLE_KEY || envVars.SUPABASE_SERVICE_KEY;
 const DRY_RUN      = process.env.DRY_RUN === '1';
 const PAGE_SIZE    = 200;
-const UPDATE_DELAY = 30; // ms between PATCH requests
+const UPDATE_DELAY = 30;
 
 if (!SERVICE_KEY) { console.error('Missing SUPABASE_SERVICE_ROLE_KEY in .env'); process.exit(1); }
 
@@ -49,22 +51,19 @@ async function fetchPage(offset) {
     + `&validated=eq.true`
     + `&select=id,topic,year_group,question_text`
     + `&limit=${PAGE_SIZE}&offset=${offset}`;
-
   const res = await fetch(url, { headers: baseHeaders });
   if (!res.ok) throw new Error(`Fetch failed (${res.status}): ${await res.text()}`);
   return res.json();
 }
 
-// Second-pass fetch: statistics questions that already have a diagram (overwrite with improved generator)
-async function fetchStatisticsExisting(offset) {
+// Pass 2: ALL statistics questions (null or non-null diagram)
+async function fetchStatisticsAll(offset) {
   const url = `${SUPABASE_URL}/rest/v1/questions`
     + `?topic=eq.statistics`
-    + `&diagram=not.is.null`
     + `&source=eq.ai_generated_v2`
     + `&validated=eq.true`
     + `&select=id,topic,year_group,question_text`
     + `&limit=${PAGE_SIZE}&offset=${offset}`;
-
   const res = await fetch(url, { headers: baseHeaders });
   if (!res.ok) throw new Error(`Fetch failed (${res.status}): ${await res.text()}`);
   return res.json();
@@ -80,49 +79,165 @@ async function patchDiagram(id, svg) {
   if (!res.ok) throw new Error(`PATCH failed for ${id} (${res.status}): ${await res.text()}`);
 }
 
-// ── SVG inference from question_text ──────────────────────────────────────────
-function nums(text) {
-  return (text.match(/\d+(?:\.\d+)?/g) || []).map(Number);
-}
-
-// Try to extract chart data points from question text.
-// Returns { labels, values } or null if nothing found.
+// ── Chart data extraction from question_text ───────────────────────────────────
+// Returns { labels: string[], values: number[] } or null.
+// Priority: named patterns first, comma-list fallback last.
+// Every pattern returns exact count matching the question — no defaults.
 function extractChartData(text) {
-  // Pattern 1: "Label: number" or "Label - number" pairs (e.g. "Dogs: 8, Cats: 5")
-  const pairPat = /\b([A-Z][a-zA-Z]{1,10})\s*[:\-–]\s*(\d+)/g;
-  const pairs = [...text.matchAll(pairPat)];
-  if (pairs.length >= 3) {
-    return {
-      labels: pairs.slice(0, 6).map(m => m[1].slice(0, 5)),
-      values: pairs.slice(0, 6).map(m => Number(m[2])),
-    };
+  // Strip the question tail so stray numbers don't pollute
+  const dt = text
+    .replace(/\?\s*$/, '')
+    .replace(/\s+(What|How|Which|Find|Calculate)\s+.+/i, '');
+
+  // ── Pattern 1: "Label: value" colon-separated pairs ──────────────────────────
+  // "Week 1: £2", "Day 2: 8 mm", "Monday: 32 messages", "Case A: 16 pencils"
+  {
+    const re = /\b([A-Za-z][A-Za-z0-9 ]{1,14}?)\s*:\s*£?(\d+(?:\.\d+)?)/g;
+    const pairs = [...dt.matchAll(re)].filter(m => {
+      const lbl = m[1].trim().toLowerCase();
+      return lbl.length >= 2
+        && !['each', 'what', 'how', 'which', 'the', 'a', 'an', 'and'].some(
+            w => lbl === w || lbl.startsWith(w + ' '));
+    });
+    if (pairs.length >= 2) {
+      return {
+        labels: pairs.map(m => m[1].trim().slice(0, 8)),
+        values: pairs.map(m => Number(m[2])),
+      };
+    }
   }
 
-  // Pattern 2: day names followed by a number
-  const dayPat = /\b(Mon(?:day)?|Tue(?:sday)?|Wed(?:nesday)?|Thu(?:rsday)?|Fri(?:day)?|Sat(?:urday)?|Sun(?:day)?)\w*[\s,:]+(\d+)/gi;
-  const days = [...text.matchAll(dayPat)];
-  if (days.length >= 2) {
-    return {
-      labels: days.slice(0, 7).map(m => m[1].slice(0, 3)),
-      values: days.slice(0, 7).map(m => Number(m[2])),
-    };
+  // ── Pattern 2: "Name shows N" — pictogram-style ──────────────────────────────
+  // "Saturday shows 8 ice cream symbols"
+  {
+    const re = /\b([A-Z][a-z]+(?:day)?)\s+shows?\s+(\d+(?:\.\d+)?)/g;
+    const pairs = [...dt.matchAll(re)];
+    if (pairs.length >= 2) {
+      return {
+        labels: pairs.map(m => m[1].slice(0, 6)),
+        values: pairs.map(m => Number(m[2])),
+      };
+    }
   }
 
-  // Pattern 3: month names followed by a number
-  const monthPat = /\b(Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\w*[\s,:]+(\d+)/gi;
-  const months = [...text.matchAll(monthPat)];
-  if (months.length >= 2) {
-    return {
-      labels: months.slice(0, 6).map(m => m[1].slice(0, 3)),
-      values: months.slice(0, 6).map(m => Number(m[2])),
-    };
+  // ── Pattern 3: Day names with values ─────────────────────────────────────────
+  // "Monday 15", "Tuesday: 32", "Mon (45)"
+  {
+    const re = /\b(Mon(?:day)?|Tue(?:sday)?|Wed(?:nesday)?|Thu(?:rsday)?|Fri(?:day)?|Sat(?:urday)?|Sun(?:day)?)\w*\s*[:(]?\s*£?(\d+(?:\.\d+)?)/gi;
+    const pairs = [...dt.matchAll(re)];
+    if (pairs.length >= 2) {
+      return {
+        labels: pairs.map(m => m[1].slice(0, 3)),
+        values: pairs.map(m => Number(m[2])),
+      };
+    }
   }
 
-  // Pattern 4: a run of 3–7 comma-separated small integers (e.g. "3, 7, 2, 5, 4")
-  const commaMatch = text.match(/\b\d+\b(?:\s*,\s*\b\d+\b){2,6}/);
-  if (commaMatch) {
-    const vals = commaMatch[0].split(/\s*,\s*/).map(Number).filter(n => n > 0 && n < 200);
-    if (vals.length >= 3 && vals.length <= 7) {
+  // ── Pattern 4: Month names with values ───────────────────────────────────────
+  {
+    const re = /\b(Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\w*\s*[:(]?\s*£?(\d+(?:\.\d+)?)/gi;
+    const pairs = [...dt.matchAll(re)];
+    if (pairs.length >= 2) {
+      return {
+        labels: pairs.map(m => m[1].slice(0, 3)),
+        values: pairs.map(m => Number(m[2])),
+      };
+    }
+  }
+
+  // ── Pattern 5: "at HH:MM it was / there were N" ──────────────────────────────
+  // "At 9:00 it was 18°C", "at 11:00 there were 25 customers"
+  {
+    const re = /\bat\s+(\d{1,2}:\d{2})\s+(?:it\s+was|there\s+were?)\s*£?(\d+(?:\.\d+)?)/gi;
+    const pairs = [...dt.matchAll(re)];
+    if (pairs.length >= 2) {
+      return {
+        labels: pairs.map(m => m[1]),
+        values: pairs.map(m => Number(m[2])),
+      };
+    }
+  }
+
+  // ── Pattern 5b: "at week N it was N" ─────────────────────────────────────────
+  // "At week 1 it was 10 cm, at week 2 it was 16 cm"
+  {
+    const re = /\bat\s+week\s+(\d+)\s+it\s+was\s*£?(\d+(?:\.\d+)?)/gi;
+    const pairs = [...dt.matchAll(re)];
+    if (pairs.length >= 2) {
+      return {
+        labels: pairs.map(m => 'Wk' + m[1]),
+        values: pairs.map(m => Number(m[2])),
+      };
+    }
+  }
+
+  // ── Pattern 6: "Name verb N" — name + action verb + value ────────────────────
+  // "Sarah read 8", "Classroom 2 has 36", "Pupil A collected 45", "Emma sent 32"
+  {
+    const re = /\b([A-Z][a-zA-Z]{0,10}(?:\s+[A-Z0-9])?)\s+(?:read|has|have|scored|collected|sold|got|sent|made|jumped|earned|saved|spent)\s+£?(\d+(?:\.\d+)?)/g;
+    const pairs = [...dt.matchAll(re)];
+    if (pairs.length >= 2) {
+      return {
+        labels: pairs.map(m => m[1].trim().slice(0, 8)),
+        values: pairs.map(m => Number(m[2])),
+      };
+    }
+  }
+
+  // ── Pattern 7: "Name (N)" parenthetical values ───────────────────────────────
+  // "Red (8 children)", "Monday (45)"
+  {
+    const re = /\b([A-Z][a-zA-Z]{1,10})\s+\((\d+(?:\.\d+)?)/g;
+    const pairs = [...dt.matchAll(re)];
+    if (pairs.length >= 2) {
+      return {
+        labels: pairs.map(m => m[1].slice(0, 6)),
+        values: pairs.map(m => Number(m[2])),
+      };
+    }
+  }
+
+  // ── Pattern 8: Comma-separated number list (fallback) ────────────────────────
+  // "...children: 24, 36, 20, and 32 marbles"
+  // "The values are 15, 20, 25, 18, and 22"
+  // "Books have 150, 200, 180, 220, and 170 pages"
+  // Strategy: remove noise tokens, then find the longest proximity-run of digits.
+  {
+    const cleaned = dt
+      // Remove clock times (avoid "10", "00" artifacts from "10:00")
+      .replace(/\d{1,2}:\d{2}\s*(?:am|pm)?/gi, '')
+      // Remove "at week N" so week-index digits don't bleed in
+      .replace(/\bat\s+week\s+\d+\s+it\s+was/gi, 'it was')
+      // Remove digit+count-noun ("5 children", "6 matches") — noise
+      .replace(/\b\d+\s+(?:children|pupils?|cars?|matches?|games?|bars?|classrooms?|groups?|people|students?)\b/gi, '');
+
+    // Find positions and values of all standalone digits
+    const numMatches = [...cleaned.matchAll(/\b(\d+(?:\.\d+)?)\b/g)].map(m => ({
+      val: Number(m[1]),
+      idx: m.index,
+    }));
+
+    // Find the longest run where consecutive numbers are ≤25 chars apart
+    let bestRun = [];
+    let cur = [];
+    for (const nm of numMatches) {
+      if (cur.length === 0) {
+        cur = [nm];
+      } else {
+        const prev = cur[cur.length - 1];
+        const gap  = nm.idx - prev.idx - String(prev.val).length;
+        if (gap <= 25) {
+          cur.push(nm);
+        } else {
+          if (cur.length > bestRun.length) bestRun = cur;
+          cur = [nm];
+        }
+      }
+    }
+    if (cur.length > bestRun.length) bestRun = cur;
+
+    const vals = bestRun.map(m => m.val).filter(n => n > 0 && n < 10000);
+    if (vals.length >= 2 && vals.length <= 8) {
       return {
         labels: vals.map((_, i) => String.fromCharCode(65 + i)),
         values: vals,
@@ -133,46 +248,43 @@ function extractChartData(text) {
   return null;
 }
 
+// ── Geometry helpers ───────────────────────────────────────────────────────────
+function nums(text) {
+  return (text.match(/\d+(?:\.\d+)?/g) || []).map(Number);
+}
+
+// ── Diagram inference from question_text ───────────────────────────────────────
 function inferDiagram(topic, questionText) {
   if (!questionText) return null;
   const t = questionText.toLowerCase();
 
   // ── Geometry ────────────────────────────────────────────────────────────────
   if (topic === 'geometry') {
-    // Cuboid (check before rectangle — cuboid has 3 dimensions)
     if (t.includes('cuboid') || t.includes('volume')) {
       const n = nums(t);
       if (n.length >= 3) return generateDiagram('cuboid', { length: n[0], width: n[1], height: n[2] });
     }
-    // Triangle with angles
     if (t.includes('triangle') || t.includes('angle')) {
       const angles = (t.match(/(\d+)°/g) || []).map(a => parseInt(a));
       if (angles.length >= 2) return generateDiagram('triangle', { angles });
-      // Generic triangle if mentioned without angle values
       if (t.includes('triangle')) return generateDiagram('triangle', { angles: [60, 60] });
     }
-    // Rectangle
     if (t.includes('rectangle')) {
       const n = nums(t);
       if (n.length >= 2) return generateDiagram('shape', { subtype: 'rectangle', length: n[0], width: n[1] });
     }
-    // Square
     if (t.includes('square')) {
       const n = nums(t);
       if (n.length >= 1) return generateDiagram('shape', { subtype: 'square', side: n[0] });
     }
-    // L-shape / composite (render as rectangle approximation)
     if (t.includes('l-shape') || t.includes('composite')) {
       const n = nums(t);
       if (n.length >= 2) return generateDiagram('shape', { subtype: 'rectangle', length: n[0], width: n[1] });
     }
-    // Circle / radius / diameter
     if (t.includes('circle') || t.includes('radius') || t.includes('diameter')) {
-      return generateDiagram('shape', { subtype: 'hexagon' }); // nearest supported round shape
+      return generateDiagram('shape', { subtype: 'hexagon' });
     }
-    // Generic shape fallback
-    const shapes = ['pentagon', 'hexagon', 'octagon', 'parallelogram', 'rhombus', 'trapezium'];
-    for (const s of shapes) {
+    for (const s of ['pentagon', 'hexagon', 'octagon', 'parallelogram', 'rhombus', 'trapezium']) {
       if (t.includes(s)) return generateDiagram('shape', { subtype: s });
     }
   }
@@ -181,25 +293,22 @@ function inferDiagram(topic, questionText) {
   if (topic === 'measurement') {
     if (t.includes('ruler') || t.includes('length') || t.includes('centimetre') || t.includes('millimetre')) {
       const n = nums(t);
-      const pos = n.length ? Math.min(n[0], 30) : 15;
-      return generateDiagram('measurement-scale', { type: 'ruler', highlight: pos });
+      return generateDiagram('measurement-scale', { type: 'ruler', highlight: n.length ? Math.min(n[0], 30) : 15 });
     }
     if (t.includes('kg') || t.includes('gram') || t.includes('weigh') || t.includes('mass') || t.includes('scale')) {
       const n = nums(t);
-      const pos = n.length ? Math.min(n[0], 100) : 50;
-      return generateDiagram('measurement-scale', { type: 'weighing-dial', highlight: pos });
+      return generateDiagram('measurement-scale', { type: 'weighing-dial', highlight: n.length ? Math.min(n[0], 100) : 50 });
     }
     if (t.includes('litre') || t.includes('ml') || t.includes('jug') || t.includes('capacity') || t.includes('liquid')) {
       const n = nums(t);
-      const pos = n.length ? Math.min(n[0], 1000) : 500;
-      return generateDiagram('measurement-scale', { type: 'measuring-jug', highlight: pos });
+      return generateDiagram('measurement-scale', { type: 'measuring-jug', highlight: n.length ? Math.min(n[0], 1000) : 500 });
     }
   }
 
   // ── Statistics ───────────────────────────────────────────────────────────────
   if (topic === 'statistics') {
-    // Pie/percent — extract actual percentage from question text
-    if (t.includes('pie') || t.includes('%') || t.includes('percent')) {
+    // Pie / percent
+    if (t.includes('pie') || (t.includes('%') && !t.includes('bar chart') && !t.includes('line graph'))) {
       const pcts = (t.match(/(\d+)\s*%/g) || []).map(p => parseInt(p));
       if (pcts.length >= 1 && pcts[0] > 0 && pcts[0] < 100) {
         return generateDiagram('pie-chart', {
@@ -209,30 +318,24 @@ function inferDiagram(topic, questionText) {
           ],
         });
       }
+      return null; // pie without clear % — skip
     }
 
-    // Try to extract real data from question text (uses original-case text for Name: value pattern)
+    // Extract real data from question_text — count MUST match question
     const chartData = extractChartData(questionText);
-    const labels = chartData?.labels || null;
-    const values = chartData?.values || null;
+    // Skip if no data extracted, or if every value is 0 (bad extraction)
+    if (!chartData || chartData.values.every(v => v === 0)) return null;
+
+    const { labels, values } = chartData;
 
     if (t.includes('bar chart') || t.includes('bar graph') || t.includes('tally') || t.includes('frequency')) {
-      return generateDiagram('bar-chart', {
-        labels: labels || ['A', 'B', 'C', 'D', 'E'],
-        values: values || [4, 7, 3, 6, 5],
-      });
+      return generateDiagram('bar-chart', { labels, values });
     }
     if (t.includes('line graph') || t.includes('line chart')) {
-      return generateDiagram('line-graph', {
-        labels: labels || ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
-        values: values || [3, 5, 4, 7, 6],
-      });
+      return generateDiagram('line-graph', { labels, values });
     }
     if (t.includes('pictogram')) {
-      return generateDiagram('pictogram', {
-        labels: labels || ['A', 'B', 'C', 'D'],
-        values: values || [3, 5, 2, 4],
-      });
+      return generateDiagram('pictogram', { labels, values });
     }
   }
 
@@ -259,7 +362,9 @@ async function processRows(rows, counters) {
 
     if (DRY_RUN) {
       counters.patched++;
-      console.log(`  DRY  ${row.topic} ${row.year_group} — ${svg.length} chars — ${row.question_text.slice(0, 70)}`);
+      const chartData = row.topic === 'statistics' ? extractChartData(row.question_text) : null;
+      const dataInfo  = chartData ? `${chartData.values.length} pts [${chartData.values.join(',')}]` : 'no data';
+      console.log(`  DRY  ${row.topic} ${row.year_group} | ${dataInfo} | ${row.question_text.slice(0, 60)}`);
       continue;
     }
 
@@ -277,44 +382,44 @@ async function processRows(rows, counters) {
 
 // ── Main ───────────────────────────────────────────────────────────────────────
 async function main() {
-  console.log(`regenerate-missing-diagrams`);
+  console.log('regenerate-missing-diagrams');
   console.log(`  topics   : ${VISUAL_TOPICS.join(', ')}`);
   console.log(`  DRY_RUN  : ${DRY_RUN}`);
   console.log('');
 
   const counters = { fetched: 0, patched: 0, skipped: 0, errors: 0 };
 
-  // Pass 1: all visual topics where diagram IS NULL
-  console.log('── Pass 1: fill missing diagrams ────────────');
+  // Pass 1: Fill missing diagrams for all visual topics
+  console.log('── Pass 1: fill missing diagrams (diagram IS NULL) ──');
   let offset = 0;
   while (true) {
     const rows = await fetchPage(offset);
     if (!rows.length) break;
     counters.fetched += rows.length;
-    console.log(`Page offset=${offset}: ${rows.length} rows`);
+    console.log(`  offset=${offset}: ${rows.length} rows`);
     await processRows(rows, counters);
     if (rows.length < PAGE_SIZE) break;
     offset += PAGE_SIZE;
   }
 
-  // Pass 2: statistics only — overwrite existing diagrams with improved generator
-  console.log('\n── Pass 2: overwrite statistics diagrams ────');
+  // Pass 2: Overwrite ALL statistics diagrams (null and existing) with data from question_text
+  console.log('\n── Pass 2: overwrite ALL statistics diagrams ────────');
   offset = 0;
   while (true) {
-    const rows = await fetchStatisticsExisting(offset);
+    const rows = await fetchStatisticsAll(offset);
     if (!rows.length) break;
     counters.fetched += rows.length;
-    console.log(`Page offset=${offset}: ${rows.length} rows`);
+    console.log(`  offset=${offset}: ${rows.length} rows`);
     await processRows(rows, counters);
     if (rows.length < PAGE_SIZE) break;
     offset += PAGE_SIZE;
   }
 
   console.log('');
-  console.log('── Summary ──────────────────────────────────');
+  console.log('── Summary ──────────────────────────────────────────');
   console.log(`  Fetched : ${counters.fetched}`);
   console.log(`  Patched : ${counters.patched}${DRY_RUN ? ' (dry run — no writes)' : ''}`);
-  console.log(`  Skipped : ${counters.skipped} (no diagram pattern matched)`);
+  console.log(`  Skipped : ${counters.skipped} (no diagram pattern or data)`);
   console.log(`  Errors  : ${counters.errors}`);
 
   if (DRY_RUN && counters.patched > 0) {
