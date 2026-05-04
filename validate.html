@@ -646,7 +646,7 @@ async function startAutoRun() {
     progress.textContent = `${processed + 1} / ${allPending.length} — ✅ ${approved} approved  ❌ ${rejected} rejected`;
     try {
       const result = await runCheck(question);
-      const saveRes = await fetch('/api/update-verdict', {
+      const saveRes = await fetch('/api/admin?action=update-verdict', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ questionId: question.id, verdict: result.verdict, reason: result.reason })

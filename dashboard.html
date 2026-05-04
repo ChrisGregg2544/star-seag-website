@@ -674,7 +674,7 @@ async function openPortal() {
     const email = sessionData?.session?.user?.email;
     if (!email) throw new Error('Not signed in');
 
-    const res = await fetch('/api/create-portal-session', {
+    const res = await fetch('/api/subscription?action=portal', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email }),
@@ -982,7 +982,7 @@ async function init() {
   // Helper: check subscription via server-side endpoint (bypasses RLS)
   async function checkSubscription() {
     try {
-      const r = await fetch('/api/check-subscription', {
+      const r = await fetch('/api/subscription?action=check', {
         headers: { 'Authorization': `Bearer ${accessToken}` },
       });
       const j = await r.json();
@@ -1008,7 +1008,7 @@ async function init() {
     // Fast path: verify session directly with Stripe (no webhook race condition)
     if (sessionId) {
       try {
-        const vr = await fetch(`/api/verify-checkout?session_id=${encodeURIComponent(sessionId)}`, {
+        const vr = await fetch(`/api/subscription?action=verify&session_id=${encodeURIComponent(sessionId)}`, {
           headers: { 'Authorization': `Bearer ${accessToken}` },
         });
         if (vr.ok) {

@@ -347,7 +347,7 @@
     // Subscription check via server-side endpoint (reads parent_subscriptions, bypasses RLS)
     let subscribed = false;
     try {
-      const subRes  = await fetch('/api/check-subscription', {
+      const subRes  = await fetch('/api/subscription?action=check', {
         headers: { 'Authorization': `Bearer ${accessToken}` },
       });
       const subJson = await subRes.json();

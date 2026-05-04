@@ -297,7 +297,7 @@ function renderCurrent() {
 async function approve(id) {
   const q = queue[currentIdx];
   if (!q || q.id !== id) return;
-  const res = await fetch('/api/update-verdict', {
+  const res = await fetch('/api/admin?action=update-verdict', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ questionId: q.id, verdict: 'PASS', reason: 'Manual review approved' })
@@ -311,7 +311,7 @@ async function approve(id) {
 async function reject(id) {
   const q = queue[currentIdx];
   if (!q || q.id !== id) return;
-  const res = await fetch('/api/update-verdict', {
+  const res = await fetch('/api/admin?action=update-verdict', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ questionId: q.id, verdict: 'FAIL', reason: 'Manual review rejected' })
@@ -344,7 +344,7 @@ async function saveFeedback() {
   if (!pendingFeedback) { next(); return; }
   const reason = document.getElementById('feedback-input').value.trim() || null;
   try {
-    const res = await fetch('/api/save-feedback', {
+    const res = await fetch('/api/admin?action=save-feedback', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

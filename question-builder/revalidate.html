@@ -345,7 +345,7 @@ async function updateVerdict(q, validation) {
     validation.v3?.reason ? `Quality: ${validation.v3.reason}`    : null,
   ].filter(Boolean).join(' | ');
 
-  const res = await fetch('/api/update-verdict', {
+  const res = await fetch('/api/admin?action=update-verdict', {
     method:  'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ questionId: q.id, verdict, reason }),

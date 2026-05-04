@@ -521,7 +521,7 @@
 
       const accessToken = sessionData?.session?.access_token || null;
 
-      const res = await fetch('/api/create-checkout', {
+      const res = await fetch('/api/subscription?action=create', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
