@@ -541,7 +541,7 @@
       <div class="mode-name">Study Hall</div>
       <div class="mode-desc">Pick a topic, practise at your pace</div>
     </a>
-    <a class="mode-card" href="topic-sprint.html">
+    <a class="mode-card" href="study.html?mode=topic">
       <div class="mode-icon">🎯</div>
       <div class="mode-name">Topic Sprint</div>
       <div class="mode-desc">Focus on one topic</div>
@@ -994,7 +994,9 @@ async function init() {
   }
 
   // Handle post-Stripe-checkout redirect
-  const justPaid = new URLSearchParams(window.location.search).get('checkout') === 'success';
+  const qs       = new URLSearchParams(window.location.search);
+  const justPaid = qs.get('checkout') === 'success';
+  const sessionId = qs.get('session_id');
   if (justPaid) {
     const banner = document.getElementById('upgrade-banner');
     const msg    = document.getElementById('upgrade-banner-msg');
@@ -1002,9 +1004,28 @@ async function init() {
     msg.textContent = '💳 Payment successful! Setting up your account…';
 
     let activated = false;
-    for (let i = 0; i < 10; i++) {
-      await new Promise(r => setTimeout(r, 2000));
-      if (await checkSubscription()) { activated = true; break; }
+
+    // Fast path: verify session directly with Stripe (no webhook race condition)
+    if (sessionId) {
+      try {
+        const vr = await fetch(`/api/verify-checkout?session_id=${encodeURIComponent(sessionId)}`, {
+          headers: { 'Authorization': `Bearer ${accessToken}` },
+        });
+        if (vr.ok) {
+          const vj = await vr.json();
+          if (vj.subscribed) activated = true;
+        }
+      } catch (e) {
+        console.error('[dashboard] verify-checkout failed:', e.message);
+      }
+    }
+
+    // Fallback: poll check-subscription (handles edge cases / webhook-first scenarios)
+    if (!activated) {
+      for (let i = 0; i < 8; i++) {
+        await new Promise(r => setTimeout(r, 2000));
+        if (await checkSubscription()) { activated = true; break; }
+      }
     }
 
     if (activated) {

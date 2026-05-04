@@ -341,20 +341,34 @@
       return;
     }
 
-    const userId = authData.session.user.id;
+    const userId      = authData.session.user.id;
+    const accessToken = authData.session.access_token;
 
-    // Load profile
-    const { data: profile } = await sb
-      .from('profiles')
-      .select('name, year_group, subscription_status')
-      .eq('id', userId)
-      .single();
+    // Subscription check via server-side endpoint (reads parent_subscriptions, bypasses RLS)
+    let subscribed = false;
+    try {
+      const subRes  = await fetch('/api/check-subscription', {
+        headers: { 'Authorization': `Bearer ${accessToken}` },
+      });
+      const subJson = await subRes.json();
+      subscribed    = subJson.subscribed === true;
+    } catch (e) {
+      console.error('[topic-sprint] check-subscription failed:', e.message);
+      subscribed = true; // fail open — don't block on network error
+    }
 
-    const status = profile?.subscription_status;
-    if (status !== 'active' && status !== 'trialing') {
+    if (!subscribed) {
       window.location.href = 'pricing.html';
       return;
     }
+
+    // Load child profile for name/year (use selectedChildId set by login or child-selector)
+    const selectedChildId = localStorage.getItem('selectedChildId') || userId;
+    const { data: profile } = await sb
+      .from('profiles')
+      .select('name, year_group')
+      .eq('id', selectedChildId)
+      .maybeSingle();
 
     const name      = profile?.name      || 'Student';
     const yearGroup = profile?.year_group || 'P6';

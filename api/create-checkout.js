@@ -130,7 +130,7 @@ export default async function handler(req, res) {
     }
 
     params.append('subscription_data[trial_period_days]', '7');
-    params.append('success_url',  'https://www.staraitutor.co.uk/dashboard.html?checkout=success');
+    params.append('success_url',  'https://www.staraitutor.co.uk/dashboard.html?checkout=success&session_id={CHECKOUT_SESSION_ID}');
     params.append('cancel_url',   'https://www.staraitutor.co.uk/pricing.html?checkout=cancelled');
 
     if (parentId) params.append('metadata[userId]',       parentId);
