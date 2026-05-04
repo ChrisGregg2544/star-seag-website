@@ -49,13 +49,13 @@ const sbHeaders = {
 
 // ── Topic standards (from validate.html) ──────────────────────────────────────
 const STANDARD = {
-  punctuation: `REAL CATAPULT PAPERS PUNCTUATION STANDARD:
-Format: sentence split into 4 sections by "/" marks. Options A/B/C/D/N where N = No mistakes.
-Tests ONLY: apostrophe for contraction (wasn't, it's, I'll, he'd, you've), possessive apostrophe (everyone's, Jessica's, boys'), missing full stop at sentence end, missing question mark in direct speech, capital letter for proper nouns (Newcastle, Easter, December, Saturday), speech mark rules (comma before opening speech mark, punctuation before closing speech mark, capital letter after opening speech mark).
-N = No mistakes is correct ~20% of the time — this is intentional and correct. Do NOT warn or fail a question simply because N is the correct answer.
-Comma placement: VALID when testing commas around an interruptive or parenthetical clause.
-VERDICT RULES: PASS if the marked section contains one clear punctuation/capitalisation error of the types listed. WARN only if correct answer is genuinely wrong. Do NOT warn because of minor stylistic concerns.`,
-
+  punctuation: `PUNCTUATION STANDARD:
+Questions test punctuation and capitalisation errors in sentences.
+Format may use "/" dividers (Catapult style) OR may present as a full sentence with one error to identify — both are valid.
+Error types tested include: apostrophes, commas, colons, semicolons, capital letters, full stops, question marks, speech marks, and any other standard punctuation.
+N = No mistakes is a valid correct answer ~20% of time.
+VERDICT RULES: PASS if the marked correct answer contains a genuine punctuation error. FAIL ONLY if the marked correct answer is actually correct (no error there) or the question is broken.`,
+  
   grammar: `REAL CATAPULT PAPERS GRAMMAR STANDARD:
 Format: sentence with a blank, choose correct word/phrase from A/B/C/D/E.
 Tests: had/have/has + past participle, connectives, prepositions, pronoun case, reflexive pronouns, verb tense/agreement, homophones.
