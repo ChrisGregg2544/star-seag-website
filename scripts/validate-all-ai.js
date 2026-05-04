@@ -172,9 +172,9 @@ Correct answer: ${q.correct_answer}
 Explanation: ${q.explanation || 'none'}
 
 VERDICT CRITERIA:
-PASS = correct answer is unambiguous, format matches real Catapult Papers, difficulty appropriate for ${q.year_group}, explanation accurate
-WARN = minor issues (awkward wording, explanation slightly off, requires diagram to read) but question is usable
-FAIL = wrong correct answer, mathematically wrong, ambiguous correct answer (two options equally valid), impossible answer (non-integer pupils), wrong format
+PASS = correct answer is right, question is clear, difficulty appropriate for ${q.year_group}. Format does NOT need to match Catapult Papers exactly — AI-generated questions are valid even if phrased differently.
+WARN = minor issues (awkward wording, explanation slightly off, requires diagram to read, format unusual but question is usable)
+FAIL = ONLY these reasons: (1) correct answer is factually/mathematically wrong, (2) two or more options are equally correct making the question unanswerable, (3) question is complete gibberish/broken text. Do NOT fail for format differences.
 
 NOTE: explanations may deliberately quote incorrect forms to contrast with correct ones. Do NOT treat this as an error.
 NOTE: for spelling, only check the correct answer letter points to the option containing the misspelled word.
