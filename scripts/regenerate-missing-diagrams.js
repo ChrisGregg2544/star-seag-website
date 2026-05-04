@@ -79,6 +79,49 @@ async function patchDiagram(id, svg) {
   if (!res.ok) throw new Error(`PATCH failed for ${id} (${res.status}): ${await res.text()}`);
 }
 
+// ── Pictogram scale extraction ─────────────────────────────────────────────────
+// Returns the keyValue (how many units each symbol represents).
+function extractPictogramScale(text) {
+  const t = text.toLowerCase();
+  // "each symbol represents 5" / "each picture = 5" / "each icon = 5"
+  const m1 = t.match(/each\s+(?:symbol|picture|image|icon|drawing|shape|smiley|star|circle|flower|apple|book|car|tree)\s+(?:represents?|=|equals?|stands\s+for)\s+(\d+)/);
+  if (m1) return Number(m1[1]);
+  // "● = 5" / "• = 5"
+  const m2 = t.match(/[●•◆★☺☆○]\s*=\s*(\d+)/);
+  if (m2) return Number(m2[1]);
+  // "key: 1 symbol = 5" or "key = 5"
+  const m3 = t.match(/key\s*[:=]?\s*(?:\d+\s+)?(?:symbol|picture)s?\s*=\s*(\d+)/);
+  if (m3) return Number(m3[1]);
+  // "represents 5 children" / "represents 10 votes"
+  const m4 = t.match(/represents?\s+(\d+)\s+\w/);
+  if (m4) return Number(m4[1]);
+  return 1;
+}
+
+// ── Pictogram-aware data extraction ───────────────────────────────────────────
+// Returns { labels, values, keyValue } or null.
+// When "shows N symbols" pattern matches, N is symbol count → multiply by keyValue
+// so the pictogram() function (which divides by keyValue) renders N symbols.
+function extractPictogramData(text) {
+  const keyValue = extractPictogramScale(text);
+
+  // "Name shows N [symbols]" — N is symbol count, multiply to get actual count
+  const showsRe = /\b([A-Z][a-z]+(?:day)?)\s+shows?\s+(\d+(?:\.\d+)?)/g;
+  const showsPairs = [...text.matchAll(showsRe)];
+  if (showsPairs.length >= 2) {
+    return {
+      labels: showsPairs.map(m => m[1].slice(0, 6)),
+      values: showsPairs.map(m => Number(m[2]) * keyValue),
+      keyValue,
+    };
+  }
+
+  // Fall back to standard extraction (returns actual counts)
+  const chartData = extractChartData(text);
+  if (!chartData) return null;
+  return { ...chartData, keyValue };
+}
+
 // ── Chart data extraction from question_text ───────────────────────────────────
 // Returns { labels: string[], values: number[] } or null.
 // Priority: named patterns first, comma-list fallback last.
@@ -91,13 +134,14 @@ function extractChartData(text) {
 
   // ── Pattern 1: "Label: value" colon-separated pairs ──────────────────────────
   // "Week 1: £2", "Day 2: 8 mm", "Monday: 32 messages", "Case A: 16 pencils"
+  // Filter: exact stopword matches only ("the" alone, not "The library")
   {
     const re = /\b([A-Za-z][A-Za-z0-9 ]{1,14}?)\s*:\s*£?(\d+(?:\.\d+)?)/g;
     const pairs = [...dt.matchAll(re)].filter(m => {
       const lbl = m[1].trim().toLowerCase();
       return lbl.length >= 2
-        && !['each', 'what', 'how', 'which', 'the', 'a', 'an', 'and'].some(
-            w => lbl === w || lbl.startsWith(w + ' '));
+        && !['each', 'what', 'how', 'which', 'the', 'a', 'an', 'and'].includes(lbl)
+        && !lbl.startsWith('each ');
     });
     if (pairs.length >= 2) {
       return {
@@ -236,7 +280,7 @@ function extractChartData(text) {
     }
     if (cur.length > bestRun.length) bestRun = cur;
 
-    const vals = bestRun.map(m => m.val).filter(n => n > 0 && n < 10000);
+    const vals = bestRun.map(m => m.val).filter(n => n >= 0 && n < 10000);
     if (vals.length >= 2 && vals.length <= 8) {
       return {
         labels: vals.map((_, i) => String.fromCharCode(65 + i)),
@@ -321,6 +365,17 @@ function inferDiagram(topic, questionText) {
       return null; // pie without clear % — skip
     }
 
+    // Pictogram: extract scale (keyValue) and pass it so the legend is correct
+    if (t.includes('pictogram')) {
+      const picData = extractPictogramData(questionText);
+      if (!picData || picData.values.every(v => v === 0)) return null;
+      return generateDiagram('pictogram', {
+        labels:   picData.labels,
+        values:   picData.values,
+        keyValue: picData.keyValue,
+      });
+    }
+
     // Extract real data from question_text — count MUST match question
     const chartData = extractChartData(questionText);
     // Skip if no data extracted, or if every value is 0 (bad extraction)
@@ -333,9 +388,6 @@ function inferDiagram(topic, questionText) {
     }
     if (t.includes('line graph') || t.includes('line chart')) {
       return generateDiagram('line-graph', { labels, values });
-    }
-    if (t.includes('pictogram')) {
-      return generateDiagram('pictogram', { labels, values });
     }
   }
 
