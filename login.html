@@ -225,9 +225,9 @@
   /* ══════════════════════════════════════
      SMART REDIRECT
      1. Check for children (parent_id = user.id)
-        → found: child-selector.html
+        → found: parent-dashboard.html
      2. No children → check own profile (maybeSingle — null if missing, no 406)
-        → onboarded: study.html
+        → onboarded: dashboard.html
         → no profile / not onboarded: onboarding.html
   ══════════════════════════════════════ */
   async function smartRedirect(userId) {
@@ -246,7 +246,7 @@
       if (!profileResult.error && profileResult.data?.onboarded === true) {
         // Direct student (no children) — store own ID so student pages can read selectedChildId
         localStorage.setItem('selectedChildId', userId)
-        window.location.href = 'study.html'
+        window.location.href = 'dashboard.html'
       } else {
         window.location.href = 'onboarding.html'
       }

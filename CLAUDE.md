@@ -656,6 +656,39 @@ Target: 250 per combination = 6,000 questions total
 
 ---
 
+## Marketing & Launch (May 2026)
+
+### Question Bank Stats
+- **10,582 active validated questions** across 12 categories × P6 + P7
+- Categories: punctuation, grammar, spelling, vocabulary, comprehension_mc, comprehension_written, arithmetic, geometry, fractions_decimals, measurement, statistics, algebra_sequences
+
+### Core Feature List
+- **Mock exams** — full 56-question timed paper matching real SEAG format
+- **Topic sprints** — focused practice on a single category (20 questions)
+- **Study hall** — untimed practice mode with immediate feedback and explanations
+- **Retry wrong answers** — students can replay only the questions they got wrong
+- **Parent dashboard** — per-child progress, session history, weak topic breakdown, AI insights panel
+- **Google + Stripe login** — OAuth via Google; subscription managed via Stripe
+- **AI written-answer marking** — comprehension written questions marked by Claude Haiku
+- **AI topic recommendations** — top 3 weakest topics shown on dashboard after 3+ sprints
+- **STAR Chat** — SEAG-restricted AI help chatbot (Claude, strict topic guardrails)
+
+### Marketing Lines
+- "10,000+ unique questions — more than your child can answer in two years"
+- Positions STAR as the deepest SEAG question bank available
+- Do not say "powered by Claude" or mention Anthropic anywhere on student-facing pages
+
+### Outstanding Launch Tasks
+- [ ] Switch Stripe to live keys (currently on test keys — NO real payments accepted)
+- [ ] Remove all Claude / Anthropic branding from student-facing pages (mock.html, study.html, star-chat.html, dashboard.html)
+- [ ] Top up punctuation to 800+ validated questions (currently thin after bulk-fail run)
+- [ ] Video feature — TBD (tutorial videos integration planned for Week 2 pre-launch; format/hosting not yet decided)
+- [ ] Enable confirm email in Supabase Auth (blocked until SMTP verified end-to-end)
+- [ ] Mobile testing on real devices (iOS + Android)
+- [ ] Cross-browser testing (Chrome, Safari, Firefox, Edge)
+
+---
+
 ## Question Bank Strategy (April 2026)
 
 ### Current State

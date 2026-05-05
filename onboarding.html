@@ -566,6 +566,7 @@
       msg.textContent = 'Saved locally.';
     }
 
+    localStorage.setItem('selectedChildId', userId);
     setTimeout(() => { window.location.href = 'dashboard.html'; }, 700);
   }
 </script>

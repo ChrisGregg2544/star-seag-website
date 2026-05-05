@@ -974,7 +974,7 @@ async function init() {
   const parentId = authData.session.user.id;
 
   const selectedChildId = localStorage.getItem('selectedChildId');
-  if (!selectedChildId) { window.location.href = 'child-selector.html'; return; }
+  if (!selectedChildId) { window.location.href = 'parent-dashboard.html'; return; }
 
 
   const accessToken = authData.session.access_token;
