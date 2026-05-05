@@ -585,15 +585,15 @@
 <div class="skills-section">
   <div class="section-header">
     <h2 class="section-title">⭐ Your Skills Map</h2>
-    <span class="section-sub" id="skills-sub">Unlocks after 3 sessions</span>
+    <span class="section-sub" id="skills-sub">Unlocks after your first sprint</span>
   </div>
   <div id="skills-container">
     <div class="skills-locked" id="skills-locked">
       <div class="lock-icon">🔒</div>
       <h3>Skills Map Locked</h3>
-      <p>Complete <strong id="sessions-needed">3</strong> sessions and STAR will reveal your personal Skills Map.</p>
+      <p>Complete <strong id="sessions-needed">1</strong> sprint and STAR will reveal your personal Skills Map.</p>
       <div class="skills-bar-wrap"><div class="skills-bar-fill" id="skills-bar" style="width:0%"></div></div>
-      <p style="font-size:.72rem;color:var(--text-light);font-weight:700;margin-top:6px;"><span id="sessions-done">0</span> of 3 sessions completed</p>
+      <p style="font-size:.72rem;color:var(--text-light);font-weight:700;margin-top:6px;"><span id="sessions-done">0</span> of 1 sprint completed</p>
     </div>
   </div>
 </div>
@@ -779,15 +779,14 @@ function getTodayRec(yearGroup, weeks, sessionsPerWeek, weekDone, weakTopic) {
 }
 
 async function buildSkillsMap(count, userId) {
-  const pct = Math.min(100, Math.round((count / 3) * 100));
   const el = (id) => document.getElementById(id);
-  if (el('sessions-needed')) el('sessions-needed').textContent = Math.max(0, 3 - count);
+  if (el('sessions-needed')) el('sessions-needed').textContent = count >= 1 ? 0 : 1;
   if (el('sessions-done'))   el('sessions-done').textContent   = count;
-  if (el('skills-bar'))      el('skills-bar').style.width      = pct + '%';
-  el('skills-sub').textContent = count >= 3
+  if (el('skills-bar'))      el('skills-bar').style.width      = (count >= 1 ? 100 : 0) + '%';
+  el('skills-sub').textContent = count >= 1
     ? 'Updated after every session'
-    : `Unlocks after ${3 - count} more session${3 - count !== 1 ? 's' : ''}`;
-  if (count < 3) return;
+    : 'Unlocks after your first sprint';
+  if (count < 1) return;
   if (el('skills-locked')) el('skills-locked').style.display = 'none';
 
   // Query real question_results data
@@ -805,7 +804,7 @@ async function buildSkillsMap(count, userId) {
   });
 
   const skills = Object.entries(topicMap)
-    .filter(([, v]) => v.total >= 3)
+    .filter(([, v]) => v.total >= 2)
     .map(([name, v]) => {
       const accuracy = Math.round(v.correct / v.total * 100);
       const c = accuracy >= 71 ? 'green' : accuracy >= 41 ? 'amber' : 'red';
@@ -1145,10 +1144,18 @@ async function init() {
   // Today's rec — driven by weekly schedule position + weak topic
   const weekDone  = weekDoneCount || 0;
   const weakTopic = toReview.length > 0 ? (toReview[0].topic || null) : null;
-  const rec = getTodayRec(yearGroup, weeks, sessionsPerWeek, weekDone, weakTopic);
-  document.getElementById('today-title').textContent = rec.title;
-  document.getElementById('today-sub').textContent   = rec.sub;
-  document.getElementById('today-card').href         = rec.href;
+
+  if ((sessionsCount || 0) === 0) {
+    // Brand-new user: push them to the discovery (mixed) sprint
+    document.getElementById('today-title').textContent = '🔍 Start Your Discovery Sprint';
+    document.getElementById('today-sub').textContent   = '10 mixed questions across all topics — STAR will map your strengths and tell you exactly where to focus first.';
+    document.getElementById('today-card').href         = 'study.html';
+  } else {
+    const rec = getTodayRec(yearGroup, weeks, sessionsPerWeek, weekDone, weakTopic);
+    document.getElementById('today-title').textContent = rec.title;
+    document.getElementById('today-sub').textContent   = rec.sub;
+    document.getElementById('today-card').href         = rec.href;
+  }
 
   // Score ring
   if (hasData) {
