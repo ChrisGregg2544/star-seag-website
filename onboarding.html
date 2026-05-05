@@ -251,7 +251,6 @@
     <div class="progress-dot"        id="dot-1"></div>
     <div class="progress-dot"        id="dot-2"></div>
     <div class="progress-dot"        id="dot-3"></div>
-    <div class="progress-dot"        id="dot-4"></div>
   </div>
 
   <div class="avatar-wrap">
@@ -272,7 +271,7 @@
     <div class="qsub">Let's get to know each other ✨</div>
     <input class="text-input" id="inp-name" type="text" placeholder="Type your first name…" autocomplete="off" maxlength="32"/>
     <button class="nbtn" id="btn-0" disabled onclick="goNext(0)">Next →</button>
-    <div class="shint">Step 1 of 5</div>
+    <div class="shint">Step 1 of 4</div>
   </div>
 
   <!-- STEP 1: Year Group -->
@@ -295,7 +294,7 @@
     </div>
     <button class="nbtn" id="btn-1" disabled onclick="goNext(1)">Next →</button>
     <button class="back-link" onclick="goBack(1)">← Back</button>
-    <div class="shint">Step 2 of 5</div>
+    <div class="shint">Step 2 of 4</div>
   </div>
 
   <!-- STEP 2: Sessions Per Week -->
@@ -326,21 +325,7 @@
     </div>
     <button class="nbtn" id="btn-2" disabled onclick="goNext(2)">Next →</button>
     <button class="back-link" onclick="goBack(2)">← Back</button>
-    <div class="shint">Step 3 of 5</div>
-  </div>
-
-  <!-- STEP 3: Exam Year -->
-  <div class="step" id="step-3">
-    <div class="qlabel" id="lbl-3">When is your<br>transfer test?</div>
-    <div class="qsub" id="sub-3">We've worked this out — just confirm it looks right</div>
-    <div class="choices r" id="exam-choices"></div>
-    <div class="info-note">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,109,0,0.7)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-      <span>The SEAG Transfer Test is always in November — Paper 1 on the third Saturday, Paper 2 the following week.</span>
-    </div>
-    <button class="nbtn" id="btn-3" disabled onclick="goNext(3)">Next →</button>
-    <button class="back-link" onclick="goBack(3)">← Back</button>
-    <div class="shint">Step 4 of 5</div>
+    <div class="shint">Step 3 of 4</div>
   </div>
 
   <!-- STEP 4: Summary -->
@@ -407,7 +392,6 @@
   );
 
   const state = { name:'', year:null, sessions:null, examYear:null };
-  const selections = { year:null, sessions:null, examYear:null };
 
   /* Check if already onboarded */
   (async () => {
@@ -430,39 +414,16 @@
     // Deselect siblings
     btn.closest('.choices').querySelectorAll('.cbtn').forEach(b => b.classList.remove('sel'));
     btn.classList.add('sel');
-    const btnId = field === 'year' ? 'btn-1' : field === 'sessions' ? 'btn-2' : 'btn-3';
+    const btnId = field === 'year' ? 'btn-1' : 'btn-2';
     document.getElementById(btnId).disabled = false;
   }
 
-  /* Exam year choices */
-  function buildExamChoices() {
-    const now   = new Date();
-    const month = now.getMonth();
-    const year  = now.getFullYear();
-    let suggested = state.year === 'P7'
+  function calcExamYear() {
+    const month = new Date().getMonth();
+    const year  = new Date().getFullYear();
+    return state.year === 'P7'
       ? (month >= 10 ? year + 1 : year)
       : (month >= 10 ? year + 2 : year + 1);
-
-    const container = document.getElementById('exam-choices');
-    container.innerHTML = '';
-    [suggested, suggested + 1].forEach((yr, i) => {
-      const b = document.createElement('button');
-      b.className = 'cbtn';
-      b.style.cssText = 'padding:22px 12px;';
-      b.innerHTML = `<span class="ci">${i===0?'📝':'📚'}</span><span class="cl" style="font-size:1.1rem;">Nov ${yr}</span><span class="cs">${i===0?'Most likely for you':'One year later'}</span>`;
-      b.onclick = () => {
-        state.examYear = yr;
-        container.querySelectorAll('.cbtn').forEach(x => x.classList.remove('sel'));
-        b.classList.add('sel');
-        document.getElementById('btn-3').disabled = false;
-      };
-      container.appendChild(b);
-    });
-
-    // Auto-select suggested
-    container.firstChild.click();
-    const weeks = weeksUntil(suggested);
-    document.getElementById('sub-3').textContent = `We've worked this out — that's about ${weeks} weeks away!`;
   }
 
   function weeksUntil(yr) {
@@ -471,35 +432,40 @@
   }
 
   /* Navigation */
+  // Step order: 0 (name) → 1 (year) → 2 (sessions) → 4 (summary)
+  // Step 3 (exam year) removed — examYear auto-calculated from year group
   function goNext(from) {
     if (from === 0) state.name = inp.value.trim();
-    if (from === 2) buildExamChoices();
-    if (from === 3) buildSummary();
+    if (from === 2) {
+      state.examYear = calcExamYear();
+      buildSummary();
+    }
 
+    const nextStep = from === 2 ? 4 : from + 1;
     const fromEl = document.getElementById('step-' + from);
-    const toEl   = document.getElementById('step-' + (from + 1));
+    const toEl   = document.getElementById('step-' + nextStep);
     fromEl.classList.remove('active'); fromEl.classList.add('out');
     setTimeout(() => fromEl.classList.remove('out'), 320);
     toEl.classList.add('active');
-    updateDots(from + 1);
+    updateDots(nextStep === 4 ? 3 : nextStep);
 
     const n = state.name;
     if (from + 1 === 1) document.getElementById('lbl-1').innerHTML = `Which year<br>are you in, ${n}?`;
     if (from + 1 === 2) document.getElementById('lbl-2').innerHTML = `How often can you<br>study each week, ${n}?`;
-    if (from + 1 === 3) document.getElementById('lbl-3').innerHTML = `When is your<br>Transfer Test, ${n}?`;
   }
 
   function goBack(from) {
+    const prevStep = from === 4 ? 2 : from - 1;
     const fromEl = document.getElementById('step-' + from);
-    const toEl   = document.getElementById('step-' + (from - 1));
+    const toEl   = document.getElementById('step-' + prevStep);
     fromEl.classList.remove('active');
     toEl.style.animation = 'none'; toEl.offsetHeight; toEl.style.animation = '';
     toEl.classList.add('active');
-    updateDots(from - 1);
+    updateDots(prevStep);
   }
 
   function updateDots(active) {
-    for (let i = 0; i <= 4; i++) {
+    for (let i = 0; i <= 3; i++) {
       const d = document.getElementById('dot-' + i);
       d.classList.remove('active','done');
       if (i < active)  d.classList.add('done');
@@ -524,50 +490,40 @@
 
   /* Save and go */
   async function startTraining() {
-    const btn  = document.getElementById('btn-start');
-    const msg  = document.getElementById('saving-msg');
+    const btn = document.getElementById('btn-start');
+    const msg = document.getElementById('saving-msg');
     btn.disabled = true;
     btn.textContent = 'Saving your profile…';
 
-    // Always save to sessionStorage for immediate use
-    sessionStorage.setItem('star_name',     state.name);
-    sessionStorage.setItem('star_year',     state.year);
-    sessionStorage.setItem('star_sessions', state.sessions);
-    sessionStorage.setItem('star_examYear', state.examYear);
-
     try {
       const { data } = await sb.auth.getSession();
-      if (data?.session?.user) {
-        const userId    = data.session.user.id;
-        const userEmail = data.session.user.email;
+      if (!data?.session?.user) throw new Error('Not signed in');
 
-        // UPSERT — creates row if missing, updates if exists
-        const { error } = await sb.from('profiles').upsert({
-          id:                  userId,
-          parent_email:        userEmail,
-          name:                state.name,
-          year_group:          state.year,
-          sessions_per_week:   state.sessions,
-          exam_year:           state.examYear,
-          onboarded:           true,
-          subscription_status: 'inactive',
-          updated_at:          new Date().toISOString(),
-        }, { onConflict: 'id' });
+      const userId    = data.session.user.id;
+      const userEmail = data.session.user.email;
 
-        if (error) {
-          console.error('Save error:', error.message);
-          msg.textContent = 'Saved locally — will sync when back online.';
-        } else {
-          msg.textContent = '✅ Profile saved!';
-        }
-      }
+      const { error } = await sb.from('profiles').upsert({
+        id:                userId,
+        parent_email:      userEmail,
+        name:              state.name,
+        year_group:        state.year,
+        sessions_per_week: state.sessions,
+        exam_year:         state.examYear,
+        onboarded:         true,
+        updated_at:        new Date().toISOString(),
+      }, { onConflict: 'id' });
+
+      if (error) throw new Error(error.message);
+
+      msg.textContent = '✅ Profile saved!';
+      localStorage.setItem('selectedChildId', userId);
+      setTimeout(() => { window.location.href = 'dashboard.html'; }, 700);
     } catch(e) {
-      console.error(e.message);
-      msg.textContent = 'Saved locally.';
+      console.error('Save error:', e.message);
+      msg.textContent = '⚠️ Could not save — please check your connection and try again.';
+      btn.disabled = false;
+      btn.textContent = '🚀  Let\'s Start Training!';
     }
-
-    localStorage.setItem('selectedChildId', userId);
-    setTimeout(() => { window.location.href = 'dashboard.html'; }, 700);
   }
 </script>
 </body>
