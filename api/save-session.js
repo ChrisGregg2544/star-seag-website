@@ -1,5 +1,5 @@
 /* ══════════════════════════════════════════════════════
-   Save a completed mini-sprint session server-side.
+   Save a completed mini-mock session server-side.
    Uses service role key to bypass RLS.
    Verifies the requesting parent owns the child before writing.
 

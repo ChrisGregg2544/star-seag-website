@@ -499,7 +499,7 @@
   <div class="upgrade-banner-icon">⭐</div>
   <div class="upgrade-banner-text">
     <strong id="upgrade-banner-msg">Unlock unlimited practice</strong>
-    <span>Subscribe to access Topic Sprints, Full Mocks, and unlimited Mini Sprints.</span>
+    <span>Subscribe to access Topic Sprints, Full Mocks, and unlimited Mini Mocks.</span>
   </div>
   <a href="pricing.html" class="upgrade-banner-btn">Start Free Trial →</a>
 </div>
@@ -1164,11 +1164,11 @@ async function init() {
 
     if (freeLeft > 0) {
       msg.textContent = freeLeft === 1
-        ? 'You have 1 free Mini Sprint remaining'
-        : 'You have ' + freeLeft + ' free Mini Sprints remaining';
+        ? 'You have 1 free Mini Mock remaining'
+        : 'You have ' + freeLeft + ' free Mini Mocks remaining';
     } else {
       // Paywall reached — update banner and lock all sprint/mock entry points
-      msg.textContent = 'Your 2 free Mini Sprints are used up — subscribe to keep practising';
+      msg.textContent = 'Your 2 free Mini Mocks are used up — subscribe to keep practising';
       window._paywallActive = true;
 
       // Lock today's recommended session card

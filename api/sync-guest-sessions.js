@@ -56,7 +56,7 @@ export default async function handler(req, res) {
   //    score column stores raw correct count (same as save-session.js)
   const sessionRows = toSync.map(s => ({
     user_id:         userId,
-    session_type:    'mini_sprint',
+    session_type:    'mini_mock',
     track:           s.track || 'P6',
     score:           typeof s.correct === 'number' ? s.correct : 0,
     total_questions: typeof s.total   === 'number' ? s.total   : 10,

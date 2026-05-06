@@ -303,7 +303,7 @@ export default function StarLanding() {
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8ab4ff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg>
                 </div>
                 <div>
-                  <div className="fb" style={{fontWeight:700,fontSize:".9rem",marginBottom:4}}>10-Question Mini-Sprints</div>
+                  <div className="fb" style={{fontWeight:700,fontSize:".9rem",marginBottom:4}}>10-Question Mini Mocks</div>
                   <div className="fb" style={{fontSize:".82rem",color:"rgba(255,255,255,.5)",lineHeight:1.68}}>Perfect for building daily habits without the stress of a full paper. Short, focused, and habit-forming.</div>
                 </div>
               </div>

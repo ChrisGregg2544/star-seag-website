@@ -847,7 +847,30 @@ async function fetchBatch() {
     .limit(50);
 
   if (selectedTopic === 'mixed') {
-    // No topic filter — pull from all topics for Quick Sprint
+    const englishTopics = ['punctuation', 'grammar', 'spelling', 'vocabulary', 'comprehension_mc'];
+    const mathsTopics   = ['arithmetic', 'geometry', 'fractions_decimals', 'measurement', 'statistics', 'algebra_sequences'];
+    const makeBase = () => sb
+      .from('questions')
+      .select('id,subject,topic,year_group,difficulty,question_type,question_text,passage,options,correct_answer,explanation,diagram')
+      .eq('year_group', userYear)
+      .eq('source',     'ai_generated_v2')
+      .eq('active',     true)
+      .in('difficulty',  diffTiers)
+      .limit(25);
+    const addSeen = (q) => seenIds.length > 0 ? q.not('id', 'in', `(${seenIds.join(',')})`) : q;
+    const [enRes, mathRes] = await Promise.all([
+      addSeen(makeBase().in('topic', englishTopics)),
+      addSeen(makeBase().in('topic', mathsTopics)),
+    ]);
+    if (enRes.error) throw new Error(enRes.error.message);
+    if (mathRes.error) throw new Error(mathRes.error.message);
+    const enPool   = shuffle((enRes.data || []).filter(q => !usedIds.has(q.id)));
+    const mathPool = shuffle((mathRes.data || []).filter(q => !usedIds.has(q.id)));
+    const taken    = [...enPool.slice(0, 5), ...mathPool.slice(0, 5)];
+    if (taken.length === 0) return [];
+    const questions = shuffle(taken);
+    questions.forEach(q => usedIds.add(q.id));
+    return questions.map(normalizeDBQuestion);
   } else if (selectedTopic === 'comprehension') {
     query = query.in('topic', ['comprehension_mc', 'comprehension_written']);
   } else {
@@ -866,7 +889,7 @@ async function fetchBatch() {
   if (filtered.length === 0) return [];
 
   const questions = shuffle(filtered).slice(0, BATCH_SIZE);
-  questions.forEach(q => usedIds.add(q.id)); // add raw DB ids before normalizing
+  questions.forEach(q => usedIds.add(q.id));
   return questions.map(normalizeDBQuestion);
 }
 
@@ -1564,7 +1587,7 @@ function saveSessionToSupabase(missedQs) {
     const payload = {
       childId,
       session: {
-        session_type:    'mini_sprint',
+        session_type:    'mini_mock',
         track,
         score:           score.correct,
         total_questions: QUESTIONS.length,
@@ -1626,7 +1649,7 @@ async function signOut() {
 /* ════════════════════════════════
    SUBSCRIPTION GATE
    Checks login + subscription before allowing access.
-   Free users get 2 mini sprints before paywall kicks in.
+   Free users get 2 mini mocks before paywall kicks in.
    Guests (no account) get 2 free sprints tracked in localStorage.
 ════════════════════════════════ */
 

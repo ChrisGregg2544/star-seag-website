@@ -219,7 +219,7 @@ const StarTour = (() => {
           <div class="mode-cards">
             <div class="mode-card">
               <div class="mc-icon">⚡</div>
-              <div class="mc-name">Mini Sprint</div>
+              <div class="mc-name">Mini Mock</div>
               <div class="mc-desc">10 quick questions. Instant feedback. Great for a daily warm-up.</div>
             </div>
             <div class="mode-card">
@@ -249,7 +249,7 @@ const StarTour = (() => {
       {
         icon: '🚀',
         title: `Ready for your <em>first sprint?</em>`,
-        body: `The best way to start is to just dive in! Your first <strong>Mini Sprint</strong> will take about 5 minutes and STAR will start learning what you know.<br><br>Every question you answer makes your plan smarter. Let's begin! 🌟`,
+        body: `The best way to start is to just dive in! Your first <strong>Mini Mock</strong> will take about 5 minutes and STAR will start learning what you know.<br><br>Every question you answer makes your plan smarter. Let's begin! 🌟`,
         nextLabel: '🚀 Start My First Sprint!',
         isFinal: true
       }
