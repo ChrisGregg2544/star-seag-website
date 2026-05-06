@@ -1415,13 +1415,29 @@ function _showResultsInternal() {
   const calledFromExhausted = !document.getElementById('missed-list');
   if (calledFromExhausted) {
     const wrongQuestions = QUESTIONS.filter((q, i) => answers[i] === 'wrong');
+
+    // Write star_sessions to localStorage so syncGuestSessions can find it after signup.
+    // This branch is the only path that ever executes (showExhausted clears missed-section
+    // before calling here, so missed-list is always absent).
+    const pct = sessionTotal > 0 ? Math.round(sessionCorrect / sessionTotal * 100) : 0;
+    const now = new Date().toISOString();
+    const sessions = JSON.parse(localStorage.getItem('star_sessions') || '[]');
+    sessions.unshift({ date: now, score: pct, track: sessionStorage.getItem('star_year') || 'P6', correct: score.correct, total: QUESTIONS.length });
+    if (sessions.length > 20) sessions.length = 20;
+    localStorage.setItem('star_sessions', JSON.stringify(sessions));
+    console.log('[study] star_sessions updated, total saved:', sessions.length);
+
     saveSessionToSupabase(wrongQuestions);
     if (window._starAccess?.isGuest) {
       const guestDone = parseInt(localStorage.getItem('guest_sprints_done') || '0', 10) + 1;
       localStorage.setItem('guest_sprints_done', guestDone);
+      console.log('[study] guest mock count now:', guestDone);
       if (guestDone >= 2) setTimeout(showGuestSignupOverlay, 1800);
     } else if (localStorage.getItem('star_needs_baseline') === '1') {
+      console.log('[study] star_needs_baseline flag present — triggering baseline report');
       showBaselineReport();
+    } else {
+      console.log('[study] no baseline flag, normal session end');
     }
     return;
   }
@@ -1682,6 +1698,7 @@ function friendlyTopic(slug) {
 }
 
 function showBaselineReport() {
+  console.log('[study] showBaselineReport — clearing star_needs_baseline flag');
   localStorage.removeItem('star_needs_baseline');
 
   // Compute per-topic accuracy from the current sprint's in-memory data

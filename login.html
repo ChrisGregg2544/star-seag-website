@@ -230,9 +230,11 @@
   ══════════════════════════════════════ */
   async function syncGuestSessions(accessToken) {
     const guestDone = parseInt(localStorage.getItem('guest_sprints_done') || '0', 10)
+    console.log('[syncGuestSessions] guest_sprints_done:', guestDone)
     if (guestDone === 0) return
 
     const sessions = JSON.parse(localStorage.getItem('star_sessions') || '[]')
+    console.log('[syncGuestSessions] star_sessions length:', sessions.length)
     if (sessions.length === 0) return
 
     try {
@@ -251,6 +253,10 @@
         ].forEach(k => localStorage.removeItem(k))
         // Flag: next sprint completion shows baseline report
         localStorage.setItem('star_needs_baseline', '1')
+        console.log('[syncGuestSessions] ✅ synced', sessions.length, 'sessions — star_needs_baseline set')
+      } else {
+        const text = await res.text()
+        console.error('[syncGuestSessions] API non-ok:', res.status, text.slice(0, 200))
       }
     } catch (err) {
       console.error('[syncGuestSessions] failed (non-fatal):', err.message)

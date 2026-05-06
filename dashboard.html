@@ -1012,7 +1012,12 @@ function showBaselineToast() {
   setTimeout(() => toast.classList.remove('show'), 2800);
 }
 
-function applyBaselineLock() {
+function applyBaselineLock(sessionsCount) {
+  const completed  = sessionsCount || 0;
+  const remaining  = Math.max(0, 3 - completed);
+  const countLabel = remaining === 1 ? '1 Mini Mock to go' : remaining + ' Mini Mocks to go';
+  console.log('[dashboard] applyBaselineLock — completed:', completed, 'remaining:', remaining);
+
   // 1. Banner above today card
   const todayCard = document.getElementById('today-card');
   const banner = document.createElement('div');
@@ -1020,10 +1025,10 @@ function applyBaselineLock() {
   banner.innerHTML = `
     <span class="baseline-banner-icon">🎯</span>
     <div class="baseline-banner-text">
-      <strong>Almost there!</strong>
-      <span>Complete one more sprint to unlock your personalised dashboard.</span>
+      <strong>Almost there — ${countLabel}!</strong>
+      <span>Complete your baseline Mini Mocks to unlock your personalised training plan.</span>
     </div>
-    <a href="study.html" class="baseline-banner-btn">Start Baseline Sprint →</a>`;
+    <a href="study.html" class="baseline-banner-btn">Start Mini Mock →</a>`;
   todayCard.before(banner);
 
   // 2. Today card override
@@ -1154,7 +1159,10 @@ async function init() {
     document.getElementById('btn-manage-sub').classList.add('visible');
   }
 
-  if (!subscribed) {
+  const baselineNeeded = localStorage.getItem('star_needs_baseline') === '1';
+  console.log('[dashboard] star_needs_baseline:', baselineNeeded);
+
+  if (!subscribed && !baselineNeeded) {
     const dbFreeUsed = parentProfile?.free_sprints_used ?? 0;
     const lsFreeUsed = parseInt(localStorage.getItem('star_free_sprints_used') || '0', 10);
     const freeUsed = Math.max(dbFreeUsed, lsFreeUsed);
@@ -1249,8 +1257,6 @@ async function init() {
   const weekDone  = weekDoneCount || 0;
   const weakTopic = toReview.length > 0 ? (toReview[0].topic || null) : null;
 
-  const baselineNeeded = localStorage.getItem('star_needs_baseline') === '1';
-
   if (!baselineNeeded) {
     if ((sessionsCount || 0) === 0) {
       document.getElementById('today-title').textContent = '🔍 Start Your Discovery Sprint';
@@ -1277,7 +1283,8 @@ async function init() {
   }
 
   if (baselineNeeded) {
-    applyBaselineLock();
+    console.log('[dashboard] applying baseline lock, sessionsCount:', sessionsCount);
+    applyBaselineLock(sessionsCount || 0);
     buildSkillsMap(sessionsCount || 0, selectedChildId);
     // Topics locked — replace with a prompt to complete baseline
     const grid  = document.getElementById('topic-grid');
