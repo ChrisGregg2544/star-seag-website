@@ -331,6 +331,59 @@
       cursor: pointer; padding: 4px 8px; display: block; margin: 0 auto;
     }
     .guest-btn-dismiss:hover { color: #777; }
+
+    /* ── Baseline Report ── */
+    .baseline-report {
+      background: linear-gradient(135deg, #f0f7ff 0%, #fff9e6 100%);
+      border: 2px solid #C9A84C;
+      border-radius: 16px; padding: 24px 22px; margin: 0 0 20px;
+    }
+    .baseline-header {
+      font-size: 1.1rem; font-weight: 900; color: #1a1a2e;
+      margin-bottom: 4px;
+    }
+    .baseline-sub {
+      font-size: .8rem; color: #888; margin-bottom: 18px;
+    }
+    .baseline-topic-row {
+      display: flex; align-items: center; gap: 8px; margin-bottom: 10px;
+    }
+    .baseline-topic-name {
+      width: 160px; flex-shrink: 0; font-size: .82rem; font-weight: 700;
+      color: #333; text-transform: capitalize;
+    }
+    .baseline-bar-wrap {
+      flex: 1; background: rgba(0,0,0,.08); border-radius: 99px; height: 8px; overflow: hidden;
+    }
+    .baseline-bar-fill {
+      height: 100%; border-radius: 99px; transition: width .6s ease;
+    }
+    .baseline-bar-fill.strong { background: #58CC02; }
+    .baseline-bar-fill.mid    { background: #FF9E40; }
+    .baseline-bar-fill.weak   { background: #FF4B4B; }
+    .baseline-score-chip {
+      font-size: .78rem; font-weight: 800; width: 36px; text-align: right; flex-shrink: 0;
+    }
+    .baseline-score-chip.strong { color: #46A302; }
+    .baseline-score-chip.mid    { color: #E65100; }
+    .baseline-score-chip.weak   { color: #CC0000; }
+    .baseline-callouts {
+      display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap;
+    }
+    .baseline-callout {
+      flex: 1; min-width: 120px; border-radius: 10px; padding: 10px 12px; font-size: .8rem; line-height: 1.4;
+    }
+    .baseline-callout.strength { background: #e8f9d9; border: 1.5px solid #58CC02; }
+    .baseline-callout.weakness { background: #ffeaea; border: 1.5px solid #FF4B4B; }
+    .baseline-callout strong { display: block; font-size: .75rem; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 4px; }
+    .baseline-callout.strength strong { color: #46A302; }
+    .baseline-callout.weakness strong { color: #CC0000; }
+    .baseline-rec {
+      margin-top: 14px; padding: 10px 14px;
+      background: #fff; border-radius: 10px; border: 1.5px solid #C9A84C;
+      font-size: .84rem; color: #333; line-height: 1.5;
+    }
+    @media (max-width: 480px) { .baseline-topic-name { width: 110px; font-size: .76rem; } }
   </style>
 </head>
 <body>
@@ -1344,6 +1397,8 @@ function _showResultsInternal() {
       const guestDone = parseInt(localStorage.getItem('guest_sprints_done') || '0', 10) + 1;
       localStorage.setItem('guest_sprints_done', guestDone);
       if (guestDone >= 2) setTimeout(showGuestSignupOverlay, 1800);
+    } else if (localStorage.getItem('star_needs_baseline') === '1') {
+      showBaselineReport();
     }
     return;
   }
@@ -1488,6 +1543,8 @@ function _showResultsInternal() {
     const guestDone = parseInt(localStorage.getItem('guest_sprints_done') || '0', 10) + 1;
     localStorage.setItem('guest_sprints_done', guestDone);
     if (guestDone >= 2) setTimeout(showGuestSignupOverlay, 1800);
+  } else if (localStorage.getItem('star_needs_baseline') === '1') {
+    showBaselineReport();
   }
 }
 
@@ -1572,6 +1629,87 @@ async function signOut() {
    Free users get 2 mini sprints before paywall kicks in.
    Guests (no account) get 2 free sprints tracked in localStorage.
 ════════════════════════════════ */
+
+function friendlyTopic(slug) {
+  const map = {
+    punctuation:           'Punctuation',
+    grammar:               'Grammar',
+    spelling:              'Spelling',
+    vocabulary:            'Vocabulary',
+    comprehension_mc:      'Comprehension',
+    comprehension_written: 'Comprehension (Written)',
+    arithmetic:            'Arithmetic',
+    geometry:              'Geometry',
+    fractions_decimals:    'Fractions & Decimals',
+    measurement:           'Measurement',
+    statistics:            'Statistics',
+    algebra_sequences:     'Algebra & Sequences',
+  };
+  return map[slug] || slug.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+}
+
+function showBaselineReport() {
+  localStorage.removeItem('star_needs_baseline');
+
+  // Compute per-topic accuracy from the current sprint's in-memory data
+  const topicMap = {};
+  QUESTIONS.forEach((q, i) => {
+    const t = q.topic || 'unknown';
+    if (!topicMap[t]) topicMap[t] = { correct: 0, total: 0 };
+    topicMap[t].total++;
+    if (answers[i] === 'correct') topicMap[t].correct++;
+  });
+
+  // Sort: strongest first
+  const sorted = Object.entries(topicMap).sort((a, b) => {
+    return (b[1].correct / b[1].total) - (a[1].correct / a[1].total);
+  });
+
+  const best  = sorted.filter(([, d]) => d.correct / d.total >= 0.7);
+  const worst = sorted.filter(([, d]) => d.correct / d.total < 0.5);
+
+  const rowsHtml = sorted.map(([slug, d]) => {
+    const pct = Math.round(d.correct / d.total * 100);
+    const cls = pct >= 70 ? 'strong' : pct >= 50 ? 'mid' : 'weak';
+    return `
+      <div class="baseline-topic-row">
+        <span class="baseline-topic-name">${friendlyTopic(slug)}</span>
+        <div class="baseline-bar-wrap">
+          <div class="baseline-bar-fill ${cls}" style="width:${pct}%"></div>
+        </div>
+        <span class="baseline-score-chip ${cls}">${d.correct}/${d.total}</span>
+      </div>`;
+  }).join('');
+
+  const calloutsHtml = `
+    <div class="baseline-callouts">
+      ${best.length ? `<div class="baseline-callout strength">
+        <strong>💪 Strengths</strong>
+        ${best.map(([s]) => friendlyTopic(s)).join(', ')}
+      </div>` : ''}
+      ${worst.length ? `<div class="baseline-callout weakness">
+        <strong>🎯 Focus Areas</strong>
+        ${worst.map(([s]) => friendlyTopic(s)).join(', ')}
+      </div>` : ''}
+    </div>`;
+
+  const recHtml = worst.length
+    ? `<div class="baseline-rec">💡 <strong>Recommended next:</strong> Start with ${friendlyTopic(worst[worst.length - 1][0])} — that's where you'll gain the most points fastest.</div>`
+    : `<div class="baseline-rec">🌟 Strong start across the board! Keep practising to push every topic to 100%.</div>`;
+
+  const card = document.createElement('div');
+  card.className = 'baseline-report';
+  card.innerHTML = `
+    <div class="baseline-header">📊 Your Baseline Report</div>
+    <div class="baseline-sub">Based on your first sprints with STAR — your starting point</div>
+    ${rowsHtml}
+    ${calloutsHtml}
+    ${recHtml}`;
+
+  // Insert before the action buttons
+  const actions = document.querySelector('.results-actions');
+  if (actions) actions.before(card);
+}
 
 function showGuestSignupOverlay() {
   const overlay = document.getElementById('guest-signup-overlay');

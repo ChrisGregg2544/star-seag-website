@@ -249,6 +249,8 @@
         ['guest_sprints_done', 'star_sessions', 'star_mastery', 'star_toReview',
          'star_last_score', 'star_last_track', 'star_last_name', 'star_video_log'
         ].forEach(k => localStorage.removeItem(k))
+        // Flag: next sprint completion shows baseline report
+        localStorage.setItem('star_needs_baseline', '1')
       }
     } catch (err) {
       console.error('[syncGuestSessions] failed (non-fatal):', err.message)
