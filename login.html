@@ -223,15 +223,44 @@
   let isSignUp = false
 
   /* ══════════════════════════════════════
-     SMART REDIRECT
-     1. Check for children (parent_id = user.id)
-        → found: parent-dashboard.html
-     2. No children → check own profile (maybeSingle — null if missing, no 406)
-        → onboarded: dashboard.html
-        → no profile / not onboarded: onboarding.html
+     GUEST SESSION SYNC
+     If the user did sprints before signing up, their results are in
+     localStorage (star_sessions). Sync them to Supabase once, then
+     clear the guest keys so future logins skip this step.
   ══════════════════════════════════════ */
-  async function smartRedirect(userId) {
+  async function syncGuestSessions(accessToken) {
+    const guestDone = parseInt(localStorage.getItem('guest_sprints_done') || '0', 10)
+    if (guestDone === 0) return
+
+    const sessions = JSON.parse(localStorage.getItem('star_sessions') || '[]')
+    if (sessions.length === 0) return
+
     try {
+      const res = await fetch('/api/sync-guest-sessions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({ sessions }),
+      })
+      if (res.ok) {
+        // Clear all guest localStorage keys — Supabase is now the source of truth
+        ['guest_sprints_done', 'star_sessions', 'star_mastery', 'star_toReview',
+         'star_last_score', 'star_last_track', 'star_last_name', 'star_video_log'
+        ].forEach(k => localStorage.removeItem(k))
+      }
+    } catch (err) {
+      console.error('[syncGuestSessions] failed (non-fatal):', err.message)
+      // Don't clear localStorage — user keeps their data if sync failed
+    }
+  }
+
+  async function smartRedirect(userId, accessToken) {
+    try {
+      // Sync any guest sprint results before redirecting
+      if (accessToken) await syncGuestSessions(accessToken)
+
       // Step 1 — children check runs first
       const childrenResult = await client.from('profiles').select('id').eq('parent_id', userId).limit(5)
 
@@ -376,7 +405,7 @@
     if (_redirecting) return
     if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session?.user) {
       _redirecting = true
-      await smartRedirect(session.user.id)
+      await smartRedirect(session.user.id, session.access_token)
     }
   })
 </script>
