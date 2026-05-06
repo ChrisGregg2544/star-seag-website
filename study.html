@@ -528,8 +528,8 @@
     <button class="btn-complete-primary" style="margin-bottom:0;" onclick="goToSignup()">🚀 Save My Results & Unlock More</button>
   </div>
   <div class="results-actions">
-    <button class="btn-complete-primary" onclick="restartSession()">🎯 &nbsp;Pick Another Topic</button>
-    <button class="btn-complete-secondary" onclick="goToDashboard()">View My Dashboard →</button>
+    <button class="btn-complete-primary" id="results-btn-primary" onclick="restartSession()">⚡ Try Another Mini Mock</button>
+    <button class="btn-complete-secondary" id="results-btn-secondary" onclick="goToDashboard()">Go to Dashboard →</button>
   </div>
 </div>
 
@@ -1430,6 +1430,16 @@ function _showResultsInternal() {
   document.getElementById('progress-section').style.display = 'none';
   document.getElementById('complete-screen').classList.remove('visible');
   document.getElementById('results-panel').classList.add('visible');
+
+  // Set action buttons based on auth state
+  const secBtn = document.getElementById('results-btn-secondary');
+  if (window._starAccess?.isGuest) {
+    secBtn.textContent = 'Sign Up Free to Save Your Results';
+    secBtn.onclick = () => { window.location.href = 'onboarding.html'; };
+  } else {
+    secBtn.textContent = 'Go to Dashboard →';
+    secBtn.onclick = goToDashboard;
+  }
 
   const pct  = Math.round(score.correct / QUESTIONS.length * 100);
   const name = sessionStorage.getItem('star_name') || '';
