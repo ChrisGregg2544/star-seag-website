@@ -299,6 +299,38 @@
     .star-footer-bottom-links a { font-size: .72rem; color: var(--text-light); text-decoration: none; transition: color .15s; }
     .star-footer-bottom-links a:hover { color: var(--orange); }
     @media(max-width: 620px) { .star-footer-grid { grid-template-columns: 1fr; gap: 20px; } .star-footer-bottom { flex-direction: column; align-items: flex-start; } }
+
+    /* ── Guest signup overlay ── */
+    .guest-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,.65);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 9999; backdrop-filter: blur(4px);
+    }
+    .guest-overlay-card {
+      background: #fff; border-radius: 20px; padding: 40px 32px;
+      max-width: 420px; width: 90%; text-align: center;
+      box-shadow: 0 24px 64px rgba(0,0,0,.3);
+    }
+    .guest-overlay-emoji { font-size: 52px; margin-bottom: 12px; }
+    .guest-overlay-card h2 { font-size: 1.45rem; font-weight: 800; color: #1a1a2e; margin: 0 0 10px; }
+    .guest-overlay-card p  { color: #555; margin: 0 0 6px; line-height: 1.55; font-size: .95rem; }
+    .guest-overlay-sub { font-size: .82rem !important; color: #999 !important; }
+    .guest-btn-google {
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      background: #4285F4; color: #fff; border-radius: 10px;
+      padding: 14px 24px; font-size: 1rem; font-weight: 700;
+      text-decoration: none; margin: 22px 0 10px; transition: background .2s;
+    }
+    .guest-btn-google:hover { background: #3367d6; color: #fff; }
+    .guest-btn-email {
+      display: block; color: #4285F4; font-size: .9rem; font-weight: 600;
+      text-decoration: underline; margin-bottom: 18px;
+    }
+    .guest-btn-dismiss {
+      background: none; border: none; color: #bbb; font-size: .82rem;
+      cursor: pointer; padding: 4px 8px; display: block; margin: 0 auto;
+    }
+    .guest-btn-dismiss:hover { color: #777; }
   </style>
 </head>
 <body>
@@ -909,17 +941,20 @@ async function init() {
   const urlMode  = params.get('mode');
   const urlTrack = params.get('track');
 
-  // Use selectedChildId set by login.html (direct student) or child-selector.html (parent flow)
   const selectedChildId = localStorage.getItem('selectedChildId');
-  if (!selectedChildId) { window.location.href = 'child-selector.html'; return; }
 
-  const { data: profile } = await sb.from('profiles')
-    .select('name, year_group')
-    .eq('id', selectedChildId)
-    .maybeSingle();
-  if (profile?.year_group) userYear = profile.year_group;
-  else userYear = urlTrack || sessionStorage.getItem('star_year') || 'P6';
-  if (profile?.name) document.getElementById('nav-student-name').textContent = '· ' + profile.name;
+  if (window._starAccess?.isGuest) {
+    userYear = urlTrack || sessionStorage.getItem('star_year') || 'P6';
+  } else {
+    if (!selectedChildId) { window.location.href = 'child-selector.html'; return; }
+    const { data: profile } = await sb.from('profiles')
+      .select('name, year_group')
+      .eq('id', selectedChildId)
+      .maybeSingle();
+    if (profile?.year_group) userYear = profile.year_group;
+    else userYear = urlTrack || sessionStorage.getItem('star_year') || 'P6';
+    if (profile?.name) document.getElementById('nav-student-name').textContent = '· ' + profile.name;
+  }
 
   const { data: { session: _authSession } } = await sb.auth.getSession();
   currentUserId = _authSession?.user?.id || null;
@@ -927,14 +962,14 @@ async function init() {
   document.getElementById('results-panel').classList.remove('visible');
   document.getElementById('complete-screen').classList.remove('visible');
 
-  if (urlTopic) {
-    // Specific topic passed — go straight to that topic
+  if (window._starAccess?.isGuest) {
+    // Guests always get a mixed sprint — no topic picker
+    await startStudy('mixed');
+  } else if (urlTopic) {
     await startStudy(urlTopic);
   } else if (urlMode === 'topic') {
-    // Topic picker mode — let student choose
     showTopicPicker();
   } else {
-    // Default: Quick Sprint — 10 random mixed questions, no picker
     await startStudy('mixed');
   }
 }
@@ -1305,6 +1340,11 @@ function _showResultsInternal() {
   if (calledFromExhausted) {
     const wrongQuestions = QUESTIONS.filter((q, i) => answers[i] === 'wrong');
     saveSessionToSupabase(wrongQuestions);
+    if (window._starAccess?.isGuest) {
+      const guestDone = parseInt(localStorage.getItem('guest_sprints_done') || '0', 10) + 1;
+      localStorage.setItem('guest_sprints_done', guestDone);
+      if (guestDone >= 2) setTimeout(showGuestSignupOverlay, 1800);
+    }
     return;
   }
 
@@ -1444,6 +1484,11 @@ function _showResultsInternal() {
   localStorage.setItem('star_sessions',  JSON.stringify(sessions));
 
   saveSessionToSupabase(missedQuestions);
+  if (window._starAccess?.isGuest) {
+    const guestDone = parseInt(localStorage.getItem('guest_sprints_done') || '0', 10) + 1;
+    localStorage.setItem('guest_sprints_done', guestDone);
+    if (guestDone >= 2) setTimeout(showGuestSignupOverlay, 1800);
+  }
 }
 
 function saveSessionToSupabase(missedQs) {
@@ -1525,17 +1570,28 @@ async function signOut() {
    SUBSCRIPTION GATE
    Checks login + subscription before allowing access.
    Free users get 2 mini sprints before paywall kicks in.
+   Guests (no account) get 2 free sprints tracked in localStorage.
 ════════════════════════════════ */
 
+function showGuestSignupOverlay() {
+  const overlay = document.getElementById('guest-signup-overlay');
+  if (overlay) overlay.style.display = 'flex';
+}
+
 // Module-level access state — read by the session save block
-window._starAccess = { subscribed: false, freeUsed: 0, userId: null };
+window._starAccess = { subscribed: false, freeUsed: 0, userId: null, isGuest: false };
 
 async function checkAccess() {
   try {
     const { data } = await sb.auth.getSession();
 
     if (!data?.session?.user) {
-      window.location.href = 'login.html';
+      const guestDone = parseInt(localStorage.getItem('guest_sprints_done') || '0', 10);
+      if (guestDone < 2) {
+        window._starAccess = { subscribed: false, freeUsed: 0, userId: null, isGuest: true };
+        return true;
+      }
+      showGuestSignupOverlay();
       return false;
     }
 
@@ -1609,5 +1665,27 @@ window.addEventListener('DOMContentLoaded', async () => {
   if (allowed) init();
 });
 </script>
+
+<!-- Guest signup overlay — shown after 2nd free sprint -->
+<div id="guest-signup-overlay" class="guest-overlay" style="display:none;">
+  <div class="guest-overlay-card">
+    <div class="guest-overlay-emoji">🎉</div>
+    <h2>Great work — 2 sprints done!</h2>
+    <p>Sign up free to <strong>save your results</strong> and unlock your <strong>personalised baseline report</strong>.</p>
+    <p>STAR will tell you exactly where to focus first.</p>
+    <p class="guest-overlay-sub">7-day free trial · no card required</p>
+    <a href="login.html?signup=1" class="guest-btn-google">
+      <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
+        <path fill="#fff" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.716v2.259h2.908C16.658 14.148 17.64 11.84 17.64 9.2z"/>
+        <path fill="#fff" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"/>
+        <path fill="#fff" d="M3.964 10.706c-.18-.54-.282-1.117-.282-1.706s.102-1.166.282-1.706V4.962H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.038l3.007-2.332z"/>
+        <path fill="#fff" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.962L3.964 6.67C4.672 4.542 6.656 3.58 9 3.58z"/>
+      </svg>
+      Continue with Google
+    </a>
+    <a href="signup.html" class="guest-btn-email">Sign up with email instead</a>
+    <button onclick="document.getElementById('guest-signup-overlay').style.display='none'" class="guest-btn-dismiss">Maybe later</button>
+  </div>
+</div>
 </body>
 </html>
