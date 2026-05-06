@@ -441,6 +441,37 @@
       .nav-hi { display: none; }
       .week-card { width: 88px; }
     }
+
+    /* ── Baseline lock ── */
+    .baseline-banner {
+      display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+      background: #FFF8E1; border: 2px solid var(--yellow);
+      border-radius: var(--radius); padding: 14px 20px;
+      margin-bottom: 16px; animation: fadeUp .4s both;
+    }
+    .baseline-banner-icon { font-size: 1.5rem; flex-shrink: 0; }
+    .baseline-banner-text { flex: 1; min-width: 180px; }
+    .baseline-banner-text strong { display: block; font-size: .9rem; font-weight: 800; color: var(--orange-dark); margin-bottom: 2px; }
+    .baseline-banner-text span { font-size: .8rem; color: var(--text-mid); }
+    .baseline-banner-btn {
+      display: inline-block; background: var(--orange); color: #fff;
+      font-family: 'Nunito', sans-serif; font-size: .8rem; font-weight: 800;
+      letter-spacing: .04em; text-transform: uppercase;
+      padding: 9px 18px; border-radius: 10px; text-decoration: none;
+      white-space: nowrap; box-shadow: 0 4px 0 var(--orange-dark); transition: all .15s;
+    }
+    .baseline-banner-btn:hover { transform: translateY(-1px); box-shadow: 0 5px 0 var(--orange-dark); color: #fff; }
+    .feature-locked { opacity: 0.42 !important; pointer-events: none !important; user-select: none; }
+    .baseline-toast {
+      position: fixed; bottom: 24px; left: 50%;
+      transform: translateX(-50%) translateY(16px);
+      background: #333; color: #fff; border-radius: 10px;
+      padding: 12px 22px; font-size: .85rem; font-weight: 700;
+      box-shadow: 0 8px 24px rgba(0,0,0,.3); z-index: 9999;
+      opacity: 0; transition: opacity .25s, transform .25s;
+      white-space: nowrap; max-width: 90vw; text-align: center; pointer-events: none;
+    }
+    .baseline-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
   </style>
 </head>
 <body>
@@ -919,10 +950,11 @@ function buildTopics(toReview, hasData) {
   });
 }
 
-function buildWeeklySchedule(sessionsPerWeek, weekDone) {
-  const target = Math.max(1, Math.min(7, sessionsPerWeek || 3));
-  const done   = Math.min(weekDone || 0, target);
-  const pct    = Math.round((done / target) * 100);
+function buildWeeklySchedule(sessionsPerWeek, weekDone, yearGroup) {
+  const target   = Math.max(1, Math.min(7, sessionsPerWeek || 3));
+  const done     = Math.min(weekDone || 0, target);
+  const pct      = Math.round((done / target) * 100);
+  const rotation = buildRotation(yearGroup || 'P6').filter(r => r.href !== '#');
 
   document.getElementById('week-done-num').textContent    = done;
   document.getElementById('week-target-num').textContent  = target;
@@ -946,7 +978,7 @@ function buildWeeklySchedule(sessionsPerWeek, weekDone) {
   let nextFlagged = false;
 
   for (let i = 0; i < target; i++) {
-    const sess     = SESSION_ROTATION[i % SESSION_ROTATION.length];
+    const sess     = rotation[i % rotation.length];
     const isDone   = i < done;
     const isNext   = !isDone && !nextFlagged;
     if (isNext) nextFlagged = true;
@@ -964,6 +996,78 @@ function buildWeeklySchedule(sessionsPerWeek, weekDone) {
       (isNext ? '<div class="week-card-next-badge">Up next</div>' : '');
 
     container.appendChild(card);
+  }
+}
+
+function showBaselineToast() {
+  let toast = document.getElementById('baseline-toast');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'baseline-toast';
+    toast.className = 'baseline-toast';
+    document.body.appendChild(toast);
+  }
+  toast.textContent = '🎯 Complete your baseline sprint first to unlock this feature.';
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 2800);
+}
+
+function applyBaselineLock() {
+  // 1. Banner above today card
+  const todayCard = document.getElementById('today-card');
+  const banner = document.createElement('div');
+  banner.className = 'baseline-banner';
+  banner.innerHTML = `
+    <span class="baseline-banner-icon">🎯</span>
+    <div class="baseline-banner-text">
+      <strong>Almost there!</strong>
+      <span>Complete one more sprint to unlock your personalised dashboard.</span>
+    </div>
+    <a href="study.html" class="baseline-banner-btn">Start Baseline Sprint →</a>`;
+  todayCard.before(banner);
+
+  // 2. Today card override
+  document.getElementById('today-title').textContent = '🎯 Complete Your Baseline Sprint';
+  document.getElementById('today-sub').textContent   = 'One quick sprint — STAR will build your personal training plan.';
+  todayCard.href = 'study.html';
+
+  // 3. Lock both action pair buttons (Take a Mock, Study by Topic)
+  document.querySelectorAll('.ap-btn').forEach(btn => {
+    btn.href = '#';
+    btn.addEventListener('click', e => { e.preventDefault(); showBaselineToast(); });
+    btn.classList.add('feature-locked');
+    const label = btn.querySelector('.ap-label');
+    if (label) label.innerHTML = '🔒 ' + label.textContent;
+  });
+
+  // 4. Lock Topic Sprint (index 1) and Full Mock (index 2); leave Study Hall (0) and STAR Chat (4) open
+  const modeCards = document.querySelectorAll('.modes-grid .mode-card');
+  [1, 2].forEach(i => {
+    const card = modeCards[i];
+    if (!card) return;
+    card.href = '#';
+    card.addEventListener('click', e => { e.preventDefault(); showBaselineToast(); });
+    card.classList.add('feature-locked');
+    const badge = card.querySelector('.mode-badge');
+    if (badge) {
+      badge.textContent = '🔒 Locked';
+    } else {
+      const b = document.createElement('span');
+      b.className = 'mode-badge';
+      b.textContent = '🔒 Locked';
+      card.appendChild(b);
+    }
+  });
+
+  // 5. Weekly schedule — replace with locked placeholder
+  const weekSection = document.querySelector('.week-section');
+  if (weekSection) {
+    weekSection.innerHTML = `
+      <div style="text-align:center;padding:28px 16px;">
+        <div style="font-size:2rem;margin-bottom:8px;">📅</div>
+        <div style="font-size:.9rem;font-weight:800;color:var(--text-dark);margin-bottom:6px;">Weekly Training Plan</div>
+        <div style="font-size:.82rem;font-weight:600;color:var(--text-mid);">Unlocks after your baseline sprint is complete.</div>
+      </div>`;
   }
 }
 
@@ -1145,19 +1249,22 @@ async function init() {
   const weekDone  = weekDoneCount || 0;
   const weakTopic = toReview.length > 0 ? (toReview[0].topic || null) : null;
 
-  if ((sessionsCount || 0) === 0) {
-    // Brand-new user: push them to the discovery (mixed) sprint
-    document.getElementById('today-title').textContent = '🔍 Start Your Discovery Sprint';
-    document.getElementById('today-sub').textContent   = '10 mixed questions across all topics — STAR will map your strengths and tell you exactly where to focus first.';
-    document.getElementById('today-card').href         = 'study.html';
-  } else {
-    const rec = getTodayRec(yearGroup, weeks, sessionsPerWeek, weekDone, weakTopic);
-    document.getElementById('today-title').textContent = rec.title;
-    document.getElementById('today-sub').textContent   = rec.sub;
-    document.getElementById('today-card').href         = rec.href;
+  const baselineNeeded = localStorage.getItem('star_needs_baseline') === '1';
+
+  if (!baselineNeeded) {
+    if ((sessionsCount || 0) === 0) {
+      document.getElementById('today-title').textContent = '🔍 Start Your Discovery Sprint';
+      document.getElementById('today-sub').textContent   = '10 mixed questions across all topics — STAR will map your strengths and tell you exactly where to focus first.';
+      document.getElementById('today-card').href         = 'study.html';
+    } else {
+      const rec = getTodayRec(yearGroup, weeks, sessionsPerWeek, weekDone, weakTopic);
+      document.getElementById('today-title').textContent = rec.title;
+      document.getElementById('today-sub').textContent   = rec.sub;
+      document.getElementById('today-card').href         = rec.href;
+    }
   }
 
-  // Score ring
+  // Score ring — always render if we have a score
   if (hasData) {
     const pct  = lastScore;
     const off  = 283 - (pct / 100) * 283;
@@ -1169,9 +1276,19 @@ async function init() {
     requestAnimationFrame(() => setTimeout(() => { fill.style.strokeDashoffset = off; }, 80));
   }
 
-  buildWeeklySchedule(sessionsPerWeek, weekDone);
-  buildSkillsMap(sessionsCount || 0, selectedChildId);
-  buildTopics(toReview, hasData);
+  if (baselineNeeded) {
+    applyBaselineLock();
+    buildSkillsMap(sessionsCount || 0, selectedChildId);
+    // Topics locked — replace with a prompt to complete baseline
+    const grid  = document.getElementById('topic-grid');
+    const count = document.getElementById('topics-count');
+    if (count) count.textContent = '';
+    if (grid) grid.innerHTML = `<div class="no-data-state"><div class="nd-icon">📊</div><h3>Unlock your topic recommendations</h3><p>Complete your baseline sprint and STAR will show you exactly which topics to focus on first.</p></div>`;
+  } else {
+    buildWeeklySchedule(sessionsPerWeek, weekDone, yearGroup);
+    buildSkillsMap(sessionsCount || 0, selectedChildId);
+    buildTopics(toReview, hasData);
+  }
 }
 
 window.addEventListener('DOMContentLoaded', init);
