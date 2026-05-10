@@ -1666,7 +1666,12 @@ async function restartSession() {
   document.getElementById('results-panel').classList.remove('visible');
   document.getElementById('complete-screen').classList.remove('visible');
   const allowed = await checkAccess();
-  if (allowed) showTopicPicker();
+  if (!allowed) return;
+  if (window._starAccess?.isGuest) {
+    await startStudy('mixed');
+  } else {
+    showTopicPicker();
+  }
 }
 function goToSignup() {
   const pct = Math.round(score.correct / QUESTIONS.length * 100);
