@@ -10,6 +10,16 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- Guard: redirect unauthenticated visitors before any content renders -->
+  <script>
+    (function () {
+      try {
+        var raw = localStorage.getItem('sb-iutcgogmxhaqgaxkznxu-auth-token');
+        var tok = raw ? JSON.parse(raw) : null;
+        if (!tok || !tok.access_token) { window.location.replace('login.html'); }
+      } catch (e) { window.location.replace('login.html'); }
+    })();
+  </script>
   <!-- Cookie Consent + GA4 (loads GA only if accepted) -->
   <script src="cookie-consent.js"></script>
   <style>

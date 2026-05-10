@@ -1427,6 +1427,16 @@ function _showResultsInternal() {
     localStorage.setItem('star_sessions', JSON.stringify(sessions));
     console.log('[study] star_sessions updated, total saved:', sessions.length);
 
+    // Update action buttons — this is the only branch that ever runs
+    const secBtn = document.getElementById('results-btn-secondary');
+    if (window._starAccess?.isGuest) {
+      secBtn.textContent = 'Sign Up Free to Save Your Results';
+      secBtn.onclick = () => { window.location.href = 'onboarding.html'; };
+    } else {
+      secBtn.textContent = 'Go to Dashboard →';
+      secBtn.onclick = goToDashboard;
+    }
+
     saveSessionToSupabase(wrongQuestions);
     if (window._starAccess?.isGuest) {
       const guestDone = parseInt(localStorage.getItem('guest_sprints_done') || '0', 10) + 1;
