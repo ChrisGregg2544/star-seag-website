@@ -1023,9 +1023,10 @@ function showBaselineToast() {
 }
 
 function applyBaselineLock(sessionsCount) {
-  const completed  = sessionsCount || 0;
-  const remaining  = Math.max(0, 3 - completed);
-  const countLabel = remaining === 1 ? '1 Mini Mock to go' : remaining + ' Mini Mocks to go';
+  const completed      = sessionsCount || 0;
+  const remaining      = Math.max(0, 3 - completed);
+  const completedLabel = completed === 1 ? '1 Mini Mock completed ✅' : completed + ' Mini Mocks completed ✅';
+  const moreLabel      = remaining === 1 ? 'complete 1 more' : 'complete ' + remaining + ' more';
   console.log('[dashboard] applyBaselineLock — completed:', completed, 'remaining:', remaining);
 
   // 1. Banner above today card
@@ -1035,15 +1036,14 @@ function applyBaselineLock(sessionsCount) {
   banner.innerHTML = `
     <span class="baseline-banner-icon">🎯</span>
     <div class="baseline-banner-text">
-      <strong>Almost there — ${countLabel}!</strong>
-      <span>Complete your baseline Mini Mocks to unlock your personalised training plan.</span>
+      <strong>${completedLabel} — ${moreLabel} to unlock your personalised plan</strong>
     </div>
     <a href="study.html" class="baseline-banner-btn">Start Mini Mock →</a>`;
   todayCard.before(banner);
 
-  // 2. Today card override
-  document.getElementById('today-title').textContent = '🎯 Complete Your Baseline Sprint';
-  document.getElementById('today-sub').textContent   = 'One quick sprint — STAR will build your personal training plan.';
+  // 2. Today card — single prominent CTA
+  document.getElementById('today-title').textContent = '🎯 Complete Your Baseline Mini Mock';
+  document.getElementById('today-sub').textContent   = '10 mixed questions — STAR builds your personalised training plan the moment you finish.';
   todayCard.href = 'study.html';
 
   // 3. Lock both action pair buttons (Take a Mock, Study by Topic)
@@ -1055,11 +1055,8 @@ function applyBaselineLock(sessionsCount) {
     if (label) label.innerHTML = '🔒 ' + label.textContent;
   });
 
-  // 4. Lock Topic Sprint (index 1) and Full Mock (index 2); leave Study Hall (0) and STAR Chat (4) open
-  const modeCards = document.querySelectorAll('.modes-grid .mode-card');
-  [1, 2].forEach(i => {
-    const card = modeCards[i];
-    if (!card) return;
+  // 4. Lock all mode cards — only the today-card Mini Mock CTA is active
+  document.querySelectorAll('.modes-grid .mode-card').forEach(card => {
     card.href = '#';
     card.addEventListener('click', e => { e.preventDefault(); showBaselineToast(); });
     card.classList.add('feature-locked');
@@ -1081,7 +1078,7 @@ function applyBaselineLock(sessionsCount) {
       <div style="text-align:center;padding:28px 16px;">
         <div style="font-size:2rem;margin-bottom:8px;">📅</div>
         <div style="font-size:.9rem;font-weight:800;color:var(--text-dark);margin-bottom:6px;">Weekly Training Plan</div>
-        <div style="font-size:.82rem;font-weight:600;color:var(--text-mid);">Unlocks after your baseline sprint is complete.</div>
+        <div style="font-size:.82rem;font-weight:600;color:var(--text-mid);">Unlocks after your baseline Mini Mock is complete.</div>
       </div>`;
   }
 }
