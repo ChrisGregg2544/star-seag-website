@@ -296,6 +296,7 @@ async function fetchPool(subject, topic, count, excludeIds = []) {
     .eq('topic',      topic)
     .eq('year_group', userYear)
     .eq('validated',  true)
+    .eq('active',     true)
     .limit(count * 5);
   if (excluded.length) q = q.not('id', 'in', `(${excluded.join(',')})`);
   const { data, error } = await q;
@@ -325,10 +326,10 @@ async function assembleEnglish(excludeIds) {
   const [{ data: mcAll }, { data: wrAll }, punct, grammar, spelling] = await Promise.all([
     sb.from('questions')
       .select('id,topic,question_type,question_text,passage,passage_id,options,correct_answer,diagram')
-      .eq('topic', 'comprehension_mc').eq('year_group', userYear).eq('validated', true).limit(500),
+        .eq('topic', 'comprehension_mc').eq('year_group', userYear).eq('validated', true).eq('active', true).limit(500),
     sb.from('questions')
       .select('id,topic,question_type,question_text,passage,passage_id,options,correct_answer,diagram')
-      .eq('topic', 'comprehension_written').eq('year_group', userYear).eq('validated', true).limit(500),
+      .eq('topic', 'comprehension_written').eq('year_group', userYear).eq('validated', true).eq('active', true).limit(500),
     fetchPool('english', 'punctuation', 5, excludeIds),
     fetchPool('english', 'grammar',     5, excludeIds),
     fetchPool('english', 'spelling',    5, excludeIds),
