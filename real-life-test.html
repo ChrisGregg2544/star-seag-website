@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>STAR – Real Life Test</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.js"></script>
+  <style>
+    :root {
+      --orange:#F97316;--orange-dark:#EA6C0A;--orange-light:#FB923C;
+      --cream:#FEF3E2;--cream-border:#F0E0C0;
+      --text-dark:#333333;--text-mid:#666666;--text-light:#999999;
+      --green:#58CC02;--red:#EF4444;
+      --radius:16px;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    body{background:var(--cream);min-height:100vh;font-family:'Nunito',sans-serif;font-weight:600;color:var(--text-dark);}
+
+    /* ── NAV ── */
+    .top-nav{position:sticky;top:0;z-index:100;background:var(--orange);display:flex;align-items:center;justify-content:space-between;padding:0 24px;height:64px;box-shadow:0 4px 0 var(--orange-dark);}
+    .nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none;}
+    .nav-logo-star{width:38px;height:38px;border-radius:10px;background:#F59E0B;border:3px solid rgba(0,0,0,.15);display:flex;align-items:center;justify-content:center;font-size:1.3rem;}
+    .nav-logo-name{font-size:1.1rem;font-weight:900;color:#fff;letter-spacing:.04em;}
+    .nav-back{font-size:.75rem;font-weight:800;letter-spacing:.05em;text-transform:uppercase;padding:7px 14px;border-radius:8px;background:rgba(255,255,255,.2);color:#fff;border:2px solid rgba(255,255,255,.4);cursor:pointer;text-decoration:none;}
+    .nav-back:hover{background:rgba(255,255,255,.32);}
+
+    /* ── SETUP SCREEN ── */
+    .setup-wrap{max-width:560px;margin:48px auto;padding:0 20px;}
+    .setup-card{background:#fff;border-radius:var(--radius);border:2px solid var(--cream-border);box-shadow:0 4px 0 rgba(0,0,0,.06);padding:36px 32px;}
+    .setup-icon{font-size:2.8rem;text-align:center;margin-bottom:16px;}
+    .setup-title{font-size:1.5rem;font-weight:900;text-align:center;color:var(--text-dark);margin-bottom:8px;}
+    .setup-sub{font-size:.9rem;color:var(--text-mid);text-align:center;line-height:1.6;margin-bottom:28px;}
+    .field-label{font-size:.78rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--text-mid);margin-bottom:6px;}
+    .field-select{width:100%;padding:12px 14px;border:2px solid var(--cream-border);border-radius:10px;font-family:'Nunito',sans-serif;font-size:.95rem;font-weight:700;color:var(--text-dark);background:#fff;margin-bottom:20px;cursor:pointer;}
+    .field-select:focus{outline:none;border-color:var(--orange);}
+    .btn-generate{width:100%;padding:15px;background:var(--orange);color:#fff;border:none;border-radius:12px;font-family:'Nunito',sans-serif;font-size:1rem;font-weight:800;letter-spacing:.04em;cursor:pointer;box-shadow:0 4px 0 var(--orange-dark);transition:all .15s;}
+    .btn-generate:hover{transform:translateY(-1px);box-shadow:0 5px 0 var(--orange-dark);}
+    .btn-generate:active{transform:translateY(1px);box-shadow:0 2px 0 var(--orange-dark);}
+    .btn-generate:disabled{opacity:.5;cursor:not-allowed;transform:none;}
+    .setup-note{font-size:.78rem;color:var(--text-light);text-align:center;margin-top:14px;line-height:1.5;}
+
+    /* ── LOADING ── */
+    .loading-wrap{max-width:400px;margin:80px auto;text-align:center;padding:0 20px;}
+    .loading-spinner{width:48px;height:48px;border:4px solid rgba(249,115,22,.2);border-top-color:var(--orange);border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 20px;}
+    @keyframes spin{to{transform:rotate(360deg);}}
+    .loading-title{font-size:1.2rem;font-weight:800;color:var(--text-dark);margin-bottom:8px;}
+    .loading-sub{font-size:.85rem;color:var(--text-mid);}
+
+    /* ── PAPER CONTROLS (screen only) ── */
+    .paper-controls{max-width:860px;margin:24px auto;padding:0 20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;}
+    .paper-meta{font-size:.85rem;color:var(--text-mid);}
+    .paper-meta strong{color:var(--text-dark);}
+    .print-btns{display:flex;gap:10px;}
+    .btn-print{padding:11px 20px;border-radius:10px;font-family:'Nunito',sans-serif;font-size:.82rem;font-weight:800;letter-spacing:.04em;cursor:pointer;border:none;transition:all .15s;text-transform:uppercase;}
+    .btn-print-paper{background:var(--orange);color:#fff;box-shadow:0 3px 0 var(--orange-dark);}
+    .btn-print-paper:hover{transform:translateY(-1px);}
+    .btn-print-key{background:#fff;color:var(--text-dark);border:2px solid var(--cream-border);box-shadow:0 3px 0 rgba(0,0,0,.06);}
+    .btn-print-key:hover{border-color:var(--orange);color:var(--orange);}
+    .btn-new{background:transparent;color:var(--text-mid);border:2px solid var(--cream-border);padding:9px 16px;border-radius:10px;font-family:'Nunito',sans-serif;font-size:.78rem;font-weight:800;cursor:pointer;letter-spacing:.04em;text-transform:uppercase;}
+    .btn-new:hover{color:var(--text-dark);border-color:var(--text-mid);}
+
+    /* ══════════════════════════════════════
+       PRINTABLE PAPER STYLES
+       ══════════════════════════════════════ */
+    .paper-wrap{max-width:860px;margin:0 auto;padding:0 20px 60px;}
+
+    /* Paper sections */
+    .paper-section{background:#fff;border:2px solid var(--cream-border);border-radius:16px;margin-bottom:24px;overflow:hidden;}
+    .section-header{background:var(--cream);border-bottom:2px solid var(--cream-border);padding:14px 24px;display:flex;align-items:center;gap:12px;}
+    .section-label{font-size:.72rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;padding:4px 12px;border-radius:99px;}
+    .label-practice{background:#EFF6FF;border:2px solid #BFDBFE;color:#1D4ED8;}
+    .label-english{background:#EEF2FF;border:2px solid #C7D2FE;color:#4338CA;}
+    .label-maths{background:#FFF3E0;border:2px solid #FFCC80;color:#EA6C0A;}
+    .section-title{font-size:1rem;font-weight:900;color:var(--text-dark);}
+    .section-qs{font-size:.82rem;color:var(--text-mid);margin-left:auto;}
+
+    /* Passage box */
+    .passage-box{margin:20px 24px;background:#FAFAFA;border:1.5px solid #E5E7EB;border-radius:10px;padding:18px 20px;}
+    .passage-label{font-size:.7rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--text-mid);margin-bottom:10px;}
+    .passage-text{font-size:.92rem;line-height:1.75;color:var(--text-dark);}
+
+    /* Question rows */
+    .q-row{padding:18px 24px;border-top:1.5px solid #F0E0C0;}
+    .q-row:first-child{border-top:none;}
+    .q-header{display:flex;align-items:baseline;gap:10px;margin-bottom:10px;}
+    .q-num{font-size:.75rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--text-light);white-space:nowrap;}
+    .q-num.practice{color:#1D4ED8;}
+    .q-text{font-size:.95rem;line-height:1.6;color:var(--text-dark);font-weight:700;}
+    .q-diagram{margin:10px 0;text-align:left;}
+    .q-diagram svg{max-width:280px;height:auto;}
+
+    /* MC options */
+    .mc-options{display:flex;flex-wrap:wrap;gap:8px 24px;margin-top:10px;}
+    .mc-opt{display:flex;align-items:center;gap:7px;font-size:.88rem;color:var(--text-dark);}
+    .mc-circle{width:20px;height:20px;border-radius:50%;border:1.5px solid #AAA;flex-shrink:0;display:inline-block;}
+    .mc-letter{font-weight:800;min-width:14px;}
+
+    /* Segments (punctuation/spelling) */
+    .segments{display:flex;flex-wrap:wrap;gap:6px 10px;margin:10px 0 6px;}
+    .seg-block{text-align:center;}
+    .seg-label{font-size:.65rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--text-mid);display:block;margin-bottom:2px;}
+    .seg-text{display:inline-block;background:#F5F5F5;border:1.5px solid #DDD;border-radius:7px;padding:6px 10px;font-size:.88rem;font-weight:700;color:var(--text-dark);}
+    .seg-prompt{font-size:.82rem;color:var(--text-mid);margin-top:8px;}
+    .seg-circles{display:flex;gap:14px;margin-top:6px;}
+    .seg-circle-opt{display:flex;align-items:center;gap:5px;font-size:.88rem;font-weight:800;}
+
+    /* Written answer lines */
+    .write-lines{margin-top:12px;}
+    .write-line{border-bottom:1.5px solid #CCC;height:28px;margin-bottom:4px;}
+
+    /* ── ANSWER KEY ── */
+    .answer-key-wrap{max-width:860px;margin:0 auto;padding:0 20px 60px;}
+    .answer-key-card{background:#fff;border:2px solid var(--cream-border);border-radius:16px;overflow:hidden;}
+    .ak-header{background:var(--cream);border-bottom:2px solid var(--cream-border);padding:20px 24px;}
+    .ak-title{font-size:1.2rem;font-weight:900;color:var(--text-dark);margin-bottom:4px;}
+    .ak-sub{font-size:.82rem;color:var(--text-mid);}
+    .ak-body{padding:20px 24px;}
+    .ak-section-label{font-size:.7rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--text-mid);margin:16px 0 8px;border-top:1.5px solid #F0E0C0;padding-top:14px;}
+    .ak-section-label:first-child{border-top:none;margin-top:0;padding-top:0;}
+    .ak-grid{display:flex;flex-wrap:wrap;gap:6px 0;}
+    .ak-item{width:calc(100%/8);display:flex;flex-direction:column;align-items:center;padding:6px 4px;border-right:1px solid #F0E0C0;}
+    .ak-item:nth-child(8n){border-right:none;}
+    .ak-qnum{font-size:.65rem;font-weight:800;color:var(--text-light);}
+    .ak-ans{font-size:1rem;font-weight:900;color:var(--text-dark);}
+    .ak-ans.written{font-size:.68rem;color:var(--text-mid);font-weight:700;}
+    .ak-divider{width:100%;border:none;border-top:1.5px solid var(--cream-border);margin:16px 0;}
+
+    /* ══════════════════════════════════════
+       PRINT MEDIA QUERIES
+       ══════════════════════════════════════ */
+    @media print {
+      .top-nav,.paper-controls,.screen-only { display:none !important; }
+      body { background:#fff; font-size:11pt; }
+      .paper-wrap,.answer-key-wrap { max-width:100%; padding:0; margin:0; }
+      .paper-section,.answer-key-card { border:none; border-radius:0; box-shadow:none; margin-bottom:0; }
+      .section-header { background:#f9f9f9; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+      .q-row { padding:12px 16px; break-inside:avoid; }
+      .passage-box { break-inside:avoid; }
+      .write-line { border-bottom:1px solid #999; }
+
+      body.print-paper .answer-key-wrap { display:none !important; }
+      body.print-key   .paper-wrap      { display:none !important; }
+
+      @page { margin:15mm 18mm; }
+    }
+
+    /* ── UTILS ── */
+    .hidden { display:none !important; }
+    .error-msg{color:var(--red);font-size:.85rem;text-align:center;margin-top:12px;}
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="top-nav screen-only">
+  <a href="parent-dashboard.html" class="nav-logo">
+    <div class="nav-logo-star">⭐</div>
+    <span class="nav-logo-name">STAR</span>
+  </a>
+  <a href="parent-dashboard.html" class="nav-back">← Parent Dashboard</a>
+</nav>
+
+<!-- SETUP SCREEN -->
+<div id="setup-screen" class="setup-wrap screen-only">
+  <div class="setup-card">
+    <div class="setup-icon">📄</div>
+    <div class="setup-title">Real Life Test</div>
+    <div class="setup-sub">Generate a full 66-question practice paper (10 warm-up + 56 test questions) matching the real SEAG Transfer Test format. Print for your child to complete on paper.</div>
+
+    <div class="field-label">Select child</div>
+    <select id="child-select" class="field-select">
+      <option value="">Loading children…</option>
+    </select>
+
+    <div class="field-label">Year group</div>
+    <select id="year-select" class="field-select">
+      <option value="P6">P6</option>
+      <option value="P7">P7</option>
+    </select>
+
+    <button id="btn-generate" class="btn-generate" disabled>Generate Paper</button>
+    <p id="setup-error" class="error-msg hidden"></p>
+    <p class="setup-note">Each paper is randomly assembled from the question bank — every print is a unique test.</p>
+  </div>
+</div>
+
+<!-- LOADING -->
+<div id="loading-screen" class="loading-wrap hidden screen-only">
+  <div class="loading-spinner"></div>
+  <div class="loading-title">Building your test paper…</div>
+  <div class="loading-sub" id="loading-sub">Assembling questions from the bank</div>
+</div>
+
+<!-- PAPER CONTROLS (screen only, shown after generation) -->
+<div id="paper-controls" class="paper-controls hidden screen-only">
+  <div class="paper-meta" id="paper-meta"></div>
+  <div class="print-btns">
+    <button class="btn-new" id="btn-new">↩ New Paper</button>
+    <button class="btn-print btn-print-key" onclick="printSection('key')">🔑 Print Answer Key</button>
+    <button class="btn-print btn-print-paper" onclick="printSection('paper')">🖨 Print Question Paper</button>
+  </div>
+</div>
+
+<!-- QUESTION PAPER -->
+<div id="paper-wrap" class="paper-wrap hidden"></div>
+
+<!-- ANSWER KEY -->
+<div id="answer-key-wrap" class="answer-key-wrap hidden"></div>
+
+<script>
+const SUPABASE_URL = 'https://iutcgogmxhaqgaxkznxu.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml1dGNnb2dtaGFxZ2F4a3pueHUiLCJyb2xlIjoiYW5vbiIsImlhdCI6MTc0MzE3MDQwOCwiZXhwIjoyMDU4NzQ2NDA4fQ.aFvRON-1Z_pq-Y30MgdFBB1ai7oM44qsEfDCIqEGiXA';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let parentId  = null;
+let userYear  = 'P6';
+let paperData = null; // { practice, english, maths, passage, childName, yearGroup, generated }
+
+/* ════════════════════════════════
+   AUTH
+════════════════════════════════ */
+async function init() {
+  const { data } = await sb.auth.getSession();
+  if (!data?.session?.user) { window.location.href = 'login.html'; return; }
+  parentId = data.session.user.id;
+
+  const { data: children } = await sb
+    .from('profiles')
+    .select('id,name,year_group')
+    .eq('parent_id', parentId)
+    .order('name');
+
+  const sel = document.getElementById('child-select');
+  if (!children?.length) {
+    // Could be a direct student — use their own profile
+    const { data: self } = await sb.from('profiles').select('id,name,year_group').eq('id', parentId).maybeSingle();
+    if (self) {
+      sel.innerHTML = `<option value="${self.id}">${self.name}</option>`;
+      document.getElementById('year-select').value = self.year_group || 'P6';
+      userYear = self.year_group || 'P6';
+    } else {
+      sel.innerHTML = '<option value="">No children found</option>';
+    }
+  } else {
+    sel.innerHTML = children.map(c =>
+      `<option value="${c.id}" data-year="${c.year_group}">${c.name} (${c.year_group})</option>`
+    ).join('');
+    // Set year from first child
+    const first = children[0];
+    document.getElementById('year-select').value = first.year_group || 'P6';
+    userYear = first.year_group || 'P6';
+  }
+
+  sel.addEventListener('change', () => {
+    const opt = sel.selectedOptions[0];
+    const yr  = opt?.dataset?.year || document.getElementById('year-select').value;
+    document.getElementById('year-select').value = yr;
+    userYear = yr;
+  });
+
+  document.getElementById('year-select').addEventListener('change', e => {
+    userYear = e.target.value;
+  });
+
+  document.getElementById('btn-generate').disabled = false;
+  document.getElementById('btn-generate').addEventListener('click', generatePaper);
+  document.getElementById('btn-new').addEventListener('click', resetToSetup);
+}
+
+/* ════════════════════════════════
+   QUESTION ASSEMBLY (same logic as mock.html)
+════════════════════════════════ */
+const seenIds = new Set();
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+async function fetchPool(subject, topic, count, excludeIds = []) {
+  const excluded = [...new Set([...excludeIds, ...seenIds])];
+  let q = sb.from('questions')
+    .select('id,subject,topic,question_type,question_text,passage,options,correct_answer,diagram')
+    .eq('subject',    subject)
+    .eq('topic',      topic)
+    .eq('year_group', userYear)
+    .eq('source',     'ai_generated_v2')
+    .eq('active',     true)
+    .limit(count * 5);
+  if (excluded.length) q = q.not('id', 'in', `(${excluded.join(',')})`);
+  const { data, error } = await q;
+  if (error) throw new Error(`Fetch failed (${topic}): ${error.message}`);
+  const picked = shuffle(data || []).slice(0, count);
+  picked.forEach(r => seenIds.add(r.id));
+  return picked;
+}
+
+async function assemblePractice() {
+  const [punct, grammar, spelling, arith, frac, geom] = await Promise.all([
+    fetchPool('english', 'punctuation',        2),
+    fetchPool('english', 'grammar',            2),
+    fetchPool('english', 'spelling',           1),
+    fetchPool('maths',   'arithmetic',         2),
+    fetchPool('maths',   'fractions_decimals', 2),
+    fetchPool('maths',   'geometry',           1),
+  ]);
+  return shuffle([...punct, ...grammar, ...spelling, ...arith, ...frac, ...geom]).slice(0, 10);
+}
+
+async function assembleEnglish(excludeIds) {
+  const { data: passages } = await sb.from('passages')
+    .select('id,content')
+    .eq('year_group', userYear)
+    .eq('source',     'ai_generated_v2');
+  if (!passages?.length) throw new Error('No reading passages found for this year group');
+
+  const passage = passages[Math.floor(Math.random() * passages.length)];
+
+  const [mcRes, wrRes, punct, grammar, spelling] = await Promise.all([
+    sb.from('questions')
+      .select('id,subject,topic,question_type,question_text,passage,options,correct_answer,diagram')
+      .eq('passage_id', passage.id).eq('topic', 'comprehension_mc')
+      .eq('source', 'ai_generated_v2').eq('active', true),
+    sb.from('questions')
+      .select('id,subject,topic,question_type,question_text,passage,options,correct_answer,diagram')
+      .eq('passage_id', passage.id).eq('topic', 'comprehension_written')
+      .eq('source', 'ai_generated_v2').eq('active', true),
+    fetchPool('english', 'punctuation', 5, excludeIds),
+    fetchPool('english', 'grammar',     5, excludeIds),
+    fetchPool('english', 'spelling',    5, excludeIds),
+  ]);
+
+  const mc = shuffle(mcRes.data || []).slice(0, 7);
+  const wr = shuffle(wrRes.data || []).slice(0, 6);
+  if (mc.length < 7) throw new Error(`Not enough comprehension MC questions for this passage (${mc.length}/7)`);
+  if (wr.length < 6) throw new Error(`Not enough comprehension written questions for this passage (${wr.length}/6)`);
+  mc.forEach(r => seenIds.add(r.id));
+  wr.forEach(r => seenIds.add(r.id));
+  return { qs: [...punct, ...grammar, ...spelling, ...mc, ...wr], passage };
+}
+
+async function assembleMaths(excludeIds) {
+  const [arith, geom, frac, meas, stat, alg] = await Promise.all([
+    fetchPool('maths', 'arithmetic',         7, excludeIds),
+    fetchPool('maths', 'geometry',           7, excludeIds),
+    fetchPool('maths', 'fractions_decimals', 6, excludeIds),
+    fetchPool('maths', 'measurement',        4, excludeIds),
+    fetchPool('maths', 'statistics',         2, excludeIds),
+    fetchPool('maths', 'algebra_sequences',  2, excludeIds),
+  ]);
+  return [...arith, ...geom, ...frac, ...meas, ...stat, ...alg];
+}
+
+async function generatePaper() {
+  const childSel  = document.getElementById('child-select');
+  const childId   = childSel.value;
+  const childName = childSel.selectedOptions[0]?.text || 'Student';
+  userYear        = document.getElementById('year-select').value;
+
+  document.getElementById('setup-screen').classList.add('hidden');
+  document.getElementById('loading-screen').classList.remove('hidden');
+  document.getElementById('setup-error').classList.add('hidden');
+  seenIds.clear();
+
+  try {
+    document.getElementById('loading-sub').textContent = 'Fetching warm-up questions…';
+    const practice = await assemblePractice();
+
+    document.getElementById('loading-sub').textContent = 'Assembling English section…';
+    const practiceIds = practice.map(q => q.id);
+    const { qs: english, passage } = await assembleEnglish(practiceIds);
+
+    document.getElementById('loading-sub').textContent = 'Assembling Maths section…';
+    const englishIds = english.map(q => q.id);
+    const maths = await assembleMaths([...practiceIds, ...englishIds]);
+
+    if (english.length < 28) throw new Error(`English section short: only ${english.length}/28 questions`);
+    if (maths.length < 28)   throw new Error(`Maths section short: only ${maths.length}/28 questions`);
+
+    paperData = {
+      practice, english, maths, passage,
+      childName, yearGroup: userYear,
+      generated: new Date().toLocaleString('en-GB'),
+    };
+
+    renderPaper(paperData);
+
+  } catch (err) {
+    document.getElementById('loading-screen').classList.add('hidden');
+    document.getElementById('setup-screen').classList.remove('hidden');
+    const errEl = document.getElementById('setup-error');
+    errEl.textContent = 'Could not build paper: ' + err.message + '. Please try again.';
+    errEl.classList.remove('hidden');
+  }
+}
+
+/* ════════════════════════════════
+   RENDER
+════════════════════════════════ */
+function optionsMap(q) {
+  if (!q.options) return {};
+  if (typeof q.options === 'string') {
+    try { return JSON.parse(q.options); } catch { return {}; }
+  }
+  return q.options;
+}
+
+function renderMcOptions(q, letterClass) {
+  const opts = optionsMap(q);
+  const letters = Object.keys(opts).sort();
+  return `<div class="mc-options">${
+    letters.map(l => `<div class="mc-opt"><span class="mc-circle"></span><span class="mc-letter ${letterClass||''}">${l}.</span> ${opts[l]}</div>`).join('')
+  }</div>`;
+}
+
+function renderSegmentQuestion(q) {
+  const opts = optionsMap(q);
+  const letters = Object.keys(opts).sort();
+  const segments = letters.map(l =>
+    `<div class="seg-block"><span class="seg-label">${l}</span><span class="seg-text">${opts[l]}</span></div>`
+  ).join('');
+  const circles = letters.map(l =>
+    `<div class="seg-circle-opt"><span class="mc-circle"></span> ${l}</div>`
+  ).join('');
+  return `<div class="segments">${segments}</div>
+  <div class="seg-prompt">Which section contains an error? Circle one:</div>
+  <div class="seg-circles">${circles}</div>`;
+}
+
+function renderQuestion(q, displayNum, isPractice) {
+  const numClass = isPractice ? 'q-num practice' : 'q-num';
+  const numLabel = isPractice ? `P${displayNum}` : `${displayNum}`;
+  const topic = q.topic || '';
+  const isSegment = topic === 'punctuation' || topic === 'spelling';
+  const isWritten = q.question_type === 'written';
+
+  let body = '';
+  if (q.diagram) {
+    body += `<div class="q-diagram">${q.diagram}</div>`;
+  }
+  if (isSegment) {
+    body += `<div class="q-text">${q.question_text}</div>` + renderSegmentQuestion(q);
+  } else if (isWritten) {
+    body += `<div class="q-text">${q.question_text}</div>
+    <div class="write-lines">
+      <div class="write-line"></div>
+      <div class="write-line"></div>
+      <div class="write-line"></div>
+      <div class="write-line"></div>
+    </div>`;
+  } else {
+    body += `<div class="q-text">${q.question_text}</div>` + renderMcOptions(q);
+  }
+
+  return `<div class="q-row">
+    <div class="q-header">
+      <span class="${numClass}">Q${numLabel}</span>
+    </div>
+    ${body}
+  </div>`;
+}
+
+function renderPaper({ practice, english, maths, passage, childName, yearGroup, generated }) {
+  // ── Question Paper ──
+  const paperWrap = document.getElementById('paper-wrap');
+
+  // Header card
+  let paperHtml = `<div class="paper-section">
+    <div class="section-header">
+      <span class="section-label label-practice">SEAG Transfer Test Practice Paper</span>
+      <span class="section-qs">${yearGroup} · ${childName} · ${generated}</span>
+    </div>
+    <div class="q-row" style="padding:20px 24px;">
+      <div style="font-size:.9rem;color:var(--text-mid);line-height:1.7;">
+        <strong style="color:var(--text-dark);">Instructions:</strong> Read each question carefully and circle your answer. For written questions, write your answer on the lines provided. You may use rough working space. Do not turn over until told to do so.
+      </div>
+    </div>
+  </div>`;
+
+  // Practice section
+  paperHtml += `<div class="paper-section">
+    <div class="section-header">
+      <span class="section-label label-practice">Warm-Up Practice</span>
+      <span class="section-title">Questions P1–P10</span>
+      <span class="section-qs">These questions do not count towards your score</span>
+    </div>
+    ${practice.map((q, i) => renderQuestion(q, i + 1, true)).join('')}
+  </div>`;
+
+  // English section — Punctuation Q1-5
+  const punct   = english.slice(0, 5);
+  const grammar = english.slice(5, 10);
+  const spelling= english.slice(10, 15);
+  const compMc  = english.slice(15, 22);
+  const compWr  = english.slice(22, 28);
+
+  paperHtml += `<div class="paper-section">
+    <div class="section-header">
+      <span class="section-label label-english">English</span>
+      <span class="section-title">Section 1 — Punctuation &amp; Grammar</span>
+      <span class="section-qs">Q1–15</span>
+    </div>
+    ${punct.map((q, i)   => renderQuestion(q, i + 1,  false)).join('')}
+    ${grammar.map((q, i) => renderQuestion(q, i + 6,  false)).join('')}
+    ${spelling.map((q,i) => renderQuestion(q, i + 11, false)).join('')}
+  </div>`;
+
+  // Comprehension passage + questions
+  const passageText = passage?.content || (compMc[0]?.passage) || '';
+  paperHtml += `<div class="paper-section">
+    <div class="section-header">
+      <span class="section-label label-english">English</span>
+      <span class="section-title">Section 2 — Reading Comprehension</span>
+      <span class="section-qs">Q16–28</span>
+    </div>
+    ${passageText ? `<div class="passage-box"><div class="passage-label">Read the passage carefully, then answer the questions below.</div><div class="passage-text">${passageText}</div></div>` : ''}
+    ${compMc.map((q, i) => renderQuestion(q, i + 16, false)).join('')}
+    ${compWr.map((q, i) => renderQuestion(q, i + 23, false)).join('')}
+  </div>`;
+
+  // Maths section
+  const arith = maths.slice(0, 7);
+  const geom  = maths.slice(7, 14);
+  const frac  = maths.slice(14, 20);
+  const meas  = maths.slice(20, 24);
+  const stat  = maths.slice(24, 26);
+  const alg   = maths.slice(26, 28);
+
+  paperHtml += `<div class="paper-section">
+    <div class="section-header">
+      <span class="section-label label-maths">Maths</span>
+      <span class="section-title">Section 3 — Mathematics</span>
+      <span class="section-qs">Q29–56</span>
+    </div>
+    ${arith.map((q, i) => renderQuestion(q, i + 29, false)).join('')}
+    ${geom.map( (q, i) => renderQuestion(q, i + 36, false)).join('')}
+    ${frac.map( (q, i) => renderQuestion(q, i + 43, false)).join('')}
+    ${meas.map( (q, i) => renderQuestion(q, i + 49, false)).join('')}
+    ${stat.map( (q, i) => renderQuestion(q, i + 53, false)).join('')}
+    ${alg.map(  (q, i) => renderQuestion(q, i + 55, false)).join('')}
+  </div>`;
+
+  paperWrap.innerHTML = paperHtml;
+
+  // ── Answer Key ──
+  function akItems(qs, startNum, isPractice) {
+    return qs.map((q, i) => {
+      const num = isPractice ? `P${i + 1}` : `${startNum + i}`;
+      const ans = q.correct_answer || '–';
+      const isWr = q.question_type === 'written';
+      return `<div class="ak-item">
+        <span class="ak-qnum">${num}</span>
+        <span class="ak-ans${isWr ? ' written' : ''}">${isWr ? 'written' : ans}</span>
+      </div>`;
+    }).join('');
+  }
+
+  const keyHtml = `<div class="answer-key-card">
+    <div class="ak-header">
+      <div class="ak-title">Answer Key — ${yearGroup} · ${childName}</div>
+      <div class="ak-sub">Generated ${generated} · Keep this page separate from the question paper</div>
+    </div>
+    <div class="ak-body">
+      <div class="ak-section-label">Warm-Up Practice (P1–P10) — not scored</div>
+      <div class="ak-grid">${akItems(practice, 1, true)}</div>
+      <hr class="ak-divider">
+      <div class="ak-section-label">English — Punctuation &amp; Grammar (Q1–15)</div>
+      <div class="ak-grid">${akItems([...punct,...grammar,...spelling], 1, false)}</div>
+      <div class="ak-section-label">English — Comprehension MC (Q16–22)</div>
+      <div class="ak-grid">${akItems(compMc, 16, false)}</div>
+      <div class="ak-section-label">English — Comprehension Written (Q23–28) — mark using your own judgement</div>
+      <div class="ak-grid">${akItems(compWr, 23, false)}</div>
+      <hr class="ak-divider">
+      <div class="ak-section-label">Maths — Arithmetic (Q29–35)</div>
+      <div class="ak-grid">${akItems(arith, 29, false)}</div>
+      <div class="ak-section-label">Maths — Geometry (Q36–42)</div>
+      <div class="ak-grid">${akItems(geom, 36, false)}</div>
+      <div class="ak-section-label">Maths — Fractions &amp; Decimals (Q43–48)</div>
+      <div class="ak-grid">${akItems(frac, 43, false)}</div>
+      <div class="ak-section-label">Maths — Measurement (Q49–52)</div>
+      <div class="ak-grid">${akItems(meas, 49, false)}</div>
+      <div class="ak-section-label">Maths — Statistics (Q53–54)</div>
+      <div class="ak-grid">${akItems(stat, 53, false)}</div>
+      <div class="ak-section-label">Maths — Algebra &amp; Sequences (Q55–56)</div>
+      <div class="ak-grid">${akItems(alg, 55, false)}</div>
+    </div>
+  </div>`;
+
+  document.getElementById('answer-key-wrap').innerHTML = keyHtml;
+
+  // Show paper
+  document.getElementById('loading-screen').classList.add('hidden');
+  document.getElementById('paper-controls').classList.remove('hidden');
+  paperWrap.classList.remove('hidden');
+  document.getElementById('answer-key-wrap').classList.remove('hidden');
+
+  // Meta line
+  const total = practice.length + english.length + maths.length;
+  document.getElementById('paper-meta').innerHTML =
+    `<strong>${yearGroup} · ${childName}</strong> · ${total} questions · Generated ${generated}`;
+}
+
+/* ════════════════════════════════
+   PRINT
+════════════════════════════════ */
+function printSection(which) {
+  document.body.className = which === 'paper' ? 'print-paper' : 'print-key';
+  window.print();
+  document.body.className = '';
+}
+
+function resetToSetup() {
+  paperData = null;
+  seenIds.clear();
+  document.getElementById('paper-controls').classList.add('hidden');
+  document.getElementById('paper-wrap').classList.add('hidden');
+  document.getElementById('answer-key-wrap').classList.add('hidden');
+  document.getElementById('paper-wrap').innerHTML = '';
+  document.getElementById('answer-key-wrap').innerHTML = '';
+  document.getElementById('setup-screen').classList.remove('hidden');
+}
+
+window.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
