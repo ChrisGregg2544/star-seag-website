@@ -43,6 +43,7 @@ export default async function handler(req, res) {
   );
   const ownedRows = ownerRes.ok ? await ownerRes.json() : [];
   const ownedIds  = new Set((ownedRows || []).map(r => r.id));
+  ownedIds.add(parentId); // allow own profile (child set up during onboarding)
   const verified  = childIds.filter(id => ownedIds.has(id));
 
   if (verified.length === 0) {

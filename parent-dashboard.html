@@ -501,7 +501,14 @@ window.addEventListener('DOMContentLoaded', async () => {
   const parentId    = authData.session.user.id;
   const accessToken = authData.session.access_token;
 
-  // 1. Fetch children (anon key is fine — parents can read their own children's profiles via RLS)
+  // 1. Fetch own profile (child set up during onboarding lives here, not in a parent_id row)
+  const { data: ownProfile } = await sb
+    .from('profiles')
+    .select('id, name, year_group')
+    .eq('id', parentId)
+    .single();
+
+  // 2. Fetch additional children added via add-child.html
   const { data: children, error: childErr } = await sb
     .from('profiles')
     .select('id, name, year_group')
@@ -514,7 +521,13 @@ window.addEventListener('DOMContentLoaded', async () => {
     return;
   }
 
-  const kids = children || [];
+  // Combine: own profile (if it has year_group from onboarding) + additional children
+  const linkedChildren = children || [];
+  const linkedIds = new Set(linkedChildren.map(c => c.id));
+  const kids = [
+    ...(ownProfile?.year_group && !linkedIds.has(ownProfile.id) ? [ownProfile] : []),
+    ...linkedChildren,
+  ];
   document.getElementById('ph-sub').textContent =
     kids.length === 0 ? 'No children linked yet.' :
     kids.length === 1 ? '1 child linked to your account.' :
@@ -525,7 +538,7 @@ window.addEventListener('DOMContentLoaded', async () => {
       <div class="empty-state">
         <div class="empty-icon">👨‍👩‍👧</div>
         <div class="empty-title">No children linked yet</div>
-        <div class="empty-sub">Add your child's account to start tracking their SEAG transfer test progress.</div>
+        <div class="empty-sub">Your child's details will appear here once your account is set up.</div>
         <a class="btn-add-child" href="add-child.html">+ Add a Child</a>
       </div>`;
     document.getElementById('content').className = '';
