@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>STAR AI Tutor — Start Mini Mock</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
+  <link rel="icon" type="image/x-icon" href="/favicon.ico"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #FEF3E2;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 16px;
+      color: #1A1A1A;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 20px;
+      padding: 48px 40px;
+      max-width: 480px;
+      width: 100%;
+      box-shadow: 0 4px 32px rgba(0,0,0,0.08);
+      text-align: center;
+    }
+
+    .logo {
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: #F97316;
+      letter-spacing: -0.5px;
+      margin-bottom: 32px;
+      display: block;
+    }
+
+    .star-icon {
+      font-size: 2.8rem;
+      margin-bottom: 16px;
+      display: block;
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: #1A1A1A;
+      margin-bottom: 8px;
+      line-height: 1.3;
+    }
+
+    .subtitle {
+      font-size: 0.95rem;
+      color: #6B7280;
+      margin-bottom: 36px;
+      line-height: 1.5;
+    }
+
+    label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #1A1A1A;
+      text-align: left;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 14px 16px;
+      border: 2px solid #E5E7EB;
+      border-radius: 12px;
+      font-size: 1rem;
+      font-family: 'Inter', sans-serif;
+      color: #1A1A1A;
+      background: #fff;
+      outline: none;
+      transition: border-color 0.2s;
+      margin-bottom: 28px;
+    }
+
+    input[type="text"]:focus {
+      border-color: #F97316;
+    }
+
+    .year-group-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 36px;
+    }
+
+    .year-btn {
+      padding: 18px 12px;
+      border: 2px solid #E5E7EB;
+      border-radius: 14px;
+      background: #fff;
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #6B7280;
+      transition: all 0.18s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .year-btn .year-label {
+      font-size: 1.3rem;
+    }
+
+    .year-btn .year-sub {
+      font-size: 0.72rem;
+      font-weight: 500;
+      color: #9CA3AF;
+    }
+
+    .year-btn:hover {
+      border-color: #F97316;
+      color: #F97316;
+    }
+
+    .year-btn.selected {
+      border-color: #F97316;
+      background: #FFF7ED;
+      color: #F97316;
+    }
+
+    .year-btn.selected .year-sub {
+      color: #FB923C;
+    }
+
+    .start-btn {
+      width: 100%;
+      padding: 16px;
+      background: #F97316;
+      color: #fff;
+      border: none;
+      border-radius: 14px;
+      font-family: 'Inter', sans-serif;
+      font-size: 1.05rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+      letter-spacing: -0.2px;
+    }
+
+    .start-btn:hover {
+      background: #EA6C0A;
+    }
+
+    .start-btn:active {
+      transform: scale(0.98);
+    }
+
+    .start-btn:disabled {
+      background: #D1D5DB;
+      cursor: not-allowed;
+    }
+
+    .error-msg {
+      color: #EF4444;
+      font-size: 0.85rem;
+      margin-bottom: 16px;
+      display: none;
+    }
+
+    .back-link {
+      margin-top: 20px;
+      font-size: 0.85rem;
+      color: #9CA3AF;
+      display: block;
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .back-link:hover {
+      color: #6B7280;
+    }
+
+    @media (max-width: 480px) {
+      .card {
+        padding: 36px 24px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="card">
+  <span class="logo">⭐ STAR AI Tutor</span>
+  <span class="star-icon">👋</span>
+  <h1>Before we start — tell us about your child</h1>
+  <p class="subtitle">We'll match the questions to the right level.</p>
+
+  <label for="child-name">Child's first name</label>
+  <input type="text" id="child-name" placeholder="e.g. Emma" autocomplete="off" maxlength="40"/>
+
+  <label>Year group</label>
+  <div class="year-group-row">
+    <button class="year-btn" id="btn-p6" onclick="selectYear('P6')">
+      <span class="year-label">P6</span>
+      <span class="year-sub">Age 10–11</span>
+    </button>
+    <button class="year-btn" id="btn-p7" onclick="selectYear('P7')">
+      <span class="year-label">P7</span>
+      <span class="year-sub">Age 11–12</span>
+    </button>
+  </div>
+
+  <p class="error-msg" id="error-msg">Please enter your child's name and select a year group.</p>
+
+  <button class="start-btn" id="start-btn" onclick="startMock()">Start Mini Mock →</button>
+
+  <a href="index.html" class="back-link">← Back to home</a>
+</div>
+
+<script>
+  let selectedYear = null;
+
+  function selectYear(year) {
+    selectedYear = year;
+    document.getElementById('btn-p6').classList.toggle('selected', year === 'P6');
+    document.getElementById('btn-p7').classList.toggle('selected', year === 'P7');
+  }
+
+  function startMock() {
+    const name = document.getElementById('child-name').value.trim();
+    const errEl = document.getElementById('error-msg');
+
+    if (!name || !selectedYear) {
+      errEl.style.display = 'block';
+      return;
+    }
+
+    errEl.style.display = 'none';
+
+    localStorage.setItem('star_guest_name', name);
+    localStorage.setItem('star_guest_year', selectedYear);
+    localStorage.setItem('guest_sprints_done', '0');
+
+    window.location.href = 'study.html?mode=mini-mock&guest=true';
+  }
+
+  document.getElementById('child-name').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') startMock();
+  });
+</script>
+
+</body>
+</html>

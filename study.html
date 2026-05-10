@@ -14,12 +14,12 @@
   <script src="cookie-consent.js"></script>
   <style>
     :root {
-      --orange:       #FF6D00;
-      --orange-dark:  #E65100;
-      --orange-light: #FF9E40;
-      --yellow:       #FFD54F;
-      --yellow-dark:  #F9A825;
-      --cream:        #FFF9E6;
+      --orange:       #F97316;
+      --orange-dark:  #EA6C0A;
+      --orange-light: #FB923C;
+      --yellow:       #F59E0B;
+      --yellow-dark:  #D97706;
+      --cream:        #FEF3E2;
       --cream-border: #F0E0C0;
       --green:        #58CC02;
       --green-dark:   #46A302;
@@ -116,13 +116,13 @@
     .card-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 24px; border-bottom: 2px solid rgba(0,0,0,.06); }
     .card-type-badge { display: inline-flex; align-items: center; gap: 6px; border-radius: 999px; padding: 5px 14px; font-size: .7rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
     .badge-english { background: #EEF2FF; border: 2px solid #C7D2FE; color: #4338CA; }
-    .badge-maths   { background: #FFF3E0; border: 2px solid #FFCC80; color: #E65100; }
+    .badge-maths   { background: #FFF3E0; border: 2px solid #FFCC80; color: #EA6C0A; }
     .card-topic { font-size: .72rem; color: var(--text-light); font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
     .card-marks { font-size: .72rem; color: var(--text-light); font-weight: 600; }
     .card-body { padding: 24px 24px 0; }
     .question-number { font-size: .7rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--text-light); margin-bottom: 10px; }
     .question-text { font-family: 'Nunito', sans-serif; font-size: 1.2rem; font-weight: 800; line-height: 1.5; color: var(--text-dark); margin-bottom: 12px; min-height: 48px; }
-    .question-context { font-size: .95rem; color: var(--text-dark); line-height: 1.7; margin-bottom: 18px; background: #FFF9E6; border-left: 4px solid var(--orange); padding: 12px 16px; border-radius: 0 10px 10px 0; font-weight: 700; }
+    .question-context { font-size: .95rem; color: var(--text-dark); line-height: 1.7; margin-bottom: 18px; background: #FEF3E2; border-left: 4px solid var(--orange); padding: 12px 16px; border-radius: 0 10px 10px 0; font-weight: 700; }
     .segments-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; align-items: flex-end; }
     .segment-block { display: flex; flex-direction: column; align-items: center; gap: 5px; }
     .segment-text { background: #F5F5F5; border: 2px solid #E0E0E0; border-radius: 10px; padding: 10px 14px; font-size: .92rem; font-weight: 700; color: var(--text-dark); white-space: nowrap; }
@@ -181,7 +181,7 @@
     .card-footer { padding: 18px 24px 24px; display: flex; flex-direction: column; gap: 12px; }
     .action-row { display: flex; gap: 10px; align-items: center; }
     .btn-submit {
-      flex: 1; background: #FF6D00; color: #fff;
+      flex: 1; background: #F97316; color: #fff;
       border: none; border-radius: var(--radius-btn);
       padding: 16px 24px; font-family: 'Nunito', sans-serif;
       font-size: .95rem; font-weight: 800; letter-spacing: .04em; text-transform: uppercase;
@@ -217,7 +217,7 @@
     .video-source { font-size: .72rem; color: var(--orange); font-weight: 700; }
 
     /* ── PASSAGE PANEL ── */
-    .passage-panel { background: #FFF9E6; border: 2px solid #FFE082; border-radius: 14px; padding: 14px 18px; margin-bottom: 18px; }
+    .passage-panel { background: #FEF3E2; border: 2px solid #FFE082; border-radius: 14px; padding: 14px 18px; margin-bottom: 18px; }
     .passage-panel-label { font-size: .65rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--yellow-dark); margin-bottom: 8px; }
     .passage-body { font-size: .9rem; line-height: 1.7; color: var(--text-dark); max-height: 220px; overflow-y: auto; white-space: pre-wrap; font-weight: 400; }
     .passage-body::-webkit-scrollbar { width: 4px; } .passage-body::-webkit-scrollbar-track { background: transparent; } .passage-body::-webkit-scrollbar-thumb { background: rgba(249,168,37,.4); border-radius: 3px; }
@@ -232,7 +232,7 @@
     .topic-btn:hover { transform: translateY(-2px); box-shadow: 0 5px 0 rgba(0,0,0,0.1); }
     .topic-btn.eng { border-color: #C7D2FE; background: #EEF2FF; color: #4338CA; }
     .topic-btn.eng:hover { border-color: #818CF8; background: #E0E7FF; box-shadow: 0 5px 0 rgba(99,102,241,.2); }
-    .topic-btn:not(.eng) { border-color: #FFCC80; background: #FFF3E0; color: #E65100; }
+    .topic-btn:not(.eng) { border-color: #FFCC80; background: #FFF3E0; color: #EA6C0A; }
     .topic-btn:not(.eng):hover { border-color: var(--orange); background: #FFE0B2; box-shadow: 0 5px 0 rgba(230,81,0,.15); }
 
     /* ── RESULTS PANEL ── */
@@ -258,7 +258,7 @@
     .missed-topic-tag { font-size: .7rem; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: var(--text-light); margin-bottom: 6px; }
     .missed-video-link { display: inline-flex; align-items: center; gap: 6px; font-size: .78rem; font-weight: 700; color: var(--blue-hint); text-decoration: none; margin-top: 8px; }
     .missed-video-link:hover { text-decoration: underline; }
-    .missed-context { font-size: .82rem; color: var(--text-mid); line-height: 1.6; background: #FFF9E6; border-left: 3px solid var(--orange-light); padding: 8px 12px; border-radius: 0 8px 8px 0; margin-bottom: 10px; font-weight: 700; }
+    .missed-context { font-size: .82rem; color: var(--text-mid); line-height: 1.6; background: #FEF3E2; border-left: 3px solid var(--orange-light); padding: 8px 12px; border-radius: 0 8px 8px 0; margin-bottom: 10px; font-weight: 700; }
     .missed-segments { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; align-items: flex-end; }
     .all-correct-msg { text-align: center; padding: 24px; background: rgba(88,204,2,.1); border: 2px solid rgba(88,204,2,.25); border-radius: 14px; margin-bottom: 24px; }
     .all-correct-msg .ace { font-size: 2rem; margin-bottom: 8px; }
@@ -359,13 +359,13 @@
       height: 100%; border-radius: 99px; transition: width .6s ease;
     }
     .baseline-bar-fill.strong { background: #58CC02; }
-    .baseline-bar-fill.mid    { background: #FF9E40; }
+    .baseline-bar-fill.mid    { background: #FB923C; }
     .baseline-bar-fill.weak   { background: #FF4B4B; }
     .baseline-score-chip {
       font-size: .78rem; font-weight: 800; width: 36px; text-align: right; flex-shrink: 0;
     }
     .baseline-score-chip.strong { color: #46A302; }
-    .baseline-score-chip.mid    { color: #E65100; }
+    .baseline-score-chip.mid    { color: #EA6C0A; }
     .baseline-score-chip.weak   { color: #CC0000; }
     .baseline-callouts {
       display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap;
@@ -539,7 +539,7 @@
   <div class="star-footer-grid">
     <div>
       <div class="star-footer-logo">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="#FF6D00"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="#F97316"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
         <span class="star-footer-logo-text">STAR AI Tutor</span>
       </div>
       <p class="star-footer-text">Empowering P6 &amp; P7 students for Transfer Test success.<br>Smart, personalised practice — built for Northern Ireland.</p>
@@ -623,7 +623,7 @@ function showLoadingState() {
       <div style="font-family:'Nunito',sans-serif;font-size:1.4rem;font-weight:900;color:#333333;margin-bottom:10px;">STAR is building your sprint…</div>
       <div style="font-size:.92rem;color:#666666;margin-bottom:6px;">Pulling from your personal question bank</div>
       <div id="loading-tip" style="font-size:.84rem;color:#888888;margin-top:24px;min-height:1.4em;line-height:1.5;padding:0 16px;transition:opacity .4s;">${LOADING_TIPS[0]}</div>
-      <div style="font-size:.75rem;color:#FF6D00;margin-top:16px;letter-spacing:.1em;text-transform:uppercase;font-weight:800;">✦ &nbsp;Fresh questions every sprint&nbsp; ✦</div>
+      <div style="font-size:.75rem;color:#F97316;margin-top:16px;letter-spacing:.1em;text-transform:uppercase;font-weight:800;">✦ &nbsp;Fresh questions every sprint&nbsp; ✦</div>
     </div>`;
 
   let tipIdx = 1;
@@ -650,7 +650,7 @@ function showErrorState(message) {
       <div style="font-size:2.8rem;margin-bottom:16px;">😕</div>
       <div style="font-family:'Nunito',sans-serif;font-size:1.25rem;font-weight:900;color:#333333;margin-bottom:10px;">Something went wrong</div>
       <div style="font-size:.88rem;color:#666666;margin-bottom:28px;line-height:1.6;">${message}</div>
-      <button onclick="init()" style="background:#FF6D00;color:#fff;border:none;border-radius:12px;padding:14px 36px;font-family:'Nunito',sans-serif;font-size:.92rem;font-weight:900;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;box-shadow:0 4px 0 #E65100;">Try Again</button>
+      <button onclick="init()" style="background:#F97316;color:#fff;border:none;border-radius:12px;padding:14px 36px;font-family:'Nunito',sans-serif;font-size:.92rem;font-weight:900;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;box-shadow:0 4px 0 #EA6C0A;">Try Again</button>
     </div>`;
 }
 
@@ -1022,7 +1022,7 @@ async function init() {
   if (window._starAccess?.isGuest) {
     userYear = urlTrack || sessionStorage.getItem('star_year') || 'P6';
   } else {
-    if (!selectedChildId) { window.location.href = 'child-selector.html'; return; }
+    if (!selectedChildId) { window.location.href = 'dashboard.html'; return; }
     const { data: profile } = await sb.from('profiles')
       .select('name, year_group')
       .eq('id', selectedChildId)
@@ -1799,7 +1799,7 @@ async function checkAccess() {
     }
 
     const selectedChildId = localStorage.getItem('selectedChildId');
-    if (!selectedChildId) { window.location.href = 'child-selector.html'; return false; }
+    if (!selectedChildId) { window.location.href = 'dashboard.html'; return false; }
 
     const accessToken = data.session.access_token;
     const justPaid    = new URLSearchParams(window.location.search).get('checkout') === 'success';

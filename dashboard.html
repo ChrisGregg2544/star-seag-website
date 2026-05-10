@@ -24,12 +24,12 @@
   <script src="cookie-consent.js"></script>
   <style>
     :root {
-      --orange:       #FF6D00;
-      --orange-dark:  #E65100;
-      --orange-light: #FF9E40;
-      --yellow:       #FFD54F;
-      --yellow-dark:  #F9A825;
-      --cream:        #FFF9E6;
+      --orange:       #F97316;
+      --orange-dark:  #EA6C0A;
+      --orange-light: #FB923C;
+      --yellow:       #F59E0B;
+      --yellow-dark:  #D97706;
+      --cream:        #FEF3E2;
       --cream-border: #F0E0C0;
       --green:        #58CC02;
       --green-dark:   #46A302;
@@ -312,7 +312,7 @@
     .skill-pct  { font-size: .7rem; font-weight: 700; margin-top: 2px; }
     .skill-chip.green .skill-name { color: #2E7D32; }
     .skill-chip.green .skill-pct  { color: #388E3C; }
-    .skill-chip.amber .skill-name { color: #E65100; }
+    .skill-chip.amber .skill-name { color: #EA6C0A; }
     .skill-chip.amber .skill-pct  { color: #EF6C00; }
     .skill-chip.red   .skill-name { color: #C62828; }
     .skill-chip.red   .skill-pct  { color: #D32F2F; }
@@ -545,6 +545,25 @@
   </div>
 </div>
 
+<!-- BASELINE REPORT CARD (shown once after baseline complete) -->
+<div id="baseline-report-card" style="display:none;background:#fff;border:2px solid #F59E0B;border-top:4px solid #F59E0B;border-radius:18px;padding:24px 28px;margin-bottom:16px;animation:fadeUp .5s both;">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+    <div style="font-size:.72rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#D97706;">📊 Your Personalised Training Plan</div>
+    <button onclick="dismissBaselineReport()" style="background:none;border:none;cursor:pointer;font-size:.8rem;color:var(--text-light);font-family:'Nunito',sans-serif;font-weight:700;">Dismiss ×</button>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;" id="baseline-report-grid">
+    <div style="background:#F0FDF4;border:1.5px solid #BBF7D0;border-radius:12px;padding:14px 16px;">
+      <div style="font-size:.7rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#15803D;margin-bottom:8px;">✅ Strengths</div>
+      <div id="baseline-strengths" style="font-size:.86rem;font-weight:700;color:#166534;line-height:1.7;">—</div>
+    </div>
+    <div style="background:#FEF2F2;border:1.5px solid #FECACA;border-radius:12px;padding:14px 16px;">
+      <div style="font-size:.7rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#DC2626;margin-bottom:8px;">🎯 Focus Areas</div>
+      <div id="baseline-focus" style="font-size:.86rem;font-weight:700;color:#991B1B;line-height:1.7;">—</div>
+    </div>
+  </div>
+  <div style="margin-top:14px;font-size:.82rem;color:var(--text-mid);" id="baseline-recommend"></div>
+</div>
+
 <!-- TODAY -->
 <a class="today-card" href="study.html" id="today-card">
   <div style="position:relative;z-index:1;">
@@ -612,7 +631,6 @@
     <span class="week-title">📅 This Week</span>
     <div style="display:flex;align-items:center;gap:14px;">
       <div class="week-count"><em id="week-done-num">0</em> of <em id="week-target-num">—</em> sessions</div>
-      <a href="results.html" style="font-size:.72rem;font-weight:700;color:var(--text-light);text-decoration:none;transition:color .2s;" onmouseover="this.style.color='var(--orange)'" onmouseout="this.style.color='var(--text-light)'">View History →</a>
     </div>
   </div>
   <div class="week-target-label" id="week-target-label">Loading your schedule…</div>
@@ -662,7 +680,7 @@
   <div class="star-footer-grid">
     <div>
       <div class="star-footer-logo">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="#FF6D00"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="#F97316"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
         <span class="star-footer-logo-text">STAR AI Tutor</span>
       </div>
       <p class="star-footer-text">Empowering P6 &amp; P7 students for Transfer Test success.<br>Smart, personalised practice — built for Northern Ireland.</p>
@@ -864,11 +882,12 @@ async function buildSkillsMap(count, userId) {
   skills.forEach(s => {
     const chip = document.createElement('div');
     chip.className = `skill-chip ${s.c}`;
-    chip.innerHTML = `<div class="skill-name">${s.name}</div><div class="skill-pct">${s.pct}% accuracy</div>`;
+    chip.innerHTML = `<div class="skill-name">${formatTopicName(s.name)}</div><div class="skill-pct">${s.pct}% accuracy</div>`;
     grid.appendChild(chip);
   });
   container.appendChild(grid);
   buildRecommendations(skills);
+  if (count >= 3) showBaselineReportCard(skills);
 }
 
 function formatTopicName(raw) {
@@ -1303,6 +1322,30 @@ async function init() {
     buildSkillsMap(sessionsCount || 0, selectedChildId);
     buildTopics(toReview, hasData);
   }
+}
+
+function dismissBaselineReport() {
+  localStorage.setItem('star_baseline_report_seen', '1');
+  document.getElementById('baseline-report-card').style.display = 'none';
+}
+
+function showBaselineReportCard(skills) {
+  if (localStorage.getItem('star_baseline_report_seen') === '1') return;
+  const sorted = [...skills].sort((a, b) => b.pct - a.pct);
+  const top2   = sorted.slice(0, 2);
+  const bot2   = sorted.slice(-2).reverse();
+
+  document.getElementById('baseline-strengths').innerHTML =
+    top2.map(s => formatTopicName(s.name) + ' (' + s.pct + '%)').join('<br>') || '—';
+  document.getElementById('baseline-focus').innerHTML =
+    bot2.map(s => formatTopicName(s.name) + ' (' + s.pct + '%)').join('<br>') || '—';
+
+  const rec = bot2[0] ? formatTopicName(bot2[0].name) : null;
+  document.getElementById('baseline-recommend').textContent = rec
+    ? '💡 Recommended starting point: focus on ' + rec + ' first.'
+    : '';
+
+  document.getElementById('baseline-report-card').style.display = 'block';
 }
 
 window.addEventListener('DOMContentLoaded', init);

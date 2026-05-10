@@ -1,968 +1,364 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-  <link rel="icon" type="image/x-icon" href="/favicon.ico">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>STAR – Create Your Profile</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,400&family=Lato:wght@300;400;700;900&display=swap" rel="stylesheet" />
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <!-- Cookie Consent + GA4 (loads GA only if accepted) -->
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>STAR AI Tutor — Create Account</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
+  <link rel="icon" type="image/x-icon" href="/favicon.ico"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3"></script>
   <script src="cookie-consent.js"></script>
   <style>
-    /* ══════════════════════════════════════════
-       TOKENS
-    ══════════════════════════════════════════ */
-    :root {
-      --gold:         #C9A84C;
-      --gold-light:   #E8C97A;
-      --gold-dim:     rgba(201,168,76,0.15);
-      --navy:         #0B1F3A;
-      --navy-mid:     #0f2747;
-      --navy-light:   #162d50;
-      --card-bg:      rgba(255,255,255,0.04);
-      --card-border:  rgba(201,168,76,0.2);
-      --text-white:   #ffffff;
-      --text-soft:    rgba(255,255,255,0.6);
-      --text-dim:     rgba(255,255,255,0.35);
-      --green:        #22c55e;
-      --radius:       20px;
-    }
-
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html { height: 100%; }
 
     body {
-      background: var(--navy);
+      font-family: 'Inter', sans-serif;
+      background: #FEF3E2;
       min-height: 100vh;
-      font-family: 'Lato', sans-serif;
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 0 16px 60px;
-      position: relative;
-      overflow-x: hidden;
+      justify-content: center;
+      padding: 24px 16px;
+      color: #1A1A1A;
     }
 
-    /* ── Atmosphere ── */
-    .bg { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
-    .bg-glow-1 {
-      position: absolute;
-      width: 680px; height: 680px;
-      top: -120px; left: 50%; transform: translateX(-50%);
-      background: radial-gradient(circle, rgba(201,168,76,.07) 0%, transparent 65%);
-      border-radius: 50%;
-    }
-    .bg-glow-2 {
-      position: absolute;
-      width: 420px; height: 420px;
-      bottom: 0; right: -100px;
-      background: radial-gradient(circle, rgba(59,130,246,.04) 0%, transparent 70%);
-      border-radius: 50%;
-    }
-    .star-p {
-      position: absolute; border-radius: 50%;
-      background: var(--gold); opacity: .1;
-      animation: twinkle var(--d,3.8s) ease-in-out infinite alternate;
-      animation-delay: var(--del,0s);
-    }
-    @keyframes twinkle { from{opacity:.04} to{opacity:.18} }
-
-    /* ══════════════════════════════════════════
-       NAV
-    ══════════════════════════════════════════ */
-    .top-nav {
-      position: relative; z-index: 10;
-      width: 100%; max-width: 900px;
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 20px 0 16px;
-    }
-    .nav-logo {
-      display: flex; align-items: center; gap: 9px;
-    }
-    .nav-logo-mark { flex-shrink: 0; }
-    .nav-logo-wordmark { display: flex; flex-direction: column; line-height: 1; gap: 2px; }
-    .nav-logo-name { font-family: Georgia, 'Times New Roman', serif; font-size: 1.05rem; font-weight: 700; color: var(--gold); letter-spacing: .06em; }
-    .nav-logo-sub { font-family: 'Lato', sans-serif; font-size: .52rem; font-weight: 700; color: rgba(201,168,76,.65); letter-spacing: .2em; text-transform: uppercase; }
-    .nav-back {
-      font-size: .78rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
-      color: var(--text-dim); text-decoration: none;
-      border: 1px solid rgba(255,255,255,.1);
-      border-radius: 8px; padding: 8px 16px;
-      transition: all .2s;
-    }
-    .nav-back:hover { color: var(--text-soft); border-color: rgba(255,255,255,.22); }
-
-    /* ══════════════════════════════════════════
-       LAYOUT — two columns on wide, stack on mobile
-    ══════════════════════════════════════════ */
-    .page-grid {
-      position: relative; z-index: 10;
-      width: 100%; max-width: 900px;
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 28px;
-      align-items: start;
-    }
-    @media(max-width: 700px) {
-      .page-grid { grid-template-columns: 1fr; }
+    .card {
+      background: #fff;
+      border-radius: 20px;
+      padding: 48px 40px;
+      max-width: 440px;
+      width: 100%;
+      box-shadow: 0 4px 32px rgba(0,0,0,0.08);
     }
 
-    /* ══════════════════════════════════════════
-       LEFT COLUMN — hook + score + video
-    ══════════════════════════════════════════ */
-    .left-col { display: flex; flex-direction: column; gap: 20px; }
-
-    /* Score celebration card */
-    .score-card {
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-radius: var(--radius);
-      backdrop-filter: blur(18px);
-      -webkit-backdrop-filter: blur(18px);
-      padding: 32px 28px;
-      animation: slideUp .5s cubic-bezier(.22,1,.36,1) both;
-    }
-    @keyframes slideUp {
-      from { opacity:0; transform:translateY(22px); }
-      to   { opacity:1; transform:translateY(0); }
-    }
-
-    .score-eyebrow {
-      font-size: .7rem; font-weight: 900; letter-spacing: .14em; text-transform: uppercase;
-      color: var(--gold); margin-bottom: 14px;
-      display: flex; align-items: center; gap: 6px;
-    }
-    .score-eyebrow::before {
-      content: '';
-      display: inline-block; width: 18px; height: 2px;
-      background: var(--gold); border-radius: 99px;
-    }
-
-    .hook-heading {
-      font-family: 'Playfair Display', serif;
-      font-size: 1.9rem; font-weight: 900; line-height: 1.18;
-      color: var(--text-white);
-      margin-bottom: 14px;
-    }
-    .hook-heading em {
-      font-style: italic; color: var(--gold);
-    }
-    .hook-sub {
-      font-size: .93rem; line-height: 1.7;
-      color: var(--text-soft);
-      margin-bottom: 24px;
-    }
-    .hook-sub strong { color: var(--gold-light); font-weight: 900; }
-
-    /* Score ring */
-    .score-ring-wrap {
-      display: flex; align-items: center; gap: 20px;
-      background: rgba(201,168,76,.06);
-      border: 1px solid rgba(201,168,76,.18);
-      border-radius: 14px; padding: 16px 20px;
-      margin-bottom: 0;
-    }
-    .score-ring {
-      position: relative; width: 72px; height: 72px; flex-shrink: 0;
-    }
-    .score-ring svg { transform: rotate(-90deg); }
-    .score-ring-bg   { fill: none; stroke: rgba(201,168,76,.15); stroke-width: 6; }
-    .score-ring-fill {
-      fill: none; stroke: var(--gold); stroke-width: 6;
-      stroke-linecap: round;
-      stroke-dasharray: 188;
-      stroke-dashoffset: 188;
-      animation: ringFill 1.2s cubic-bezier(.4,0,.2,1) .6s forwards;
-    }
-    @keyframes ringFill {
-      to { stroke-dashoffset: var(--ring-offset, 75); }
-    }
-    .score-ring-num {
-      position: absolute; inset: 0;
-      display: flex; align-items: center; justify-content: center;
-      font-family: 'Playfair Display', serif;
-      font-size: 1.15rem; font-weight: 700; color: var(--gold);
-    }
-    .score-ring-info {}
-    .score-ring-label {
-      font-size: .72rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
-      color: var(--text-dim); margin-bottom: 4px;
-    }
-    .score-ring-msg {
-      font-size: .95rem; font-weight: 700; color: var(--text-white);
-      line-height: 1.3;
-    }
-    .score-ring-track {
-      font-size: .76rem; color: var(--text-soft); margin-top: 3px;
-    }
-
-    /* Unlock perks list */
-    .perks-list {
-      list-style: none; display: flex; flex-direction: column; gap: 10px;
-    }
-    .perks-list li {
-      display: flex; align-items: center; gap: 10px;
-      font-size: .86rem; color: var(--text-soft); line-height: 1.4;
-    }
-    .perk-icon {
-      width: 28px; height: 28px; border-radius: 8px; flex-shrink: 0;
-      background: rgba(201,168,76,.1);
-      border: 1px solid rgba(201,168,76,.2);
-      display: flex; align-items: center; justify-content: center;
-      font-size: .85rem;
-    }
-
-    /* ── Video placeholder ── */
-    .video-card {
-      background: var(--card-bg);
-      border: 1px solid rgba(255,255,255,.08);
-      border-radius: var(--radius);
-      backdrop-filter: blur(18px);
-      -webkit-backdrop-filter: blur(18px);
-      overflow: hidden;
-      animation: slideUp .5s cubic-bezier(.22,1,.36,1) .1s both;
-    }
-    .video-placeholder {
-      position: relative;
-      background: linear-gradient(135deg, rgba(11,31,58,1) 0%, rgba(15,39,71,1) 100%);
-      height: 160px;
-      display: flex; align-items: center; justify-content: center;
-      cursor: pointer;
-      overflow: hidden;
-    }
-    .video-placeholder::before {
-      content: '';
-      position: absolute; inset: 0;
-      background:
-        repeating-linear-gradient(
-          45deg,
-          transparent,
-          transparent 28px,
-          rgba(201,168,76,.03) 28px,
-          rgba(201,168,76,.03) 29px
-        );
-    }
-    .video-play-btn {
-      width: 56px; height: 56px; border-radius: 50%;
-      background: rgba(201,168,76,.15);
-      border: 2px solid rgba(201,168,76,.5);
-      display: flex; align-items: center; justify-content: center;
-      position: relative; z-index: 1;
-      transition: all .25s;
-      animation: orbPulse 2.5s ease-in-out infinite;
-    }
-    .video-placeholder:hover .video-play-btn {
-      background: rgba(201,168,76,.3);
-      transform: scale(1.08);
-    }
-    .video-play-btn svg { margin-left: 3px; }
-    .video-duration {
-      position: absolute; bottom: 10px; right: 12px;
-      font-size: .7rem; font-weight: 700; letter-spacing: .06em;
-      color: rgba(255,255,255,.5);
-      background: rgba(0,0,0,.4); border-radius: 4px; padding: 2px 7px;
-    }
-    .video-meta { padding: 14px 18px 16px; }
-    .video-tag {
-      font-size: .65rem; font-weight: 900; letter-spacing: .12em; text-transform: uppercase;
-      color: var(--gold); margin-bottom: 5px;
-    }
-    .video-title-text {
-      font-size: .88rem; font-weight: 700; color: var(--text-white); line-height: 1.35;
-    }
-    .video-desc {
-      font-size: .76rem; color: var(--text-soft); margin-top: 4px;
-    }
-
-    /* ══════════════════════════════════════════
-       RIGHT COLUMN — signup form
-    ══════════════════════════════════════════ */
-    .right-col {
-      animation: slideUp .5s cubic-bezier(.22,1,.36,1) .15s both;
-    }
-
-    .form-card {
-      background: rgba(255,255,255,.055);
-      border: 1px solid var(--card-border);
-      border-radius: var(--radius);
-      backdrop-filter: blur(24px);
-      -webkit-backdrop-filter: blur(24px);
-      padding: 36px 32px;
-      box-shadow: 0 24px 64px rgba(0,0,0,.35);
-    }
-
-    .form-header { margin-bottom: 28px; }
-    .form-eyebrow {
-      font-size: .7rem; font-weight: 900; letter-spacing: .14em; text-transform: uppercase;
-      color: var(--gold); margin-bottom: 10px;
-    }
-    .form-title {
-      font-family: 'Playfair Display', serif;
-      font-size: 1.55rem; font-weight: 700; line-height: 1.2;
-      color: var(--text-white); margin-bottom: 8px;
-    }
-    .form-sub {
-      font-size: .82rem; color: var(--text-soft); line-height: 1.6;
-    }
-
-    /* Divider */
-    .form-divider {
-      height: 1px; background: rgba(255,255,255,.08); margin: 24px 0;
-    }
-
-    /* Field */
-    .field { margin-bottom: 18px; }
-    .field-label {
+    .logo {
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: #F97316;
+      letter-spacing: -0.5px;
+      margin-bottom: 32px;
       display: block;
-      font-size: .74rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
-      color: var(--text-soft); margin-bottom: 8px;
+      text-align: center;
+      text-decoration: none;
     }
-    .field-input-wrap { position: relative; }
-    .field-icon {
-      position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
-      font-size: .95rem; pointer-events: none;
+
+    h1 {
+      font-size: 1.6rem;
+      font-weight: 800;
+      color: #1A1A1A;
+      margin-bottom: 6px;
+      text-align: center;
+      line-height: 1.25;
     }
-    .field-input {
+
+    .subtitle {
+      font-size: 0.9rem;
+      color: #6B7280;
+      text-align: center;
+      margin-bottom: 32px;
+      line-height: 1.5;
+    }
+
+    .google-btn {
       width: 100%;
-      background: rgba(255,255,255,.06);
-      border: 1.5px solid rgba(255,255,255,.12);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 13px 16px;
+      background: #fff;
+      border: 2px solid #E5E7EB;
       border-radius: 12px;
-      padding: 15px 16px 15px 42px;
-      font-family: 'Lato', sans-serif; font-size: .93rem; font-weight: 400;
-      color: var(--text-white);
-      outline: none;
-      transition: border-color .22s, background .22s, box-shadow .22s;
-      caret-color: var(--gold);
-    }
-    .field-input::placeholder { color: rgba(255,255,255,.28); }
-    .field-input:focus {
-      border-color: var(--gold);
-      background: rgba(201,168,76,.06);
-      box-shadow: 0 0 0 3px rgba(201,168,76,.12);
-    }
-    .field-input.valid {
-      border-color: var(--green);
-      background: rgba(34,197,94,.05);
-    }
-
-    /* Password strength */
-    .pw-strength { margin-top: 8px; display: none; }
-    .pw-strength.show { display: block; }
-    .pw-bars { display: flex; gap: 4px; margin-bottom: 5px; }
-    .pw-bar {
-      flex: 1; height: 3px; border-radius: 99px;
-      background: rgba(255,255,255,.1);
-      transition: background .3s;
-    }
-    .pw-bar.weak   { background: #ef4444; }
-    .pw-bar.medium { background: var(--gold); }
-    .pw-bar.strong { background: var(--green); }
-    .pw-label {
-      font-size: .7rem; color: var(--text-dim); font-weight: 700; letter-spacing: .04em;
-    }
-
-    /* Checkbox */
-    .checkbox-wrap {
-      display: flex; align-items: flex-start; gap: 12px;
-      margin-bottom: 24px; cursor: pointer;
-    }
-    .checkbox-wrap input[type="checkbox"] { display: none; }
-    .checkbox-custom {
-      width: 20px; height: 20px; border-radius: 6px; flex-shrink: 0;
-      border: 1.5px solid rgba(255,255,255,.25);
-      background: rgba(255,255,255,.05);
-      display: flex; align-items: center; justify-content: center;
-      transition: all .2s; margin-top: 1px;
-    }
-    .checkbox-wrap input:checked + .checkbox-custom {
-      background: var(--gold);
-      border-color: var(--gold);
-    }
-    .checkbox-wrap input:checked + .checkbox-custom::after {
-      content: '✓';
-      font-size: .7rem; font-weight: 900; color: var(--navy);
-    }
-    .checkbox-text {
-      font-size: .82rem; color: var(--text-soft); line-height: 1.5;
-    }
-    .checkbox-text a { color: var(--gold); text-decoration: none; }
-    .checkbox-text a:hover { text-decoration: underline; }
-
-    /* CTA button */
-    .btn-cta {
-      width: 100%;
-      background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 50%, var(--gold) 100%);
-      background-size: 200% auto;
-      color: var(--navy);
-      border: none; border-radius: 14px;
-      padding: 19px 28px;
-      font-family: 'Lato', sans-serif; font-size: 1rem; font-weight: 900;
-      letter-spacing: .1em; text-transform: uppercase;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.92rem;
+      font-weight: 600;
+      color: #1A1A1A;
       cursor: pointer;
-      transition: background-position .4s, transform .18s, box-shadow .18s, opacity .22s;
-      box-shadow: 0 6px 28px rgba(201,168,76,.4);
-      margin-bottom: 16px;
-    }
-    .btn-cta:hover:not(:disabled) {
-      background-position: right center;
-      transform: translateY(-2px);
-      box-shadow: 0 10px 36px rgba(201,168,76,.58);
-    }
-    .btn-cta:active:not(:disabled) { transform: translateY(0); }
-    .btn-cta:disabled { opacity: .38; cursor: not-allowed; box-shadow: none; }
-
-    /* Social proof strip */
-    .social-proof {
-      display: flex; align-items: center; justify-content: center; gap: 8px;
-      font-size: .74rem; color: var(--text-dim);
+      transition: border-color 0.2s, background 0.2s;
       margin-bottom: 20px;
     }
-    .social-proof-dots { display: flex; gap: -4px; }
-    .social-dot {
-      width: 22px; height: 22px; border-radius: 50%;
-      border: 2px solid var(--navy-mid);
-      background: linear-gradient(135deg, rgba(201,168,76,.3), rgba(201,168,76,.1));
-      margin-left: -6px;
-    }
-    .social-dot:first-child { margin-left: 0; }
 
-    /* Back link */
-    .back-link-wrap { text-align: center; }
-    .back-link {
-      font-size: .8rem; color: var(--text-dim);
-      text-decoration: none; font-weight: 700; letter-spacing: .04em;
-      transition: color .2s;
-      display: inline-flex; align-items: center; gap: 5px;
+    .google-btn:hover {
+      border-color: #D1D5DB;
+      background: #F9FAFB;
     }
-    .back-link:hover { color: var(--text-soft); }
 
-    /* ── Success state ── */
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .divider::before, .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: #E5E7EB;
+    }
+
+    .divider span {
+      font-size: 0.8rem;
+      color: #9CA3AF;
+      font-weight: 500;
+    }
+
+    label {
+      display: block;
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: #374151;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    input[type="email"],
+    input[type="password"] {
+      width: 100%;
+      padding: 13px 14px;
+      border: 2px solid #E5E7EB;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      font-family: 'Inter', sans-serif;
+      color: #1A1A1A;
+      background: #fff;
+      outline: none;
+      transition: border-color 0.2s;
+      margin-bottom: 18px;
+    }
+
+    input[type="email"]:focus,
+    input[type="password"]:focus {
+      border-color: #F97316;
+    }
+
+    .create-btn {
+      width: 100%;
+      padding: 15px;
+      background: #F97316;
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.97rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+      margin-bottom: 20px;
+      letter-spacing: -0.2px;
+    }
+
+    .create-btn:hover { background: #EA6C0A; }
+    .create-btn:active { transform: scale(0.98); }
+    .create-btn:disabled { background: #D1D5DB; cursor: not-allowed; }
+
+    .error-msg {
+      background: #FEF2F2;
+      border: 1px solid #FECACA;
+      border-radius: 10px;
+      padding: 11px 14px;
+      font-size: 0.84rem;
+      color: #DC2626;
+      margin-bottom: 16px;
+      display: none;
+    }
+
+    .login-link {
+      text-align: center;
+      font-size: 0.86rem;
+      color: #6B7280;
+    }
+
+    .login-link a {
+      color: #F97316;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .login-link a:hover { text-decoration: underline; }
+
+    .trial-badge {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      background: #FFF7ED;
+      border: 1px solid rgba(249,115,22,0.25);
+      border-radius: 99px;
+      padding: 6px 16px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: #C2410C;
+      margin-bottom: 28px;
+    }
+
+    /* Success state */
     .success-screen {
-      display: none; text-align: center; padding: 20px 0;
-      animation: slideUp .45s cubic-bezier(.22,1,.36,1) forwards;
+      display: none;
+      text-align: center;
+      padding: 12px 0;
     }
+
     .success-screen.visible { display: block; }
-    .success-orb {
-      width: 80px; height: 80px; border-radius: 50%; margin: 0 auto 20px;
-      background: linear-gradient(135deg, rgba(34,197,94,.2), rgba(34,197,94,.06));
-      border: 2px solid rgba(34,197,94,.4);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 2rem;
-      animation: orbPulse 2s ease-in-out infinite;
+
+    .success-icon {
+      font-size: 3rem;
+      margin-bottom: 16px;
+      display: block;
     }
-    .success-title {
-      font-family: 'Playfair Display', serif;
-      font-size: 1.6rem; font-weight: 700; color: var(--text-white);
+
+    .success-screen h2 {
+      font-size: 1.4rem;
+      font-weight: 800;
       margin-bottom: 10px;
     }
-    .success-sub { font-size: .9rem; color: var(--text-soft); line-height: 1.7; margin-bottom: 28px; }
-    .btn-go-study {
+
+    .success-screen p {
+      font-size: 0.9rem;
+      color: #6B7280;
+      line-height: 1.6;
+      margin-bottom: 24px;
+    }
+
+    .continue-btn {
       display: inline-block;
-      background: linear-gradient(135deg, var(--gold), var(--gold-light));
-      color: var(--navy); border: none; border-radius: 12px;
-      padding: 16px 36px;
-      font-family: 'Lato', sans-serif; font-size: .95rem; font-weight: 900;
-      letter-spacing: .1em; text-transform: uppercase; cursor: pointer;
+      background: #F97316;
+      color: #fff;
+      padding: 14px 36px;
+      border-radius: 12px;
       text-decoration: none;
-      box-shadow: 0 6px 24px rgba(201,168,76,.4);
-      transition: transform .2s, box-shadow .2s;
+      font-weight: 700;
+      font-size: 0.95rem;
+      transition: background 0.2s;
     }
-    .btn-go-study:hover { transform: translateY(-2px); box-shadow: 0 10px 32px rgba(201,168,76,.55); }
 
-    @media(max-width: 500px) {
-      .form-card { padding: 26px 20px; }
-      .hook-heading { font-size: 1.55rem; }
-    }
-  </style>
+    .continue-btn:hover { background: #EA6C0A; }
 
-  <style>
-    .star-footer {
-      position: relative; z-index: 10;
-      width: 100%; max-width: 1000px;
-      margin: 56px auto 0;
-      padding-top: 32px;
-      border-top: 1px solid rgba(201,168,76,0.15);
-    }
-    .star-footer-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 32px;
-      padding-bottom: 28px;
-    }
-    .star-footer-col-label {
-      font-size: .68rem; font-weight: 900; letter-spacing: .13em; text-transform: uppercase;
-      color: rgba(201,168,76,0.7); margin-bottom: 11px;
-      display: flex; align-items: center; gap: 7px;
-    }
-    .star-footer-col-label::before {
-      content: ''; display: inline-block;
-      width: 14px; height: 1.5px;
-      background: rgba(201,168,76,0.5); border-radius: 99px;
-    }
-    .star-footer-text {
-      font-size: .78rem; line-height: 1.75;
-      color: rgba(255,255,255,0.36);
-    }
-    .star-footer-text a {
-      color: rgba(201,168,76,0.7);
-      text-decoration: none;
-      transition: color .18s;
-    }
-    .star-footer-text a:hover { color: #C9A84C; }
-    .star-footer-logo {
-      display: flex; align-items: center; gap: 7px; margin-bottom: 11px;
-    }
-    .star-footer-logo-text {
-      font-family: 'Playfair Display', serif;
-      font-size: .88rem; font-weight: 700;
-      color: #C9A84C; letter-spacing: .06em;
-    }
-    .star-footer-bottom {
-      padding: 16px 0;
-      border-top: 1px solid rgba(255,255,255,0.05);
-      display: flex; align-items: center; justify-content: space-between;
-      flex-wrap: wrap; gap: 10px;
-    }
-    .star-footer-bottom-text {
-      font-size: .72rem; color: rgba(255,255,255,0.22);
-    }
-    .star-footer-bottom-links {
-      display: flex; gap: 18px;
-    }
-    .star-footer-bottom-links a {
-      font-size: .72rem; color: rgba(255,255,255,0.22);
-      text-decoration: none; transition: color .18s;
-    }
-    .star-footer-bottom-links a:hover { color: rgba(255,255,255,0.5); }
-    @media(max-width: 620px) {
-      .star-footer-grid { grid-template-columns: 1fr; gap: 24px; }
-      .star-footer-bottom { flex-direction: column; align-items: flex-start; }
+    @media (max-width: 480px) {
+      .card { padding: 36px 24px; }
     }
   </style>
 </head>
 <body>
 
-<!-- Atmosphere -->
-<div class="bg">
-  <div class="bg-glow-1"></div>
-  <div class="bg-glow-2"></div>
-  <div class="star-p" style="left:5%;top:7%;width:3px;height:3px;--d:3.6s;"></div>
-  <div class="star-p" style="left:20%;top:18%;width:2px;height:2px;--d:4.3s;--del:.8s;"></div>
-  <div class="star-p" style="left:87%;top:9%;width:3px;height:3px;--d:3.9s;--del:.3s;"></div>
-  <div class="star-p" style="left:92%;top:50%;width:2px;height:2px;--d:4.6s;--del:1.2s;"></div>
-  <div class="star-p" style="left:7%;top:78%;width:4px;height:4px;--d:3.7s;--del:.5s;"></div>
-</div>
+<div class="card">
+  <a href="index.html" class="logo">⭐ STAR AI Tutor</a>
 
-<!-- Nav -->
-<div class="top-nav">
-  <a id="logo-link" class="nav-logo" href="index.html" style="text-decoration:none;">
-    <svg class="nav-logo-mark" width="36" height="36" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><circle cx="20" cy="20" r="19" fill="#0B1F3A" stroke="#C9A84C" stroke-width="1.5"/><circle cx="20" cy="20" r="15" fill="none" stroke="#C9A84C" stroke-width="0.7" stroke-opacity="0.45"/><circle cx="20" cy="20" r="10.5" fill="none" stroke="#C9A84C" stroke-width="0.7" stroke-opacity="0.28"/><polygon points="20,12 22.06,17.17 27.61,17.53 23.33,21.08 24.70,26.47 20,23.5 15.30,26.47 16.67,21.08 12.39,17.53 17.94,17.17" fill="#C9A84C"/></svg>
-    <div class="nav-logo-wordmark"><span class="nav-logo-name">STAR</span><span class="nav-logo-sub">AI&nbsp;TUTOR</span></div>
-  </a>
-  <a href="study.html" class="nav-back">← Back to Results</a>
-</div>
+  <div id="signup-form">
+    <h1>Create your account</h1>
+    <p class="subtitle">7-day free trial — no credit card required</p>
 
-<!-- Page grid -->
-<div class="page-grid">
+    <div class="trial-badge">✅ 7-day free trial · No card required</div>
 
-  <!-- ══ LEFT COLUMN ══ -->
-  <div class="left-col">
+    <button class="google-btn" onclick="handleGoogleSignup()">
+      <svg width="18" height="18" viewBox="0 0 24 24">
+        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+        <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+        <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
+        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+      </svg>
+      Continue with Google
+    </button>
 
-    <!-- Hook card -->
-    <div class="score-card">
-      <div class="score-eyebrow">Almost there</div>
-      <h1 class="hook-heading">Save Your Progress,<br><em id="student-name">Champion</em>!</h1>
-      <p class="hook-sub">
-        You just scored <strong id="score-display">60%</strong> — that's real progress.
-        Create a free account to save your badges, track your weak spots, and unlock
-        <strong>100+ new SEAG questions</strong>.
-      </p>
+    <div class="divider"><span>or sign up with email</span></div>
 
-      <!-- Score ring -->
-      <div class="score-ring-wrap">
-        <div class="score-ring">
-          <svg width="72" height="72" viewBox="0 0 72 72">
-            <circle class="score-ring-bg" cx="36" cy="36" r="30"/>
-            <circle class="score-ring-fill" id="ring-fill" cx="36" cy="36" r="30"/>
-          </svg>
-          <div class="score-ring-num" id="ring-num">60%</div>
-        </div>
-        <div class="score-ring-info">
-          <div class="score-ring-label">Latest Sprint Score</div>
-          <div class="score-ring-msg" id="ring-msg">Great effort — keep going!</div>
-          <div class="score-ring-track" id="ring-track">P6 Builder Track ⚡</div>
-        </div>
-      </div>
+    <label for="email">Email address</label>
+    <input type="email" id="email" placeholder="parent@example.com" autocomplete="email"/>
 
-      <div class="form-divider" style="margin:22px 0 18px;"></div>
+    <label for="password">Password</label>
+    <input type="password" id="password" placeholder="At least 8 characters" autocomplete="new-password"/>
 
-      <!-- Perks -->
-      <ul class="perks-list">
-        <li>
-          <div class="perk-icon">🏅</div>
-          Save your badges and session history across devices
-        </li>
-        <li>
-          <div class="perk-icon">📊</div>
-          See exactly which topics need more practice
-        </li>
-        <li>
-          <div class="perk-icon">🔓</div>
-          Unlock 100+ additional SEAG practice questions
-        </li>
-        <li>
-          <div class="perk-icon">👪</div>
-          Parent dashboard with weekly progress reports
-        </li>
-      </ul>
+    <div class="error-msg" id="error-msg"></div>
+
+    <button class="create-btn" id="create-btn" onclick="handleEmailSignup()">Create Account</button>
+
+    <div class="login-link">
+      Already have an account? <a href="login.html">Log in</a>
     </div>
+  </div>
 
-    <!-- Video placeholder -->
-    <div class="video-card">
-      <div class="video-placeholder" onclick="playVideo(this)">
-        <div class="video-play-btn">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="#C9A84C">
-            <polygon points="5,3 19,12 5,21"/>
-          </svg>
-        </div>
-        <div class="video-duration">2:14</div>
-      </div>
-      <div class="video-meta">
-        <div class="video-tag">How it works</div>
-        <div class="video-title-text">See how STAR tracks your child's progress</div>
-        <div class="video-desc">A quick look at badges, the parent dashboard, and what unlocks when you sign up.</div>
-      </div>
-    </div>
-
-  </div><!-- /left -->
-
-  <!-- ══ RIGHT COLUMN — form ══ -->
-  <div class="right-col">
-    <div class="form-card">
-
-      <!-- Form header -->
-      <div class="form-header">
-        <div class="form-eyebrow">Free account · No credit card</div>
-        <h2 class="form-title">Create My<br>STAR Profile</h2>
-        <p class="form-sub">Your progress is saved instantly. Pick up exactly where you left off — on any device.</p>
-      </div>
-
-      <div class="form-divider"></div>
-
-      <!-- Form itself -->
-      <div id="signup-form">
-
-        <!-- Parent email -->
-        <div class="field">
-          <label class="field-label" for="email">Parent Email Address</label>
-          <div class="field-input-wrap">
-            <span class="field-icon">✉️</span>
-            <input
-              type="email" id="email" class="field-input"
-              placeholder="parent@example.com"
-              autocomplete="email"
-              oninput="validateEmail(this)"
-            />
-          </div>
-        </div>
-
-        <!-- Password -->
-        <div class="field">
-          <label class="field-label" for="password">Create Password</label>
-          <div class="field-input-wrap">
-            <span class="field-icon">🔒</span>
-            <input
-              type="password" id="password" class="field-input"
-              placeholder="At least 8 characters"
-              autocomplete="new-password"
-              oninput="checkPassword(this)"
-            />
-          </div>
-          <div class="pw-strength" id="pw-strength">
-            <div class="pw-bars">
-              <div class="pw-bar" id="bar1"></div>
-              <div class="pw-bar" id="bar2"></div>
-              <div class="pw-bar" id="bar3"></div>
-              <div class="pw-bar" id="bar4"></div>
-            </div>
-            <div class="pw-label" id="pw-label">Too short</div>
-          </div>
-        </div>
-
-        <div class="form-divider"></div>
-
-        <!-- Terms checkbox -->
-        <label class="checkbox-wrap">
-          <input type="checkbox" id="terms-check" onchange="updateCTA()" />
-          <div class="checkbox-custom"></div>
-          <span class="checkbox-text">
-            I agree to the <a href="terms.html">STAR Tutor Terms of Service</a> and
-            <a href="privacy.html">Privacy Policy</a>. I confirm I am the parent or guardian of the child using this account.
-          </span>
-        </label>
-
-        <!-- Social proof -->
-        <div class="social-proof">
-          <div class="social-proof-dots">
-            <div class="social-dot"></div>
-            <div class="social-dot"></div>
-            <div class="social-dot"></div>
-            <div class="social-dot"></div>
-          </div>
-          Joined by 200+ NI families this term
-        </div>
-
-        <!-- Error message -->
-        <div id="signup-error" style="display:none;color:#ef4444;font-size:.85rem;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);border-radius:10px;padding:12px 14px;margin-bottom:14px;"></div>
-
-        <!-- CTA -->
-        <button class="btn-cta" id="btn-cta" disabled onclick="handleSignup()">
-          🌟 &nbsp;Create My STAR Profile
-        </button>
-
-        <!-- Back link -->
-        <div class="back-link-wrap">
-          <a href="study.html" class="back-link">← Back to my results</a>
-        </div>
-
-      </div><!-- /signup-form -->
-
-      <!-- Success state (shown after submit) -->
-      <div class="success-screen" id="success-screen">
-        <div class="success-orb" id="success-orb">🎉</div>
-        <div class="success-title" id="success-title">You're in!</div>
-        <p class="success-sub" id="success-sub">
-          Your STAR profile has been created.<br>
-          Setting up your dashboard now… 🚀
-        </p>
-        <a href="onboarding.html" class="btn-go-study" id="success-btn">Continue to Setup →</a>
-      </div>
-
-    </div><!-- /form-card -->
-  </div><!-- /right -->
-
-</div><!-- /page-grid -->
+  <div class="success-screen" id="success-screen">
+    <span class="success-icon">🎉</span>
+    <h2>Account created!</h2>
+    <p id="success-msg">Setting up your profile now…</p>
+    <a href="onboarding.html" class="continue-btn" id="continue-btn">Continue to Setup →</a>
+  </div>
+</div>
 
 <script>
-/* ════════════════════════════════════════════════════
-   LOAD STUDENT CONTEXT FROM SESSION STORAGE
-════════════════════════════════════════════════════ */
-window.addEventListener('DOMContentLoaded', async () => {
-  // Smart logo: if already logged in, logo goes to dashboard
-  try {
-    const { data: { session } } = await client.auth.getSession();
-    if (session) document.getElementById('logo-link').href = 'dashboard.html';
-  } catch (_) {}
+  const SUPABASE_URL = 'https://iutcgogmxhaqgaxkznxu.supabase.co';
+  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml1dGNnb2dteGhhcWdheGt6bnh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM3NjE4MTQsImV4cCI6MjA4OTMzNzgxNH0.o0plRQzH8ezfttG_sEeWu3F4IUtKnyzcXtPEGJ9xRF0';
+  const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-  const name    = sessionStorage.getItem('star_name');
-  const track   = sessionStorage.getItem('star_year') || new URLSearchParams(window.location.search).get('track') || 'P6';
-  const scorePct = parseInt(sessionStorage.getItem('star_last_score') || '60', 10);
-
-  // Name
-  if (name) {
-    document.getElementById('student-name').textContent = name;
+  async function handleGoogleSignup() {
+    const { error } = await sb.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: window.location.origin + '/onboarding.html' }
+    });
+    if (error) showError(error.message);
   }
 
-  // Score ring
-  const pct = Math.min(100, Math.max(0, scorePct));
-  document.getElementById('score-display').textContent = pct + '%';
-  document.getElementById('ring-num').textContent      = pct + '%';
+  async function handleEmailSignup() {
+    const email    = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+    const btn      = document.getElementById('create-btn');
+    const errEl    = document.getElementById('error-msg');
 
-  // Ring animation offset: circumference = 2π×30 ≈ 188.5
-  const circumference = 188.5;
-  const offset = circumference - (pct / 100) * circumference;
-  document.getElementById('ring-fill').style.setProperty('--ring-offset', offset);
+    if (!email || !password) { showError('Please enter your email and a password.'); return; }
+    if (password.length < 8) { showError('Password must be at least 8 characters.'); return; }
 
-  // Message
-  const msg = pct >= 80 ? 'Outstanding — you\'re nearly exam-ready!'
-            : pct >= 60 ? 'Great effort — keep going!'
-            : 'Every sprint builds confidence!';
-  document.getElementById('ring-msg').textContent = msg;
+    btn.textContent = 'Creating account…';
+    btn.disabled    = true;
+    errEl.style.display = 'none';
 
-  // Track badge
-  document.getElementById('ring-track').textContent =
-    track === 'P7' ? 'P7 Executor Track 🏆' : 'P6 Builder Track ⚡';
-});
+    const { data, error } = await sb.auth.signUp({ email, password });
 
-/* ════════════════════════════════════════════════════
-   FORM VALIDATION
-════════════════════════════════════════════════════ */
-function validateEmail(input) {
-  const valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input.value);
-  input.classList.toggle('valid', valid);
-  updateCTA();
-}
-
-function checkPassword(input) {
-  const val = input.value;
-  const strength = document.getElementById('pw-strength');
-  strength.classList.toggle('show', val.length > 0);
-
-  const bars   = [document.getElementById('bar1'), document.getElementById('bar2'),
-                  document.getElementById('bar3'), document.getElementById('bar4')];
-  const label  = document.getElementById('pw-label');
-
-  // Score password
-  let score = 0;
-  if (val.length >= 8)  score++;
-  if (val.length >= 12) score++;
-  if (/[A-Z]/.test(val) && /[a-z]/.test(val)) score++;
-  if (/[0-9!@#$%^&*]/.test(val)) score++;
-
-  bars.forEach((b, i) => {
-    b.className = 'pw-bar';
-    if (i < score) {
-      b.classList.add(score <= 1 ? 'weak' : score <= 2 ? 'medium' : 'strong');
+    if (error) {
+      showError(error.message);
+      btn.textContent = 'Create Account';
+      btn.disabled    = false;
+      return;
     }
+
+    const user    = data?.user;
+    const session = data?.session;
+
+    if (session && user) {
+      await sb.from('profiles').upsert({
+        id:           user.id,
+        parent_email: email,
+        onboarded:    false,
+        updated_at:   new Date().toISOString()
+      }, { onConflict: 'id' });
+
+      document.getElementById('signup-form').style.display = 'none';
+      document.getElementById('success-screen').classList.add('visible');
+      setTimeout(() => { window.location.href = 'onboarding.html'; }, 1000);
+    } else {
+      document.getElementById('success-msg').innerHTML =
+        'We\'ve sent a confirmation link to <strong>' + email + '</strong>.<br>Click it to activate your account, then log in.';
+      document.getElementById('continue-btn').href = 'login.html';
+      document.getElementById('continue-btn').textContent = 'Go to Login →';
+      document.getElementById('signup-form').style.display = 'none';
+      document.getElementById('success-screen').classList.add('visible');
+    }
+  }
+
+  function showError(msg) {
+    const el = document.getElementById('error-msg');
+    el.textContent = msg;
+    el.style.display = 'block';
+  }
+
+  document.getElementById('password').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') handleEmailSignup();
   });
-
-  label.textContent = ['Too short','Weak','Fair','Strong','Very strong'][score] || 'Too short';
-  label.style.color = ['#ef4444','#ef4444','#C9A84C','#22c55e','#22c55e'][score] || '#ef4444';
-
-  input.classList.toggle('valid', score >= 2);
-  updateCTA();
-}
-
-function updateCTA() {
-  const emailOk  = document.getElementById('email').classList.contains('valid');
-  const passOk   = document.getElementById('password').classList.contains('valid');
-  const termsOk  = document.getElementById('terms-check').checked;
-  document.getElementById('btn-cta').disabled = !(emailOk && passOk && termsOk);
-}
-
-/* ════════════════════════════════════════════════════
-   SUPABASE CLIENT
-════════════════════════════════════════════════════ */
-const SUPABASE_URL = 'https://iutcgogmxhaqgaxkznxu.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml1dGNnb2dteGhhcWdheGt6bnh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM3NjE4MTQsImV4cCI6MjA4OTMzNzgxNH0.o0plRQzH8ezfttG_sEeWu3F4IUtKnyzcXtPEGJ9xRF0';
-const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-/* ════════════════════════════════════════════════════
-   HANDLE SIGNUP
-════════════════════════════════════════════════════ */
-async function handleSignup() {
-  const btn   = document.getElementById('btn-cta');
-  const errEl = document.getElementById('signup-error');
-  const email    = document.getElementById('email').value.trim();
-  const password = document.getElementById('password').value;
-
-  btn.textContent = 'Creating your profile…';
-  btn.disabled    = true;
-  errEl.style.display = 'none';
-
-  const { data, error } = await client.auth.signUp({ email, password });
-
-  if (error) {
-    errEl.textContent    = '⚠️ ' + error.message;
-    errEl.style.display  = 'block';
-    btn.textContent      = '🌟 \u00a0Create My STAR Profile';
-    btn.disabled         = false;
-    return;
-  }
-
-  const user    = data?.user;
-  const session = data?.session;
-
-  if (session && user) {
-    // Auto-confirm is on — we have a live session, create profile and go
-    await client.from('profiles').upsert({
-      id:           user.id,
-      parent_email: email,
-      onboarded:    false,
-      subject:      'SEAG',
-      updated_at:   new Date().toISOString()
-    }, { onConflict: 'id' });
-
-    document.getElementById('signup-form').style.display = 'none';
-    document.getElementById('success-screen').classList.add('visible');
-    setTimeout(() => { window.location.href = 'onboarding.html'; }, 1200);
-  } else {
-    // Email confirmation required — show "check your email" message
-    document.getElementById('success-orb').textContent   = '📧';
-    document.getElementById('success-title').textContent = 'Check your email!';
-    document.getElementById('success-sub').innerHTML =
-      'We\'ve sent a confirmation link to <strong>' + email + '</strong>.<br>' +
-      'Click it to activate your account, then log in to continue.';
-    document.getElementById('success-btn').href        = 'login.html';
-    document.getElementById('success-btn').textContent = 'Go to Login →';
-
-    document.getElementById('signup-form').style.display = 'none';
-    document.getElementById('success-screen').classList.add('visible');
-  }
-}
-
-/* ════════════════════════════════════════════════════
-   VIDEO PLACEHOLDER
-════════════════════════════════════════════════════ */
-function playVideo(el) {
-  // Replace src with your real video embed URL when ready
-  el.innerHTML = `
-    <iframe
-      width="100%" height="100%"
-      src="https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1"
-      frameborder="0" allow="autoplay; encrypted-media" allowfullscreen
-      style="position:absolute;inset:0;width:100%;height:100%;">
-    </iframe>`;
-  el.style.position = 'relative';
-  el.style.padding = '0';
-}
 </script>
-
-
-  <!-- ══ STAR FOOTER ══ -->
-  <footer class="star-footer">
-    <div class="star-footer-grid">
-
-      <!-- Col 1: About -->
-      <div>
-        <div class="star-footer-logo">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="#C9A84C">
-            <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/>
-          </svg>
-          <span class="star-footer-logo-text">STAR AI Tutor</span>
-        </div>
-        <p class="star-footer-text">
-          Empowering P6 &amp; P7 students for SEAG success.<br>
-          Smart, personalised practice — built for Northern Ireland.
-        </p>
-      </div>
-
-      <!-- Col 2: Educational Partners -->
-      <div>
-        <div class="star-footer-col-label">Educational Partners</div>
-        <p class="star-footer-text">
-          Visual tutorials powered by
-          <a href="https://corbettmaths.com" target="_blank" rel="noopener">CorbettMaths</a>
-          and
-          <a href="https://www.bbc.co.uk/bitesize" target="_blank" rel="noopener">BBC Bitesize</a>.<br>
-          Used with deep respect for their incredible free resources.
-        </p>
-      </div>
-
-      <!-- Col 3: Legal -->
-      <div>
-        <div class="star-footer-col-label">Legal</div>
-        <p class="star-footer-text">
-          &copy; 2026 STAR AI Tutor. All rights reserved.<br>
-          Not affiliated with the Education Authority, GL Assessment, CorbettMaths or BBC Bitesize.
-        </p>
-      </div>
-
-    </div>
-    <div class="star-footer-bottom">
-      <span class="star-footer-bottom-text">&copy; 2026 STAR AI Tutor</span>
-      <div class="star-footer-bottom-links">
-        <a href="privacy.html">Privacy Policy</a>
-        <a href="terms.html">Terms of Service</a>
-        <a href="mailto:staraitutor.support@gmail.com">Support</a>
-        <a href="https://www.facebook.com/share/1DGKfvGo9b/" target="_blank" rel="noopener">Facebook</a>
-      </div>
-    </div>
-  </footer>
 
 </body>
 </html>

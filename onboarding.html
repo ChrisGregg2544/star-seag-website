@@ -1,244 +1,278 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8"/>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <link rel="icon" type="image/x-icon" href="/favicon.ico">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>STAR AI Tutor – Welcome</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <!-- Cookie Consent + GA4 (loads GA only if accepted) -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>STAR AI Tutor — Welcome</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3"></script>
   <script src="cookie-consent.js"></script>
   <style>
     :root {
-      --orange:       #FF6D00;
-      --orange-dark:  #E65100;
-      --orange-light: #FF9E40;
-      --yellow:       #FFD54F;
-      --yellow-dark:  #F9A825;
-      --cream:        #FFF9E6;
+      --orange: #F97316;
+      --orange-dark: #EA6C0A;
+      --cream: #FEF3E2;
       --cream-border: #F0E0C0;
-      --card-border:  #E8D8B8;
-      --text-dark:    #333333;
-      --text-mid:     #666666;
-      --text-light:   #999999;
+      --text-dark: #1A1A1A;
+      --text-mid: #6B7280;
+      --text-light: #9CA3AF;
     }
+
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html, body { height: 100%; }
+
     body {
       background: var(--cream);
       color: var(--text-dark);
-      font-family: 'Nunito', sans-serif;
-      font-weight: 600;
-      display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
-      min-height: 100vh; padding: 24px;
+      font-family: 'Inter', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 24px 16px;
     }
 
-    /* ── Card ── */
     .card {
-      position: relative; z-index: 1;
-      width: 100%; max-width: 540px;
+      width: 100%;
+      max-width: 520px;
       background: #fff;
-      border: 2px solid var(--card-border);
       border-radius: 24px;
       padding: 44px 40px 38px;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+      box-shadow: 0 4px 32px rgba(0,0,0,0.08);
       text-align: center;
     }
 
-    /* ── Progress dots ── */
-    .progress-wrap { display: flex; gap: 8px; margin-bottom: 32px; justify-content: center; }
-    .progress-dot {
-      height: 5px; border-radius: 99px;
-      background: var(--cream-border); flex: 1; max-width: 44px;
-      transition: background .4s;
+    /* Progress dots */
+    .progress-wrap {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 32px;
+      justify-content: center;
     }
-    .progress-dot.active { background: var(--orange); }
-    .progress-dot.done   { background: rgba(255,109,0,.4); }
 
-    /* ── Avatar ── */
+    .progress-dot {
+      height: 5px;
+      border-radius: 99px;
+      background: #E5E7EB;
+      flex: 1;
+      max-width: 44px;
+      transition: background 0.4s;
+    }
+
+    .progress-dot.active { background: var(--orange); }
+    .progress-dot.done   { background: rgba(249,115,22,0.35); }
+
+    /* Avatar */
     .avatar-wrap { display: flex; justify-content: center; margin-bottom: 22px; }
     .avatar {
-      width: 88px; height: 88px; border-radius: 50%;
-      background: linear-gradient(135deg, rgba(255,109,0,.15), rgba(255,109,0,.05));
-      border: 2px solid rgba(255,109,0,.35);
+      width: 80px; height: 80px; border-radius: 50%;
+      background: linear-gradient(135deg, rgba(249,115,22,0.12), rgba(249,115,22,0.04));
+      border: 2px solid rgba(249,115,22,0.3);
       display: flex; align-items: center; justify-content: center;
-      position: relative; animation: avatarPulse 3s ease-in-out infinite;
+      font-size: 2.4rem;
+      animation: avatarPulse 3s ease-in-out infinite;
     }
     @keyframes avatarPulse {
-      0%,100% { box-shadow: 0 0 0 8px rgba(255,109,0,.06), 0 0 0 16px rgba(255,109,0,.03); }
-      50%      { box-shadow: 0 0 0 12px rgba(255,109,0,.10), 0 0 0 24px rgba(255,109,0,.04); }
-    }
-    .avatar-face { width: 58px; height: 58px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; }
-    .avatar-eyes { display: flex; gap: 11px; align-items: center; }
-    .avatar-eye  { width: 8px; height: 8px; border-radius: 50%; background: var(--orange); animation: blink 4s ease-in-out infinite; }
-    .avatar-eye.r { animation-delay: .08s; }
-    @keyframes blink { 0%,92%,100% { transform: scaleY(1); } 95% { transform: scaleY(.1); } }
-    .avatar-smile { width: 20px; height: 10px; border: 2px solid var(--orange); border-top: none; border-radius: 0 0 20px 20px; }
-    .avatar::before {
-      content: ''; position: absolute; top: -16px; left: 50%; transform: translateX(-50%);
-      width: 2px; height: 12px;
-      background: linear-gradient(180deg, var(--orange), rgba(255,109,0,.3)); border-radius: 2px;
-    }
-    .avatar::after {
-      content: ''; position: absolute; top: -22px; left: 50%; transform: translateX(-50%);
-      width: 7px; height: 7px; border-radius: 50%;
-      background: var(--orange); box-shadow: 0 0 8px rgba(255,109,0,.7);
-      animation: antPulse 2s ease-in-out infinite;
-    }
-    @keyframes antPulse {
-      0%,100% { transform: translateX(-50%) scale(1); }
-      50%      { transform: translateX(-50%) scale(1.3); }
+      0%,100% { box-shadow: 0 0 0 6px rgba(249,115,22,0.06); }
+      50%      { box-shadow: 0 0 0 12px rgba(249,115,22,0.10); }
     }
 
-    /* ── Step labels ── */
-    .qlabel { font-size: 1.5rem; font-weight: 900; line-height: 1.25; margin-bottom: 8px; min-height: 64px; color: var(--text-dark); }
-    .qsub   { font-size: .86rem; color: var(--text-mid); margin-bottom: 26px; line-height: 1.6; }
+    .qlabel {
+      font-size: 1.45rem;
+      font-weight: 800;
+      line-height: 1.3;
+      margin-bottom: 8px;
+      color: var(--text-dark);
+      min-height: 56px;
+    }
 
-    /* ── Text input ── */
+    .qsub {
+      font-size: 0.88rem;
+      color: var(--text-mid);
+      margin-bottom: 28px;
+      line-height: 1.6;
+    }
+
     .text-input {
-      width: 100%; background: #fff;
-      border: 2px solid var(--card-border); border-radius: 14px;
-      padding: 16px 20px; font-family: 'Nunito', sans-serif;
-      font-size: 1.1rem; font-weight: 700; color: var(--text-dark);
-      text-align: center; outline: none; margin-bottom: 22px;
-      caret-color: var(--orange); transition: border-color .25s, box-shadow .25s;
-    }
-    .text-input::placeholder { color: #bbb; font-weight: 400; }
-    .text-input:focus {
-      border-color: var(--orange);
-      box-shadow: 0 0 0 3px rgba(255,109,0,.12);
+      width: 100%;
+      background: #fff;
+      border: 2px solid #E5E7EB;
+      border-radius: 12px;
+      padding: 14px 16px;
+      font-family: 'Inter', sans-serif;
+      font-size: 1rem;
+      font-weight: 500;
+      color: var(--text-dark);
+      text-align: center;
+      outline: none;
+      margin-bottom: 22px;
+      transition: border-color 0.2s;
     }
 
-    /* ── Choice buttons ── */
-    .choices   { display: flex; flex-direction: column; gap: 10px; margin-bottom: 22px; }
-    .choices.r { flex-direction: row; }
-    .cbtn {
-      flex: 1; background: var(--cream);
-      border: 2px solid var(--cream-border); border-radius: 14px;
-      padding: 16px 12px; color: var(--text-dark);
-      font-family: 'Nunito', sans-serif; font-size: .9rem; font-weight: 700;
-      cursor: pointer; transition: all .22s; position: relative; overflow: hidden;
-      display: flex; flex-direction: column; align-items: center; gap: 4px;
-      -webkit-tap-highlight-color: transparent;
-    }
-    .cbtn .ci { font-size: 1.4rem; }
-    .cbtn .cl { font-size: .9rem; }
-    .cbtn .cs { font-size: .7rem; color: var(--text-light); font-weight: 600; }
-    .cbtn:hover { border-color: var(--orange-light); background: #FFF3E8; transform: translateY(-2px); }
-    .cbtn.sel {
-      border-color: var(--orange); background: #FFF3E8;
-      box-shadow: 0 3px 0 var(--orange-light);
-    }
-    .cbtn.sel::after {
-      content: ''; position: absolute; top: 8px; right: 10px;
-      width: 16px; height: 16px; border-radius: 50%; background: var(--orange);
-      -webkit-mask: url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='3' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E") center/11px no-repeat;
-      mask: url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='3' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E") center/11px no-repeat;
-    }
-    .cbtn.row-style { flex-direction: row; justify-content: flex-start; gap: 14px; padding: 14px 18px; }
-    .cbtn.row-style .ci { font-size: 1.2rem; }
-    .cbtn.row-style .txt { text-align: left; }
+    .text-input::placeholder { color: #D1D5DB; }
+    .text-input:focus { border-color: var(--orange); }
 
-    /* ── Info note ── */
-    .info-note {
-      display: flex; align-items: flex-start; gap: 9px;
-      background: #FFF3E8; border: 2px solid rgba(255,109,0,.2);
-      border-radius: 10px; padding: 11px 14px;
-      margin-bottom: 18px; text-align: left;
+    /* Year group buttons */
+    .year-group-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 22px;
     }
-    .info-note svg { flex-shrink: 0; margin-top: 1px; }
-    .info-note span { font-size: .76rem; color: var(--text-mid); line-height: 1.6; }
 
-    /* ── Next button ── */
+    .year-btn {
+      padding: 20px 12px;
+      border: 2px solid #E5E7EB;
+      border-radius: 14px;
+      background: #fff;
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--text-mid);
+      transition: all 0.18s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .year-btn .year-label { font-size: 1.5rem; font-weight: 800; }
+    .year-btn .year-sub   { font-size: 0.72rem; font-weight: 500; color: #9CA3AF; }
+
+    .year-btn:hover { border-color: var(--orange); color: var(--orange); }
+    .year-btn.sel   { border-color: var(--orange); background: #FFF7ED; color: var(--orange); }
+    .year-btn.sel .year-sub { color: #FB923C; }
+
+    /* Exam awareness box */
+    .exam-info {
+      background: #FFF7ED;
+      border: 2px solid rgba(249,115,22,0.2);
+      border-radius: 14px;
+      padding: 22px 20px;
+      margin-bottom: 22px;
+      text-align: left;
+    }
+
+    .exam-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .exam-row:last-child { margin-bottom: 0; }
+
+    .exam-icon {
+      font-size: 1.2rem;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .exam-row-text {
+      font-size: 0.86rem;
+      line-height: 1.55;
+    }
+
+    .exam-row-text strong { color: var(--text-dark); }
+    .exam-row-text span   { color: var(--text-mid); }
+
+    .weeks-countdown {
+      background: var(--orange);
+      color: #fff;
+      border-radius: 99px;
+      padding: 5px 16px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      display: inline-block;
+      margin-top: 14px;
+    }
+
+    /* Summary box */
+    .summary-box {
+      background: #FFF7ED;
+      border: 2px solid rgba(249,115,22,0.2);
+      border-radius: 14px;
+      padding: 18px 20px;
+      margin: 0 0 22px;
+      text-align: left;
+    }
+
+    .srow {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.86rem;
+      color: var(--text-mid);
+      padding: 6px 0;
+      border-bottom: 1px solid rgba(249,115,22,0.1);
+    }
+
+    .srow:last-child { border-bottom: none; }
+    .srow strong { color: var(--text-dark); font-weight: 700; }
+
+    /* Next button */
     .nbtn {
       width: 100%;
       background: var(--orange);
-      color: #fff; border: none; border-radius: 14px; padding: 18px 28px;
-      font-family: 'Nunito', sans-serif; font-size: .95rem; font-weight: 900;
-      letter-spacing: .06em; text-transform: uppercase;
+      color: #fff;
+      border: none;
+      border-radius: 14px;
+      padding: 16px 28px;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.97rem;
+      font-weight: 700;
       cursor: pointer;
-      box-shadow: 0 5px 0 var(--orange-dark);
-      transition: transform .18s, box-shadow .18s, opacity .2s;
+      box-shadow: 0 4px 0 var(--orange-dark);
+      transition: transform 0.18s, box-shadow 0.18s, opacity 0.2s;
+      letter-spacing: -0.2px;
     }
-    .nbtn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 7px 0 var(--orange-dark); }
-    .nbtn:active:not(:disabled) { transform: translateY(2px); box-shadow: 0 2px 0 var(--orange-dark); }
-    .nbtn:disabled { background: #FFAB76; box-shadow: 0 5px 0 #D4845A; cursor: not-allowed; }
-    .nbtn.big { font-size: 1.05rem; padding: 20px 28px; }
 
-    /* ── Back link ── */
+    .nbtn:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 6px 0 var(--orange-dark); }
+    .nbtn:active:not(:disabled) { transform: translateY(2px); box-shadow: 0 2px 0 var(--orange-dark); }
+    .nbtn:disabled { background: #D1D5DB; box-shadow: 0 4px 0 #B0B7C3; cursor: not-allowed; }
+    .nbtn.big { font-size: 1.05rem; padding: 18px 28px; }
+
     .back-link {
-      display: inline-block; margin-top: 14px;
-      font-size: .78rem; color: var(--text-light);
-      cursor: pointer; background: none; border: none;
-      letter-spacing: .06em; font-family: 'Nunito', sans-serif;
-      transition: color .2s;
+      display: inline-block;
+      margin-top: 14px;
+      font-size: 0.78rem;
+      color: var(--text-light);
+      cursor: pointer;
+      background: none;
+      border: none;
+      font-family: 'Inter', sans-serif;
+      transition: color 0.2s;
     }
+
     .back-link:hover { color: var(--orange); }
 
-    /* ── Complete badge ── */
-    .complete-badge {
-      display: inline-flex; align-items: center; gap: 8px;
-      background: #FFF3E8; border: 2px solid rgba(255,109,0,.3);
-      border-radius: 999px; padding: 5px 16px;
-      font-size: .7rem; font-weight: 800; letter-spacing: .14em; text-transform: uppercase;
-      color: var(--orange); margin-bottom: 20px;
+    .saving-msg {
+      font-size: 0.84rem;
+      color: var(--orange);
+      margin-top: 14px;
+      min-height: 18px;
+      font-weight: 600;
     }
 
-    /* ── Summary box ── */
-    .summary-box {
-      background: #FFF3E8; border: 2px solid rgba(255,109,0,.2);
-      border-radius: 13px; padding: 16px 20px; margin: 16px 0 20px;
-      text-align: left; display: flex; flex-direction: column; gap: 10px;
-    }
-    .srow { display: flex; align-items: center; gap: 11px; font-size: .84rem; color: var(--text-mid); }
-    .srow svg { flex-shrink: 0; }
-    .srow strong { color: var(--text-dark); }
-
-    /* ── STAR explains box ── */
-    .star-explains {
-      background: var(--cream); border: 2px solid var(--cream-border);
-      border-left: 4px solid var(--orange);
-      border-radius: 13px; padding: 18px 20px; margin-bottom: 24px; text-align: left;
-    }
-    .se-title {
-      font-size: .68rem; font-weight: 900; letter-spacing: .13em; text-transform: uppercase;
-      color: var(--orange); margin-bottom: 11px; display: flex; align-items: center; gap: 6px;
-    }
-    .star-explains p { font-size: .8rem; color: var(--text-mid); line-height: 1.75; margin-bottom: 7px; }
-    .star-explains p:last-child { margin-bottom: 0; }
-    .star-explains strong { color: var(--text-dark); }
-
-    /* ── Step transitions ── */
+    /* Step transitions */
     .step { display: none; }
-    .step.active { display: block; animation: sIn .4s cubic-bezier(.22,1,.36,1) forwards; }
-    .step.out    { display: block; animation: sOut .3s ease forwards; pointer-events: none; }
-    @keyframes sIn  { from { opacity: 0; transform: translateX(38px) scale(.98); } to { opacity: 1; transform: translateX(0) scale(1); } }
-    @keyframes sOut { from { opacity: 1; transform: translateX(0) scale(1); }    to { opacity: 0; transform: translateX(-38px) scale(.98); } }
+    .step.active { display: block; animation: sIn 0.38s cubic-bezier(.22,1,.36,1) forwards; }
+    .step.out    { display: block; animation: sOut 0.28s ease forwards; pointer-events: none; }
 
-    .shint      { margin-top: 8px; font-size: .7rem; color: var(--text-light); letter-spacing: .05em; }
-    .saving-msg { font-size: .82rem; color: var(--orange); margin-top: 14px; min-height: 18px; font-weight: 700; }
+    @keyframes sIn  { from { opacity:0; transform:translateX(32px); } to { opacity:1; transform:translateX(0); } }
+    @keyframes sOut { from { opacity:1; transform:translateX(0); }   to { opacity:0; transform:translateX(-32px); } }
 
-    /* ── Footer ── */
-    footer {
-      position: relative; z-index: 10; width: 100%; padding: 20px;
-      border-top: 2px solid var(--cream-border);
-      display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; margin-top: 32px;
-    }
-    footer a {
-      font-size: .74rem; font-weight: 700; color: var(--text-light);
-      text-decoration: none; transition: color .2s;
-    }
-    footer a:hover { color: var(--orange); }
+    .step-hint { margin-top: 10px; font-size: 0.72rem; color: var(--text-light); letter-spacing: 0.04em; }
 
-    @media (max-width: 560px) {
+    @media (max-width: 520px) {
       .card { padding: 32px 20px 28px; border-radius: 20px; }
-      .qlabel { font-size: 1.28rem; }
-      .choices.r { flex-direction: column; }
+      .qlabel { font-size: 1.22rem; }
     }
   </style>
 </head>
@@ -254,245 +288,237 @@
   </div>
 
   <div class="avatar-wrap">
-    <div class="avatar">
-      <div class="avatar-face">
-        <div class="avatar-eyes">
-          <div class="avatar-eye"></div>
-          <div class="avatar-eye r"></div>
-        </div>
-        <div class="avatar-smile"></div>
-      </div>
-    </div>
+    <div class="avatar">⭐</div>
   </div>
 
-  <!-- STEP 0: Name -->
+  <!-- STEP 0: Parent name -->
   <div class="step active" id="step-0">
     <div class="qlabel">Hi! I'm STAR.<br>What's your name?</div>
-    <div class="qsub">Let's get to know each other ✨</div>
-    <input class="text-input" id="inp-name" type="text" placeholder="Type your first name…" autocomplete="off" maxlength="32"/>
+    <div class="qsub">I'm here to help your child prepare for the Transfer Test.</div>
+    <input class="text-input" id="inp-parent-name" type="text" placeholder="Your first name…" autocomplete="off" maxlength="40"/>
     <button class="nbtn" id="btn-0" disabled onclick="goNext(0)">Next →</button>
-    <div class="shint">Step 1 of 4</div>
+    <div class="step-hint">Step 1 of 4</div>
   </div>
 
-  <!-- STEP 1: Year Group -->
+  <!-- STEP 1: Child details -->
   <div class="step" id="step-1">
-    <div class="qlabel" id="lbl-1">Which year<br>are you in?</div>
-    <div class="qsub">This helps STAR pick the right track for you</div>
-    <div class="choices r">
-      <button class="cbtn" onclick="sel('year','P6',this)" style="padding:24px 12px;">
-        <span class="ci">⚡</span>
-        <span class="cl" style="font-size:1.25rem;">P6</span>
-        <span class="cs">The Builder Track</span>
-        <span class="cs" style="font-size:.66rem;">Foundation sprints</span>
+    <div class="qlabel" id="lbl-1">Tell us about<br>your child</div>
+    <div class="qsub">We'll match the questions to the right level.</div>
+
+    <input class="text-input" id="inp-child-name" type="text" placeholder="Child's first name…" autocomplete="off" maxlength="40"/>
+
+    <div class="year-group-row">
+      <button class="year-btn" id="yr-p6" onclick="selYear('P6')">
+        <span class="year-label">P6</span>
+        <span class="year-sub">Age 10–11</span>
       </button>
-      <button class="cbtn" onclick="sel('year','P7',this)" style="padding:24px 12px;">
-        <span class="ci">🏆</span>
-        <span class="cl" style="font-size:1.25rem;">P7</span>
-        <span class="cs">The Executor Track</span>
-        <span class="cs" style="font-size:.66rem;">Full mock papers</span>
+      <button class="year-btn" id="yr-p7" onclick="selYear('P7')">
+        <span class="year-label">P7</span>
+        <span class="year-sub">Age 11–12</span>
       </button>
     </div>
+
     <button class="nbtn" id="btn-1" disabled onclick="goNext(1)">Next →</button>
     <button class="back-link" onclick="goBack(1)">← Back</button>
-    <div class="shint">Step 2 of 4</div>
+    <div class="step-hint">Step 2 of 4</div>
   </div>
 
-  <!-- STEP 2: Sessions Per Week -->
+  <!-- STEP 2: Exam awareness -->
   <div class="step" id="step-2">
-    <div class="qlabel" id="lbl-2">How often can you<br>study each week?</div>
-    <div class="qsub">Be honest — even 2 sessions a week makes a big difference!</div>
-    <div class="choices">
-      <button class="cbtn row-style" onclick="sel('sessions',2,this)">
-        <span class="ci">📅</span>
-        <div class="txt"><div class="cl">2 sessions a week</div><div class="cs">A steady, manageable pace</div></div>
-      </button>
-      <button class="cbtn row-style" onclick="sel('sessions',3,this)">
-        <span class="ci">🚀</span>
-        <div class="txt"><div class="cl">3 sessions a week</div><div class="cs">Recommended for most students</div></div>
-      </button>
-      <button class="cbtn row-style" onclick="sel('sessions',4,this)">
-        <span class="ci">⭐</span>
-        <div class="txt"><div class="cl">4 sessions a week</div><div class="cs">Great for P7s in the final stretch</div></div>
-      </button>
-      <button class="cbtn row-style" onclick="sel('sessions',5,this)">
-        <span class="ci">🔥</span>
-        <div class="txt"><div class="cl">5+ sessions a week</div><div class="cs">Full exam prep mode!</div></div>
-      </button>
+    <div class="qlabel">When is the Transfer Test?</div>
+    <div class="qsub">Here are the exam dates — we'll count down together.</div>
+
+    <div class="exam-info">
+      <div class="exam-row">
+        <span class="exam-icon">📝</span>
+        <div class="exam-row-text">
+          <strong>Paper 1</strong><br>
+          <span>Saturday 15th November</span>
+        </div>
+      </div>
+      <div class="exam-row">
+        <span class="exam-icon">📝</span>
+        <div class="exam-row-text">
+          <strong>Paper 2</strong><br>
+          <span>Saturday 22nd November</span>
+        </div>
+      </div>
+      <div style="text-align:center;margin-top:14px;">
+        <span class="weeks-countdown" id="weeks-display">Calculating…</span>
+      </div>
     </div>
-    <div class="info-note">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,109,0,0.7)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-      <span>Don't worry — you can change this any time from your dashboard. No pressure to get it perfect now!</span>
-    </div>
-    <button class="nbtn" id="btn-2" disabled onclick="goNext(2)">Next →</button>
+
+    <button class="nbtn" onclick="goNext(2)">Next →</button>
     <button class="back-link" onclick="goBack(2)">← Back</button>
-    <div class="shint">Step 3 of 4</div>
+    <div class="step-hint">Step 3 of 4</div>
   </div>
 
-  <!-- STEP 4: Summary -->
-  <div class="step" id="step-4">
-    <div class="complete-badge">
-      <svg width="11" height="11" viewBox="0 0 24 24" fill="#FF6D00"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
-      Profile Complete
-    </div>
-    <div class="qlabel" id="lbl-4">You're all set! 🎉</div>
+  <!-- STEP 3: All set -->
+  <div class="step" id="step-3">
+    <div class="qlabel" id="lbl-3">You're all set! 🎉</div>
+    <div class="qsub" id="qsub-3">Let's finish your baseline assessment.</div>
 
     <div class="summary-box">
       <div class="srow">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#FF6D00" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-        <span>Name: <strong id="s-name">—</strong></span>
+        <span>👤</span>
+        <span>Child: <strong id="s-child">—</strong></span>
       </div>
       <div class="srow">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#FF6D00" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
-        <span>Track: <strong id="s-track" style="color:var(--orange);">—</strong></span>
+        <span>📚</span>
+        <span>Year group: <strong id="s-year">—</strong></span>
       </div>
       <div class="srow">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#FF6D00" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-        <span>Sessions per week: <strong id="s-sessions">—</strong></span>
+        <span>🗓️</span>
+        <span>Exam: <strong>15 November</strong></span>
       </div>
       <div class="srow">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#FF6D00" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg>
-        <span>Exam: <strong id="s-exam">—</strong></span>
-      </div>
-      <div class="srow">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#FF6D00" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22,4 12,14.01 9,11.01"/></svg>
-        <span id="s-weeks" style="color:var(--text-mid);">—</span>
+        <span>⏱️</span>
+        <span id="s-weeks-row">—</span>
       </div>
     </div>
 
-    <div class="star-explains">
-      <div class="se-title">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="#FF6D00"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
-        How STAR works for you
-      </div>
-      <p>I'll start you on sessions matched to your year group straight away. <strong>No diagnostic test needed — just start practising!</strong></p>
-      <p>Behind the scenes, I'll be <strong>learning about you from your very first answer</strong> — tracking which topics you find easy and which ones need more work.</p>
-      <p>After <strong>3 sessions</strong> I'll unlock your personal <strong>Skills Map</strong> — a clear picture of exactly where you're strong and where to focus next. The more you practise, the smarter my recommendations become.</p>
-      <p style="color:var(--orange);">You're always in control — switch sessions, change your schedule, or ask me anything in STAR Chat at any time. ✨</p>
+    <div style="background:#FFF7ED;border:2px solid rgba(249,115,22,0.2);border-radius:12px;padding:16px 18px;margin-bottom:22px;text-align:left;font-size:0.84rem;color:var(--text-mid);line-height:1.6;">
+      <strong style="color:var(--text-dark);display:block;margin-bottom:6px;">📊 Almost ready to build your plan</strong>
+      Let's finish your baseline — 1 more Mini Mock and STAR will build your <strong>personalised training plan</strong> in minutes.
     </div>
 
-    <button class="nbtn big" id="btn-start" onclick="startTraining()">🚀 &nbsp;Let's Start Training!</button>
+    <button class="nbtn big" id="btn-start" onclick="saveAndStart()">START MY FINAL MINI MOCK →</button>
     <div class="saving-msg" id="saving-msg"></div>
-    <button class="back-link" onclick="goBack(4)">← Change answers</button>
+    <button class="back-link" onclick="goBack(3)">← Change answers</button>
+    <div class="step-hint">Step 4 of 4</div>
   </div>
 
 </div>
 
-<footer>
-  <a href="mailto:staraitutor.support@gmail.com">Support</a>
-  <a href="https://www.facebook.com/share/1DGKfvGo9b/" target="_blank" rel="noopener">Facebook</a>
-  <a href="privacy.html">Privacy Policy</a>
-  <a href="terms.html">Terms of Service</a>
-</footer>
-
 <script>
-  const { createClient } = supabase;
-  const sb = createClient(
+  const sb = supabase.createClient(
     'https://iutcgogmxhaqgaxkznxu.supabase.co',
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml1dGNnb2dteGhhcWdheGt6bnh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM3NjE4MTQsImV4cCI6MjA4OTMzNzgxNH0.o0plRQzH8ezfttG_sEeWu3F4IUtKnyzcXtPEGJ9xRF0'
   );
 
-  const state = { name:'', year:null, sessions:null, examYear:null };
+  const state = { parentName: '', childName: '', year: null };
 
-  /* Check if already onboarded */
+  /* Auth guard + onboarding-already-done check */
   (async () => {
     try {
       const { data } = await sb.auth.getSession();
       if (!data?.session?.user) { window.location.href = 'login.html'; return; }
       const { data: p } = await sb.from('profiles').select('onboarded').eq('id', data.session.user.id).single();
-      if (p?.onboarded) window.location.href = 'dashboard.html';
-    } catch(e) { /* show onboarding normally */ }
+      if (p?.onboarded) { window.location.href = 'dashboard.html'; return; }
+    } catch(_) {}
+
+    /* Pre-fill child details from localStorage if guest data exists */
+    const guestName = localStorage.getItem('star_guest_name');
+    const guestYear = localStorage.getItem('star_guest_year');
+    if (guestName) document.getElementById('inp-child-name').value = guestName;
+    if (guestYear) {
+      state.year = guestYear;
+      document.getElementById('yr-' + guestYear.toLowerCase()).classList.add('sel');
+      updateStep1Btn();
+    }
   })();
 
-  /* Name */
-  const inp = document.getElementById('inp-name');
-  inp.addEventListener('input', () => { document.getElementById('btn-0').disabled = inp.value.trim().length < 1; });
-  inp.addEventListener('keydown', e => { if(e.key==='Enter' && !document.getElementById('btn-0').disabled) goNext(0); });
-
-  /* Generic selector */
-  function sel(field, value, btn) {
-    state[field] = value;
-    // Deselect siblings
-    btn.closest('.choices').querySelectorAll('.cbtn').forEach(b => b.classList.remove('sel'));
-    btn.classList.add('sel');
-    const btnId = field === 'year' ? 'btn-1' : 'btn-2';
-    document.getElementById(btnId).disabled = false;
+  /* ── Weeks calculation ── */
+  function weeksUntil(month, day) {
+    const now    = new Date();
+    let examYear = now.getFullYear();
+    const exam   = new Date(examYear, month - 1, day);
+    if (exam < now) exam.setFullYear(examYear + 1);
+    return Math.max(0, Math.ceil((exam - now) / 604800000));
   }
 
   function calcExamYear() {
-    const month = new Date().getMonth();
-    const year  = new Date().getFullYear();
+    const now = new Date();
+    const month = now.getMonth() + 1;
     return state.year === 'P7'
-      ? (month >= 10 ? year + 1 : year)
-      : (month >= 10 ? year + 2 : year + 1);
+      ? (month >= 11 ? now.getFullYear() + 1 : now.getFullYear())
+      : (month >= 11 ? now.getFullYear() + 2 : now.getFullYear() + 1);
   }
 
-  function weeksUntil(yr) {
-    const diff = new Date(yr, 10, 15) - new Date();
-    return diff > 0 ? Math.ceil(diff / 604800000) : 0;
+  /* ── Parent name input ── */
+  const pInp = document.getElementById('inp-parent-name');
+  pInp.addEventListener('input', () => {
+    document.getElementById('btn-0').disabled = pInp.value.trim().length < 1;
+  });
+  pInp.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !document.getElementById('btn-0').disabled) goNext(0);
+  });
+
+  /* ── Child name + year group ── */
+  const cInp = document.getElementById('inp-child-name');
+  cInp.addEventListener('input', updateStep1Btn);
+
+  function selYear(year) {
+    state.year = year;
+    document.getElementById('yr-p6').classList.toggle('sel', year === 'P6');
+    document.getElementById('yr-p7').classList.toggle('sel', year === 'P7');
+    updateStep1Btn();
   }
 
-  /* Navigation */
-  // Step order: 0 (name) → 1 (year) → 2 (sessions) → 4 (summary)
-  // Step 3 (exam year) removed — examYear auto-calculated from year group
+  function updateStep1Btn() {
+    const nameOk = cInp.value.trim().length > 0;
+    const yearOk = state.year !== null;
+    document.getElementById('btn-1').disabled = !(nameOk && yearOk);
+  }
+
+  /* ── Navigation ── */
   function goNext(from) {
-    if (from === 0) state.name = inp.value.trim();
+    if (from === 0) {
+      state.parentName = pInp.value.trim();
+      document.getElementById('lbl-1').innerHTML = `Tell us about<br>your child, ${state.parentName}`;
+    }
+    if (from === 1) {
+      state.childName = cInp.value.trim();
+      /* Set weeks display on step 2 */
+      const weeks = weeksUntil(11, 15);
+      document.getElementById('weeks-display').textContent = `${weeks} weeks until Paper 1`;
+    }
     if (from === 2) {
-      state.examYear = calcExamYear();
       buildSummary();
     }
 
-    const nextStep = from === 2 ? 4 : from + 1;
-    const fromEl = document.getElementById('step-' + from);
-    const toEl   = document.getElementById('step-' + nextStep);
-    fromEl.classList.remove('active'); fromEl.classList.add('out');
-    setTimeout(() => fromEl.classList.remove('out'), 320);
-    toEl.classList.add('active');
-    updateDots(nextStep === 4 ? 3 : nextStep);
-
-    const n = state.name;
-    if (from + 1 === 1) document.getElementById('lbl-1').innerHTML = `Which year<br>are you in, ${n}?`;
-    if (from + 1 === 2) document.getElementById('lbl-2').innerHTML = `How often can you<br>study each week, ${n}?`;
+    transition(from, from + 1);
+    updateDots(from + 1);
   }
 
   function goBack(from) {
-    const prevStep = from === 4 ? 2 : from - 1;
+    transition(from, from - 1, true);
+    updateDots(from - 1);
+  }
+
+  function transition(from, to, reverse) {
     const fromEl = document.getElementById('step-' + from);
-    const toEl   = document.getElementById('step-' + prevStep);
+    const toEl   = document.getElementById('step-' + to);
     fromEl.classList.remove('active');
-    toEl.style.animation = 'none'; toEl.offsetHeight; toEl.style.animation = '';
+    fromEl.classList.add('out');
+    setTimeout(() => fromEl.classList.remove('out'), 300);
     toEl.classList.add('active');
-    updateDots(prevStep);
   }
 
   function updateDots(active) {
     for (let i = 0; i <= 3; i++) {
       const d = document.getElementById('dot-' + i);
-      d.classList.remove('active','done');
+      d.classList.remove('active', 'done');
       if (i < active)  d.classList.add('done');
       if (i === active) d.classList.add('active');
     }
   }
 
-  /* Summary */
+  /* ── Summary ── */
   function buildSummary() {
-    const track    = state.year === 'P6' ? 'P6 Foundation — The Builder ⚡' : 'P7 Exam Track — The Executor 🏆';
-    const sessions = state.sessions >= 5 ? '5+ sessions a week 🔥' : `${state.sessions} sessions a week`;
-    const weeks    = weeksUntil(state.examYear);
-    document.getElementById('lbl-4').textContent        = `You're all set, ${state.name}! 🎉`;
-    document.getElementById('s-name').textContent       = state.name;
-    document.getElementById('s-track').textContent      = track;
-    document.getElementById('s-sessions').textContent   = sessions;
-    document.getElementById('s-exam').textContent       = `November ${state.examYear}`;
-    document.getElementById('s-weeks').textContent      = weeks > 0
-      ? `${weeks} weeks until your exam — let's make them count! 🎯`
-      : 'Exam is very close — time to focus! 🎯';
+    const weeks = weeksUntil(11, 15);
+    document.getElementById('lbl-3').textContent = `You're all set, ${state.childName}! 🎉`;
+    document.getElementById('s-child').textContent = state.childName;
+    document.getElementById('s-year').textContent  = state.year;
+    document.getElementById('s-weeks-row').textContent =
+      weeks > 0 ? `${weeks} weeks until the exam — let's make them count!` : 'Exam is very close — time to focus!';
   }
 
-  /* Save and go */
-  async function startTraining() {
+  /* ── Save and go ── */
+  async function saveAndStart() {
     const btn = document.getElementById('btn-start');
     const msg = document.getElementById('saving-msg');
-    btn.disabled = true;
+    btn.disabled    = true;
     btn.textContent = 'Saving your profile…';
 
     try {
@@ -501,30 +527,36 @@
 
       const userId    = data.session.user.id;
       const userEmail = data.session.user.email;
+      const examYear  = calcExamYear();
 
       const { error } = await sb.from('profiles').upsert({
-        id:                userId,
-        parent_email:      userEmail,
-        name:              state.name,
-        year_group:        state.year,
-        sessions_per_week: state.sessions,
-        exam_year:         state.examYear,
-        onboarded:         true,
-        updated_at:        new Date().toISOString(),
+        id:           userId,
+        parent_email: userEmail,
+        name:         state.childName,
+        year_group:   state.year,
+        exam_year:    examYear,
+        onboarded:    true,
+        updated_at:   new Date().toISOString(),
       }, { onConflict: 'id' });
 
       if (error) throw new Error(error.message);
 
-      msg.textContent = '✅ Profile saved!';
       localStorage.setItem('selectedChildId', userId);
-      setTimeout(() => { window.location.href = 'dashboard.html'; }, 700);
+      localStorage.setItem('star_child_name', state.childName);
+
+      msg.textContent = '✅ Profile saved!';
+      setTimeout(() => {
+        window.location.href = 'study.html?mode=mini-mock&baseline=true';
+      }, 600);
+
     } catch(e) {
       console.error('Save error:', e.message);
       msg.textContent = '⚠️ Could not save — please check your connection and try again.';
-      btn.disabled = false;
-      btn.textContent = '🚀  Let\'s Start Training!';
+      btn.disabled    = false;
+      btn.textContent = 'START MY FINAL MINI MOCK →';
     }
   }
 </script>
+
 </body>
 </html>
