@@ -837,7 +837,7 @@ function getTodayRec(yearGroup, weeks, sessionsPerWeek, weekDone, weakTopic) {
   return { title: next.name, sub, href };
 }
 
-async function buildSkillsMap(count, userId, showReport = false) {
+function buildSkillsMap(count, qrData, showReport = false) {
   const el = (id) => document.getElementById(id);
   if (el('sessions-needed')) el('sessions-needed').textContent = count >= 1 ? 0 : 1;
   if (el('sessions-done'))   el('sessions-done').textContent   = count;
@@ -847,12 +847,6 @@ async function buildSkillsMap(count, userId, showReport = false) {
     : 'Unlocks after your first sprint';
   if (count < 1) return;
   if (el('skills-locked')) el('skills-locked').style.display = 'none';
-
-  // Query real question_results data
-  const { data: qrData } = await sb
-    .from('question_results')
-    .select('topic, correct')
-    .eq('user_id', userId);
 
   const topicMap = {};
   (qrData || []).forEach(r => {
@@ -1213,31 +1207,45 @@ async function init() {
     }
   }
 
-  // Subscription check (server-side) + student/child profiles + total session count
-  const [subscribed, { data: parentProfile }, { data: profile }, { count: sessionsCount }] = await Promise.all([
+  // Subscription check + student profile (display fields — profiles table is readable via anon key)
+  const [subscribed, { data: parentProfile }, { data: profile }] = await Promise.all([
     checkSubscription(),
     sb.from('profiles').select('free_sprints_used').eq('id', selectedChildId).maybeSingle(),
-    sb.from('profiles').select('name,year_group,exam_year,sessions_per_week,baseline_complete').eq('id', selectedChildId).maybeSingle(),
-    sb.from('sessions').select('*', { count: 'exact', head: true }).eq('user_id', selectedChildId),
+    sb.from('profiles').select('name,year_group,exam_year,sessions_per_week').eq('id', selectedChildId).maybeSingle(),
   ]);
-  console.log('[dashboard] subscribed:', subscribed, '| sessionsCount from DB:', sessionsCount);
 
   if (subscribed) {
     document.getElementById('btn-manage-sub').classList.add('visible');
   }
 
-  // Baseline lock: non-subscribed users must complete 3 Mini Mocks before the full dashboard unlocks.
-  // Primary signal: profiles.baseline_complete (written by /api/set-baseline when 3rd mock finishes).
-  // Fallback: sessionsCount < 3 catches legacy users and timing gaps where the profile hasn't updated yet.
-  // Subscribed users always bypass the lock.
-  const baselineComplete = profile?.baseline_complete === true;
-  const baselineNeeded   = !subscribed && !baselineComplete && (sessionsCount || 0) < 3;
-  const _baselineFlagLS  = localStorage.getItem('star_needs_baseline') === '1';
-  console.log('[dashboard] baselineComplete (DB):', baselineComplete, '| baselineNeeded:', baselineNeeded, '| sessionsCount:', sessionsCount, '| star_needs_baseline LS:', _baselineFlagLS);
-  // Clear the stale LS flag once baseline is done
+  // Sessions this week (since Monday 00:00)
+  const now = new Date();
+  const daysFromMonday = now.getDay() === 0 ? 6 : now.getDay() - 1;
+  const weekStart = new Date(now);
+  weekStart.setDate(now.getDate() - daysFromMonday);
+  weekStart.setHours(0, 0, 0, 0);
+
+  // All session/results data via service-role endpoint — bypasses RLS on sessions,
+  // question_results, and progress_summary (anon-key reads are blocked by default RLS).
+  const _ddRes = await fetch(
+    `/api/dashboard-data?childId=${encodeURIComponent(selectedChildId)}&weekStart=${encodeURIComponent(weekStart.toISOString())}`,
+    { headers: { 'Authorization': `Bearer ${accessToken}` } }
+  );
+  const _dd = _ddRes.ok ? await _ddRes.json() : {};
+  const sessionsCount    = _dd.sessionsCount    ?? 0;
+  const weekDoneCount    = _dd.weekDoneCount    ?? 0;
+  const baselineComplete = _dd.baselineComplete === true;
+  const _preloadedQR     = _dd.questionResults  || [];
+  console.log('[dashboard] subscribed:', subscribed, '| sessionsCount:', sessionsCount, '| weekDoneCount:', weekDoneCount, '| baselineComplete:', baselineComplete);
+
+  // Baseline lock: subscribed users always bypass.
+  // Primary signal: baseline_complete from service-role API (bypasses RLS).
+  // Fallback: sessionsCount < 3 covers timing gaps before the API call completes.
+  const baselineNeeded  = !subscribed && !baselineComplete && sessionsCount < 3;
+  const _baselineFlagLS = localStorage.getItem('star_needs_baseline') === '1';
+  console.log('[dashboard] baselineNeeded:', baselineNeeded, '| star_needs_baseline LS:', _baselineFlagLS);
   if (_baselineFlagLS && !baselineNeeded) {
     localStorage.removeItem('star_needs_baseline');
-    console.log('[dashboard] baseline complete — star_needs_baseline cleared from localStorage');
   }
 
   if (!subscribed && !baselineNeeded) {
@@ -1249,61 +1257,39 @@ async function init() {
     const msg    = document.getElementById('upgrade-banner-msg');
 
     if (freeLeft > 0 && baselineComplete) {
-      // Baseline done — user has completed the trial experience, show clean subscribe CTA
+      // Baseline done — show clean subscribe CTA without free-mock counter
       msg.textContent = 'Start your 7-day free trial — no card required';
     } else if (freeLeft > 0) {
-      // Pre-baseline free mocks — show counter
       msg.textContent = freeLeft === 1
         ? 'You have 1 free Mini Mock remaining'
         : 'You have ' + freeLeft + ' free Mini Mocks remaining';
     } else {
-      // Paywall reached — update banner and lock all sprint/mock entry points
+      // Paywall reached — lock all sprint/mock entry points
       msg.textContent = 'Your free Mini Mocks are used up — subscribe to keep practising';
       window._paywallActive = true;
 
-      // Lock today's recommended session card
       const todayCard = document.getElementById('today-card');
       if (todayCard) {
         todayCard.href = 'pricing.html';
         document.getElementById('today-title').textContent = '🔒 Subscribe to Continue';
         document.getElementById('today-sub').textContent   = 'You\'ve used your free sprints. Start your free trial to keep practising.';
       }
-
-      // Lock Take a Mock and Study by Topic buttons
-      document.querySelectorAll('.ap-btn').forEach(btn => {
-        btn.href = 'pricing.html';
-      });
+      document.querySelectorAll('.ap-btn').forEach(btn => { btn.href = 'pricing.html'; });
     }
 
     banner.classList.add('visible');
   }
 
-  const name           = profile?.name           || sessionStorage.getItem('star_name') || 'Student';
-  const yearGroup      = profile?.year_group     || sessionStorage.getItem('star_year') || 'P6';
-  const examYear       = profile?.exam_year      || parseInt(sessionStorage.getItem('star_examYear')) || null;
+  const name            = profile?.name              || sessionStorage.getItem('star_name') || 'Student';
+  const yearGroup       = profile?.year_group        || sessionStorage.getItem('star_year') || 'P6';
+  const examYear        = profile?.exam_year         || parseInt(sessionStorage.getItem('star_examYear')) || null;
   const sessionsPerWeek = profile?.sessions_per_week || 3;
 
-  // Sessions this week (since Monday 00:00)
-  const now = new Date();
-  const daysFromMonday = now.getDay() === 0 ? 6 : now.getDay() - 1;
-  const weekStart = new Date(now);
-  weekStart.setDate(now.getDate() - daysFromMonday);
-  weekStart.setHours(0, 0, 0, 0);
-
-  // sessionsCount already fetched above — only need weekDoneCount here
-  // Use created_at not completed_at — save-session.js does not set completed_at
-  const { count: weekDoneCount } = await sb.from('sessions')
-    .select('*', { count: 'exact', head: true })
-    .eq('user_id', selectedChildId)
-    .gte('created_at', weekStart.toISOString());
-
-  const { data: progressData } = await sb.from('progress_summary')
-    .select('last_score, last_total, topics_to_review')
-    .eq('user_id', selectedChildId).maybeSingle();
-
-  const toReview  = progressData?.topics_to_review || JSON.parse(localStorage.getItem('star_toReview')) || [];
-  const lastScore = progressData?.last_score != null
-    ? Math.round(progressData.last_score / (progressData.last_total || 10) * 100)
+  const toReview  = (_dd.topicsToReview  || []).length > 0
+    ? _dd.topicsToReview
+    : JSON.parse(localStorage.getItem('star_toReview')) || [];
+  const lastScore = _dd.lastScore != null
+    ? Math.round(_dd.lastScore / (_dd.lastTotal || 10) * 100)
     : parseInt(localStorage.getItem('star_last_score'), 10);
   const hasData   = lastScore !== null && lastScore !== undefined && !isNaN(lastScore);
 
@@ -1382,7 +1368,7 @@ async function init() {
     const effectiveCount = Math.max(sessionsCount || 0, _lsCount, _syncedCount);
     console.log('[dashboard] applying baseline lock — DB sessionsCount:', sessionsCount, '| LS count:', _lsCount, '| syncedCount:', _syncedCount, '| effectiveCount:', effectiveCount);
     applyBaselineLock(effectiveCount);
-    buildSkillsMap(sessionsCount || 0, selectedChildId);
+    buildSkillsMap(sessionsCount || 0, _preloadedQR);
     // Topics locked — replace with a prompt to complete baseline
     const grid  = document.getElementById('topic-grid');
     const count = document.getElementById('topics-count');
@@ -1390,8 +1376,7 @@ async function init() {
     if (grid) grid.innerHTML = `<div class="no-data-state"><div class="nd-icon">📊</div><h3>Unlock your topic recommendations</h3><p>Complete your baseline sprint and STAR will show you exactly which topics to focus on first.</p></div>`;
   } else {
     buildWeeklySchedule(sessionsPerWeek, weekDone, yearGroup);
-    // showReport=true when baseline just completed — triggers the report card on first dashboard visit
-    buildSkillsMap(sessionsCount || 0, selectedChildId, baselineComplete);
+    buildSkillsMap(sessionsCount || 0, _preloadedQR, baselineComplete);
     buildTopics(toReview, hasData);
   }
 }
