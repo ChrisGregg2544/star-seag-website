@@ -509,7 +509,7 @@
   <div class="upgrade-banner-icon">⭐</div>
   <div class="upgrade-banner-text">
     <strong id="upgrade-banner-msg">Unlock unlimited practice</strong>
-    <span>Subscribe to access Topic Sprints, Full Mocks, and unlimited Mini Mocks.</span>
+    <span>Your first 7 days are completely free — then just £15/month. Cancel anytime.</span>
   </div>
   <a href="pricing.html" class="upgrade-banner-btn">Start Free Trial →</a>
 </div>
@@ -1257,22 +1257,21 @@ async function init() {
     const msg    = document.getElementById('upgrade-banner-msg');
 
     if (freeLeft > 0 && baselineComplete) {
-      // Baseline done — show clean subscribe CTA without free-mock counter
-      msg.textContent = 'Start your 7-day free trial — no card required';
+      msg.textContent = 'You have 1 free session left — like what you see? Your 7-day free trial is waiting';
     } else if (freeLeft > 0) {
       msg.textContent = freeLeft === 1
-        ? 'You have 1 free Mini Mock remaining'
-        : 'You have ' + freeLeft + ' free Mini Mocks remaining';
+        ? 'You have 1 free session left to explore'
+        : 'You have ' + freeLeft + ' free sessions to try — no commitment needed';
     } else {
       // Paywall reached — lock all sprint/mock entry points
-      msg.textContent = 'Your free Mini Mocks are used up — subscribe to keep practising';
+      msg.textContent = 'Your 2 free sessions are up — start your 7-day free trial to keep going';
       window._paywallActive = true;
 
       const todayCard = document.getElementById('today-card');
       if (todayCard) {
         todayCard.href = 'pricing.html';
         document.getElementById('today-title').textContent = '🔒 Subscribe to Continue';
-        document.getElementById('today-sub').textContent   = 'You\'ve used your free sprints. Start your free trial to keep practising.';
+        document.getElementById('today-sub').textContent   = 'Your free sessions are used up. Start your 7-day free trial — then just £15/month, cancel anytime.';
       }
       document.querySelectorAll('.ap-btn').forEach(btn => { btn.href = 'pricing.html'; });
     }
