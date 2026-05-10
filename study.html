@@ -841,7 +841,7 @@ async function fetchBatch() {
     .from('questions')
     .select('id,subject,topic,year_group,difficulty,question_type,question_text,passage,options,correct_answer,explanation,diagram')
     .eq('year_group', userYear)
-    .eq('source',     'ai_generated_v2')
+    .eq('source',     'ai_generated_v3')
     .eq('active',     true)
     .in('difficulty',  diffTiers)
     .limit(50);
@@ -853,7 +853,7 @@ async function fetchBatch() {
       .from('questions')
       .select('id,subject,topic,year_group,difficulty,question_type,question_text,passage,options,correct_answer,explanation,diagram')
       .eq('year_group', userYear)
-      .eq('source',     'ai_generated_v2')
+      .eq('source',     'ai_generated_v3')
       .eq('active',     true)
       .in('difficulty',  diffTiers)
       .limit(25);

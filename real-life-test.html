@@ -303,6 +303,7 @@ async function fetchPool(subject, topic, count, excludeIds = []) {
     .eq('year_group', userYear)
     .eq('validated',  true)
     .eq('active',     true)
+    .eq('source',     'ai_generated_v3')
     .limit(count * 5);
   if (excluded.length) q = q.not('id', 'in', `(${excluded.join(',')})`);
   const { data, error } = await q;
