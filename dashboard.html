@@ -1042,11 +1042,19 @@ function showBaselineToast() {
 }
 
 function applyBaselineLock(sessionsCount) {
-  const completed      = sessionsCount || 0;
-  const remaining      = Math.max(0, 3 - completed);
-  const completedLabel = completed === 1 ? '1 Mini Mock completed ✅' : completed + ' Mini Mocks completed ✅';
-  const moreLabel      = remaining === 1 ? 'complete 1 more' : 'complete ' + remaining + ' more';
+  const completed = sessionsCount || 0;
+  const remaining = Math.max(0, 3 - completed);
   console.log('[dashboard] applyBaselineLock — completed:', completed, 'remaining:', remaining);
+
+  // Banner text depends on how many have been done
+  let bannerStrong;
+  if (completed === 0) {
+    bannerStrong = 'Complete 3 Mini Mocks to unlock your personalised plan';
+  } else {
+    const completedLabel = completed === 1 ? '1 Mini Mock completed ✅' : completed + ' Mini Mocks completed ✅';
+    const moreLabel      = remaining === 1 ? 'complete 1 more' : 'complete ' + remaining + ' more';
+    bannerStrong = completedLabel + ' — ' + moreLabel + ' to unlock your personalised plan';
+  }
 
   // 1. Banner above today card
   const todayCard = document.getElementById('today-card');
@@ -1055,15 +1063,15 @@ function applyBaselineLock(sessionsCount) {
   banner.innerHTML = `
     <span class="baseline-banner-icon">🎯</span>
     <div class="baseline-banner-text">
-      <strong>${completedLabel} — ${moreLabel} to unlock your personalised plan</strong>
+      <strong>${bannerStrong}</strong>
     </div>
-    <a href="study.html" class="baseline-banner-btn">Start Mini Mock →</a>`;
+    <a href="study.html?mode=mini-mock" class="baseline-banner-btn">Start Mini Mock →</a>`;
   todayCard.before(banner);
 
   // 2. Today card — single prominent CTA
   document.getElementById('today-title').textContent = '🎯 Complete Your Baseline Mini Mock';
   document.getElementById('today-sub').textContent   = '10 mixed questions — STAR builds your personalised training plan the moment you finish.';
-  todayCard.href = 'study.html';
+  todayCard.href = 'study.html?mode=mini-mock';
 
   // 3. Lock both action pair buttons (Take a Mock, Study by Topic)
   document.querySelectorAll('.ap-btn').forEach(btn => {
@@ -1116,6 +1124,7 @@ async function init() {
   // ── Guest session sync ──────────────────────────────────────────────────
   // Handles users who came via signup.html (skips login.html's syncGuestSessions).
   // Safe to call even if already synced — star_sessions will be empty.
+  let _syncedCount = 0; // count returned by sync API — used in effectiveCount below
   const _starSessionsLS = JSON.parse(localStorage.getItem('star_sessions') || '[]');
   console.log('[dashboard] star_sessions in localStorage:', _starSessionsLS.length);
   if (_starSessionsLS.length > 0) {
@@ -1127,7 +1136,9 @@ async function init() {
         body: JSON.stringify({ sessions: _starSessionsLS }),
       });
       if (_syncRes.ok) {
-        console.log('[dashboard] ✅ guest sessions synced');
+        const _syncData = await _syncRes.json();
+        _syncedCount = _syncData.synced || 0;
+        console.log('[dashboard] ✅ guest sessions synced, count:', _syncedCount);
         ['star_sessions','guest_sprints_done','star_mastery','star_toReview',
          'star_last_score','star_last_track','star_last_name','star_video_log'
         ].forEach(k => localStorage.removeItem(k));
@@ -1351,14 +1362,20 @@ async function init() {
   }
 
   if (baselineNeeded) {
-    // Use max of DB count and localStorage count for accurate banner text
-    // (handles timing gap where saveSessionToSupabase hasn't completed yet)
+    // Always re-set the flag so the next mini-mock triggers showBaselineReport().
+    // This recovers from the case where set-baseline previously failed (e.g. missing column)
+    // and showBaselineReport() already cleared the flag without saving baseline_complete.
+    localStorage.setItem('star_needs_baseline', '1');
+
+    // Use max of DB count, localStorage count, and sync-response count for accurate banner text.
+    // _syncedCount is non-zero only on the immediate post-signup load (set above after sync).
+    // DB sessionsCount may be 0 if the Supabase JS client is blocked by RLS on the sessions table.
     const _lsCount = Math.max(
       JSON.parse(localStorage.getItem('star_sessions') || '[]').length,
       parseInt(localStorage.getItem('guest_sprints_done') || '0', 10)
     );
-    const effectiveCount = Math.max(sessionsCount || 0, _lsCount);
-    console.log('[dashboard] applying baseline lock — DB sessionsCount:', sessionsCount, '| LS count:', _lsCount, '| effectiveCount:', effectiveCount);
+    const effectiveCount = Math.max(sessionsCount || 0, _lsCount, _syncedCount);
+    console.log('[dashboard] applying baseline lock — DB sessionsCount:', sessionsCount, '| LS count:', _lsCount, '| syncedCount:', _syncedCount, '| effectiveCount:', effectiveCount);
     applyBaselineLock(effectiveCount);
     buildSkillsMap(sessionsCount || 0, selectedChildId);
     // Topics locked — replace with a prompt to complete baseline
