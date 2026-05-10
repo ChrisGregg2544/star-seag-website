@@ -318,34 +318,52 @@ async function assemblePractice() {
 }
 
 async function assembleEnglish(excludeIds) {
-  const { data: passages } = await sb.from('passages')
-    .select('id,content')
-    .eq('year_group', userYear);
-  if (!passages?.length) throw new Error('No reading passages found for this year group');
-
-  const passage = passages[Math.floor(Math.random() * passages.length)];
-
-  const [mcRes, wrRes, punct, grammar, spelling] = await Promise.all([
+  // Fetch all validated comprehension questions for this year group client-side,
+  // then group by passage_id (newer questions) or passage text (older questions).
+  // passage_id linking covers ~3.5 questions/passage on average — not enough.
+  // Grouping by passage text handles the majority of the bank (ai_generated_v3).
+  const [{ data: mcAll }, { data: wrAll }, punct, grammar, spelling] = await Promise.all([
     sb.from('questions')
-      .select('id,subject,topic,question_type,question_text,passage,options,correct_answer,diagram')
-      .eq('passage_id', passage.id).eq('topic', 'comprehension_mc')
-      .eq('validated', true),
+      .select('id,topic,question_type,question_text,passage,passage_id,options,correct_answer,diagram')
+      .eq('topic', 'comprehension_mc').eq('year_group', userYear).eq('validated', true).limit(500),
     sb.from('questions')
-      .select('id,subject,topic,question_type,question_text,passage,options,correct_answer,diagram')
-      .eq('passage_id', passage.id).eq('topic', 'comprehension_written')
-      .eq('validated', true),
+      .select('id,topic,question_type,question_text,passage,passage_id,options,correct_answer,diagram')
+      .eq('topic', 'comprehension_written').eq('year_group', userYear).eq('validated', true).limit(500),
     fetchPool('english', 'punctuation', 5, excludeIds),
     fetchPool('english', 'grammar',     5, excludeIds),
     fetchPool('english', 'spelling',    5, excludeIds),
   ]);
 
-  const mc = shuffle(mcRes.data || []).slice(0, 7);
-  const wr = shuffle(wrRes.data || []).slice(0, 6);
-  if (mc.length < 7) throw new Error(`Not enough comprehension MC questions for this passage (${mc.length}/7)`);
-  if (wr.length < 6) throw new Error(`Not enough comprehension written questions for this passage (${wr.length}/6)`);
+  function passageKey(q) {
+    if (q.passage_id) return 'pid:' + q.passage_id;
+    if (q.passage)    return 'txt:' + q.passage.slice(0, 120);
+    return null;
+  }
+
+  const mcByKey = {}, wrByKey = {}, textByKey = {};
+  for (const q of (mcAll || [])) {
+    const k = passageKey(q); if (!k) continue;
+    if (!mcByKey[k]) { mcByKey[k] = []; textByKey[k] = q.passage; }
+    mcByKey[k].push(q);
+  }
+  for (const q of (wrAll || [])) {
+    const k = passageKey(q); if (!k) continue;
+    if (!wrByKey[k]) wrByKey[k] = [];
+    wrByKey[k].push(q);
+  }
+
+  const eligible = Object.keys(mcByKey).filter(k =>
+    mcByKey[k].length >= 7 && (wrByKey[k] || []).length >= 6
+  );
+  if (!eligible.length) throw new Error('No complete reading passage sets found for this year group');
+
+  const key = eligible[Math.floor(Math.random() * eligible.length)];
+  const mc  = shuffle(mcByKey[key]).slice(0, 7);
+  const wr  = shuffle(wrByKey[key] || []).slice(0, 6);
   mc.forEach(r => seenIds.add(r.id));
   wr.forEach(r => seenIds.add(r.id));
-  return { qs: [...punct, ...grammar, ...spelling, ...mc, ...wr], passage };
+
+  return { qs: [...punct, ...grammar, ...spelling, ...mc, ...wr], passage: { content: textByKey[key] } };
 }
 
 async function assembleMaths(excludeIds) {
