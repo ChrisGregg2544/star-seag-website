@@ -583,7 +583,7 @@
       <div class="ap-desc">Full 56-question Transfer Test paper</div>
     </div>
   </a>
-  <a class="ap-btn ap-secondary" href="study.html">
+  <a class="ap-btn ap-secondary" href="study.html?mode=topic">
     <div class="ap-icon">📚</div>
     <div class="ap-text">
       <div class="ap-label">Study by Topic</div>
@@ -599,7 +599,7 @@
     <a class="mode-card" href="study.html">
       <div class="mode-icon">📚</div>
       <div class="mode-name">Study Hall</div>
-      <div class="mode-desc">Pick a topic, practise at your pace</div>
+      <div class="mode-desc">Mixed questions across all topics</div>
     </a>
     <a class="mode-card" href="study.html?mode=topic">
       <div class="mode-icon">🎯</div>
@@ -1287,10 +1287,11 @@ async function init() {
   weekStart.setHours(0, 0, 0, 0);
 
   // sessionsCount already fetched above — only need weekDoneCount here
+  // Use created_at not completed_at — save-session.js does not set completed_at
   const { count: weekDoneCount } = await sb.from('sessions')
     .select('*', { count: 'exact', head: true })
     .eq('user_id', selectedChildId)
-    .gte('completed_at', weekStart.toISOString());
+    .gte('created_at', weekStart.toISOString());
 
   const { data: progressData } = await sb.from('progress_summary')
     .select('last_score, last_total, topics_to_review')
