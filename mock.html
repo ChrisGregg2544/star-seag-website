@@ -742,7 +742,7 @@ async function fetchPool(subject, topic, count, excludeIds = []) {
     .eq('subject',    subject)
     .eq('topic',      topic)
     .eq('year_group', userYear)
-    .eq('source',     'ai_generated_v3')
+    .eq('source',     'ai_generated_v2')
     .eq('active',     true)
     .limit(count * 5); // over-fetch so shuffle gives good variety
   if (allExcluded.length > 0) {
@@ -789,13 +789,13 @@ async function assembleEnglishFromDB() {
       .select('id,subject,topic,year_group,difficulty,question_type,question_text,passage,options,correct_answer,explanation,diagram')
       .eq('passage_id', chosenPassage.id)
       .eq('topic',      'comprehension_mc')
-      .eq('source',     'ai_generated_v3')
+      .eq('source',     'ai_generated_v2')
       .eq('active',     true),
     sb.from('questions')
       .select('id,subject,topic,year_group,difficulty,question_type,question_text,passage,options,correct_answer,explanation,diagram')
       .eq('passage_id', chosenPassage.id)
       .eq('topic',      'comprehension_written')
-      .eq('source',     'ai_generated_v3')
+      .eq('source',     'ai_generated_v2')
       .eq('active',     true),
     fetchPool('english', 'punctuation', 5, usedIds),
     fetchPool('english', 'grammar',     5, usedIds),
