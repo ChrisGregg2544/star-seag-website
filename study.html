@@ -1017,6 +1017,13 @@ async function init() {
   const urlMode  = params.get('mode');
   const urlTrack = params.get('track');
 
+  // When launched as the baseline mock (from onboarding), ensure the flag is set
+  // so showBaselineReport() fires after completion regardless of login path taken.
+  if (params.get('baseline') === 'true') {
+    localStorage.setItem('star_needs_baseline', '1');
+    console.log('[study] baseline=true in URL — star_needs_baseline set');
+  }
+
   const selectedChildId = localStorage.getItem('selectedChildId');
 
   if (window._starAccess?.isGuest) {
@@ -1416,16 +1423,16 @@ function _showResultsInternal() {
   if (calledFromExhausted) {
     const wrongQuestions = QUESTIONS.filter((q, i) => answers[i] === 'wrong');
 
-    // Write star_sessions to localStorage so syncGuestSessions can find it after signup.
-    // This branch is the only path that ever executes (showExhausted clears missed-section
-    // before calling here, so missed-list is always absent).
     const pct = sessionTotal > 0 ? Math.round(sessionCorrect / sessionTotal * 100) : 0;
     const now = new Date().toISOString();
-    const sessions = JSON.parse(localStorage.getItem('star_sessions') || '[]');
-    sessions.unshift({ date: now, score: pct, track: sessionStorage.getItem('star_year') || 'P6', correct: score.correct, total: QUESTIONS.length });
-    if (sessions.length > 20) sessions.length = 20;
-    localStorage.setItem('star_sessions', JSON.stringify(sessions));
-    console.log('[study] star_sessions updated, total saved:', sessions.length);
+    // Only write star_sessions for guests — prevents double-syncing logged-in sessions
+    if (window._starAccess?.isGuest) {
+      const sessions = JSON.parse(localStorage.getItem('star_sessions') || '[]');
+      sessions.unshift({ date: now, score: pct, track: sessionStorage.getItem('star_year') || 'P6', correct: score.correct, total: QUESTIONS.length });
+      if (sessions.length > 20) sessions.length = 20;
+      localStorage.setItem('star_sessions', JSON.stringify(sessions));
+      console.log('[study] star_sessions updated (guest), total saved:', sessions.length);
+    }
 
     // Update action buttons — this is the only branch that ever runs
     const secBtn = document.getElementById('results-btn-secondary');
@@ -1578,7 +1585,6 @@ function _showResultsInternal() {
 
   const mastery  = JSON.parse(localStorage.getItem('star_mastery'))   || {};
   const videoLog = JSON.parse(localStorage.getItem('star_video_log')) || [];
-  const sessions = JSON.parse(localStorage.getItem('star_sessions'))  || [];
   const now      = new Date().toISOString();
   QUESTIONS.forEach((q, i) => {
     const t = q.topic;
@@ -1591,11 +1597,15 @@ function _showResultsInternal() {
     }
   });
   if (videoLog.length > 50) videoLog.length = 50;
-  sessions.unshift({ date:now, score:pct, track:sessionStorage.getItem('star_year')||'P6', correct:score.correct, total:QUESTIONS.length });
-  if (sessions.length > 20) sessions.length = 20;
   localStorage.setItem('star_mastery',   JSON.stringify(mastery));
   localStorage.setItem('star_video_log', JSON.stringify(videoLog));
-  localStorage.setItem('star_sessions',  JSON.stringify(sessions));
+  // Only write star_sessions for guests — prevents double-syncing logged-in sessions
+  if (window._starAccess?.isGuest) {
+    const sessions = JSON.parse(localStorage.getItem('star_sessions')) || [];
+    sessions.unshift({ date:now, score:pct, track:sessionStorage.getItem('star_year')||'P6', correct:score.correct, total:QUESTIONS.length });
+    if (sessions.length > 20) sessions.length = 20;
+    localStorage.setItem('star_sessions', JSON.stringify(sessions));
+  }
 
   saveSessionToSupabase(missedQuestions);
   if (window._starAccess?.isGuest) {
@@ -1667,7 +1677,8 @@ async function restartSession() {
   document.getElementById('complete-screen').classList.remove('visible');
   const allowed = await checkAccess();
   if (!allowed) return;
-  if (window._starAccess?.isGuest) {
+  const mode = new URLSearchParams(window.location.search).get('mode');
+  if (window._starAccess?.isGuest || mode === 'mini-mock') {
     await startStudy('mixed');
   } else {
     showTopicPicker();
@@ -1713,8 +1724,27 @@ function friendlyTopic(slug) {
 }
 
 function showBaselineReport() {
-  console.log('[study] showBaselineReport — clearing star_needs_baseline flag');
+  console.log('[study] showBaselineReport — saving baseline_complete, clearing star_needs_baseline');
   localStorage.removeItem('star_needs_baseline');
+
+  // Save baseline_complete = true to Supabase (fire-and-forget, runs in background)
+  sb.auth.getSession().then(({ data }) => {
+    const token = data?.session?.access_token;
+    if (!token) return;
+    fetch('/api/set-baseline', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}` },
+    }).then(r => {
+      if (r.ok) console.log('[study] ✅ baseline_complete saved to Supabase');
+      else r.text().then(t => console.error('[study] set-baseline non-ok:', r.status, t.slice(0, 100)));
+    }).catch(e => console.error('[study] set-baseline error:', e.message));
+  });
+
+  // Swap action buttons — primary CTA is now Go to Dashboard
+  const primaryBtn = document.getElementById('results-btn-primary');
+  const secBtn     = document.getElementById('results-btn-secondary');
+  if (primaryBtn) { primaryBtn.textContent = '🎯 Go to My Dashboard →'; primaryBtn.onclick = goToDashboard; }
+  if (secBtn)     { secBtn.textContent = '⚡ Try Another Mini Mock'; secBtn.onclick = restartSession; }
 
   // Compute per-topic accuracy from the current sprint's in-memory data
   const topicMap = {};

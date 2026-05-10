@@ -837,7 +837,7 @@ function getTodayRec(yearGroup, weeks, sessionsPerWeek, weekDone, weakTopic) {
   return { title: next.name, sub, href };
 }
 
-async function buildSkillsMap(count, userId) {
+async function buildSkillsMap(count, userId, showReport = false) {
   const el = (id) => document.getElementById(id);
   if (el('sessions-needed')) el('sessions-needed').textContent = count >= 1 ? 0 : 1;
   if (el('sessions-done'))   el('sessions-done').textContent   = count;
@@ -887,7 +887,7 @@ async function buildSkillsMap(count, userId) {
   });
   container.appendChild(grid);
   buildRecommendations(skills);
-  if (count >= 3) showBaselineReportCard(skills);
+  if (showReport || count >= 3) showBaselineReportCard(skills);
 }
 
 function formatTopicName(raw) {
@@ -1206,7 +1206,7 @@ async function init() {
   const [subscribed, { data: parentProfile }, { data: profile }, { count: sessionsCount }] = await Promise.all([
     checkSubscription(),
     sb.from('profiles').select('free_sprints_used').eq('id', selectedChildId).maybeSingle(),
-    sb.from('profiles').select('name,year_group,exam_year,sessions_per_week').eq('id', selectedChildId).maybeSingle(),
+    sb.from('profiles').select('name,year_group,exam_year,sessions_per_week,baseline_complete').eq('id', selectedChildId).maybeSingle(),
     sb.from('sessions').select('*', { count: 'exact', head: true }).eq('user_id', selectedChildId),
   ]);
   console.log('[dashboard] subscribed:', subscribed, '| sessionsCount from DB:', sessionsCount);
@@ -1216,11 +1216,14 @@ async function init() {
   }
 
   // Baseline lock: non-subscribed users must complete 3 Mini Mocks before the full dashboard unlocks.
-  // Derived from Supabase session count (reliable) rather than a localStorage flag (fragile).
-  const baselineNeeded = !subscribed && (sessionsCount || 0) < 3;
-  const _baselineFlagLS = localStorage.getItem('star_needs_baseline') === '1';
-  console.log('[dashboard] baselineNeeded:', baselineNeeded, '| star_needs_baseline LS flag:', _baselineFlagLS, '| sessionsCount:', sessionsCount);
-  // Clear the stale LS flag once the user has reached 3+ sessions
+  // Primary signal: profiles.baseline_complete (written by /api/set-baseline when 3rd mock finishes).
+  // Fallback: sessionsCount < 3 catches legacy users and timing gaps where the profile hasn't updated yet.
+  // Subscribed users always bypass the lock.
+  const baselineComplete = profile?.baseline_complete === true;
+  const baselineNeeded   = !subscribed && !baselineComplete && (sessionsCount || 0) < 3;
+  const _baselineFlagLS  = localStorage.getItem('star_needs_baseline') === '1';
+  console.log('[dashboard] baselineComplete (DB):', baselineComplete, '| baselineNeeded:', baselineNeeded, '| sessionsCount:', sessionsCount, '| star_needs_baseline LS:', _baselineFlagLS);
+  // Clear the stale LS flag once baseline is done
   if (_baselineFlagLS && !baselineNeeded) {
     localStorage.removeItem('star_needs_baseline');
     console.log('[dashboard] baseline complete — star_needs_baseline cleared from localStorage');
@@ -1348,8 +1351,15 @@ async function init() {
   }
 
   if (baselineNeeded) {
-    console.log('[dashboard] applying baseline lock, sessionsCount:', sessionsCount);
-    applyBaselineLock(sessionsCount || 0);
+    // Use max of DB count and localStorage count for accurate banner text
+    // (handles timing gap where saveSessionToSupabase hasn't completed yet)
+    const _lsCount = Math.max(
+      JSON.parse(localStorage.getItem('star_sessions') || '[]').length,
+      parseInt(localStorage.getItem('guest_sprints_done') || '0', 10)
+    );
+    const effectiveCount = Math.max(sessionsCount || 0, _lsCount);
+    console.log('[dashboard] applying baseline lock — DB sessionsCount:', sessionsCount, '| LS count:', _lsCount, '| effectiveCount:', effectiveCount);
+    applyBaselineLock(effectiveCount);
     buildSkillsMap(sessionsCount || 0, selectedChildId);
     // Topics locked — replace with a prompt to complete baseline
     const grid  = document.getElementById('topic-grid');
@@ -1358,7 +1368,8 @@ async function init() {
     if (grid) grid.innerHTML = `<div class="no-data-state"><div class="nd-icon">📊</div><h3>Unlock your topic recommendations</h3><p>Complete your baseline sprint and STAR will show you exactly which topics to focus on first.</p></div>`;
   } else {
     buildWeeklySchedule(sessionsPerWeek, weekDone, yearGroup);
-    buildSkillsMap(sessionsCount || 0, selectedChildId);
+    // showReport=true when baseline just completed — triggers the report card on first dashboard visit
+    buildSkillsMap(sessionsCount || 0, selectedChildId, baselineComplete);
     buildTopics(toReview, hasData);
   }
 }
