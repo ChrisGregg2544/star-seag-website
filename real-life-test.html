@@ -372,6 +372,18 @@ async function generatePaper() {
   seenIds.clear();
 
   try {
+    // Pre-load questions seen by this child in the last 30 days so they aren't repeated
+    document.getElementById('loading-sub').textContent = 'Checking question history…';
+    if (childId) {
+      const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+      const { data: histData } = await sb
+        .from('student_question_history')
+        .select('question_id')
+        .eq('user_id', childId)
+        .gt('seen_at', thirtyDaysAgo);
+      (histData || []).forEach(r => seenIds.add(r.question_id));
+    }
+
     document.getElementById('loading-sub').textContent = 'Fetching warm-up questions…';
     const practice = await assemblePractice();
 
