@@ -319,17 +319,18 @@ async function assemblePractice() {
 }
 
 async function assembleEnglish(excludeIds) {
-  // Fetch all validated comprehension questions for this year group client-side,
-  // then group by passage_id (newer questions) or passage text (older questions).
-  // passage_id linking covers ~3.5 questions/passage on average — not enough.
-  // Grouping by passage text handles the majority of the bank (ai_generated_v3).
+  // Active comprehension questions have no passage text (standalone MCQs).
+  // Questions with actual reading passages are in the inactive batch.
+  // So for comprehension only: validated=true, no active filter, require passage data.
   const [{ data: mcAll }, { data: wrAll }, punct, grammar, spelling] = await Promise.all([
     sb.from('questions')
       .select('id,topic,question_type,question_text,passage,passage_id,options,correct_answer,diagram')
-        .eq('topic', 'comprehension_mc').eq('year_group', userYear).eq('validated', true).eq('active', true).limit(500),
+      .eq('topic', 'comprehension_mc').eq('year_group', userYear).eq('validated', true)
+      .not('passage', 'is', null).limit(500),
     sb.from('questions')
       .select('id,topic,question_type,question_text,passage,passage_id,options,correct_answer,diagram')
-      .eq('topic', 'comprehension_written').eq('year_group', userYear).eq('validated', true).eq('active', true).limit(500),
+      .eq('topic', 'comprehension_written').eq('year_group', userYear).eq('validated', true)
+      .not('passage', 'is', null).limit(500),
     fetchPool('english', 'punctuation', 5, excludeIds),
     fetchPool('english', 'grammar',     5, excludeIds),
     fetchPool('english', 'spelling',    5, excludeIds),
