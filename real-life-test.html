@@ -129,6 +129,12 @@
     .ak-ans{font-size:1rem;font-weight:900;color:var(--text-dark);}
     .ak-ans.written{font-size:.68rem;color:var(--text-mid);font-weight:700;}
     .ak-divider{width:100%;border:none;border-top:1.5px solid var(--cream-border);margin:16px 0;}
+    .ak-written-list{display:flex;flex-direction:column;gap:10px;}
+    .ak-written-item{background:#FFFBF5;border:1.5px solid var(--cream-border);border-radius:8px;padding:10px 14px;}
+    .ak-written-meta{display:flex;align-items:center;gap:10px;margin-bottom:5px;}
+    .ak-written-qnum{font-size:.72rem;font-weight:900;color:var(--orange);min-width:28px;}
+    .ak-written-badge{font-size:.6rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;background:var(--orange);color:#fff;padding:2px 7px;border-radius:20px;}
+    .ak-written-text{font-size:.82rem;line-height:1.6;color:var(--text-dark);font-weight:600;}
 
     /* ══════════════════════════════════════
        PRINT MEDIA QUERIES
@@ -328,7 +334,7 @@ async function assembleEnglish(excludeIds) {
       .eq('topic', 'comprehension_mc').eq('year_group', userYear).eq('validated', true)
       .not('passage', 'is', null).limit(500),
     sb.from('questions')
-      .select('id,topic,question_type,question_text,passage,passage_id,options,correct_answer,diagram')
+      .select('id,topic,question_type,question_text,passage,passage_id,options,correct_answer,explanation,diagram')
       .eq('topic', 'comprehension_written').eq('year_group', userYear).eq('validated', true)
       .not('passage', 'is', null).limit(500),
     fetchPool('english', 'punctuation', 5, excludeIds),
@@ -609,8 +615,16 @@ function renderPaper({ practice, english, maths, passage, childName, yearGroup, 
       <div class="ak-grid">${akItems([...punct,...grammar,...spelling], 1, false)}</div>
       <div class="ak-section-label">English — Comprehension MC (Q16–22)</div>
       <div class="ak-grid">${akItems(compMc, 16, false)}</div>
-      <div class="ak-section-label">English — Comprehension Written (Q23–28) — mark using your own judgement</div>
-      <div class="ak-grid">${akItems(compWr, 23, false)}</div>
+      <div class="ak-section-label">English — Comprehension Written (Q23–28) — Model Answers</div>
+      <div class="ak-written-list">${compWr.map((q, i) => `
+        <div class="ak-written-item">
+          <div class="ak-written-meta">
+            <span class="ak-written-qnum">Q${23 + i}</span>
+            <span class="ak-written-badge">Model Answer</span>
+          </div>
+          <div class="ak-written-text">${q.explanation || q.correct_answer || 'See question for context — award marks for relevant, well-supported points.'}</div>
+        </div>`).join('')}
+      </div>
       <hr class="ak-divider">
       <div class="ak-section-label">Maths — Arithmetic (Q29–35)</div>
       <div class="ak-grid">${akItems(arith, 29, false)}</div>
