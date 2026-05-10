@@ -214,7 +214,7 @@
 
 <script>
 const SUPABASE_URL = 'https://iutcgogmxhaqgaxkznxu.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml1dGNnb2dtaGFxZ2F4a3pueHUiLCJyb2xlIjoiYW5vbiIsImlhdCI6MTc0MzE3MDQwOCwiZXhwIjoyMDU4NzQ2NDA4fQ.aFvRON-1Z_pq-Y30MgdFBB1ai7oM44qsEfDCIqEGiXA';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml1dGNnb2dteGhhcWdheGt6bnh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM3NjE4MTQsImV4cCI6MjA4OTMzNzgxNH0.o0plRQzH8ezfttG_sEeWu3F4IUtKnyzcXtPEGJ9xRF0';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 let parentId  = null;
@@ -233,29 +233,27 @@ async function init() {
   const preChildId  = params.get('childId');
   const preYear     = params.get('year');
 
-  const { data: children } = await sb
-    .from('profiles')
-    .select('id,name,year_group')
-    .eq('parent_id', parentId)
-    .order('name');
+  // Fetch own profile (child set up during onboarding) + children added via add-child.html
+  const [{ data: ownProfile }, { data: linkedChildren }] = await Promise.all([
+    sb.from('profiles').select('id,name,year_group').eq('id', parentId).maybeSingle(),
+    sb.from('profiles').select('id,name,year_group').eq('parent_id', parentId).order('name'),
+  ]);
+
+  const linked    = linkedChildren || [];
+  const linkedIds = new Set(linked.map(c => c.id));
+  const allChildren = [
+    ...(ownProfile?.year_group && !linkedIds.has(ownProfile.id) ? [ownProfile] : []),
+    ...linked,
+  ];
 
   const sel = document.getElementById('child-select');
-  if (!children?.length) {
-    // Could be a direct student — use their own profile
-    const { data: self } = await sb.from('profiles').select('id,name,year_group').eq('id', parentId).maybeSingle();
-    if (self) {
-      sel.innerHTML = `<option value="${self.id}">${self.name}</option>`;
-      document.getElementById('year-select').value = self.year_group || 'P6';
-      userYear = self.year_group || 'P6';
-    } else {
-      sel.innerHTML = '<option value="">No children found</option>';
-    }
+  if (!allChildren.length) {
+    sel.innerHTML = '<option value="">No children found</option>';
   } else {
-    sel.innerHTML = children.map(c =>
+    sel.innerHTML = allChildren.map(c =>
       `<option value="${c.id}" data-year="${c.year_group}" ${c.id === preChildId ? 'selected' : ''}>${c.name} (${c.year_group})</option>`
     ).join('');
-    // Pre-select child from URL param, or fall back to first child
-    const selected = children.find(c => c.id === preChildId) || children[0];
+    const selected = allChildren.find(c => c.id === preChildId) || allChildren[0];
     document.getElementById('year-select').value = preYear || selected.year_group || 'P6';
     userYear = preYear || selected.year_group || 'P6';
   }
