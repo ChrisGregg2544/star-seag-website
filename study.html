@@ -1633,7 +1633,7 @@ function saveSessionToSupabase(missedQs) {
     const payload = {
       childId,
       session: {
-        session_type:    'mini_mock',
+        session_type:    new URLSearchParams(window.location.search).get('mode') === 'topic' ? 'topic_sprint' : 'mini_sprint',
         track,
         score:           score.correct,
         total_questions: QUESTIONS.length,

@@ -56,13 +56,12 @@ export default async function handler(req, res) {
   //    score column stores raw correct count (same as save-session.js)
   const sessionRows = toSync.map(s => ({
     user_id:         userId,
-    session_type:    'mini_mock',
+    session_type:    'mini_sprint',
     track:           s.track || 'P6',
     score:           typeof s.correct === 'number' ? s.correct : 0,
     total_questions: typeof s.total   === 'number' ? s.total   : 10,
     english_score:   0,
     maths_score:     0,
-    created_at:      s.date || new Date().toISOString(),
   }));
 
   const insertRes = await sbFetch('sessions', 'POST', sessionRows, serviceKey, {
