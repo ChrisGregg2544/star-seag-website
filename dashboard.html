@@ -1252,19 +1252,21 @@ async function init() {
     const dbFreeUsed = parentProfile?.free_sprints_used ?? 0;
     const lsFreeUsed = parseInt(localStorage.getItem('star_free_sprints_used') || '0', 10);
     const freeUsed = Math.max(dbFreeUsed, lsFreeUsed);
-    const freeLeft = Math.max(0, 2 - freeUsed);
+    const freeLeft = Math.max(0, 3 - freeUsed);
     const banner = document.getElementById('upgrade-banner');
     const msg    = document.getElementById('upgrade-banner-msg');
 
     if (freeLeft > 0 && baselineComplete) {
-      msg.textContent = 'You have 1 free session left — like what you see? Your 7-day free trial is waiting';
+      msg.textContent = freeLeft === 1
+        ? 'You have 1 free session left — your 7-day free trial is ready when you are'
+        : 'You have ' + freeLeft + ' free sessions left — like what you see? Your 7-day free trial is waiting';
     } else if (freeLeft > 0) {
       msg.textContent = freeLeft === 1
         ? 'You have 1 free session left to explore'
         : 'You have ' + freeLeft + ' free sessions to try — no commitment needed';
     } else {
       // Paywall reached — lock all sprint/mock entry points
-      msg.textContent = 'Your 2 free sessions are up — start your 7-day free trial to keep going';
+      msg.textContent = 'Your 3 free sessions are up — start your 7-day free trial to keep going';
       window._paywallActive = true;
 
       const todayCard = document.getElementById('today-card');

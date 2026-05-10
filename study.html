@@ -1820,7 +1820,7 @@ async function checkAccess() {
 
     if (!data?.session?.user) {
       const guestDone = parseInt(localStorage.getItem('guest_sprints_done') || '0', 10);
-      if (guestDone < 2) {
+      if (guestDone < 3) {
         window._starAccess = { subscribed: false, freeUsed: 0, userId: null, isGuest: true };
         return true;
       }
@@ -1876,7 +1876,7 @@ async function checkAccess() {
       const lsFreeUsed = parseInt(localStorage.getItem('star_free_sprints_used') || '0', 10);
       const freeUsed   = Math.max(dbFreeUsed, lsFreeUsed);
 
-      if (freeUsed < 2) {
+      if (freeUsed < 3) {
         window._starAccess = { subscribed: false, freeUsed, userId: selectedChildId };
         return true;
       }
