@@ -229,6 +229,10 @@ async function init() {
   if (!data?.session?.user) { window.location.href = 'login.html'; return; }
   parentId = data.session.user.id;
 
+  const params      = new URLSearchParams(window.location.search);
+  const preChildId  = params.get('childId');
+  const preYear     = params.get('year');
+
   const { data: children } = await sb
     .from('profiles')
     .select('id,name,year_group')
@@ -248,12 +252,12 @@ async function init() {
     }
   } else {
     sel.innerHTML = children.map(c =>
-      `<option value="${c.id}" data-year="${c.year_group}">${c.name} (${c.year_group})</option>`
+      `<option value="${c.id}" data-year="${c.year_group}" ${c.id === preChildId ? 'selected' : ''}>${c.name} (${c.year_group})</option>`
     ).join('');
-    // Set year from first child
-    const first = children[0];
-    document.getElementById('year-select').value = first.year_group || 'P6';
-    userYear = first.year_group || 'P6';
+    // Pre-select child from URL param, or fall back to first child
+    const selected = children.find(c => c.id === preChildId) || children[0];
+    document.getElementById('year-select').value = preYear || selected.year_group || 'P6';
+    userYear = preYear || selected.year_group || 'P6';
   }
 
   sel.addEventListener('change', () => {

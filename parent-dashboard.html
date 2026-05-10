@@ -489,6 +489,7 @@ function buildCard(child, idx, sessions, progress, insightsHtml = '') {
       <div class="card-actions">
         <button class="btn-action btn-action-primary" onclick="goToPage('${child.id}','study.html')">▶ Start Sprint</button>
         <button class="btn-action btn-action-secondary" onclick="goToPage('${child.id}','dashboard.html')">View Progress</button>
+        <button class="btn-action btn-action-secondary" onclick="window.location.href='real-life-test.html?childId=${child.id}&year=${child.year_group}'">📄 Print Test</button>
       </div>
       ${insightsHtml}
     </div>`;
