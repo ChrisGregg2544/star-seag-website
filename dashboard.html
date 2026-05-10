@@ -1248,13 +1248,17 @@ async function init() {
     const banner = document.getElementById('upgrade-banner');
     const msg    = document.getElementById('upgrade-banner-msg');
 
-    if (freeLeft > 0) {
+    if (freeLeft > 0 && baselineComplete) {
+      // Baseline done — user has completed the trial experience, show clean subscribe CTA
+      msg.textContent = 'Start your 7-day free trial — no card required';
+    } else if (freeLeft > 0) {
+      // Pre-baseline free mocks — show counter
       msg.textContent = freeLeft === 1
         ? 'You have 1 free Mini Mock remaining'
         : 'You have ' + freeLeft + ' free Mini Mocks remaining';
     } else {
       // Paywall reached — update banner and lock all sprint/mock entry points
-      msg.textContent = 'Your 2 free Mini Mocks are used up — subscribe to keep practising';
+      msg.textContent = 'Your free Mini Mocks are used up — subscribe to keep practising';
       window._paywallActive = true;
 
       // Lock today's recommended session card
@@ -1262,7 +1266,7 @@ async function init() {
       if (todayCard) {
         todayCard.href = 'pricing.html';
         document.getElementById('today-title').textContent = '🔒 Subscribe to Continue';
-        document.getElementById('today-sub').textContent   = 'You\'ve used your 2 free sprints. Start your free trial to keep practising.';
+        document.getElementById('today-sub').textContent   = 'You\'ve used your free sprints. Start your free trial to keep practising.';
       }
 
       // Lock Take a Mock and Study by Topic buttons

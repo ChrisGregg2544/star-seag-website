@@ -419,12 +419,9 @@
   })();
 
   /* ── Weeks calculation ── */
-  function weeksUntil(month, day) {
-    const now    = new Date();
-    let examYear = now.getFullYear();
-    const exam   = new Date(examYear, month - 1, day);
-    if (exam < now) exam.setFullYear(examYear + 1);
-    return Math.max(0, Math.ceil((exam - now) / 604800000));
+  function weeksUntilExam() {
+    const examYear = calcExamYear(); // P7 = this Nov, P6 = next Nov
+    return Math.max(0, Math.ceil((new Date(examYear, 10, 15) - new Date()) / 604800000));
   }
 
   function calcExamYear() {
@@ -469,8 +466,8 @@
     }
     if (from === 1) {
       state.childName = cInp.value.trim();
-      /* Set weeks display on step 2 */
-      const weeks = weeksUntil(11, 15);
+      /* Set weeks display on step 2 — year-group-aware */
+      const weeks = weeksUntilExam();
       document.getElementById('weeks-display').textContent = `${weeks} weeks until Paper 1`;
     }
     if (from === 2) {
@@ -506,7 +503,7 @@
 
   /* ── Summary ── */
   function buildSummary() {
-    const weeks = weeksUntil(11, 15);
+    const weeks = weeksUntilExam();
     document.getElementById('lbl-3').textContent = `You're all set, ${state.childName}! 🎉`;
     document.getElementById('s-child').textContent = state.childName;
     document.getElementById('s-year').textContent  = state.year;
