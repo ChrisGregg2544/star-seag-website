@@ -1113,6 +1113,34 @@ async function init() {
 
   const accessToken = authData.session.access_token;
 
+  // ── Guest session sync ──────────────────────────────────────────────────
+  // Handles users who came via signup.html (skips login.html's syncGuestSessions).
+  // Safe to call even if already synced — star_sessions will be empty.
+  const _starSessionsLS = JSON.parse(localStorage.getItem('star_sessions') || '[]');
+  console.log('[dashboard] star_sessions in localStorage:', _starSessionsLS.length);
+  if (_starSessionsLS.length > 0) {
+    console.log('[dashboard] unsynced guest sessions found — syncing now');
+    try {
+      const _syncRes = await fetch('/api/sync-guest-sessions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${accessToken}` },
+        body: JSON.stringify({ sessions: _starSessionsLS }),
+      });
+      if (_syncRes.ok) {
+        console.log('[dashboard] ✅ guest sessions synced');
+        ['star_sessions','guest_sprints_done','star_mastery','star_toReview',
+         'star_last_score','star_last_track','star_last_name','star_video_log'
+        ].forEach(k => localStorage.removeItem(k));
+        localStorage.setItem('star_needs_baseline', '1');
+      } else {
+        const _syncText = await _syncRes.text();
+        console.error('[dashboard] guest sync non-ok:', _syncRes.status, _syncText.slice(0, 200));
+      }
+    } catch (_syncErr) {
+      console.error('[dashboard] guest sync error:', _syncErr.message);
+    }
+  }
+
   // Helper: check subscription via server-side endpoint (bypasses RLS)
   async function checkSubscription() {
     try {
@@ -1174,19 +1202,29 @@ async function init() {
     }
   }
 
-  // Subscription check (server-side) + student/child profiles (anon-key reads)
-  const [subscribed, { data: parentProfile }, { data: profile }] = await Promise.all([
+  // Subscription check (server-side) + student/child profiles + total session count
+  const [subscribed, { data: parentProfile }, { data: profile }, { count: sessionsCount }] = await Promise.all([
     checkSubscription(),
     sb.from('profiles').select('free_sprints_used').eq('id', selectedChildId).maybeSingle(),
     sb.from('profiles').select('name,year_group,exam_year,sessions_per_week').eq('id', selectedChildId).maybeSingle(),
+    sb.from('sessions').select('*', { count: 'exact', head: true }).eq('user_id', selectedChildId),
   ]);
+  console.log('[dashboard] subscribed:', subscribed, '| sessionsCount from DB:', sessionsCount);
 
   if (subscribed) {
     document.getElementById('btn-manage-sub').classList.add('visible');
   }
 
-  const baselineNeeded = localStorage.getItem('star_needs_baseline') === '1';
-  console.log('[dashboard] star_needs_baseline:', baselineNeeded);
+  // Baseline lock: non-subscribed users must complete 3 Mini Mocks before the full dashboard unlocks.
+  // Derived from Supabase session count (reliable) rather than a localStorage flag (fragile).
+  const baselineNeeded = !subscribed && (sessionsCount || 0) < 3;
+  const _baselineFlagLS = localStorage.getItem('star_needs_baseline') === '1';
+  console.log('[dashboard] baselineNeeded:', baselineNeeded, '| star_needs_baseline LS flag:', _baselineFlagLS, '| sessionsCount:', sessionsCount);
+  // Clear the stale LS flag once the user has reached 3+ sessions
+  if (_baselineFlagLS && !baselineNeeded) {
+    localStorage.removeItem('star_needs_baseline');
+    console.log('[dashboard] baseline complete — star_needs_baseline cleared from localStorage');
+  }
 
   if (!subscribed && !baselineNeeded) {
     const dbFreeUsed = parentProfile?.free_sprints_used ?? 0;
@@ -1234,10 +1272,11 @@ async function init() {
   weekStart.setDate(now.getDate() - daysFromMonday);
   weekStart.setHours(0, 0, 0, 0);
 
-  const [{ count: sessionsCount }, { count: weekDoneCount }] = await Promise.all([
-    sb.from('sessions').select('*', {count:'exact',head:true}).eq('user_id', selectedChildId),
-    sb.from('sessions').select('*', {count:'exact',head:true}).eq('user_id', selectedChildId).gte('completed_at', weekStart.toISOString()),
-  ]);
+  // sessionsCount already fetched above — only need weekDoneCount here
+  const { count: weekDoneCount } = await sb.from('sessions')
+    .select('*', { count: 'exact', head: true })
+    .eq('user_id', selectedChildId)
+    .gte('completed_at', weekStart.toISOString());
 
   const { data: progressData } = await sb.from('progress_summary')
     .select('last_score, last_total, topics_to_review')
