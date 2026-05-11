@@ -557,6 +557,7 @@ function stopTips() {
   if (loadingTipInterval) { clearInterval(loadingTipInterval); loadingTipInterval = null; }
 }
 
+let READING_PASSAGE_TEXT = null; // passage content for the comprehension section
 let startOrder     = 'english'; // 'english' | 'maths' — which main section comes first
 let currentSection = 'practice'; // 'practice' | 'english' | 'maths'
 let currentIdx     = 0;
@@ -775,11 +776,11 @@ async function assembleEnglishFromDB() {
   const { data: passages, error: pErr } = await sb
     .from('passages')
     .select('id,content')
-    .eq('year_group', userYear)
-    .eq('source', 'ai_generated_v2');
+    .eq('year_group', userYear);
   if (pErr || !passages?.length) throw new Error('Could not load reading passages from question bank');
 
   const chosenPassage = passages[Math.floor(Math.random() * passages.length)];
+  READING_PASSAGE_TEXT = chosenPassage.content;
 
   // Fetch comprehension questions + language sections all in parallel
   // Comprehension questions are passage-specific so can't overlap with practice;
@@ -1106,10 +1107,11 @@ function renderQuestion() {
   const passagePanel = document.getElementById('passage-panel');
   const passageBody  = document.getElementById('passage-body');
   const isComprehension = retryMode
-    ? !!q.passage
+    ? (!!q.passage || !!READING_PASSAGE_TEXT)
     : (currentSection === 'english' && currentIdx >= 15);
-  if (isComprehension && q.passage) {
-    passageBody.textContent = q.passage;
+  const passageText = q.passage || (isComprehension ? READING_PASSAGE_TEXT : null);
+  if (isComprehension && passageText) {
+    passageBody.textContent = passageText;
     passagePanel.style.display = '';
   } else {
     passagePanel.style.display = 'none';
