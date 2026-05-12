@@ -5,7 +5,7 @@
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <link rel="icon" type="image/x-icon" href="/favicon.ico">
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>STAR – Real Life Test</title>
+  <title>STAR – Guardian Supervised Test</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
@@ -175,7 +175,7 @@
 <div id="setup-screen" class="setup-wrap screen-only">
   <div class="setup-card">
     <div class="setup-icon">📄</div>
-    <div class="setup-title">Real Life Test</div>
+    <div class="setup-title">Guardian Supervised Test</div>
     <div class="setup-sub">Generate a full 66-question practice paper (10 warm-up + 56 test questions) matching the real SEAG Transfer Test format. Print for your child to complete on paper.</div>
 
     <div class="field-label">Select child</div>
@@ -234,6 +234,17 @@ async function init() {
   const { data } = await sb.auth.getSession();
   if (!data?.session?.user) { window.location.href = 'login.html'; return; }
   parentId = data.session.user.id;
+
+  // Subscription check — Guardian Supervised Test is a paid feature
+  try {
+    const subRes = await fetch('/api/subscription?action=check', {
+      headers: { 'Authorization': `Bearer ${data.session.access_token}` },
+    });
+    const subData = await subRes.json();
+    if (!subData.subscribed) { window.location.href = 'pricing.html'; return; }
+  } catch (e) {
+    window.location.href = 'pricing.html'; return;
+  }
 
   const params      = new URLSearchParams(window.location.search);
   const preChildId  = params.get('childId');
@@ -326,53 +337,46 @@ async function assemblePractice() {
 }
 
 async function assembleEnglish(excludeIds) {
-  // Active comprehension questions have no passage text (standalone MCQs).
-  // Questions with actual reading passages are in the inactive batch.
-  // So for comprehension only: validated=true, no active filter, require passage data.
-  const [{ data: mcAll }, { data: wrAll }, punct, grammar, spelling] = await Promise.all([
+  // Pick a random passage for this year group, then fetch its linked V2 questions
+  const { data: passages, error: pErr } = await sb
+    .from('passages')
+    .select('id,content')
+    .eq('year_group', userYear);
+  if (pErr || !passages?.length) throw new Error('No reading passages found for this year group');
+
+  const chosenPassage = passages[Math.floor(Math.random() * passages.length)];
+
+  const [mcRes, wrRes, punct, grammar, spelling] = await Promise.all([
     sb.from('questions')
-      .select('id,topic,question_type,question_text,passage,passage_id,options,correct_answer,diagram')
-      .eq('topic', 'comprehension_mc').eq('year_group', userYear).eq('validated', true)
-      .not('passage', 'is', null).limit(500),
+      .select('id,topic,question_type,question_text,passage,options,correct_answer,diagram')
+      .eq('passage_id', chosenPassage.id)
+      .eq('topic',      'comprehension_mc')
+      .eq('source',     'ai_generated_v2')
+      .eq('active',     true),
     sb.from('questions')
-      .select('id,topic,question_type,question_text,passage,passage_id,options,correct_answer,explanation,diagram')
-      .eq('topic', 'comprehension_written').eq('year_group', userYear).eq('validated', true)
-      .not('passage', 'is', null).limit(500),
+      .select('id,topic,question_type,question_text,passage,options,correct_answer,explanation,diagram')
+      .eq('passage_id', chosenPassage.id)
+      .eq('topic',      'comprehension_written')
+      .eq('source',     'ai_generated_v2')
+      .eq('active',     true),
     fetchPool('english', 'punctuation', 5, excludeIds),
     fetchPool('english', 'grammar',     5, excludeIds),
     fetchPool('english', 'spelling',    5, excludeIds),
   ]);
 
-  function passageKey(q) {
-    if (q.passage_id) return 'pid:' + q.passage_id;
-    if (q.passage)    return 'txt:' + q.passage.slice(0, 120);
-    return null;
-  }
+  if (mcRes.error) throw new Error(`Comprehension MC fetch failed: ${mcRes.error.message}`);
+  if (wrRes.error) throw new Error(`Comprehension written fetch failed: ${wrRes.error.message}`);
 
-  const mcByKey = {}, wrByKey = {}, textByKey = {};
-  for (const q of (mcAll || [])) {
-    const k = passageKey(q); if (!k) continue;
-    if (!mcByKey[k]) { mcByKey[k] = []; textByKey[k] = q.passage; }
-    mcByKey[k].push(q);
-  }
-  for (const q of (wrAll || [])) {
-    const k = passageKey(q); if (!k) continue;
-    if (!wrByKey[k]) wrByKey[k] = [];
-    wrByKey[k].push(q);
-  }
+  const mc = shuffle(mcRes.data || []).slice(0, 7);
+  const wr = shuffle(wrRes.data || []).slice(0, 6);
 
-  const eligible = Object.keys(mcByKey).filter(k =>
-    mcByKey[k].length >= 7 && (wrByKey[k] || []).length >= 6
-  );
-  if (!eligible.length) throw new Error('No complete reading passage sets found for this year group');
+  if (mc.length < 7) throw new Error(`Not enough comprehension MC questions for this passage (${mc.length}/7) — please try again`);
+  if (wr.length < 6) throw new Error(`Not enough comprehension written questions for this passage (${wr.length}/6) — please try again`);
 
-  const key = eligible[Math.floor(Math.random() * eligible.length)];
-  const mc  = shuffle(mcByKey[key]).slice(0, 7);
-  const wr  = shuffle(wrByKey[key] || []).slice(0, 6);
   mc.forEach(r => seenIds.add(r.id));
   wr.forEach(r => seenIds.add(r.id));
 
-  return { qs: [...punct, ...grammar, ...spelling, ...mc, ...wr], passage: { content: textByKey[key] } };
+  return { qs: [...punct, ...grammar, ...spelling, ...mc, ...wr], passage: { content: chosenPassage.content } };
 }
 
 async function assembleMaths(excludeIds) {
