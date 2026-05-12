@@ -1,959 +1,343 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-  <link rel="icon" type="image/x-icon" href="/favicon.ico">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>STAR AI Tutor – Transfer Test Preparation for Northern Ireland</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <!-- Cookie Consent + GA4 (loads GA only if accepted) -->
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>STAR AI Tutor — SEAG Transfer Test Prep for Northern Ireland</title>
+  <meta name="description" content="Personalised AI-powered SEAG Transfer Test preparation for P6 and P7 pupils in Northern Ireland. Mini Mocks, Topic Sprints, Full Mocks and printable papers."/>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
+  <link rel="icon" type="image/x-icon" href="/favicon.ico"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+  <!-- Cookie Consent + GA4 -->
   <script src="cookie-consent.js"></script>
   <style>
     :root {
       --orange:       #F97316;
       --orange-dark:  #EA6C0A;
-      --orange-light: #FB923C;
-      --yellow:       #F59E0B;
-      --yellow-dark:  #D97706;
+      --orange-light: #FFF7ED;
       --cream:        #FEF3E2;
       --cream-border: #F0E0C0;
-      --card-border:  #E8D8B8;
-      --green:        #58CC02;
-      --blue:         #1CB0F6;
-      --text-dark:    #333333;
-      --text-mid:     #666666;
-      --text-light:   #999999;
+      --text-dark:    #1A1A1A;
+      --text-mid:     #6B7280;
+      --text-light:   #9CA3AF;
+      --white:        #ffffff;
     }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html { scroll-behavior: smooth; }
-    body {
-      background: var(--cream);
-      color: var(--text-dark);
-      font-family: 'Nunito', sans-serif;
-      font-weight: 600;
-      overflow-x: hidden;
-    }
+    body { font-family: 'Inter', sans-serif; background: var(--cream); color: var(--text-dark); }
 
-    /* ── Animations ── */
-    @keyframes fadeUp { from { opacity: 0; transform: translateY(28px); } to { opacity: 1; transform: translateY(0); } }
-    @keyframes barFill { from { width: 0%; } to { width: var(--bar-w); } }
-
-    /* Hero fade-ups */
-    .hero-el { opacity: 0; }
-    .hero-el.go { animation: fadeUp .7s ease forwards; }
-    .d1 { animation-delay: .1s; }
-    .d2 { animation-delay: .25s; }
-    .d3 { animation-delay: .4s; }
-    .d4 { animation-delay: .55s; }
-    .d5 { animation-delay: .7s; }
-
-    /* Scroll reveal */
-    .reveal { opacity: 0; transform: translateY(24px); transition: opacity .6s ease, transform .6s ease; }
-    .reveal.visible { opacity: 1; transform: translateY(0); }
-    .rv-d1 { transition-delay: .05s; }
-    .rv-d2 { transition-delay: .12s; }
-    .rv-d3 { transition-delay: .19s; }
-    .rv-d4 { transition-delay: .26s; }
-    .rv-d5 { transition-delay: .33s; }
-    .rv-d6 { transition-delay: .40s; }
-
-    /* ── Nav ── */
-    nav {
+    /* ══════════════════════════════════
+       NAV
+    ══════════════════════════════════ */
+    .nav {
       position: sticky; top: 0; z-index: 100;
       background: var(--orange);
-      box-shadow: 0 4px 0 var(--orange-dark);
-      height: 64px;
-    }
-    nav.scrolled { background: var(--orange-dark); }
-    .nav-inner {
-      max-width: 1140px; margin: 0 auto;
       display: flex; align-items: center; justify-content: space-between;
-      height: 100%; padding: 0 24px;
+      padding: 0 32px; height: 64px;
+      box-shadow: 0 4px 0 var(--orange-dark);
     }
     .nav-logo {
       display: flex; align-items: center; gap: 10px; text-decoration: none;
     }
-    .nav-logo-star {
-      width: 40px; height: 40px; border-radius: 10px;
-      background: var(--yellow); box-shadow: 0 3px 0 var(--yellow-dark);
+    .nav-logo-icon {
+      width: 38px; height: 38px; background: #F59E0B;
+      border-radius: 10px; border: 3px solid rgba(0,0,0,.15);
       display: flex; align-items: center; justify-content: center;
       font-size: 1.3rem; flex-shrink: 0;
     }
-    .nav-logo-wordmark { display: flex; flex-direction: column; line-height: 1; gap: 2px; }
-    .nav-logo-name { font-size: 1.1rem; font-weight: 900; color: #fff; letter-spacing: .04em; }
-    .nav-logo-sub { font-size: .48rem; font-weight: 700; color: rgba(255,255,255,.7); letter-spacing: .18em; text-transform: uppercase; }
-
-    .nav-btn-outline {
-      font-family: 'Nunito', sans-serif; font-size: .78rem; font-weight: 800;
-      letter-spacing: .06em; text-transform: uppercase;
-      color: #fff; text-decoration: none;
-      border: 2px solid rgba(255,255,255,.45); border-radius: 8px;
-      padding: 8px 16px; transition: all .15s;
+    .nav-logo-name { font-size: 1.05rem; font-weight: 800; color: #fff; letter-spacing: .04em; }
+    .nav-actions { display: flex; gap: 10px; align-items: center; }
+    .nav-login {
+      padding: 8px 18px; border: 2px solid rgba(255,255,255,.6); border-radius: 8px;
+      color: #fff; background: transparent; font-family: 'Inter', sans-serif;
+      font-size: .88rem; font-weight: 700; text-decoration: none;
+      transition: background .15s;
     }
-    .nav-btn-outline:hover { background: rgba(255,255,255,.15); border-color: rgba(255,255,255,.7); }
-
-    /* CTA button */
-    .cta-btn {
-      background: #fff; color: var(--orange);
-      font-family: 'Nunito', sans-serif; font-weight: 900;
-      letter-spacing: .08em; text-transform: uppercase;
-      border: none; cursor: pointer; border-radius: 8px;
-      box-shadow: 0 3px 0 rgba(0,0,0,0.15);
-      transition: transform .15s, box-shadow .15s;
+    .nav-login:hover { background: rgba(255,255,255,.18); }
+    .nav-trial {
+      padding: 8px 18px; border: 2px solid #fff; border-radius: 8px;
+      color: var(--orange); background: #fff; font-family: 'Inter', sans-serif;
+      font-size: .88rem; font-weight: 800; text-decoration: none;
+      transition: background .15s;
     }
-    .cta-btn:hover { transform: translateY(-1px); box-shadow: 0 5px 0 rgba(0,0,0,0.15); }
-    .cta-btn:active { transform: translateY(1px); box-shadow: 0 1px 0 rgba(0,0,0,0.15); }
-
-    /* Hamburger */
+    .nav-trial:hover { background: var(--orange-light); }
     .nav-hamburger {
-      display: none; background: none; border: 2px solid rgba(255,255,255,.4);
-      border-radius: 7px; padding: 7px 10px; cursor: pointer;
-      flex-direction: column; gap: 4px;
+      display: none; flex-direction: column; gap: 5px;
+      background: none; border: none; cursor: pointer; padding: 4px;
     }
-    .nav-hamburger span { display: block; width: 20px; height: 2px; background: rgba(255,255,255,.9); border-radius: 2px; }
-    @media (max-width: 640px) {
-      .nav-links-group { display: none !important; }
-      .nav-hamburger { display: flex; }
-      nav.nav-mobile-open .nav-links-group {
-        display: flex !important; flex-direction: column; align-items: flex-start;
-        position: absolute; top: 64px; left: 0; right: 0;
-        background: var(--orange-dark);
-        border-bottom: 2px solid rgba(0,0,0,.1);
-        padding: 16px 20px 20px; gap: 12px; z-index: 99;
-      }
+    .nav-hamburger span { display: block; width: 22px; height: 2px; background: #fff; border-radius: 2px; }
+    .nav-mobile {
+      display: none; flex-direction: column;
+      background: var(--orange-dark); padding: 16px 24px; gap: 4px;
     }
-
-    /* ── Section divider ── */
-    .section-line { height: 2px; background: var(--cream-border); }
-
-    /* ── Pill badges ── */
-    .pill {
-      display: inline-block;
-      background: #FFF3E8; border: 2px solid rgba(255,109,0,.3);
-      border-radius: 999px; color: var(--orange);
-      font-family: 'Nunito', sans-serif; font-size: .72rem; font-weight: 800;
-      letter-spacing: .12em; text-transform: uppercase; padding: 5px 16px;
+    .nav-mobile.open { display: flex; }
+    .nav-mobile a {
+      color: #fff; text-decoration: none; font-weight: 700;
+      font-size: .95rem; padding: 10px 0;
+      border-bottom: 1px solid rgba(255,255,255,.15);
     }
-    .pill-blue {
-      display: inline-block;
-      background: #E3F2FD; border: 2px solid rgba(28,176,246,.3);
-      border-radius: 999px; color: #0D8FCC;
-      font-family: 'Nunito', sans-serif; font-size: .72rem; font-weight: 800;
-      letter-spacing: .12em; text-transform: uppercase; padding: 5px 16px;
+    .nav-mobile a:last-child { border-bottom: none; }
+
+    /* ══════════════════════════════════
+       HERO
+    ══════════════════════════════════ */
+    .hero {
+      min-height: calc(100vh - 64px);
+      display: flex; align-items: center;
+      background: var(--cream);
+      padding: 80px 32px;
     }
-
-    /* Section decorative divider */
-    .divc { width: 48px; height: 3px; background: var(--orange); border-radius: 99px; margin: 14px auto 0; }
-
-    /* ── Cards ── */
-    .card {
-      background: #fff; border: 2px solid var(--card-border);
-      border-radius: 16px; box-shadow: 0 4px 16px rgba(0,0,0,.06);
-      transition: transform .3s, box-shadow .3s;
+    .hero-inner { max-width: 680px; margin: 0 auto; text-align: center; }
+    .hero-badge {
+      display: inline-block; margin-bottom: 28px;
+      background: var(--orange-light); border: 1.5px solid rgba(249,115,22,.3);
+      border-radius: 99px; padding: 6px 18px;
+      font-size: .78rem; font-weight: 700; color: #C2410C; letter-spacing: .05em; text-transform: uppercase;
     }
-    .card:hover { transform: translateY(-4px); box-shadow: 0 10px 28px rgba(0,0,0,.1); }
-
-    /* Track cards */
-    .tc6 {
-      background: #fff; border: 2px solid #90CAF9; border-radius: 20px;
-      box-shadow: 0 4px 16px rgba(28,176,246,.08);
-      transition: transform .3s, box-shadow .3s;
+    .hero-title {
+      font-size: 3.2rem; font-weight: 900; line-height: 1.1;
+      color: var(--text-dark); letter-spacing: -.03em; margin-bottom: 20px;
     }
-    .tc6:hover { transform: translateY(-6px); box-shadow: 0 14px 32px rgba(28,176,246,.15); }
-    .tc7 {
-      background: #fff; border: 2px solid rgba(255,109,0,.35); border-radius: 20px;
-      box-shadow: 0 4px 16px rgba(255,109,0,.08);
-      transition: transform .3s, box-shadow .3s;
+    .hero-sub {
+      font-size: 1.1rem; line-height: 1.75; color: var(--text-mid);
+      max-width: 540px; margin: 0 auto 40px;
     }
-    .tc7:hover { transform: translateY(-6px); box-shadow: 0 14px 32px rgba(255,109,0,.15); }
-
-    /* Feature icon wrappers */
-    .fi6 { width:34px; height:34px; border-radius:8px; flex-shrink:0; display:flex; align-items:center; justify-content:center; background:#E3F2FD; border:2px solid rgba(28,176,246,.25); }
-    .fi7 { width:34px; height:34px; border-radius:8px; flex-shrink:0; display:flex; align-items:center; justify-content:center; background:#FFF3E8; border:2px solid rgba(255,109,0,.25); }
-
-    /* Dashboard panels */
-    .dash-panel {
-      background: #fff; border: 2px solid var(--card-border);
-      border-radius: 16px; padding: 26px;
-      box-shadow: 0 4px 16px rgba(0,0,0,.06);
+    .hero-ctas { display: flex; flex-direction: column; align-items: center; gap: 12px; margin-bottom: 32px; }
+    .btn-primary {
+      display: inline-block; padding: 16px 40px;
+      background: var(--orange); color: #fff;
+      border: none; border-radius: 12px;
+      font-family: 'Inter', sans-serif; font-size: 1rem; font-weight: 800;
+      text-decoration: none; cursor: pointer; letter-spacing: -.01em;
+      box-shadow: 0 4px 0 var(--orange-dark); transition: all .15s;
     }
-
-    /* Skill bars */
-    .skill-bar-track { background: var(--cream-border); border-radius: 99px; height: 8px; overflow: hidden; }
-    .skill-bar-fill { height: 100%; border-radius: 99px; width: 0%; transition: width 1.3s ease .2s; }
-
-    /* Focus chips */
-    .chip-high { display:inline-flex; align-items:center; gap:5px; background:#FFF3F3; border:2px solid #FFCDD2; border-radius:8px; padding:4px 11px; margin:3px; }
-    .chip-med  { display:inline-flex; align-items:center; gap:5px; background:#FFF3E8; border:2px solid rgba(255,109,0,.25); border-radius:8px; padding:4px 11px; margin:3px; }
-    .chip-low  { display:inline-flex; align-items:center; gap:5px; background:#F0FFF4; border:2px solid #C6F6D5; border-radius:8px; padding:4px 11px; margin:3px; }
-    .dot { width:5px; height:5px; border-radius:50%; flex-shrink:0; }
-
-    /* Responsive grids */
-    @media (max-width: 900px) {
-      .tracks-grid { grid-template-columns: 1fr !important; }
-      .dash-grid   { grid-template-columns: 1fr !important; }
-      .acc-grid    { grid-template-columns: 1fr !important; }
-      .stats-grid  { grid-template-columns: 1fr 1fr !important; }
-      .test-grid   { grid-template-columns: 1fr !important; }
-      .supp-grid   { grid-template-columns: 1fr 1fr !important; }
-      .hero-title  { font-size: 2.4rem !important; }
-      .sec-title   { font-size: 2rem !important; }
-      .cta-title   { font-size: 2.2rem !important; }
+    .btn-primary:hover { background: var(--orange-dark); transform: translateY(-1px); box-shadow: 0 5px 0 #C2410C; }
+    .btn-secondary {
+      display: inline-block; padding: 14px 36px;
+      background: var(--white); color: var(--text-dark);
+      border: 2px solid var(--cream-border); border-radius: 12px;
+      font-family: 'Inter', sans-serif; font-size: .95rem; font-weight: 700;
+      text-decoration: none; cursor: pointer; transition: border-color .15s, color .15s;
     }
+    .btn-secondary:hover { border-color: var(--orange); color: var(--orange); }
+    .hero-social { font-size: .85rem; color: var(--text-mid); }
+    .hero-social .stars { color: #F59E0B; margin-right: 4px; }
+
+    /* ══════════════════════════════════
+       HOW IT WORKS
+    ══════════════════════════════════ */
+    .hiw { background: var(--white); padding: 100px 32px; }
+    .section-inner { max-width: 960px; margin: 0 auto; }
+    .section-eyebrow {
+      font-size: .75rem; font-weight: 800; letter-spacing: .12em;
+      text-transform: uppercase; color: var(--orange); margin-bottom: 10px;
+    }
+    .section-heading {
+      font-size: 2rem; font-weight: 900; color: var(--text-dark);
+      letter-spacing: -.02em; margin-bottom: 56px;
+    }
+    .steps-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+    .step {
+      background: var(--cream); border: 2px solid var(--cream-border);
+      border-radius: 16px; padding: 36px 28px; text-align: center;
+    }
+    .step-num {
+      width: 48px; height: 48px; background: var(--orange); color: #fff;
+      border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      font-size: 1.2rem; font-weight: 900; margin: 0 auto 14px;
+    }
+    .step-icon { font-size: 1.8rem; margin-bottom: 12px; }
+    .step-title { font-size: .97rem; font-weight: 800; color: var(--text-dark); margin-bottom: 8px; }
+    .step-desc { font-size: .86rem; line-height: 1.65; color: var(--text-mid); }
+
+    /* ══════════════════════════════════
+       PRICING
+    ══════════════════════════════════ */
+    .pricing { background: var(--cream); padding: 100px 32px; }
+    .pricing-card {
+      max-width: 440px; margin: 0 auto;
+      background: var(--white); border: 2px solid var(--cream-border);
+      border-radius: 20px; box-shadow: 0 8px 0 rgba(0,0,0,.06);
+      padding: 48px 40px; text-align: center;
+    }
+    .pricing-trial-badge {
+      display: inline-block; margin-bottom: 28px;
+      background: #F0FDF4; border: 1.5px solid #BBF7D0;
+      border-radius: 99px; padding: 5px 16px;
+      font-size: .78rem; font-weight: 700; color: #15803D;
+    }
+    .price-amount { font-size: 3.4rem; font-weight: 900; color: var(--text-dark); line-height: 1; }
+    .price-period { font-size: 1rem; font-weight: 600; color: var(--text-mid); }
+    .price-label { font-size: .9rem; color: var(--text-mid); margin: 8px 0 6px; }
+    .price-extra { font-size: .88rem; font-weight: 700; color: var(--orange); margin-bottom: 32px; }
+    .pricing-divider { height: 1px; background: var(--cream-border); margin: 28px 0; }
+    .pricing-features {
+      list-style: none; text-align: left; margin-bottom: 36px;
+      display: flex; flex-direction: column; gap: 10px;
+    }
+    .pricing-features li {
+      font-size: .88rem; color: var(--text-dark);
+      display: flex; align-items: flex-start; gap: 10px;
+    }
+    .pricing-features li::before {
+      content: '✓'; color: var(--orange); font-weight: 900;
+      font-size: 1rem; flex-shrink: 0; margin-top: 1px;
+    }
+    .pricing-cta {
+      display: block; width: 100%; padding: 16px;
+      background: var(--orange); color: #fff; border: none; border-radius: 12px;
+      font-family: 'Inter', sans-serif; font-size: 1rem; font-weight: 800;
+      text-decoration: none; text-align: center; cursor: pointer;
+      box-shadow: 0 4px 0 var(--orange-dark); transition: all .15s;
+    }
+    .pricing-cta:hover { background: var(--orange-dark); transform: translateY(-1px); }
+    .pricing-small { font-size: .77rem; color: var(--text-light); margin-top: 14px; }
+
+    /* ══════════════════════════════════
+       FOOTER
+    ══════════════════════════════════ */
+    footer {
+      background: var(--cream); border-top: 2px solid var(--cream-border);
+      padding: 40px 32px; text-align: center;
+    }
+    .footer-links {
+      display: flex; justify-content: center; flex-wrap: wrap;
+      gap: 8px 28px; margin-bottom: 16px;
+    }
+    .footer-links a { font-size: .85rem; font-weight: 600; color: var(--text-mid); text-decoration: none; }
+    .footer-links a:hover { color: var(--orange); }
+    .footer-copy { font-size: .77rem; color: var(--text-light); line-height: 1.6; }
+
+    /* ══════════════════════════════════
+       MOBILE
+    ══════════════════════════════════ */
     @media (max-width: 600px) {
-      .stats-grid { grid-template-columns: 1fr 1fr !important; }
-      .supp-grid  { grid-template-columns: 1fr !important; }
-      .hero-title { font-size: 2rem !important; }
+      .nav { padding: 0 20px; }
+      .nav-actions { display: none; }
+      .nav-hamburger { display: flex; }
+
+      .hero { padding: 56px 20px; min-height: auto; }
+      .hero-title { font-size: 2.1rem; }
+      .hero-sub { font-size: .97rem; }
+      .btn-primary, .btn-secondary { width: 100%; text-align: center; box-sizing: border-box; }
+
+      .hiw, .pricing { padding: 72px 20px; }
+      .section-heading { font-size: 1.6rem; margin-bottom: 32px; }
+      .steps-grid { grid-template-columns: 1fr; gap: 16px; }
+
+      .pricing-card { padding: 36px 24px; }
+      .price-amount { font-size: 2.8rem; }
+
+      footer { padding: 32px 20px; }
     }
   </style>
 </head>
 <body>
 
-<!-- ══════════════════════════════════════════
-     NAV
-══════════════════════════════════════════ -->
-<nav id="main-nav">
-  <div class="nav-inner">
-    <!-- Logo -->
-    <a id="logo-link" href="index.html" class="nav-logo">
-      <div class="nav-logo-star">⭐</div>
-      <div class="nav-logo-wordmark">
-        <span class="nav-logo-name">STAR</span>
-        <span class="nav-logo-sub">AI&nbsp;TUTOR</span>
-      </div>
-    </a>
-    <!-- Right side -->
-    <div id="nav-links-wrap" style="display:flex;align-items:center;gap:10px;">
-      <div class="nav-links-group" style="display:flex;gap:10px;">
-        <a href="signup.html" style="display:none;" id="nav-cta-mobile" class="cta-btn" style="padding:9px 18px;font-size:.78rem;">Start Free Trial</a>
-      </div>
-      <a href="login.html" id="nav-login-btn" class="nav-btn-outline">Log In</a>
-      <a href="signup.html" id="nav-cta-desktop"><button class="cta-btn" style="padding:9px 22px;font-size:.78rem;">Start Free Trial</button></a>
-    </div>
-    <button class="nav-hamburger" id="nav-hamburger" aria-label="Toggle menu" onclick="toggleMobileNav()">
-      <span></span><span></span><span></span>
-    </button>
+<!-- NAV -->
+<nav class="nav">
+  <a href="index.html" class="nav-logo">
+    <div class="nav-logo-icon">⭐</div>
+    <span class="nav-logo-name">STAR AI Tutor</span>
+  </a>
+  <div class="nav-actions">
+    <a href="login.html" class="nav-login">Log In</a>
+    <a href="signup.html" class="nav-trial">Start Free Trial</a>
   </div>
+  <button class="nav-hamburger" onclick="document.getElementById('nav-mobile').classList.toggle('open')" aria-label="Toggle menu">
+    <span></span><span></span><span></span>
+  </button>
 </nav>
+<div class="nav-mobile" id="nav-mobile">
+  <a href="login.html">Log In</a>
+  <a href="signup.html">Start Free Trial</a>
+  <a href="guest-start.html">Try Free Mini Mocks</a>
+</div>
 
-<!-- ══════════════════════════════════════════
-     HERO
-══════════════════════════════════════════ -->
-<section style="position:relative;min-height:calc(100vh - 64px);display:flex;align-items:center;overflow:hidden;background:var(--cream);">
-  <div style="max-width:1140px;margin:0 auto;padding:80px 32px 80px;position:relative;z-index:2;width:100%;">
-    <div style="max-width:720px;">
-      <div class="hero-el d1" style="margin-bottom:0;">
-        <span class="pill">Northern Ireland's Premier Transfer Test Preparation</span>
-      </div>
-      <h1 class="hero-el d2 hero-title" style="font-family:'Nunito',sans-serif;font-size:3.7rem;line-height:1.1;font-weight:900;margin-top:28px;margin-bottom:10px;color:var(--text-dark);">
-        The AI Tutor That<br>
-        <span style="color:var(--orange);">Grows With</span><br>
-        Your Child.
-      </h1>
-      <p class="hero-el d3" style="font-size:1.05rem;line-height:1.8;color:var(--text-mid);max-width:560px;margin-top:18px;margin-bottom:40px;">
-        Personalised Transfer Test Preparation from P6 Foundations to P7 Exam Mastery.
-      </p>
-      <div class="hero-el d4" style="display:flex;flex-direction:column;align-items:flex-start;gap:12px;">
-        <a href="signup.html"><button class="cta-btn" style="padding:17px 44px;border-radius:12px;font-size:.95rem;background:var(--orange);color:#fff;box-shadow:0 5px 0 var(--orange-dark);">START FREE TRIAL — First 7 Days Free</button></a>
-        <a href="guest-start.html" style="display:inline-flex;align-items:center;gap:8px;padding:13px 28px;border-radius:12px;background:#fff;border:2px solid var(--cream-border);box-shadow:0 3px 0 rgba(0,0,0,0.07);font-family:'Nunito',sans-serif;font-size:.88rem;font-weight:800;color:var(--text-dark);text-decoration:none;transition:transform .15s,box-shadow .15s;" onmouseover="this.style.transform='translateY(-1px)';this.style.boxShadow='0 5px 0 rgba(0,0,0,0.07)'" onmouseout="this.style.transform='';this.style.boxShadow='0 3px 0 rgba(0,0,0,0.07)'">
-          ⚡ Try 3 Free Mini Mocks — No Sign Up Needed
-        </a>
-        <span style="font-family:'Nunito',sans-serif;font-size:.8rem;color:var(--text-light);letter-spacing:.04em;">7 days free · then £15/month · Cancel anytime</span>
-      </div>
-      <div class="hero-el d5" style="margin-top:48px;display:flex;gap:7px;align-items:center;">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="#F97316"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="#F97316"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="#F97316"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="#F97316"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="#F97316"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
-        <span style="font-size:.78rem;color:var(--text-light);margin-left:8px;">Trusted by P6 &amp; P7 families across Northern Ireland</span>
-      </div>
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-inner">
+    <div class="hero-badge">Northern Ireland Transfer Test Prep</div>
+    <h1 class="hero-title">The AI Tutor That Grows With Your Child</h1>
+    <p class="hero-sub">Personalised Transfer Test Preparation from P6 Foundations to P7 Exam Mastery</p>
+    <div class="hero-ctas">
+      <a href="signup.html" class="btn-primary">START FREE TRIAL — No Card Required</a>
+      <a href="guest-start.html" class="btn-secondary">Try 2 Free Mini Mocks — No Sign Up Needed</a>
     </div>
-  </div>
-</section>
-
-<div class="section-line"></div>
-
-<!-- ══════════════════════════════════════════
-     STATS BAR
-══════════════════════════════════════════ -->
-<section style="padding:60px 32px;background:#fff;">
-  <div style="max-width:1140px;margin:0 auto;">
-    <div class="stats-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:18px;">
-
-      <div class="card reveal rv-d1" style="padding:24px 20px;text-align:center;">
-        <div style="font-size:2.5rem;font-weight:900;color:var(--orange);">56</div>
-        <div style="font-size:.86rem;font-weight:800;color:var(--text-dark);margin-top:6px;margin-bottom:3px;">Questions per Mock</div>
-        <div style="font-size:.73rem;color:var(--text-light);letter-spacing:.04em;">Full Transfer Test format</div>
-      </div>
-
-      <div class="card reveal rv-d2" style="padding:24px 20px;text-align:center;">
-        <div style="font-size:2.5rem;font-weight:900;color:var(--orange);">10</div>
-        <div style="font-size:.86rem;font-weight:800;color:var(--text-dark);margin-top:6px;margin-bottom:3px;">Questions per Sprint</div>
-        <div style="font-size:.73rem;color:var(--text-light);letter-spacing:.04em;">P6 Foundation Track</div>
-      </div>
-
-      <div class="card reveal rv-d3" style="padding:24px 20px;text-align:center;">
-        <div style="font-size:2.5rem;font-weight:900;color:var(--orange);">100%</div>
-        <div style="font-size:.86rem;font-weight:800;color:var(--text-dark);margin-top:6px;margin-bottom:3px;">Verified Accuracy</div>
-        <div style="font-size:.73rem;color:var(--text-light);letter-spacing:.04em;">Every sum solved first</div>
-      </div>
-
-      <div class="card reveal rv-d4" style="padding:24px 20px;text-align:center;">
-        <div style="font-size:2.5rem;font-weight:900;color:var(--orange);">2</div>
-        <div style="font-size:.86rem;font-weight:800;color:var(--text-dark);margin-top:6px;margin-bottom:3px;">Adaptive Tracks</div>
-        <div style="font-size:.73rem;color:var(--text-light);letter-spacing:.04em;">The Builder &amp; Executor</div>
-      </div>
-
-    </div>
-  </div>
-</section>
-
-<div class="section-line"></div>
-
-<!-- ══════════════════════════════════════════
-     HOW IT WORKS
-══════════════════════════════════════════ -->
-<section style="padding:100px 32px;background:var(--cream);">
-  <div style="max-width:1140px;margin:0 auto;">
-    <div class="reveal rv-d1" style="text-align:center;margin-bottom:64px;">
-      <span class="pill">How It Works</span>
-      <h2 class="sec-title" style="font-size:2.5rem;font-weight:900;margin-top:22px;margin-bottom:14px;line-height:1.15;color:var(--text-dark);">
-        Up and Running in Minutes
-      </h2>
-      <div class="divc"></div>
-    </div>
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:28px;" class="test-grid">
-
-      <div class="card reveal rv-d2" style="padding:40px 32px;text-align:center;">
-        <div style="width:56px;height:56px;border-radius:50%;background:var(--orange);color:#fff;font-size:1.4rem;font-weight:900;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;">1</div>
-        <h3 style="font-size:1.1rem;font-weight:900;margin-bottom:12px;color:var(--text-dark);">Take 3 Mini Mocks</h3>
-        <p style="font-size:.86rem;color:var(--text-mid);line-height:1.75;">STAR assesses your child across English and Maths to build a picture of their strengths and gaps.</p>
-      </div>
-
-      <div class="card reveal rv-d3" style="padding:40px 32px;text-align:center;">
-        <div style="width:56px;height:56px;border-radius:50%;background:var(--orange);color:#fff;font-size:1.4rem;font-weight:900;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;">2</div>
-        <h3 style="font-size:1.1rem;font-weight:900;margin-bottom:12px;color:var(--text-dark);">Get a Personalised Study Plan</h3>
-        <p style="font-size:.86rem;color:var(--text-mid);line-height:1.75;">Your child gets a tailored training plan built around their exact results — focused where it matters most.</p>
-      </div>
-
-      <div class="card reveal rv-d4" style="padding:40px 32px;text-align:center;">
-        <div style="width:56px;height:56px;border-radius:50%;background:var(--orange);color:#fff;font-size:1.4rem;font-weight:900;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;">3</div>
-        <h3 style="font-size:1.1rem;font-weight:900;margin-bottom:12px;color:var(--text-dark);">Practice Daily and Watch Scores Improve</h3>
-        <p style="font-size:.86rem;color:var(--text-mid);line-height:1.75;">Short daily sessions build confidence and momentum — STAR tracks progress and adjusts the plan as your child improves.</p>
-      </div>
-
-    </div>
-  </div>
-</section>
-
-<div class="section-line"></div>
-
-<!-- ══════════════════════════════════════════
-     TWO TRACKS
-══════════════════════════════════════════ -->
-<section id="tracks" style="padding:100px 32px;background:var(--cream);">
-  <div style="max-width:1140px;margin:0 auto;">
-
-    <div class="reveal rv-d1" style="text-align:center;margin-bottom:64px;">
-      <span class="pill">Two Tracks. One Goal.</span>
-      <h2 class="sec-title" style="font-size:2.5rem;font-weight:900;margin-top:22px;margin-bottom:14px;line-height:1.15;color:var(--text-dark);">
-        Built for Every Stage<br>of the Transfer Test Journey
-      </h2>
-      <div class="divc"></div>
-      <p style="color:var(--text-mid);font-size:.95rem;margin-top:22px;max-width:510px;margin-left:auto;margin-right:auto;line-height:1.75;">
-        Whether your child is laying foundations in P6 or executing under pressure in P7, STAR meets them exactly where they are.
-      </p>
-    </div>
-
-    <div class="tracks-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:28px;">
-
-      <!-- P6 BUILDER -->
-      <div class="tc6 reveal rv-d2" style="padding:46px 42px;position:relative;overflow:hidden;">
-        <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
-          <div style="width:48px;height:48px;border-radius:12px;background:#E3F2FD;border:2px solid rgba(28,176,246,.25);display:flex;align-items:center;justify-content:center;">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1CB0F6" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="13,2 3,14 12,14 11,22 21,10 12,10"/></svg>
-          </div>
-          <span class="pill-blue">P6 Foundation Track</span>
-        </div>
-
-        <h3 style="font-size:1.7rem;font-weight:900;margin-top:16px;margin-bottom:8px;line-height:1.2;color:var(--text-dark);">The Builder</h3>
-        <p style="font-size:.9rem;color:var(--text-mid);line-height:1.78;margin-bottom:30px;">
-          Confidence-first learning that closes knowledge gaps before the big year begins — with no overwhelm and no wasted sessions.
-        </p>
-
-        <div style="display:flex;align-items:flex-start;gap:13px;margin-bottom:20px;">
-          <div class="fi6">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#1CB0F6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg>
-          </div>
-          <div>
-            <div style="font-weight:800;font-size:.9rem;margin-bottom:4px;color:var(--text-dark);">10-Question Mini Mocks</div>
-            <div style="font-size:.82rem;color:var(--text-mid);line-height:1.68;">Perfect for building daily habits without the stress of a full paper. Short, focused, and habit-forming.</div>
-          </div>
-        </div>
-
-        <div style="display:flex;align-items:flex-start;gap:13px;margin-bottom:20px;">
-          <div class="fi6">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#1CB0F6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-          </div>
-          <div>
-            <div style="font-weight:800;font-size:.9rem;margin-bottom:4px;color:var(--text-dark);">Instant Visual Learning</div>
-            <div style="font-size:.82rem;color:var(--text-mid);line-height:1.68;">Every mistake is met with a <span style="color:#1CB0F6;font-style:italic;">"Detective Hint"</span> and a direct video tutorial link from CorbettMaths or BBC Bitesize.</div>
-          </div>
-        </div>
-
-        <div style="display:flex;align-items:flex-start;gap:13px;">
-          <div class="fi6">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#1CB0F6" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22,4 12,14.01 9,11.01"/></svg>
-          </div>
-          <div>
-            <div style="font-weight:800;font-size:.9rem;margin-bottom:4px;color:var(--text-dark);">Confidence First</div>
-            <div style="font-size:.82rem;color:var(--text-mid);line-height:1.68;">We focus on the core KS2 NI curriculum to ensure no gaps in knowledge before the big year begins.</div>
-          </div>
-        </div>
-
-        <div style="margin-top:34px;padding-top:22px;border-top:2px solid #E3F2FD;">
-          <div style="font-size:.7rem;color:var(--text-light);letter-spacing:.12em;text-transform:uppercase;margin-bottom:5px;">Ideal for</div>
-          <div style="font-size:.86rem;color:#0D8FCC;font-weight:800;">P6 students beginning their transfer test journey</div>
-        </div>
-      </div>
-
-      <!-- P7 EXECUTOR -->
-      <div class="tc7 reveal rv-d3" style="padding:46px 42px;position:relative;overflow:hidden;">
-        <div style="position:absolute;top:20px;right:20px;background:var(--orange);color:#fff;font-size:.63rem;font-weight:900;letter-spacing:.1em;text-transform:uppercase;padding:4px 12px;border-radius:99px;box-shadow:0 3px 0 var(--orange-dark);">Most Popular</div>
-
-        <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
-          <div style="width:48px;height:48px;border-radius:12px;background:#FFF3E8;border:2px solid rgba(255,109,0,.25);display:flex;align-items:center;justify-content:center;">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#F97316" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h2"/><path d="M18 9h2a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-2"/><path d="M4 2h16v7a8 8 0 0 1-16 0V2z"/><line x1="12" y1="17" x2="12" y2="22"/><line x1="8" y1="22" x2="16" y2="22"/></svg>
-          </div>
-          <span class="pill">P7 Exam Track</span>
-        </div>
-
-        <h3 style="font-size:1.7rem;font-weight:900;margin-top:16px;margin-bottom:8px;line-height:1.2;color:var(--text-dark);">The Executor</h3>
-        <p style="font-size:.9rem;color:var(--text-mid);line-height:1.78;margin-bottom:30px;">
-          Full-scale exam simulation that builds the stamina, composure, and analytical edge needed when the real day arrives.
-        </p>
-
-        <div style="display:flex;align-items:flex-start;gap:13px;margin-bottom:20px;">
-          <div class="fi7">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#F97316" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
-          </div>
-          <div>
-            <div style="font-weight:800;font-size:.9rem;margin-bottom:4px;color:var(--text-dark);">Full-Length Mocks</div>
-            <div style="font-size:.82rem;color:var(--text-mid);line-height:1.68;">Authentic 56-question practice papers that mirror the real Transfer Test format — no shortcuts, no guesswork.</div>
-          </div>
-        </div>
-
-        <div style="display:flex;align-items:flex-start;gap:13px;margin-bottom:20px;">
-          <div class="fi7">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#F97316" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="22,12 18,12 15,21 9,3 6,12 2,12"/></svg>
-          </div>
-          <div>
-            <div style="font-weight:800;font-size:.9rem;margin-bottom:4px;color:var(--text-dark);">Stamina Training</div>
-            <div style="font-size:.82rem;color:var(--text-mid);line-height:1.68;">Practice the transition from English Multiple Choice to Maths Free Response — exactly as it happens on exam day.</div>
-          </div>
-        </div>
-
-        <div style="display:flex;align-items:flex-start;gap:13px;">
-          <div class="fi7">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#F97316" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/><line x1="2" y1="20" x2="22" y2="20"/></svg>
-          </div>
-          <div>
-            <div style="font-weight:800;font-size:.9rem;margin-bottom:4px;color:var(--text-dark);">Advanced Analytics</div>
-            <div style="font-size:.82rem;color:var(--text-mid);line-height:1.68;">Receive a <span style="color:var(--orange);font-style:italic;">"Results Dashboard"</span> after every mock to identify exactly where to focus your final weeks of revision.</div>
-          </div>
-        </div>
-
-        <div style="margin-top:34px;padding-top:22px;border-top:2px solid #FFF3E8;">
-          <div style="font-size:.7rem;color:var(--text-light);letter-spacing:.12em;text-transform:uppercase;margin-bottom:5px;">Ideal for</div>
-          <div style="font-size:.86rem;color:var(--orange);font-weight:800;">P7 students preparing for the Transfer Test</div>
-        </div>
-      </div>
-
-    </div>
-  </div>
-</section>
-
-<div class="section-line"></div>
-
-<!-- ══════════════════════════════════════════
-     PARENT DASHBOARD
-══════════════════════════════════════════ -->
-<section id="dashboard" style="padding:100px 32px;background:#fff;">
-  <div style="max-width:1140px;margin:0 auto;">
-
-    <div class="reveal rv-d1" style="text-align:center;margin-bottom:64px;">
-      <span class="pill">For Parents</span>
-      <h2 class="sec-title" style="font-size:2.5rem;font-weight:900;margin-top:22px;margin-bottom:14px;line-height:1.15;color:var(--text-dark);">
-        The Parent Dashboard
-      </h2>
-      <div class="divc"></div>
-      <p style="color:var(--text-mid);font-size:.95rem;margin-top:22px;max-width:540px;margin-left:auto;margin-right:auto;line-height:1.75;">
-        You shouldn't have to guess how your child is progressing. STAR gives you a clear, honest picture — at a glance, any time.
-      </p>
-    </div>
-
-    <div class="dash-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:26px;margin-bottom:26px;">
-
-      <!-- Star Skills panel -->
-      <div class="reveal rv-d2">
-        <div class="dash-panel" style="margin-bottom:20px;">
-          <div style="display:flex;align-items:center;gap:9px;margin-bottom:18px;">
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="#F97316"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
-            <span style="font-size:1.05rem;font-weight:900;color:var(--text-dark);">Star Skills</span>
-            <span style="font-size:.67rem;color:var(--text-light);margin-left:auto;letter-spacing:.1em;text-transform:uppercase;">Week 6</span>
-          </div>
-          <p style="font-size:.82rem;color:var(--text-mid);line-height:1.72;margin-bottom:20px;">
-            <span style="color:var(--orange);font-weight:800;">Star Skills</span> track the topics where your child is genuinely excelling — proven strengths ready to shine on exam day.
-          </p>
-
-          <div style="margin-bottom:13px;">
-            <div style="display:flex;justify-content:space-between;margin-bottom:5px;">
-              <span style="font-size:.8rem;color:var(--text-dark);">Data Handling</span>
-              <span style="font-size:.76rem;color:var(--orange);font-weight:800;">91%</span>
-            </div>
-            <div class="skill-bar-track"><div class="skill-bar-fill" style="--bar-w:91%;background:linear-gradient(90deg,var(--orange),var(--yellow));"></div></div>
-          </div>
-          <div style="margin-bottom:13px;">
-            <div style="display:flex;justify-content:space-between;margin-bottom:5px;">
-              <span style="font-size:.8rem;color:var(--text-dark);">Fractions &amp; Decimals</span>
-              <span style="font-size:.76rem;color:var(--orange);font-weight:800;">88%</span>
-            </div>
-            <div class="skill-bar-track"><div class="skill-bar-fill" style="--bar-w:88%;background:linear-gradient(90deg,var(--orange),var(--yellow));"></div></div>
-          </div>
-          <div style="margin-bottom:13px;">
-            <div style="display:flex;justify-content:space-between;margin-bottom:5px;">
-              <span style="font-size:.8rem;color:var(--text-dark);">Word Problems</span>
-              <span style="font-size:.76rem;color:var(--orange);font-weight:800;">82%</span>
-            </div>
-            <div class="skill-bar-track"><div class="skill-bar-fill" style="--bar-w:82%;background:linear-gradient(90deg,var(--orange),var(--yellow));"></div></div>
-          </div>
-          <div style="margin-bottom:13px;">
-            <div style="display:flex;justify-content:space-between;margin-bottom:5px;">
-              <span style="font-size:.8rem;color:var(--text-dark);">Algebra &amp; Patterns</span>
-              <span style="font-size:.76rem;color:var(--orange-light);font-weight:800;">74%</span>
-            </div>
-            <div class="skill-bar-track"><div class="skill-bar-fill" style="--bar-w:74%;background:linear-gradient(90deg,var(--orange-light),var(--orange));"></div></div>
-          </div>
-          <div>
-            <div style="display:flex;justify-content:space-between;margin-bottom:5px;">
-              <span style="font-size:.8rem;color:var(--text-dark);">Time &amp; Measurement</span>
-              <span style="font-size:.76rem;color:var(--orange-light);font-weight:800;">67%</span>
-            </div>
-            <div class="skill-bar-track"><div class="skill-bar-fill" style="--bar-w:67%;background:linear-gradient(90deg,var(--orange-light),var(--orange));"></div></div>
-          </div>
-
-          <div style="margin-top:16px;padding:11px 15px;background:var(--cream);border-radius:10px;border:2px solid var(--cream-border);">
-            <span style="font-size:.78rem;color:var(--text-mid);">Overall Star Rating: &nbsp;</span>
-            <span style="font-size:.84rem;font-weight:800;color:var(--orange);">4.2 / 5.0 ⭐</span>
-          </div>
-        </div>
-
-        <div class="dash-panel" style="display:flex;gap:13px;align-items:flex-start;">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:1px;"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-          <div>
-            <div style="font-weight:800;font-size:.88rem;margin-bottom:5px;color:var(--text-dark);">Full Visibility, Always</div>
-            <div style="font-size:.8rem;color:var(--text-mid);line-height:1.72;">STAR automatically compiles session data into a parent-facing summary. No jargon. No digging. Just the information you need to support your child.</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Focus Areas panel -->
-      <div class="reveal rv-d3">
-        <div class="dash-panel" style="margin-bottom:20px;">
-          <div style="display:flex;align-items:center;gap:9px;margin-bottom:18px;">
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
-            <span style="font-size:1.05rem;font-weight:900;color:var(--text-dark);">Focus Areas</span>
-            <span style="font-size:.67rem;color:var(--text-light);margin-left:auto;letter-spacing:.1em;text-transform:uppercase;">This Week</span>
-          </div>
-          <p style="font-size:.82rem;color:var(--text-mid);line-height:1.72;margin-bottom:20px;">
-            <span style="color:#C62828;font-weight:800;">Focus Areas</span> are the specific topics STAR has identified as needing attention. Prioritised by urgency so revision time is never wasted.
-          </p>
-
-          <div style="margin-bottom:16px;">
-            <div style="font-size:.68rem;color:var(--text-light);letter-spacing:.12em;text-transform:uppercase;margin-bottom:8px;">High Priority</div>
-            <span class="chip-high"><span class="dot" style="background:#C62828;"></span><span style="font-size:.75rem;color:#C62828;font-weight:800;">Long Division</span></span>
-            <span class="chip-high"><span class="dot" style="background:#C62828;"></span><span style="font-size:.75rem;color:#C62828;font-weight:800;">Percentage Problems</span></span>
-          </div>
-
-          <div style="margin-bottom:16px;">
-            <div style="font-size:.68rem;color:var(--text-light);letter-spacing:.12em;text-transform:uppercase;margin-bottom:8px;">Needs Attention</div>
-            <span class="chip-med"><span class="dot" style="background:var(--orange);"></span><span style="font-size:.75rem;color:var(--orange-dark);font-weight:800;">Area &amp; Perimeter</span></span>
-            <span class="chip-med"><span class="dot" style="background:var(--orange);"></span><span style="font-size:.75rem;color:var(--orange-dark);font-weight:800;">Ratio &amp; Proportion</span></span>
-            <span class="chip-med"><span class="dot" style="background:var(--orange);"></span><span style="font-size:.75rem;color:var(--orange-dark);font-weight:800;">Volume</span></span>
-          </div>
-
-          <div>
-            <div style="font-size:.68rem;color:var(--text-light);letter-spacing:.12em;text-transform:uppercase;margin-bottom:8px;">On Track</div>
-            <span class="chip-low"><span class="dot" style="background:#276749;"></span><span style="font-size:.75rem;color:#276749;font-weight:800;">Number Sequences</span></span>
-            <span class="chip-low"><span class="dot" style="background:#276749;"></span><span style="font-size:.75rem;color:#276749;font-weight:800;">Symmetry</span></span>
-          </div>
-        </div>
-
-        <div class="dash-panel" style="display:flex;gap:13px;align-items:flex-start;">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:1px;"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg>
-          <div>
-            <div style="font-weight:800;font-size:.88rem;margin-bottom:5px;color:var(--text-dark);">Adaptive Week by Week</div>
-            <div style="font-size:.8rem;color:var(--text-mid);line-height:1.72;">Focus Areas update automatically after every session. As your child improves, their priorities shift — ensuring every practice minute is targeted and purposeful.</div>
-          </div>
-        </div>
-      </div>
-
-    </div>
-
-    <!-- 3 supporting cards -->
-    <div class="supp-grid reveal rv-d4" style="display:grid;grid-template-columns:repeat(3,1fr);gap:18px;">
-      <div class="card" style="padding:24px 22px;">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:11px;"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/><line x1="2" y1="20" x2="22" y2="20"/></svg>
-        <div style="font-weight:800;font-size:.87rem;margin-bottom:7px;color:var(--text-dark);">Weekly Progress Reports</div>
-        <div style="font-size:.8rem;color:var(--text-mid);line-height:1.7;">A clean summary of sessions completed, questions attempted, and accuracy trends — delivered directly to you.</div>
-      </div>
-      <div class="card" style="padding:24px 22px;">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:11px;"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9,12 11,14 15,10" stroke-width="2"/></svg>
-        <div style="font-weight:800;font-size:.87rem;margin-bottom:7px;color:var(--text-dark);">Accuracy Tracking</div>
-        <div style="font-size:.8rem;color:var(--text-mid);line-height:1.7;">See exactly how your child's accuracy is trending topic by topic, so you always know if they're truly ready.</div>
-      </div>
-      <div class="card" style="padding:24px 22px;">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:11px;"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg>
-        <div style="font-weight:800;font-size:.87rem;margin-bottom:7px;color:var(--text-dark);">Session History</div>
-        <div style="font-size:.8rem;color:var(--text-mid);line-height:1.7;">A full log of every sprint and mock completed, with timestamps — so you can see effort, not just scores.</div>
-      </div>
-    </div>
-
-  </div>
-</section>
-
-<div class="section-line"></div>
-
-<!-- ══════════════════════════════════════════
-     ACCURACY MANDATE
-══════════════════════════════════════════ -->
-<section id="accuracy" style="padding:100px 32px;background:var(--cream);">
-  <div style="max-width:1000px;margin:0 auto;">
-
-    <div class="reveal rv-d1" style="text-align:center;margin-bottom:60px;">
-      <span class="pill">The Accuracy Mandate</span>
-      <h2 class="sec-title" style="font-size:2.5rem;font-weight:900;margin-top:22px;margin-bottom:16px;line-height:1.15;color:var(--text-dark);">
-        Ironclad Accuracy.<br><span style="color:var(--orange);">No Exceptions.</span>
-      </h2>
-      <div class="divc"></div>
-    </div>
-
-    <div class="acc-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:38px;align-items:start;">
-
-      <!-- Left: hero box -->
-      <div class="reveal rv-d2">
-        <div style="border:2px solid rgba(255,109,0,.25);border-radius:18px;padding:40px 36px;background:#fff;box-shadow:0 4px 16px rgba(255,109,0,.06);">
-          <div style="font-size:3.2rem;margin-bottom:16px;">🔐</div>
-          <h3 style="font-size:1.42rem;font-weight:900;margin-bottom:15px;color:var(--orange);line-height:1.25;">
-            We Solve Every Sum Before Your Child Sees It
-          </h3>
-          <p style="color:var(--text-mid);line-height:1.82;font-size:.9rem;">
-            Our AI solves every single maths problem and double-checks every grammar rule internally — before the question ever reaches the student. If the answer isn't provably correct, the question doesn't appear.
-          </p>
-        </div>
-      </div>
-
-      <!-- Right: checklist -->
-      <div class="reveal rv-d3">
-
-        <div style="display:flex;align-items:flex-start;gap:13px;padding:18px 0;border-bottom:2px solid var(--cream-border);">
-          <div style="width:30px;height:30px;border-radius:7px;flex-shrink:0;background:#FFF3E8;border:2px solid rgba(255,109,0,.25);display:flex;align-items:center;justify-content:center;margin-top:2px;">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20,6 9,17 4,12"/></svg>
-          </div>
-          <div>
-            <div style="font-weight:800;font-size:.9rem;margin-bottom:4px;color:var(--text-dark);">Zero-Error Logic</div>
-            <div style="font-size:.82rem;color:var(--text-mid);line-height:1.7;">Our AI solves every single maths problem and double-checks every grammar rule internally before the student ever sees it.</div>
-          </div>
-        </div>
-
-        <div style="display:flex;align-items:flex-start;gap:13px;padding:18px 0;border-bottom:2px solid var(--cream-border);">
-          <div style="width:30px;height:30px;border-radius:7px;flex-shrink:0;background:#FFF3E8;border:2px solid rgba(255,109,0,.25);display:flex;align-items:center;justify-content:center;margin-top:2px;">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20,6 9,17 4,12"/></svg>
-          </div>
-          <div>
-            <div style="font-weight:800;font-size:.9rem;margin-bottom:4px;color:var(--text-dark);">Human-Verified Standards</div>
-            <div style="font-size:.82rem;color:var(--text-mid);line-height:1.7;">Every question is original and generated specifically to meet the official Transfer Test specification — not recycled from generic question banks.</div>
-          </div>
-        </div>
-
-        <div style="display:flex;align-items:flex-start;gap:13px;padding:18px 0;border-bottom:2px solid var(--cream-border);">
-          <div style="width:30px;height:30px;border-radius:7px;flex-shrink:0;background:#FFF3E8;border:2px solid rgba(255,109,0,.25);display:flex;align-items:center;justify-content:center;margin-top:2px;">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20,6 9,17 4,12"/></svg>
-          </div>
-          <div>
-            <div style="font-weight:800;font-size:.9rem;margin-bottom:4px;color:var(--text-dark);">Explained, Not Just Marked</div>
-            <div style="font-size:.82rem;color:var(--text-mid);line-height:1.7;">Students see a clear step-by-step solution for every answer — right or wrong — so real learning happens every session.</div>
-          </div>
-        </div>
-
-        <div style="display:flex;align-items:flex-start;gap:13px;padding:18px 0;">
-          <div style="width:30px;height:30px;border-radius:7px;flex-shrink:0;background:#FFF3E8;border:2px solid rgba(255,109,0,.25);display:flex;align-items:center;justify-content:center;margin-top:2px;">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20,6 9,17 4,12"/></svg>
-          </div>
-          <div>
-            <div style="font-weight:800;font-size:.9rem;margin-bottom:4px;color:var(--text-dark);">Zero Tolerance Policy</div>
-            <div style="font-size:.82rem;color:var(--text-mid);line-height:1.7;">A wrong answer in a tutor app erodes trust. That's why our accuracy commitment is absolute, not aspirational.</div>
-          </div>
-        </div>
-
-      </div>
-    </div>
-  </div>
-</section>
-
-<div class="section-line"></div>
-
-<!-- ══════════════════════════════════════════
-     TESTIMONIALS
-══════════════════════════════════════════ -->
-<section style="padding:80px 32px;background:#fff;">
-  <div style="max-width:1140px;margin:0 auto;">
-    <div style="text-align:center;margin-bottom:46px;">
-      <span class="pill">What Parents Are Saying</span>
-    </div>
-    <div class="test-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px;">
-
-      <div class="card reveal rv-d1" style="padding:28px 24px;">
-        <div style="display:flex;gap:3px;margin-bottom:14px;">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="var(--orange)"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="var(--orange)"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="var(--orange)"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="var(--orange)"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="var(--orange)"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
-        </div>
-        <p style="font-size:.86rem;color:var(--text-mid);line-height:1.8;margin-bottom:20px;font-style:italic;">"My daughter looks forward to her STAR sessions now. The Detective Hints make mistakes feel like a puzzle, not a failure."</p>
-        <div style="font-weight:800;font-size:.86rem;color:var(--text-dark);">Sarah M.</div>
-        <div style="font-size:.74rem;color:var(--text-light);letter-spacing:.05em;">Belfast</div>
-      </div>
-
-      <div class="card reveal rv-d2" style="padding:28px 24px;">
-        <div style="display:flex;gap:3px;margin-bottom:14px;">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="var(--orange)"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="var(--orange)"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="var(--orange)"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="var(--orange)"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="var(--orange)"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
-        </div>
-        <p style="font-size:.86rem;color:var(--text-mid);line-height:1.8;margin-bottom:20px;font-style:italic;">"The Parent Dashboard is brilliant. I finally know exactly which topics to focus on, not just a vague sense that 'maths needs work'."</p>
-        <div style="font-weight:800;font-size:.86rem;color:var(--text-dark);">Declan O.</div>
-        <div style="font-size:.74rem;color:var(--text-light);letter-spacing:.05em;">Derry / Londonderry</div>
-      </div>
-
-      <div class="card reveal rv-d3" style="padding:28px 24px;">
-        <div style="display:flex;gap:3px;margin-bottom:14px;">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="var(--orange)"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="var(--orange)"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="var(--orange)"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="var(--orange)"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="var(--orange)"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
-        </div>
-        <p style="font-size:.86rem;color:var(--text-mid);line-height:1.8;margin-bottom:20px;font-style:italic;">"My son sat the real Transfer Test feeling properly prepared for the first time. The full-length mocks made all the difference to his stamina."</p>
-        <div style="font-weight:800;font-size:.86rem;color:var(--text-dark);">Claire B.</div>
-        <div style="font-size:.74rem;color:var(--text-light);letter-spacing:.05em;">Ballymena</div>
-      </div>
-
-    </div>
-  </div>
-</section>
-
-<!-- ══════════════════════════════════════════
-     PRICING
-══════════════════════════════════════════ -->
-<section style="padding:100px 32px;background:var(--cream);">
-  <div style="max-width:880px;margin:0 auto;">
-    <div class="reveal rv-d1" style="text-align:center;margin-bottom:56px;">
-      <span class="pill">Simple Pricing</span>
-      <h2 class="sec-title" style="font-size:2.5rem;font-weight:900;margin-top:22px;margin-bottom:14px;line-height:1.15;color:var(--text-dark);">
-        One Plan. Every Feature.
-      </h2>
-      <div class="divc"></div>
-      <p style="color:var(--text-mid);font-size:.95rem;margin-top:22px;max-width:480px;margin-left:auto;margin-right:auto;line-height:1.75;">
-        Start with a 7-day free trial — then just £15/month. Add more children at a reduced rate.
-      </p>
-    </div>
-
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;" class="tracks-grid">
-
-      <div class="card reveal rv-d2" style="padding:40px 36px;text-align:center;border:2px solid rgba(249,115,22,.3);">
-        <div style="font-size:.72rem;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--orange);margin-bottom:18px;">First Child</div>
-        <div style="font-size:3.5rem;font-weight:900;color:var(--text-dark);line-height:1;">£15</div>
-        <div style="font-size:.9rem;color:var(--text-mid);margin:8px 0 28px;">/month</div>
-        <div style="border-top:2px solid var(--cream-border);padding-top:24px;">
-          <div style="font-size:.86rem;color:var(--text-mid);line-height:2;">
-            ✅ Full access to all features<br>
-            ✅ Mini Mocks, Full Mocks, STAR Chat<br>
-            ✅ Parent dashboard + AI insights<br>
-            ✅ 10,000+ unique questions<br>
-            ✅ 7-day free trial included
-          </div>
-        </div>
-        <a href="signup.html" style="display:block;margin-top:28px;">
-          <button class="cta-btn" style="width:100%;padding:15px;border-radius:12px;font-size:.9rem;background:var(--orange);color:#fff;box-shadow:0 4px 0 var(--orange-dark);">Start Free Trial</button>
-        </a>
-        <div style="margin-top:10px;font-size:.73rem;color:var(--text-light);">7 days free · then £15/month · Cancel anytime</div>
-      </div>
-
-      <div class="card reveal rv-d3" style="padding:40px 36px;text-align:center;">
-        <div style="font-size:.72rem;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--text-mid);margin-bottom:18px;">Each Additional Child</div>
-        <div style="font-size:3.5rem;font-weight:900;color:var(--text-dark);line-height:1;">£10</div>
-        <div style="font-size:.9rem;color:var(--text-mid);margin:8px 0 28px;">/month per child</div>
-        <div style="border-top:2px solid var(--cream-border);padding-top:24px;">
-          <div style="font-size:.86rem;color:var(--text-mid);line-height:2;">
-            ✅ Same full access as first child<br>
-            ✅ Separate progress tracking<br>
-            ✅ Add via Parent Portal<br>
-            ✅ Billed together on one subscription<br>
-            ✅ P6 and P7 mixed families welcome
-          </div>
-        </div>
-        <a href="signup.html" style="display:block;margin-top:28px;">
-          <button class="cta-btn" style="width:100%;padding:15px;border-radius:12px;font-size:.9rem;background:#fff;color:var(--orange);border:2px solid rgba(249,115,22,.4);box-shadow:0 4px 0 rgba(0,0,0,0.06);">Add a Child</button>
-        </a>
-        <div style="margin-top:10px;font-size:.73rem;color:var(--text-light);">Managed from your parent dashboard</div>
-      </div>
-
-    </div>
-  </div>
-</section>
-
-<div class="section-line"></div>
-
-<!-- ══════════════════════════════════════════
-     FINAL CTA
-══════════════════════════════════════════ -->
-<section style="padding:120px 32px;position:relative;overflow:hidden;background:var(--orange);">
-  <div class="reveal rv-d1" style="max-width:640px;margin:0 auto;text-align:center;position:relative;">
-    <span style="display:inline-block;background:rgba(255,255,255,.2);border:2px solid rgba(255,255,255,.4);border-radius:999px;color:#fff;font-size:.72rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;padding:5px 16px;">Begin Today</span>
-    <h2 class="cta-title" style="font-size:2.8rem;font-weight:900;margin-top:26px;margin-bottom:22px;line-height:1.12;color:#fff;">
-      Give Your Child the<br>Best Possible Start.
-    </h2>
-    <p style="color:rgba(255,255,255,.85);font-size:1rem;line-height:1.8;margin-bottom:50px;">
-      Join families across Northern Ireland who have chosen a smarter, more confident path to transfer test success. Start your free trial today — no commitment required.
+    <p class="hero-social">
+      <span class="stars">★★★★★</span>Trusted by P6 &amp; P7 families across Northern Ireland
     </p>
-    <a href="signup.html"><button class="cta-btn" style="padding:20px 58px;border-radius:12px;font-size:1rem;background:#fff;color:var(--orange);box-shadow:0 5px 0 rgba(0,0,0,.15);">Start Free Trial</button></a>
-    <div style="margin-top:18px;font-size:.76rem;color:rgba(255,255,255,.6);letter-spacing:.05em;">First 7 days free · then £15/month · Cancel anytime</div>
-    <div style="display:flex;justify-content:center;gap:26px;margin-top:44px;flex-wrap:wrap;">
-      <div style="display:flex;align-items:center;gap:5px;font-size:.76rem;color:rgba(255,255,255,.75);">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.9)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20,6 9,17 4,12"/></svg> Transfer Test Aligned
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="hiw">
+  <div class="section-inner">
+    <p class="section-eyebrow">How It Works</p>
+    <h2 class="section-heading">Up and running in minutes</h2>
+    <div class="steps-grid">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-icon">🎯</div>
+        <div class="step-title">Take 3 Mini Mocks</div>
+        <p class="step-desc">STAR assesses your child's strengths and weak spots across every SEAG topic — no guesswork.</p>
       </div>
-      <div style="display:flex;align-items:center;gap:5px;font-size:.76rem;color:rgba(255,255,255,.75);">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.9)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20,6 9,17 4,12"/></svg> Parent Dashboard
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-icon">📊</div>
+        <div class="step-title">Get a Personalised Plan</div>
+        <p class="step-desc">STAR builds a targeted weekly schedule focused on the topics that will move the score most.</p>
       </div>
-      <div style="display:flex;align-items:center;gap:5px;font-size:.76rem;color:rgba(255,255,255,.75);">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.9)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20,6 9,17 4,12"/></svg> 100% Verified
-      </div>
-      <div style="display:flex;align-items:center;gap:5px;font-size:.76rem;color:rgba(255,255,255,.75);">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.9)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20,6 9,17 4,12"/></svg> Detective Hints
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-icon">📈</div>
+        <div class="step-title">Practice and Improve</div>
+        <p class="step-desc">Short focused sessions with instant feedback and AI marking. Watch scores climb week by week.</p>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ══════════════════════════════════════════
-     FOOTER
-══════════════════════════════════════════ -->
-<footer style="border-top:2px solid var(--cream-border);padding:36px 32px;background:var(--cream);">
-  <div style="max-width:1140px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;">
-    <div style="display:flex;align-items:center;gap:8px;">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="var(--orange)"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
-      <span style="font-size:1.05rem;font-weight:900;color:var(--orange);">STAR</span>
-      <span style="font-size:.64rem;color:var(--text-light);letter-spacing:.16em;text-transform:uppercase;font-weight:700;">AI Tutor</span>
-    </div>
-    <div style="font-size:.73rem;color:var(--text-light);letter-spacing:.04em;font-weight:700;">
-      © 2026 STAR AI Tutor · Northern Ireland · Transfer Test Preparation
-    </div>
-    <div style="display:flex;gap:20px;">
-      <a href="mailto:staraitutor.support@gmail.com" style="font-size:.74rem;color:var(--text-light);text-decoration:none;font-weight:700;transition:color .2s;" onmouseover="this.style.color='var(--orange)'" onmouseout="this.style.color='var(--text-light)'">Support</a>
-      <a href="privacy.html" style="font-size:.74rem;color:var(--text-light);text-decoration:none;font-weight:700;transition:color .2s;" onmouseover="this.style.color='var(--orange)'" onmouseout="this.style.color='var(--text-light)'">Privacy Policy</a>
-      <a href="terms.html" style="font-size:.74rem;color:var(--text-light);text-decoration:none;font-weight:700;transition:color .2s;" onmouseover="this.style.color='var(--orange)'" onmouseout="this.style.color='var(--text-light)'">Terms of Service</a>
-      <a href="https://www.facebook.com/share/1DGKfvGo9b/" target="_blank" rel="noopener" style="font-size:.74rem;color:var(--text-light);text-decoration:none;font-weight:700;transition:color .2s;" onmouseover="this.style.color='var(--orange)'" onmouseout="this.style.color='var(--text-light)'">Facebook</a>
-    </div>
+<!-- PRICING -->
+<section class="pricing">
+  <div class="section-inner" style="text-align:center;">
+    <p class="section-eyebrow">Pricing</p>
+    <h2 class="section-heading">Simple, family-friendly pricing</h2>
   </div>
+  <div class="pricing-card">
+    <div class="pricing-trial-badge">✅ 7-day free trial · No card required</div>
+    <div class="price-amount">£15</div>
+    <div class="price-period">/month</div>
+    <p class="price-label">First child</p>
+    <p class="price-extra">+ £10/month for each additional child</p>
+    <div class="pricing-divider"></div>
+    <ul class="pricing-features">
+      <li>Full mock exams matching the real SEAG format</li>
+      <li>Topic sprints and a personalised study plan</li>
+      <li>Guardian Supervised Test — printable practice papers</li>
+      <li>AI written-answer marking with instant feedback</li>
+      <li>Parent dashboard with per-child progress insights</li>
+      <li>10,000+ unique questions across all P6 and P7 topics</li>
+    </ul>
+    <a href="signup.html" class="pricing-cta">Start Your Free Trial →</a>
+    <p class="pricing-small">Cancel anytime. Billed monthly. No long-term commitment.</p>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-links">
+    <a href="mailto:staraitutor.support@gmail.com">Support</a>
+    <a href="privacy.html">Privacy Policy</a>
+    <a href="terms.html">Terms of Service</a>
+    <a href="https://www.facebook.com/share/1DGKfvGo9b/" target="_blank" rel="noopener noreferrer">Facebook</a>
+  </div>
+  <p class="footer-copy">
+    © 2026 STAR AI Tutor. All rights reserved.<br>
+    Not affiliated with the Education Authority, GL Assessment, or any examining body.
+  </p>
 </footer>
-
-<!-- ══════════════════════════════════════════
-     JAVASCRIPT — nav scroll + reveal + hero + skill bars
-══════════════════════════════════════════ -->
-<script>
-  // ── Auth: smart logo + nav CTA ──
-  (async () => {
-    try {
-      const sb = supabase.createClient(
-        'https://iutcgogmxhaqgaxkznxu.supabase.co',
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml1dGNnb2dteGhhcWdheGt6bnh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM3NjE4MTQsImV4cCI6MjA4OTMzNzgxNH0.o0plRQzH8ezfttG_sEeWu3F4IUtKnyzcXtPEGJ9xRF0'
-      );
-      const { data: { session } } = await sb.auth.getSession();
-      if (session) {
-        // Logged in — logo goes to dashboard, replace nav CTAs with Go to Dashboard
-        document.getElementById('logo-link').href = 'dashboard.html';
-        const loginBtn = document.getElementById('nav-login-btn');
-        if (loginBtn) loginBtn.style.display = 'none';
-        const ctaDesktop = document.getElementById('nav-cta-desktop');
-        if (ctaDesktop) ctaDesktop.innerHTML = '<a href="dashboard.html"><button class="cta-btn" style="padding:9px 22px;border-radius:8px;font-size:.78rem;">Go to Dashboard →</button></a>';
-      }
-    } catch (_) { /* no-op — keep defaults */ }
-  })();
-
-  // ── Nav scroll class ──
-  const nav = document.getElementById('main-nav');
-  window.addEventListener('scroll', () => {
-    nav.classList.toggle('scrolled', window.scrollY > 60);
-  });
-
-  // ── Hero fade-up on load ──
-  window.addEventListener('load', () => {
-    document.querySelectorAll('.hero-el').forEach(el => el.classList.add('go'));
-  });
-
-  // ── Scroll reveal ──
-  const revealEls = document.querySelectorAll('.reveal');
-  const revealObserver = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        entry.target.classList.add('visible');
-        revealObserver.unobserve(entry.target);
-      }
-    });
-  }, { threshold: 0.1 });
-  revealEls.forEach(el => revealObserver.observe(el));
-
-  // ── Skill bar animation ──
-  const bars = document.querySelectorAll('.skill-bar-fill');
-  const barObserver = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        const el = entry.target;
-        el.style.width = el.style.getPropertyValue('--bar-w');
-        barObserver.unobserve(el);
-      }
-    });
-  }, { threshold: 0.3 });
-  bars.forEach(b => barObserver.observe(b));
-
-  // ── Mobile nav toggle ──
-  function toggleMobileNav() {
-    const wrap = document.getElementById('nav-links-wrap');
-    const open = nav.classList.toggle('nav-mobile-open');
-    // Show/hide desktop CTA alongside mobile menu
-    document.getElementById('nav-cta-desktop').style.display = open ? 'none' : '';
-    document.getElementById('nav-cta-mobile').style.display  = open ? 'inline' : 'none';
-  }
-  // Close mobile nav when a link is clicked
-  document.querySelectorAll('.nav-links-group .nav-link').forEach(link => {
-    link.addEventListener('click', () => {
-      if (nav.classList.contains('nav-mobile-open')) {
-        nav.classList.remove('nav-mobile-open');
-        document.getElementById('nav-cta-desktop').style.display = '';
-        document.getElementById('nav-cta-mobile').style.display  = 'none';
-      }
-    });
-  });
-</script>
 
 </body>
 </html>
