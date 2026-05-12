@@ -581,11 +581,11 @@
 </div>
 
 <!-- TODAY -->
-<a class="today-card" href="study.html" id="today-card">
+<a class="today-card" href="study.html?mode=mini-mock" id="today-card">
   <div style="position:relative;z-index:1;">
     <div class="today-eyebrow">⭐ Today's Recommended Session</div>
-    <div class="today-title" id="today-title">Start a Quick Sprint</div>
-    <div class="today-sub" id="today-sub">10 fresh questions — the best way to build your skills today.</div>
+    <div class="today-title" id="today-title">Mini Mock</div>
+    <div class="today-sub" id="today-sub">Mixed questions across all topics — instant feedback on every answer.</div>
   </div>
   <div class="today-arrow">→</div>
 </a>
@@ -810,6 +810,24 @@ const DAY_MAPS = {
   7: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],
 };
 
+const TOPIC_FRIENDLY = {
+  punctuation:           'Punctuation',
+  grammar:               'Grammar',
+  spelling:              'Spelling',
+  vocabulary:            'Vocabulary',
+  comprehension_mc:      'Comprehension',
+  comprehension_written: 'Comprehension (Written)',
+  arithmetic:            'Arithmetic',
+  geometry:              'Geometry',
+  fractions_decimals:    'Fractions & Decimals',
+  measurement:           'Measurement',
+  statistics:            'Statistics',
+  algebra_sequences:     'Algebra & Sequences',
+};
+function friendlyTopicName(slug) {
+  return TOPIC_FRIENDLY[slug] || (slug || '').replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+}
+
 function getTodayRec(yearGroup, weeks, sessionsPerWeek, weekDone, weakTopic) {
   const target = Math.max(1, Math.min(7, sessionsPerWeek || 3));
   const done   = weekDone || 0;
@@ -817,7 +835,7 @@ function getTodayRec(yearGroup, weeks, sessionsPerWeek, weekDone, weakTopic) {
 
   // Week complete
   if (done >= target) {
-    return { title: 'Bonus Mini Mock — Keep the Streak!', sub: 'You\'ve hit your weekly target. A bonus sprint keeps the momentum going!', href: 'study.html?mode=mini-mock' };
+    return { title: 'Mini Mock', sub: 'Week target hit — bonus sprint to keep the momentum going!', href: 'study.html?mode=mini-mock' };
   }
 
   const rotation = buildRotation(yearGroup, weeks);
@@ -829,14 +847,13 @@ function getTodayRec(yearGroup, weeks, sessionsPerWeek, weekDone, weakTopic) {
   if (next.name === 'Topic Sprint') {
     if (weakTopic) {
       href = `study.html?topic=${encodeURIComponent(weakTopic)}&mode=topic`;
-      sub  = `Focus on ${weakTopic} — your weakest area. Session ${done + 1} of ${target} this week.`;
+      sub  = `Focus on ${friendlyTopicName(weakTopic)} — your weakest area. Session ${done + 1} of ${target} this week.`;
     } else {
-      sub = `Session ${done + 1} of ${target} — focus on your weakest topic for the fastest improvement.`;
+      sub = `Session ${done + 1} of ${target} — pick a topic and focus on your weakest area.`;
     }
   } else if (next.name === 'Mini Mock') {
-    sub = weakTopic
-      ? `${qCount} mixed questions — your weakest area (${weakTopic}) will come up. Session ${done + 1} of ${target}.`
-      : `${qCount} mixed questions, instant feedback. Session ${done + 1} of ${target} this week — let's go!`;
+    // Mini Mock is always mixed — never describe it as topic-focused
+    sub = `${qCount} mixed questions, instant feedback. Session ${done + 1} of ${target} this week — let's go!`;
   } else if (next.name === 'Full Mock') {
     sub = `Session ${done + 1} of ${target} — 56 questions in full exam format. Give it your best shot!`;
   } else if (next.name === 'Guardian Supervised Test') {
