@@ -917,7 +917,7 @@ function buildRecommendations(skills) {
   const card = document.getElementById('recs-card');
   if (!section || !card) return;
 
-  const locked = window._paywallActive;
+  const locked = window._paywallActive || window._trialLocked;
   card.innerHTML = `
     <div class="recs-card-title">Your weakest topics right now</div>
     <div class="recs-card-sub">Practice these to boost your score</div>
@@ -1043,6 +1043,14 @@ function showBaselineToast() {
 }
 
 function applyTrialLock() {
+  window._trialLocked = true;
+
+  // Lock action pair buttons (Take a Mock, Study by Topic)
+  document.querySelectorAll('.ap-btn').forEach(btn => {
+    btn.href = 'pricing.html';
+  });
+
+  // Lock mode cards 2-5
   const lockIds = ['mode-sprint', 'mode-mock', 'mode-guardian', 'mode-chat'];
   lockIds.forEach(id => {
     const card = document.getElementById(id);
@@ -1326,12 +1334,16 @@ async function init() {
     if ((sessionsCount || 0) === 0) {
       document.getElementById('today-title').textContent = '🔍 Start Your Discovery Sprint';
       document.getElementById('today-sub').textContent   = '10 mixed questions across all topics — STAR will map your strengths and tell you exactly where to focus first.';
-      document.getElementById('today-card').href         = 'study.html';
+      document.getElementById('today-card').href         = 'study.html?mode=mini-mock';
     } else {
       const rec = getTodayRec(yearGroup, weeks, sessionsPerWeek, weekDone, weakTopic);
       document.getElementById('today-title').textContent = rec.title;
       document.getElementById('today-sub').textContent   = rec.sub;
       document.getElementById('today-card').href         = rec.href;
+    }
+    // During trial, today card must always go to mini-mock regardless of recommendation
+    if (window._trialLocked) {
+      document.getElementById('today-card').href = 'study.html?mode=mini-mock';
     }
   }
 

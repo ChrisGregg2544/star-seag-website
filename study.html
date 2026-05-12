@@ -1434,6 +1434,15 @@ function _showResultsInternal() {
 
     const pct = sessionTotal > 0 ? Math.round(sessionCorrect / sessionTotal * 100) : 0;
     const now = new Date().toISOString();
+    // Persist score to localStorage so the dashboard ring never goes blank due to
+    // a race between save-session completing and the dashboard API call.
+    if (!window._starAccess?.isGuest) {
+      localStorage.setItem('star_last_score', pct);
+      const toReviewLS = wrongQuestions
+        .map(q => ({ topic: q.topic, videoTitle: q.videoTopic||q.topic, videoUrl: q.videoUrl, videoSource: q.videoSource, questionText: q.text }))
+        .filter((item, idx, arr) => arr.findIndex(x => x.topic === item.topic) === idx);
+      localStorage.setItem('star_toReview', JSON.stringify(toReviewLS));
+    }
     // Only write star_sessions for guests — prevents double-syncing logged-in sessions
     if (window._starAccess?.isGuest) {
       const sessions = JSON.parse(localStorage.getItem('star_sessions') || '[]');
