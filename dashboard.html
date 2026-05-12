@@ -1080,7 +1080,7 @@ function applyTrialLock() {
   });
 }
 
-function applyBaselineLock(sessionsCount) {
+function applyBaselineLock(sessionsCount, yearGroup) {
   const completed = sessionsCount || 0;
   const remaining = Math.max(0, 3 - completed);
   console.log('[dashboard] applyBaselineLock — completed:', completed, 'remaining:', remaining);
@@ -1109,7 +1109,7 @@ function applyBaselineLock(sessionsCount) {
 
   // 2. Today card — single prominent CTA
   document.getElementById('today-title').textContent = '🎯 Complete Your Baseline Mini Mock';
-  document.getElementById('today-sub').textContent   = '10 mixed questions — STAR builds your personalised training plan the moment you finish.';
+  document.getElementById('today-sub').textContent   = (yearGroup === 'P7' ? '15' : '10') + ' mixed questions — STAR builds your personalised training plan the moment you finish.';
   todayCard.href = 'study.html?mode=mini-mock';
 
   // 3. Lock both action pair buttons (Take a Mock, Study by Topic)
@@ -1315,6 +1315,8 @@ async function init() {
   const hasData   = lastScore !== null && lastScore !== undefined && !isNaN(lastScore);
 
   // Personalise
+  const miniMockDesc = document.querySelector('#mode-mini .mode-desc');
+  if (miniMockDesc) miniMockDesc.textContent = (yearGroup === 'P7' ? '15' : '10') + ' mixed questions, fast';
   document.getElementById('nav-hi').textContent     = 'Hi, ' + name + '!';
   document.getElementById('hero-name').innerHTML    = name + '<span style="color:var(--orange)">!</span>';
   document.getElementById('track-label').textContent = yearGroup === 'P7' ? 'P7 Champion Track 🏆' : 'P6 Champion Track ⚡';
@@ -1346,7 +1348,7 @@ async function init() {
   if (!baselineNeeded) {
     if ((sessionsCount || 0) === 0) {
       document.getElementById('today-title').textContent = '🔍 Start Your Discovery Sprint';
-      document.getElementById('today-sub').textContent   = '10 mixed questions across all topics — STAR will map your strengths and tell you exactly where to focus first.';
+      document.getElementById('today-sub').textContent   = (yearGroup === 'P7' ? '15' : '10') + ' mixed questions across all topics — STAR will map your strengths and tell you exactly where to focus first.';
       document.getElementById('today-card').href         = 'study.html?mode=mini-mock';
     } else {
       const rec = getTodayRec(yearGroup, weeks, sessionsPerWeek, weekDone, weakTopic);
@@ -1389,7 +1391,7 @@ async function init() {
     );
     const effectiveCount = Math.max(sessionsCount || 0, _lsCount, _syncedCount);
     console.log('[dashboard] applying baseline lock — DB sessionsCount:', sessionsCount, '| LS count:', _lsCount, '| syncedCount:', _syncedCount, '| effectiveCount:', effectiveCount);
-    applyBaselineLock(effectiveCount);
+    applyBaselineLock(effectiveCount, yearGroup);
     buildSkillsMap(sessionsCount || 0, _preloadedQR);
     // Topics locked — replace with a prompt to complete baseline
     const grid  = document.getElementById('topic-grid');
