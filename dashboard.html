@@ -239,6 +239,14 @@
     .modes-grid .mode-card:nth-child(5) { border: 3px solid var(--yellow-dark); }
     .mode-card.soon { opacity: .55; cursor: default; }
     .mode-card.soon:hover { transform: none; box-shadow: 0 3px 0 rgba(0,0,0,0.08); }
+    .mode-card.trial-locked { opacity: .6; cursor: default; position: relative; }
+    .mode-card.trial-locked:hover { transform: none; box-shadow: 0 3px 0 rgba(0,0,0,0.08); }
+    .trial-lock-badge {
+      display: block; margin: 6px auto 0;
+      font-size: .65rem; font-weight: 800; letter-spacing: .04em; text-transform: uppercase;
+      color: var(--orange); background: #FFF7ED; border: 1px solid rgba(249,115,22,.35);
+      border-radius: 99px; padding: 3px 9px; width: fit-content;
+    }
     .mode-icon { font-size: 1.8rem; line-height: 1; }
     .mode-name { font-size: .7rem; font-weight: 900; letter-spacing: .04em; text-transform: uppercase; color: var(--text-dark); }
     .mode-desc { font-size: .62rem; font-weight: 600; color: var(--text-mid); line-height: 1.35; }
@@ -596,28 +604,27 @@
 <div class="modes-section">
   <div class="modes-title">Choose Your Session</div>
   <div class="modes-grid">
-    <a class="mode-card" href="study.html">
-      <div class="mode-icon">📚</div>
-      <div class="mode-name">Study Hall</div>
-      <div class="mode-desc">Mixed questions across all topics</div>
+    <a class="mode-card" href="study.html?mode=mini-mock">
+      <div class="mode-icon">⚡</div>
+      <div class="mode-name">Mini Mock</div>
+      <div class="mode-desc">10 mixed questions, fast</div>
     </a>
-    <a class="mode-card" href="study.html?mode=topic">
+    <a id="mode-sprint" class="mode-card" href="study.html?mode=topic">
       <div class="mode-icon">🎯</div>
       <div class="mode-name">Topic Sprint</div>
       <div class="mode-desc">Focus on one topic</div>
     </a>
-    <a class="mode-card" href="mock.html">
+    <a id="mode-mock" class="mode-card" href="mock.html">
       <div class="mode-icon">📝</div>
       <div class="mode-name">Full Mock</div>
       <div class="mode-desc">56 questions, exam format</div>
     </a>
-    <a id="real-life-card" class="mode-card soon" href="#" onclick="comingSoon();return false;">
+    <a id="mode-guardian" class="mode-card" href="real-life-test.html">
       <div class="mode-icon">🖨️</div>
-      <div class="mode-name">Real Life Test</div>
+      <div class="mode-name">Guardian Supervised Test</div>
       <div class="mode-desc">Print &amp; sit with a guardian</div>
-      <span class="mode-badge" id="real-life-badge">Coming Soon</span>
     </a>
-    <a class="mode-card" href="star-chat.html">
+    <a id="mode-chat" class="mode-card" href="star-chat.html">
       <div class="mode-icon">💬</div>
       <div class="mode-name">STAR Chat</div>
       <div class="mode-desc">Ask STAR anything</div>
@@ -1035,6 +1042,23 @@ function showBaselineToast() {
   setTimeout(() => toast.classList.remove('show'), 2800);
 }
 
+function applyTrialLock() {
+  const lockIds = ['mode-sprint', 'mode-mock', 'mode-guardian', 'mode-chat'];
+  lockIds.forEach(id => {
+    const card = document.getElementById(id);
+    if (!card) return;
+    card.classList.add('trial-locked');
+    card.href = 'pricing.html';
+    card.onclick = null;
+    if (!card.querySelector('.trial-lock-badge')) {
+      const badge = document.createElement('span');
+      badge.className = 'trial-lock-badge';
+      badge.textContent = '🔒 Subscribe';
+      card.appendChild(badge);
+    }
+  });
+}
+
 function applyBaselineLock(sessionsCount) {
   const completed = sessionsCount || 0;
   const remaining = Math.max(0, 3 - completed);
@@ -1249,36 +1273,11 @@ async function init() {
   }
 
   if (!subscribed && !baselineNeeded) {
-    const dbFreeUsed = parentProfile?.free_sprints_used ?? 0;
-    const lsFreeUsed = parseInt(localStorage.getItem('star_free_sprints_used') || '0', 10);
-    const freeUsed = Math.max(dbFreeUsed, lsFreeUsed);
-    const freeLeft = Math.max(0, 3 - freeUsed);
     const banner = document.getElementById('upgrade-banner');
     const msg    = document.getElementById('upgrade-banner-msg');
-
-    if (freeLeft > 0 && baselineComplete) {
-      msg.textContent = freeLeft === 1
-        ? 'You have 1 free session left — your 7-day free trial is ready when you are'
-        : 'You have ' + freeLeft + ' free sessions left — like what you see? Your 7-day free trial is waiting';
-    } else if (freeLeft > 0) {
-      msg.textContent = freeLeft === 1
-        ? 'You have 1 free session left to explore'
-        : 'You have ' + freeLeft + ' free sessions to try — no commitment needed';
-    } else {
-      // Paywall reached — lock all sprint/mock entry points
-      msg.textContent = 'Your 3 free sessions are up — start your 7-day free trial to keep going';
-      window._paywallActive = true;
-
-      const todayCard = document.getElementById('today-card');
-      if (todayCard) {
-        todayCard.href = 'pricing.html';
-        document.getElementById('today-title').textContent = '🔒 Subscribe to Continue';
-        document.getElementById('today-sub').textContent   = 'Your free sessions are used up. Start your 7-day free trial — then just £15/month, cancel anytime.';
-      }
-      document.querySelectorAll('.ap-btn').forEach(btn => { btn.href = 'pricing.html'; });
-    }
-
+    msg.textContent = 'You\'re on a free trial — Mini Mock is fully available. Subscribe to unlock Topic Sprints, Full Mocks, Guardian Supervised Tests and STAR Chat.';
     banner.classList.add('visible');
+    applyTrialLock();
   }
 
   const name            = profile?.name              || sessionStorage.getItem('star_name') || 'Student';
@@ -1299,11 +1298,6 @@ async function init() {
   document.getElementById('hero-name').innerHTML    = name + '<span style="color:var(--orange)">!</span>';
   document.getElementById('track-label').textContent = yearGroup === 'P7' ? 'P7 Champion Track 🏆' : 'P6 Champion Track ⚡';
 
-  // Real Life Test card: P7 journey only — P6 can access but badge signals it's not their default path
-  const rltBadge = document.getElementById('real-life-badge');
-  if (rltBadge && yearGroup === 'P6') {
-    rltBadge.textContent = 'P7 journey';
-  }
 
   // Countdown
   const weeks = weeksUntil(examYear);

@@ -1753,7 +1753,7 @@ function showBaselineReport() {
   const primaryBtn = document.getElementById('results-btn-primary');
   const secBtn     = document.getElementById('results-btn-secondary');
   if (primaryBtn) { primaryBtn.textContent = '🎯 Go to My Dashboard →'; primaryBtn.onclick = goToDashboard; }
-  if (secBtn)     { secBtn.textContent = '⚡ Try Another Mini Mock'; secBtn.onclick = restartSession; }
+  if (secBtn)     { secBtn.style.display = 'none'; }
 
   // Compute per-topic accuracy from the current sprint's in-memory data
   const topicMap = {};

@@ -284,25 +284,15 @@
     <div class="progress-dot active" id="dot-0"></div>
     <div class="progress-dot"        id="dot-1"></div>
     <div class="progress-dot"        id="dot-2"></div>
-    <div class="progress-dot"        id="dot-3"></div>
   </div>
 
   <div class="avatar-wrap">
     <div class="avatar">⭐</div>
   </div>
 
-  <!-- STEP 0: Parent name -->
+  <!-- STEP 0: Child details -->
   <div class="step active" id="step-0">
-    <div class="qlabel">Hi! I'm STAR.<br>What's your name?</div>
-    <div class="qsub">I'm here to help your child prepare for the Transfer Test.</div>
-    <input class="text-input" id="inp-parent-name" type="text" placeholder="Your first name…" autocomplete="off" maxlength="40"/>
-    <button class="nbtn" id="btn-0" disabled onclick="goNext(0)">Next →</button>
-    <div class="step-hint">Step 1 of 4</div>
-  </div>
-
-  <!-- STEP 1: Child details -->
-  <div class="step" id="step-1">
-    <div class="qlabel" id="lbl-1">Tell us about<br>your child</div>
+    <div class="qlabel">Tell us about<br>your child</div>
     <div class="qsub">We'll match the questions to the right level.</div>
 
     <input class="text-input" id="inp-child-name" type="text" placeholder="Child's first name…" autocomplete="off" maxlength="40"/>
@@ -318,13 +308,12 @@
       </button>
     </div>
 
-    <button class="nbtn" id="btn-1" disabled onclick="goNext(1)">Next →</button>
-    <button class="back-link" onclick="goBack(1)">← Back</button>
-    <div class="step-hint">Step 2 of 4</div>
+    <button class="nbtn" id="btn-0" disabled onclick="goNext(0)">Next →</button>
+    <div class="step-hint">Step 1 of 3</div>
   </div>
 
-  <!-- STEP 2: Exam awareness -->
-  <div class="step" id="step-2">
+  <!-- STEP 1: Exam awareness -->
+  <div class="step" id="step-1">
     <div class="qlabel">When is the Transfer Test?</div>
     <div class="qsub">Here are the exam dates — we'll count down together.</div>
 
@@ -348,15 +337,15 @@
       </div>
     </div>
 
-    <button class="nbtn" onclick="goNext(2)">Next →</button>
-    <button class="back-link" onclick="goBack(2)">← Back</button>
-    <div class="step-hint">Step 3 of 4</div>
+    <button class="nbtn" onclick="goNext(1)">Next →</button>
+    <button class="back-link" onclick="goBack(1)">← Back</button>
+    <div class="step-hint">Step 2 of 3</div>
   </div>
 
-  <!-- STEP 3: All set -->
-  <div class="step" id="step-3">
-    <div class="qlabel" id="lbl-3">You're all set! 🎉</div>
-    <div class="qsub" id="qsub-3">Let's finish your baseline assessment.</div>
+  <!-- STEP 2: All set -->
+  <div class="step" id="step-2">
+    <div class="qlabel" id="lbl-2">You're all set! 🎉</div>
+    <div class="qsub" id="qsub-2">Let's finish your baseline assessment.</div>
 
     <div class="summary-box">
       <div class="srow">
@@ -384,8 +373,8 @@
 
     <button class="nbtn big" id="btn-start" onclick="saveAndStart()">START MY FINAL MINI MOCK →</button>
     <div class="saving-msg" id="saving-msg"></div>
-    <button class="back-link" onclick="goBack(3)">← Change answers</button>
-    <div class="step-hint">Step 4 of 4</div>
+    <button class="back-link" onclick="goBack(2)">← Change answers</button>
+    <div class="step-hint">Step 3 of 3</div>
   </div>
 
 </div>
@@ -396,7 +385,7 @@
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml1dGNnb2dteGhhcWdheGt6bnh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM3NjE4MTQsImV4cCI6MjA4OTMzNzgxNH0.o0plRQzH8ezfttG_sEeWu3F4IUtKnyzcXtPEGJ9xRF0'
   );
 
-  const state = { parentName: '', childName: '', year: null };
+  const state = { childName: '', year: null };
 
   /* Auth guard + onboarding-already-done check */
   (async () => {
@@ -414,7 +403,7 @@
     if (guestYear) {
       state.year = guestYear;
       document.getElementById('yr-' + guestYear.toLowerCase()).classList.add('sel');
-      updateStep1Btn();
+      updateStep0Btn();
     }
   })();
 
@@ -432,45 +421,34 @@
       : (month >= 11 ? now.getFullYear() + 2 : now.getFullYear() + 1);
   }
 
-  /* ── Parent name input ── */
-  const pInp = document.getElementById('inp-parent-name');
-  pInp.addEventListener('input', () => {
-    document.getElementById('btn-0').disabled = pInp.value.trim().length < 1;
-  });
-  pInp.addEventListener('keydown', e => {
-    if (e.key === 'Enter' && !document.getElementById('btn-0').disabled) goNext(0);
-  });
-
   /* ── Child name + year group ── */
   const cInp = document.getElementById('inp-child-name');
-  cInp.addEventListener('input', updateStep1Btn);
+  cInp.addEventListener('input', updateStep0Btn);
+  cInp.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !document.getElementById('btn-0').disabled) goNext(0);
+  });
 
   function selYear(year) {
     state.year = year;
     document.getElementById('yr-p6').classList.toggle('sel', year === 'P6');
     document.getElementById('yr-p7').classList.toggle('sel', year === 'P7');
-    updateStep1Btn();
+    updateStep0Btn();
   }
 
-  function updateStep1Btn() {
+  function updateStep0Btn() {
     const nameOk = cInp.value.trim().length > 0;
     const yearOk = state.year !== null;
-    document.getElementById('btn-1').disabled = !(nameOk && yearOk);
+    document.getElementById('btn-0').disabled = !(nameOk && yearOk);
   }
 
   /* ── Navigation ── */
   function goNext(from) {
     if (from === 0) {
-      state.parentName = pInp.value.trim();
-      document.getElementById('lbl-1').innerHTML = `Tell us about<br>your child, ${state.parentName}`;
-    }
-    if (from === 1) {
       state.childName = cInp.value.trim();
-      /* Set weeks display on step 2 — year-group-aware */
       const weeks = weeksUntilExam();
       document.getElementById('weeks-display').textContent = `${weeks} weeks until Paper 1`;
     }
-    if (from === 2) {
+    if (from === 1) {
       buildSummary();
     }
 
@@ -493,7 +471,7 @@
   }
 
   function updateDots(active) {
-    for (let i = 0; i <= 3; i++) {
+    for (let i = 0; i <= 2; i++) {
       const d = document.getElementById('dot-' + i);
       d.classList.remove('active', 'done');
       if (i < active)  d.classList.add('done');
@@ -504,7 +482,7 @@
   /* ── Summary ── */
   function buildSummary() {
     const weeks = weeksUntilExam();
-    document.getElementById('lbl-3').textContent = `You're all set, ${state.childName}! 🎉`;
+    document.getElementById('lbl-2').textContent = `You're all set, ${state.childName}! 🎉`;
     document.getElementById('s-child').textContent = state.childName;
     document.getElementById('s-year').textContent  = state.year;
     document.getElementById('s-weeks-row').textContent =
