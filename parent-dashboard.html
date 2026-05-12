@@ -431,7 +431,7 @@ function buildInsightsHtml(insights, childId) {
     </div>`;
 }
 
-function buildCard(child, idx, sessions, progress, insightsHtml = '') {
+function buildCard(child, idx, sessions, progress, insightsHtml = '', subscribed = true) {
   const avatar     = AVATARS[idx % AVATARS.length];
   const yearLabel  = child.year_group === 'P7' ? 'P7' : 'P6';
   const lastActive = timeAgo(progress?.last_session_at ?? sessions[0]?.completed_at);
@@ -487,9 +487,13 @@ function buildCard(child, idx, sessions, progress, insightsHtml = '') {
         <div class="topics-tags">${topicsHtml}</div>
       </div>
       <div class="card-actions">
-        <button class="btn-action btn-action-primary" onclick="goToPage('${child.id}','study.html')">▶ Start Sprint</button>
+        <button class="btn-action ${subscribed ? 'btn-action-primary' : 'btn-action-secondary'}"
+          onclick="window.location.href='${subscribed ? `study.html` : `pricing.html`}'">
+          ${subscribed ? '▶ Start Sprint' : '🔒 Subscribe to Start'}</button>
         <button class="btn-action btn-action-secondary" onclick="goToPage('${child.id}','dashboard.html')">View Progress</button>
-        <button class="btn-action btn-action-secondary" onclick="window.location.href='real-life-test.html?childId=${child.id}&year=${child.year_group}'">📄 Print Test</button>
+        <button class="btn-action btn-action-secondary"
+          onclick="window.location.href='${subscribed ? `real-life-test.html?childId=${child.id}&year=${child.year_group}` : `pricing.html`}'">
+          ${subscribed ? '📄 Print Test' : '🔒 Print Test'}</button>
       </div>
       ${insightsHtml}
     </div>`;
@@ -500,6 +504,26 @@ window.addEventListener('DOMContentLoaded', async () => {
   if (!authData?.session?.user) { window.location.href = 'login.html'; return; }
   const parentId    = authData.session.user.id;
   const accessToken = authData.session.access_token;
+
+  // Subscription check — gates session buttons
+  let subscribed = false;
+  try {
+    const subRes = await fetch('/api/subscription?action=check', {
+      headers: { 'Authorization': `Bearer ${accessToken}` },
+    });
+    if (subRes.ok) {
+      const subData = await subRes.json();
+      subscribed = subData.subscribed === true;
+    }
+  } catch (e) {
+    console.error('[parent-dashboard] subscription check failed:', e.message);
+  }
+
+  // Lock header Print Test button for unsubscribed parents
+  if (!subscribed) {
+    const headerPrintBtn = document.querySelector('a[href="real-life-test.html"]');
+    if (headerPrintBtn) headerPrintBtn.href = 'pricing.html';
+  }
 
   // 1. Fetch own profile (child set up during onboarding lives here, not in a parent_id row)
   const { data: ownProfile } = await sb
@@ -581,7 +605,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     const childSessions = sessionsByChild[child.id] || [];
     const insights      = computeInsights(childSessions, qrByChild[child.id] || []);
     const insightsHtml  = buildInsightsHtml(insights, child.id);
-    return buildCard(child, i, childSessions, progressByChild[child.id] || null, insightsHtml);
+    return buildCard(child, i, childSessions, progressByChild[child.id] || null, insightsHtml, subscribed);
   }).join('');
   document.getElementById('content').replaceWith(grid);
 });

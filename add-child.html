@@ -286,7 +286,7 @@ const sb = createClient(
 let selectedYear = null;
 let accessToken  = null;
 
-// Auth check + load current child count for pricing transparency
+// Auth check + subscription check + pricing transparency
 (async () => {
   const { data } = await sb.auth.getSession();
   if (!data?.session?.user) { window.location.href = 'login.html'; return; }
@@ -294,25 +294,38 @@ let accessToken  = null;
 
   try {
     const userId = data.session.user.id;
-    const { data: children } = await sb
-      .from('profiles')
-      .select('id')
-      .eq('parent_id', userId);
 
-    const currentCount = Array.isArray(children) ? children.length : 0;
-    const currentPrice = 15 + Math.max(0, currentCount - 1) * 10;
-    const newPrice     = 15 + currentCount * 10;
+    // Run subscription check and additional-children count in parallel
+    const [subRes, { data: additionalChildren }] = await Promise.all([
+      fetch('/api/subscription?action=check', {
+        headers: { 'Authorization': `Bearer ${accessToken}` },
+      }),
+      sb.from('profiles').select('id').eq('parent_id', userId),
+    ]);
+
+    const subData       = subRes.ok ? await subRes.json() : {};
+    const isSubscribed  = subData.subscribed === true;
+    // Children added via add-child.html (parent_id rows)
+    const extraCount    = Array.isArray(additionalChildren) ? additionalChildren.length : 0;
+    // A subscribed parent always has at least one child from onboarding
+    const totalExisting = isSubscribed ? 1 + extraCount : extraCount;
+    // Price after adding this child
+    const newPrice      = 15 + totalExisting * 10;
 
     const infoEl = document.getElementById('pricing-info');
-    if (currentCount === 0) {
-      infoEl.innerHTML = `Adding your first child will set your subscription to <strong>£15/month</strong>.`;
+    if (!isSubscribed) {
+      // No subscription yet — this is their first child setup
+      infoEl.innerHTML = `Adding your first child will set your subscription to <strong>£15/month</strong> after your 7-day free trial.`;
+    } else if (totalExisting === 1) {
+      // Subscribed for primary child only, adding second
+      infoEl.innerHTML = `Adding another child will add <strong>£10/month</strong> to your subscription, bringing your total to <strong>£${newPrice}/month</strong>.`;
     } else {
-      const childWord = currentCount === 1 ? 'child' : 'children';
+      // Two or more existing children
+      const currentPrice = 15 + (totalExisting - 1) * 10;
       infoEl.innerHTML =
-        `You currently have <strong>${currentCount} ${childWord}</strong> on your subscription ` +
-        `(<strong>£${currentPrice}/month</strong>). ` +
-        `Adding another child will update your subscription to ` +
-        `<strong>£${newPrice}/month</strong> from your next billing cycle.`;
+        `You currently have <strong>${totalExisting} children</strong> on your subscription ` +
+        `(<strong>£${currentPrice}/month</strong>). Adding another child will update your subscription to ` +
+        `<strong>£${newPrice}/month</strong>.`;
     }
     infoEl.style.display = 'block';
   } catch (err) {
