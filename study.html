@@ -920,7 +920,8 @@ async function fetchBatch() {
   const filtered = rawData.filter(q => !usedIds.has(q.id));
   if (filtered.length === 0) return [];
 
-  const questions = shuffle(filtered).slice(0, BATCH_SIZE);
+  const questionsNeeded = MAX_QUESTIONS - sessionTotal;
+  const questions = shuffle(filtered).slice(0, Math.min(BATCH_SIZE, questionsNeeded));
   questions.forEach(q => usedIds.add(q.id));
   return questions.map(normalizeDBQuestion);
 }
@@ -1458,6 +1459,10 @@ function toggleHint() {
    NEXT QUESTION
 ════════════════════════════════ */
 async function nextQuestion() {
+  if (sessionTotal >= MAX_QUESTIONS) {
+    showExhausted();
+    return;
+  }
   if (currentQ < QUESTIONS.length - 1) {
     currentQ++;
     const card = document.getElementById('question-card');
