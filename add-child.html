@@ -38,6 +38,8 @@
       color: var(--text-dark);
       display: flex;
       flex-direction: column;
+      opacity: 0;
+      transition: opacity 0.15s;
     }
 
     /* ── Nav ── */
@@ -331,6 +333,7 @@ let accessToken  = null;
   } catch (err) {
     console.warn('[add-child] pricing info failed:', err.message);
   }
+  document.body.style.opacity = '1';
 })();
 
 // Enable submit button only when both name and year are provided

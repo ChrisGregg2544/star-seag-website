@@ -35,6 +35,8 @@
       justify-content: center;
       min-height: 100vh;
       padding: 24px 16px;
+      opacity: 0;
+      transition: opacity 0.15s;
     }
 
     .card {
@@ -395,6 +397,8 @@
       const { data: p } = await sb.from('profiles').select('onboarded').eq('id', data.session.user.id).single();
       if (p?.onboarded) { window.location.href = 'dashboard.html'; return; }
     } catch(_) {}
+
+    document.body.style.opacity = '1';
 
     /* Pre-fill child details from localStorage if guest data exists */
     const guestName = localStorage.getItem('star_guest_name');

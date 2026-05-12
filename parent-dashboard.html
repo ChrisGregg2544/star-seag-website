@@ -37,6 +37,8 @@
       font-family: 'Nunito', sans-serif;
       font-weight: 600;
       color: var(--text-dark);
+      opacity: 0;
+      transition: opacity 0.15s;
     }
 
     /* ── Nav ── */
@@ -542,6 +544,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   if (childErr) {
     document.getElementById('content').textContent = 'Error loading children. Please refresh.';
     console.error('[parent-dashboard] children error:', childErr.message);
+    document.body.style.opacity = '1';
     return;
   }
 
@@ -566,6 +569,7 @@ window.addEventListener('DOMContentLoaded', async () => {
         <a class="btn-add-child" href="add-child.html">+ Add a Child</a>
       </div>`;
     document.getElementById('content').className = '';
+    document.body.style.opacity = '1';
     return;
   }
 
@@ -608,6 +612,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     return buildCard(child, i, childSessions, progressByChild[child.id] || null, insightsHtml, subscribed);
   }).join('');
   document.getElementById('content').replaceWith(grid);
+  document.body.style.opacity = '1';
 });
 </script>
 </body>
