@@ -241,6 +241,22 @@
     .complete-screen { display: none; }
     .results-panel { display: none; margin-top: 24px; background: var(--card-bg); border-radius: var(--radius-card); border: 2px solid var(--card-border); box-shadow: 0 4px 0 rgba(0,0,0,0.08); padding: 36px 32px 32px; animation: cardIn .45s cubic-bezier(.22,1,.36,1) forwards; }
     .results-panel.visible { display: block; }
+
+    /* ── REVIEW SCREEN ── */
+    .review-screen { margin-top: 24px; background: var(--card-bg); border-radius: var(--radius-card); border: 2px solid var(--card-border); box-shadow: 0 4px 0 rgba(0,0,0,0.08); padding: 28px 28px 24px; animation: cardIn .45s cubic-bezier(.22,1,.36,1) forwards; }
+    .rv-header { text-align: center; margin-bottom: 20px; }
+    .rv-title { font-size: 1.25rem; font-weight: 900; color: var(--text-dark); }
+    .rv-sub { font-size: .82rem; color: var(--text-mid); margin-top: 4px; }
+    .rv-group { margin-bottom: 18px; }
+    .rv-group-header { font-size: .72rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--text-mid); padding: 6px 0 6px; border-bottom: 2px solid var(--cream-border); margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+    .rv-count { font-size: .68rem; background: rgba(239,68,68,.1); color: #C53030; border-radius: 99px; padding: 2px 8px; font-weight: 800; letter-spacing: 0; text-transform: none; }
+    .rv-item { background: var(--cream); border-radius: 10px; padding: 10px 12px; margin-bottom: 7px; }
+    .rv-q { font-size: .84rem; color: var(--text-dark); margin-bottom: 6px; line-height: 1.45; }
+    .rv-answers { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 4px; }
+    .rv-chip { font-size: .74rem; font-weight: 700; padding: 3px 8px; border-radius: 6px; }
+    .rv-wrong { background: rgba(239,68,68,.1); color: #C53030; }
+    .rv-correct { background: rgba(88,204,2,.12); color: #2F7A00; }
+    .rv-expl { font-size: .78rem; color: var(--text-mid); line-height: 1.5; margin-top: 5px; font-weight: 400; }
     .results-header { text-align: center; margin-bottom: 28px; }
     .results-emoji { font-size: 3rem; margin-bottom: 10px; display: block; }
     .results-title { font-size: 1.75rem; font-weight: 900; color: var(--text-dark); margin-bottom: 6px; }
@@ -535,6 +551,17 @@
   </div>
 </div>
 
+<div class="review-screen" id="review-screen" style="display:none;">
+  <div class="rv-header">
+    <div class="rv-title" id="review-title">Review</div>
+    <div class="rv-sub">Read through each correction, then tap See Results.</div>
+  </div>
+  <div id="review-body"></div>
+  <div class="results-actions">
+    <button class="btn-complete-primary" id="review-done-btn">See Results →</button>
+  </div>
+</div>
+
 </div><!-- /study-wrap -->
 
 <footer class="star-footer">
@@ -590,6 +617,7 @@ let currentUserId = null;
 let userYear         = 'P6';
 let MAX_QUESTIONS    = 10;     // session cap — set per session in startStudy()
 let selectedTopic    = null;   // DB topic slug
+let allWrongAnswers  = [];     // accumulates wrong answers across all batches for review screen
 let usedIds          = new Set();
 let sessionShownIds  = new Set(); // dedup at display time within one session
 let correctCount     = 0;      // cumulative correct for difficulty unlock
@@ -927,6 +955,7 @@ async function startStudy(topic) {
   QUESTIONS        = [];
   answers          = [];
   userAnswers      = [];
+  allWrongAnswers  = [];
   score            = { correct: 0, wrong: 0 };
   nextBatchPromise = null;
   sprintCount      = 0;
@@ -936,6 +965,7 @@ async function startStudy(topic) {
 
   document.getElementById('results-panel').classList.remove('visible');
   document.getElementById('complete-screen').classList.remove('visible');
+  document.getElementById('review-screen').style.display = 'none';
   document.getElementById('progress-section').style.display = '';
   document.getElementById('question-card').style.display = '';
 
@@ -965,6 +995,61 @@ async function startStudy(topic) {
     console.error('[study] startStudy failed:', err.message);
     showErrorState(err.message || 'Could not load questions — please try again.');
   }
+}
+
+/* ════════════════════════════════
+   REVIEW SCREEN
+   Shows wrong answers grouped by topic before the results panel.
+   Perfect scores skip straight to results.
+════════════════════════════════ */
+function buildAndShowReviewScreen() {
+  if (allWrongAnswers.length === 0) {
+    document.getElementById('results-panel').classList.add('visible');
+    return;
+  }
+
+  const FRIENDLY = {
+    punctuation:'Punctuation', grammar:'Grammar', spelling:'Spelling',
+    vocabulary:'Vocabulary', comprehension_mc:'Comprehension', comprehension_written:'Comprehension (Written)',
+    arithmetic:'Arithmetic', geometry:'Geometry', fractions_decimals:'Fractions & Decimals',
+    measurement:'Measurement', statistics:'Statistics', algebra_sequences:'Algebra & Sequences',
+  };
+  const ENG_TOPICS = new Set(['punctuation','grammar','spelling','vocabulary','comprehension_mc','comprehension_written']);
+  const fname = t => FRIENDLY[t] || (t||'').replace(/_/g,' ').replace(/\b\w/g, c => c.toUpperCase());
+
+  // Group by topic (preserving insertion order = question order)
+  const byTopic = {};
+  allWrongAnswers.forEach(item => {
+    const t = item.q.topic || 'other';
+    if (!byTopic[t]) byTopic[t] = [];
+    byTopic[t].push(item);
+  });
+
+  let html = '';
+  Object.entries(byTopic).forEach(([topic, items]) => {
+    const icon = ENG_TOPICS.has(topic) ? '📖' : '📐';
+    html += `<div class="rv-group">`;
+    html += `<div class="rv-group-header">${icon} ${fname(topic)} <span class="rv-count">${items.length} wrong</span></div>`;
+    items.forEach(({ q, correctDisplay, studentAns }) => {
+      const qText = (q.text || '').length > 130 ? q.text.slice(0, 127) + '…' : (q.text || '');
+      const expl  = (q.explanation || '').length > 180 ? q.explanation.slice(0, 177) + '…' : (q.explanation || '');
+      html += `<div class="rv-item">`;
+      html += `<div class="rv-q">${qText}</div>`;
+      html += `<div class="rv-answers"><span class="rv-chip rv-wrong">✗ ${studentAns}</span><span class="rv-chip rv-correct">✓ ${correctDisplay}</span></div>`;
+      if (expl) html += `<div class="rv-expl">${expl}</div>`;
+      html += `</div>`;
+    });
+    html += `</div>`;
+  });
+
+  const n = allWrongAnswers.length;
+  document.getElementById('review-title').textContent = n === 1 ? '1 question to review' : `${n} questions to review`;
+  document.getElementById('review-body').innerHTML    = html;
+  document.getElementById('review-screen').style.display = 'block';
+  document.getElementById('review-done-btn').onclick = () => {
+    document.getElementById('review-screen').style.display = 'none';
+    document.getElementById('results-panel').classList.add('visible');
+  };
 }
 
 /* ════════════════════════════════
@@ -1008,8 +1093,7 @@ function showExhausted() {
   document.getElementById('missed-section').innerHTML = '';
   document.getElementById('upgrade-banner').style.display = 'none';
 
-  document.getElementById('results-panel').classList.add('visible');
-
+  buildAndShowReviewScreen();
   _showResultsInternal();
 }
 
@@ -1283,7 +1367,20 @@ async function submitAnswer() {
   // Update state
   answers[currentQ] = isCorrect ? 'correct' : 'wrong';
   if (isCorrect) { score.correct++; correctCount++; sessionCorrect++; }
-  else             score.wrong++;
+  else {
+    score.wrong++;
+    // Resolve human-readable correct answer for review screen
+    let correctDisplay = q.answer;
+    if (q.options) {
+      if (q.answer === 'N') {
+        correctDisplay = 'No mistake';
+      } else {
+        const idx = ['A','B','C','D','E'].indexOf(q.answer);
+        if (idx >= 0 && q.options[idx]) correctDisplay = q.options[idx].replace(/^[A-EN]\.\s*/i, '');
+      }
+    }
+    allWrongAnswers.push({ q, correctDisplay, studentAns: userAnswers[currentQ] || '(no answer)' });
+  }
   sessionTotal++;
 
   // Show feedback (always in study mode)
@@ -1696,6 +1793,7 @@ function saveSessionToSupabase(missedQs) {
 async function restartSession() {
   document.getElementById('results-panel').classList.remove('visible');
   document.getElementById('complete-screen').classList.remove('visible');
+  document.getElementById('review-screen').style.display = 'none';
   const allowed = await checkAccess();
   if (!allowed) return;
   const mode = new URLSearchParams(window.location.search).get('mode');
