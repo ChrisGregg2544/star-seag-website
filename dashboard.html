@@ -237,6 +237,11 @@
     .modes-grid .mode-card:nth-child(3) { border: 3px solid var(--green); }
     .modes-grid .mode-card:nth-child(4) { border: 3px solid #CE82FF; }
     .modes-grid .mode-card:nth-child(5) { border: 3px solid var(--yellow-dark); }
+    /* Disable all session entry points until subscription state is known */
+    body:not(.dash-ready) .today-card,
+    body:not(.dash-ready) .ap-btn,
+    body:not(.dash-ready) .mode-card { pointer-events: none; }
+
     .mode-card.soon { opacity: .55; cursor: default; }
     .mode-card.soon:hover { transform: none; box-shadow: 0 3px 0 rgba(0,0,0,0.08); }
     .mode-card.trial-locked { opacity: .6; cursor: default; position: relative; }
@@ -604,7 +609,7 @@
 <div class="modes-section">
   <div class="modes-title">Choose Your Session</div>
   <div class="modes-grid">
-    <a class="mode-card" href="study.html?mode=mini-mock">
+    <a id="mode-mini" class="mode-card" href="study.html?mode=mini-mock">
       <div class="mode-icon">⚡</div>
       <div class="mode-name">Mini Mock</div>
       <div class="mode-desc">10 mixed questions, fast</div>
@@ -1050,8 +1055,8 @@ function applyTrialLock() {
     btn.href = 'pricing.html';
   });
 
-  // Lock mode cards 2-5
-  const lockIds = ['mode-sprint', 'mode-mock', 'mode-guardian', 'mode-chat'];
+  // Lock ALL mode cards including Mini Mock — no sessions available before subscribing
+  const lockIds = ['mode-mini', 'mode-sprint', 'mode-mock', 'mode-guardian', 'mode-chat'];
   lockIds.forEach(id => {
     const card = document.getElementById(id);
     if (!card) return;
@@ -1283,7 +1288,7 @@ async function init() {
   if (!subscribed && !baselineNeeded) {
     const banner = document.getElementById('upgrade-banner');
     const msg    = document.getElementById('upgrade-banner-msg');
-    msg.textContent = 'You\'re on a free trial — Mini Mock is fully available. Subscribe to unlock Topic Sprints, Full Mocks, Guardian Supervised Tests and STAR Chat.';
+    msg.textContent = 'Your baseline is complete — start your 7-day free trial to unlock all sessions.';
     banner.classList.add('visible');
     applyTrialLock();
   }
@@ -1341,9 +1346,11 @@ async function init() {
       document.getElementById('today-sub').textContent   = rec.sub;
       document.getElementById('today-card').href         = rec.href;
     }
-    // During trial, today card must always go to mini-mock regardless of recommendation
+    // Post-baseline paywall — replace today card with subscription CTA
     if (window._trialLocked) {
-      document.getElementById('today-card').href = 'study.html?mode=mini-mock';
+      document.getElementById('today-title').textContent = '🔓 Start Your 7-Day Free Trial';
+      document.getElementById('today-sub').textContent   = 'Your baseline is complete — subscribe to unlock all sessions. 7 days free, then £15/month. Cancel anytime.';
+      document.getElementById('today-card').href         = 'pricing.html';
     }
   }
 
@@ -1386,6 +1393,9 @@ async function init() {
     buildSkillsMap(sessionsCount || 0, _preloadedQR, baselineComplete);
     buildTopics(toReview, hasData);
   }
+
+  // Unlock all session entry points now that subscription state is fully resolved
+  document.body.classList.add('dash-ready');
 }
 
 function dismissBaselineReport() {
