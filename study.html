@@ -618,6 +618,7 @@ let userYear         = 'P6';
 let MAX_QUESTIONS    = 10;     // session cap — set per session in startStudy()
 let selectedTopic    = null;   // DB topic slug
 let allWrongAnswers  = [];     // accumulates wrong answers across all batches for review screen
+let globalAnswers    = [];     // correct/wrong per global question index across all batches
 let usedIds          = new Set();
 let sessionShownIds  = new Set(); // dedup at display time within one session
 let correctCount     = 0;      // cumulative correct for difficulty unlock
@@ -943,7 +944,7 @@ function selectTopic(topic) {
    START STUDY SESSION
 ════════════════════════════════ */
 async function startStudy(topic) {
-  MAX_QUESTIONS    = (topic === 'mixed' && userYear === 'P7') ? 15 : 10;
+  MAX_QUESTIONS    = userYear === 'P7' ? 15 : 10;
   selectedTopic    = topic;
   usedIds          = new Set();
   sessionShownIds  = new Set();
@@ -956,6 +957,7 @@ async function startStudy(topic) {
   answers          = [];
   userAnswers      = [];
   allWrongAnswers  = [];
+  globalAnswers    = [];
   score            = { correct: 0, wrong: 0 };
   nextBatchPromise = null;
   sprintCount      = 0;
@@ -1149,13 +1151,23 @@ async function init() {
 function buildProgressPips() {
   const container = document.getElementById('progress-dots');
   container.innerHTML = '';
-  const show = Math.min(QUESTIONS.length, 15);
-  for (let i = 0; i < show; i++) {
+  for (let i = 0; i < MAX_QUESTIONS; i++) {
     const pip = document.createElement('div');
-    pip.className = 'progress-pip' + (i === 0 ? ' active' : '');
+    pip.className = 'progress-pip';
     pip.id = 'pip-' + i;
     container.appendChild(pip);
   }
+  // Restore completed-question states when a new batch loads mid-session
+  for (let i = 0; i < batchOffset; i++) {
+    const pip = document.getElementById('pip-' + i);
+    if (!pip) continue;
+    if      (globalAnswers[i] === 'correct') pip.classList.add('correct');
+    else if (globalAnswers[i] === 'wrong')   pip.classList.add('wrong');
+    else                                     pip.classList.add('done');
+  }
+  // Mark first question of new batch as active
+  const first = document.getElementById('pip-' + batchOffset);
+  if (first) first.classList.add('active');
 }
 
 /* ════════════════════════════════
@@ -1174,19 +1186,20 @@ function loadQuestion(idx) {
   }
   if (q) sessionShownIds.add(q.id);
 
-  // Progress bar within current batch
-  document.getElementById('q-current').textContent = batchOffset + idx + 1;
-  document.getElementById('q-total').textContent   = batchOffset + QUESTIONS.length;
-  document.getElementById('progress-fill').style.width = ((idx + 1) / QUESTIONS.length * 100) + '%';
+  // Progress bar — uses global position across all batches
+  const globalIdx = batchOffset + idx;
+  document.getElementById('q-current').textContent    = globalIdx + 1;
+  document.getElementById('q-total').textContent      = MAX_QUESTIONS;
+  document.getElementById('progress-fill').style.width = ((globalIdx + 1) / MAX_QUESTIONS * 100) + '%';
 
-  for (let i = 0; i < Math.min(QUESTIONS.length, 15); i++) {
-    const pip = document.getElementById('pip-' + i);
+  for (let g = 0; g < MAX_QUESTIONS; g++) {
+    const pip = document.getElementById('pip-' + g);
     if (!pip) continue;
     pip.className = 'progress-pip';
-    if      (answers[i] === 'correct') pip.classList.add('correct');
-    else if (answers[i] === 'wrong')   pip.classList.add('wrong');
-    else if (i < idx)                  pip.classList.add('done');
-    else if (i === idx)                pip.classList.add('active');
+    if      (globalAnswers[g] === 'correct') pip.classList.add('correct');
+    else if (globalAnswers[g] === 'wrong')   pip.classList.add('wrong');
+    else if (g < globalIdx)                  pip.classList.add('done');
+    else if (g === globalIdx)                pip.classList.add('active');
   }
 
   const badge = document.getElementById('card-type-badge');
@@ -1390,7 +1403,8 @@ async function submitAnswer() {
   const vl = document.getElementById('video-link');
   if (!isCorrect) vl.classList.add('tutorial-glow'); else vl.classList.remove('tutorial-glow');
 
-  const pip = document.getElementById('pip-' + currentQ);
+  globalAnswers[batchOffset + currentQ] = isCorrect ? 'correct' : 'wrong';
+  const pip = document.getElementById('pip-' + (batchOffset + currentQ));
   if (pip) pip.className = 'progress-pip ' + (isCorrect ? 'correct' : 'wrong');
   document.getElementById('score-correct').textContent = score.correct + ' correct';
   document.getElementById('score-wrong').textContent   = score.wrong + ' wrong';
