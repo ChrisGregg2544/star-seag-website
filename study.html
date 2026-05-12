@@ -617,8 +617,9 @@ let currentUserId = null;
 let userYear         = 'P6';
 let MAX_QUESTIONS    = 10;     // session cap — set per session in startStudy()
 let selectedTopic    = null;   // DB topic slug
-let allWrongAnswers  = [];     // accumulates wrong answers across all batches for review screen
-let globalAnswers    = [];     // correct/wrong per global question index across all batches
+let allWrongAnswers      = [];  // accumulates wrong answers across all batches for review screen
+let globalAnswers        = [];  // correct/wrong per global question index across all batches
+let allSessionQuestions  = [];  // all answered questions across batches for session save + history
 let usedIds          = new Set();
 let sessionShownIds  = new Set(); // dedup at display time within one session
 let correctCount     = 0;      // cumulative correct for difficulty unlock
@@ -839,7 +840,7 @@ function normalizeDBQuestion(dbQ) {
 function trackQuestionSeen(questionId) {
   if (!currentUserId || !questionId) return;
   sb.from('student_question_history').insert({
-    student_id:  null,
+    student_id:  currentUserId,
     question_id: questionId,
     user_id:     currentUserId,
     seen_at:     new Date().toISOString(),
@@ -957,8 +958,9 @@ async function startStudy(topic) {
   QUESTIONS        = [];
   answers          = [];
   userAnswers      = [];
-  allWrongAnswers  = [];
-  globalAnswers    = [];
+  allWrongAnswers      = [];
+  globalAnswers        = [];
+  allSessionQuestions  = [];
   score            = { correct: 0, wrong: 0 };
   nextBatchPromise = null;
   sprintCount      = 0;
@@ -1396,6 +1398,12 @@ async function submitAnswer() {
     allWrongAnswers.push({ q, correctDisplay, studentAns: userAnswers[currentQ] || '(no answer)' });
   }
   sessionTotal++;
+  allSessionQuestions.push({
+    question_id:   q._id,
+    topic:         q.topic,
+    question_type: q.type,
+    correct:       isCorrect,
+  });
 
   // Show feedback (always in study mode)
   showFeedback(q, isCorrect, aiFeedback);
@@ -1772,17 +1780,12 @@ function saveSessionToSupabase(missedQs) {
       session: {
         session_type:    new URLSearchParams(window.location.search).get('mode') === 'topic' ? 'topic_sprint' : 'mini_sprint',
         track,
-        score:           score.correct,
-        total_questions: QUESTIONS.length,
-        english_score:   QUESTIONS.filter((q, i) => q.type === 'english' && answers[i] === 'correct').length,
-        maths_score:     QUESTIONS.filter((q, i) => q.type === 'maths'   && answers[i] === 'correct').length,
+        score:           sessionCorrect,
+        total_questions: sessionTotal,
+        english_score:   allSessionQuestions.filter(q => q.question_type === 'english' && q.correct).length,
+        maths_score:     allSessionQuestions.filter(q => q.question_type === 'maths'   && q.correct).length,
       },
-      questionResults: QUESTIONS.map((q, i) => ({
-        question_id:   q._id,
-        topic:         q.topic,
-        question_type: q.type,
-        correct:       answers[i] === 'correct',
-      })),
+      questionResults: allSessionQuestions,
       missedTopics: toReviewForDb,
     };
 

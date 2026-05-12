@@ -81,7 +81,7 @@ export default async function handler(req, res) {
 
   // 2. Sessions this week count
   const weekCountRes = await fetch(
-    `${SUPABASE_URL}/rest/v1/sessions?user_id=eq.${childId}&created_at=gte.${weekStart}&select=id`,
+    `${SUPABASE_URL}/rest/v1/sessions?user_id=eq.${childId}&completed_at=gte.${weekStart}&select=id`,
     {
       headers: {
         'apikey':        serviceKey,

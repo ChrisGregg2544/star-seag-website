@@ -492,7 +492,7 @@ function buildCard(child, idx, sessions, progress, insightsHtml = '', subscribed
         <button class="btn-action ${subscribed ? 'btn-action-primary' : 'btn-action-secondary'}"
           onclick="window.location.href='${subscribed ? `study.html` : `pricing.html`}'">
           ${subscribed ? '▶ Start Sprint' : '🔒 Subscribe to Start'}</button>
-        <button class="btn-action btn-action-secondary" onclick="goToPage('${child.id}','dashboard.html')">View Progress</button>
+        <button class="btn-action btn-action-secondary" onclick="goToPage('${child.id}','dashboard.html')">Go to Student Dashboard</button>
         <button class="btn-action btn-action-secondary"
           onclick="window.location.href='${subscribed ? `real-life-test.html?childId=${child.id}&year=${child.year_group}` : `pricing.html`}'">
           ${subscribed ? '📄 Print Test' : '🔒 Print Test'}</button>

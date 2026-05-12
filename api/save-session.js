@@ -107,9 +107,12 @@ export default async function handler(req, res) {
 
   // 6. INSERT student_question_history
   if (sessionId && questionResults.length > 0) {
+    const seenAt = new Date().toISOString();
     const histRows = questionResults.map(q => ({
       student_id:  childId,
+      user_id:     childId,
       question_id: q.question_id,
+      seen_at:     seenAt,
     }));
     const histRes = await sbFetch('student_question_history', 'POST', histRows, serviceKey, {
       'Prefer': 'return=minimal',
