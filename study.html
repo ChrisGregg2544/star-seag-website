@@ -589,6 +589,7 @@ let userYear         = 'P6';
 const MAX_QUESTIONS  = 10;     // session cap — always end at exactly 10 questions
 let selectedTopic    = null;   // DB topic slug
 let usedIds          = new Set();
+let sessionShownIds  = new Set(); // dedup at display time within one session
 let correctCount     = 0;      // cumulative correct for difficulty unlock
 let sessionCorrect   = 0;      // across all batches
 let sessionTotal     = 0;      // across all batches
@@ -914,6 +915,7 @@ function selectTopic(topic) {
 async function startStudy(topic) {
   selectedTopic    = topic;
   usedIds          = new Set();
+  sessionShownIds  = new Set();
   correctCount     = 0;
   sessionCorrect   = 0;
   sessionTotal     = 0;
@@ -1077,6 +1079,13 @@ function loadQuestion(idx) {
   hintVisible = false;
   selectedMC  = null;
   const q = QUESTIONS[idx];
+
+  // Skip if this question has already appeared in this session
+  if (q && sessionShownIds.has(q.id)) {
+    nextQuestion();
+    return;
+  }
+  if (q) sessionShownIds.add(q.id);
 
   // Progress bar within current batch
   document.getElementById('q-current').textContent = batchOffset + idx + 1;

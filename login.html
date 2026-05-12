@@ -192,6 +192,45 @@
 
     .signup-link a:hover { text-decoration: underline; }
 
+    .pw-wrap {
+      position: relative;
+      margin-bottom: 18px;
+    }
+    .pw-wrap input[type="password"],
+    .pw-wrap input[type="text"] {
+      margin-bottom: 0;
+      padding-right: 48px;
+    }
+    .pw-toggle {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 4px;
+      color: #9CA3AF;
+      line-height: 0;
+    }
+    .pw-toggle:hover { color: #6B7280; }
+
+    .forgot-link {
+      display: block;
+      text-align: right;
+      font-size: 0.82rem;
+      color: #F97316;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: -10px;
+      margin-bottom: 20px;
+      background: none;
+      border: none;
+      padding: 0;
+      font-family: 'Inter', sans-serif;
+    }
+    .forgot-link:hover { text-decoration: underline; }
+
     @media (max-width: 480px) {
       .card { padding: 36px 24px; }
     }
@@ -223,7 +262,15 @@
   <input type="email" id="emailInput" placeholder="parent@example.com" autocomplete="email"/>
 
   <label for="passwordInput">Password</label>
-  <input type="password" id="passwordInput" placeholder="Your password" autocomplete="current-password"/>
+  <div class="pw-wrap">
+    <input type="password" id="passwordInput" placeholder="Your password" autocomplete="current-password"/>
+    <button class="pw-toggle" type="button" onclick="togglePassword('passwordInput', this)" aria-label="Show or hide password">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+      </svg>
+    </button>
+  </div>
+  <button class="forgot-link" type="button" onclick="handleForgotPassword()">Forgot your password?</button>
 
   <button class="login-btn" id="loginBtn" onclick="handleLogin()">Log In</button>
 
@@ -342,6 +389,7 @@
     }
 
     if (data?.user) {
+      localStorage.setItem('star_last_email', email);
       await smartRedirect(data.user.id, data.session?.access_token)
     }
   }
@@ -354,6 +402,46 @@
     el.textContent = text
     el.className = 'message ' + type
     el.style.display = 'block'
+  }
+
+  /* ══════════════════════════════════════
+     PRE-FILL & PERSONALISE
+  ══════════════════════════════════════ */
+  ;(function prefill() {
+    const lastEmail = localStorage.getItem('star_last_email');
+    const guestName = localStorage.getItem('star_guest_name');
+    if (lastEmail) document.getElementById('emailInput').value = lastEmail;
+    if (guestName) document.querySelector('.subtitle').textContent =
+      'Hi ' + guestName + '! Sign in to save your results';
+  })();
+
+  /* ══════════════════════════════════════
+     SHOW/HIDE PASSWORD
+  ══════════════════════════════════════ */
+  function togglePassword(inputId, btn) {
+    const input = document.getElementById(inputId);
+    const isHiding = input.type === 'text';
+    input.type = isHiding ? 'password' : 'text';
+    btn.style.opacity = isHiding ? '1' : '0.5';
+  }
+
+  /* ══════════════════════════════════════
+     FORGOT PASSWORD
+  ══════════════════════════════════════ */
+  async function handleForgotPassword() {
+    const email = document.getElementById('emailInput').value.trim();
+    if (!email) {
+      showMessage('Enter your email address above first.', 'error');
+      return;
+    }
+    const { error } = await client.auth.resetPasswordForEmail(email, {
+      redirectTo: window.location.origin + '/login.html',
+    });
+    if (error) {
+      showMessage(error.message, 'error');
+    } else {
+      showMessage('Password reset email sent — check your inbox.', 'success');
+    }
   }
 
   ;(function checkOAuthError() {
