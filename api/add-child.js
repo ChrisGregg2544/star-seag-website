@@ -67,10 +67,17 @@ export default async function handler(req, res) {
   }
 
   // ── 3. Insert child profile ───────────────────────────
+  // Auto-calculate exam_year: SEAG Paper 1 is Nov 15, Paper 2 is Nov 22.
+  // If today is after Nov 22, the child targets next year's sitting.
+  const _now       = new Date();
+  const _cutoff    = new Date(_now.getFullYear(), 10, 22); // Nov 22 (month 10 = November)
+  const exam_year  = _now > _cutoff ? _now.getFullYear() + 1 : _now.getFullYear();
+
   const insertRes = await sbFetch('profiles', 'POST', {
     parent_id:         parentId,
     name:              trimmedName,
     year_group,
+    exam_year,
     onboarded:         true,
     free_sprints_used: 0,
     updated_at:        new Date().toISOString(),

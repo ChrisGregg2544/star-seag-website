@@ -1432,9 +1432,10 @@ function dismissBaselineReport() {
 
 function showBaselineReportCard(skills) {
   if (localStorage.getItem('star_baseline_report_seen') === '1') return;
-  const sorted = [...skills].sort((a, b) => b.pct - a.pct);
-  const top2   = sorted.slice(0, 2);
-  const bot2   = sorted.slice(-2).reverse();
+  const sorted  = [...skills].sort((a, b) => b.pct - a.pct);
+  const top2    = sorted.slice(0, 2);
+  const topSet  = new Set(top2.map(s => s.name));
+  const bot2    = sorted.filter(s => !topSet.has(s.name)).slice(-2).reverse();
 
   document.getElementById('baseline-strengths').innerHTML =
     top2.map(s => formatTopicName(s.name) + ' (' + s.pct + '%)').join('<br>') || '—';
