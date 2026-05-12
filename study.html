@@ -588,7 +588,7 @@ let currentUserId = null;
 
 // Study-mode state
 let userYear         = 'P6';
-const MAX_QUESTIONS  = 10;     // session cap — always end at exactly 10 questions
+let MAX_QUESTIONS    = 10;     // session cap — set per session in startStudy()
 let selectedTopic    = null;   // DB topic slug
 let usedIds          = new Set();
 let sessionShownIds  = new Set(); // dedup at display time within one session
@@ -915,6 +915,7 @@ function selectTopic(topic) {
    START STUDY SESSION
 ════════════════════════════════ */
 async function startStudy(topic) {
+  MAX_QUESTIONS    = (topic === 'mixed' && userYear === 'P7') ? 15 : 10;
   selectedTopic    = topic;
   usedIds          = new Set();
   sessionShownIds  = new Set();
