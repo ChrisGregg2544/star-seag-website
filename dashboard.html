@@ -777,25 +777,27 @@ function weeksUntil(examYear) {
   return diff > 0 ? Math.ceil(diff / 604800000) : 0;
 }
 
-// Real Life Test is part of the P7 journey only — P6 students can access it
-// but it is not recommended as part of their default practice rotation.
-// When the feature goes live, change the href from '#' to the printable paper page.
-const REAL_LIFE_TEST = { icon: '🖨️', name: 'Real Life Test', href: '#' };
+// Phase-based rotation entries
+const MINI_MOCK     = { icon: '⚡', name: 'Mini Mock',                href: 'study.html?mode=mini-mock' };
+const TOPIC_SPRINT  = { icon: '🎯', name: 'Topic Sprint',             href: 'study.html?mode=topic' };
+const FULL_MOCK     = { icon: '📝', name: 'Full Mock',                href: 'mock.html' };
+const GUARDIAN_TEST = { icon: '🖨️', name: 'Guardian Supervised Test', href: 'real-life-test.html' };
 
-function buildRotation(yearGroup) {
-  const base = [
-    { icon: '⚡', name: 'Quick Sprint',  href: 'study.html' },
-    { icon: '🎯', name: 'Topic Sprint',  href: 'study.html?mode=topic' },
-    { icon: '⚡', name: 'Quick Sprint',  href: 'study.html' },
-    { icon: '📝', name: 'Full Mock',     href: 'mock.html' },
-    { icon: '🎯', name: 'Topic Sprint',  href: 'study.html?mode=topic' },
-    { icon: '⚡', name: 'Quick Sprint',  href: 'study.html' },
-    { icon: '📝', name: 'Full Mock',     href: 'mock.html' },
-  ];
-  if (yearGroup === 'P7') {
-    base.push(REAL_LIFE_TEST);
+function buildRotation(yearGroup, weeks) {
+  if (yearGroup !== 'P7') {
+    // P6: Mini Mock × 2, Topic Sprint × 1 (Full Mock suggested monthly, not in daily rotation)
+    return [MINI_MOCK, TOPIC_SPRINT, MINI_MOCK];
   }
-  return base;
+  if (weeks !== null && weeks < 8) {
+    // P7 final 8 weeks: intensive mock phase
+    return [FULL_MOCK, GUARDIAN_TEST, MINI_MOCK, FULL_MOCK, TOPIC_SPRINT];
+  }
+  if (weeks !== null && weeks <= 20) {
+    // P7 8–20 weeks: building exam stamina
+    return [MINI_MOCK, TOPIC_SPRINT, MINI_MOCK, FULL_MOCK, GUARDIAN_TEST];
+  }
+  // P7 20+ weeks (or exam year not set): foundation phase
+  return [MINI_MOCK, TOPIC_SPRINT, MINI_MOCK, FULL_MOCK];
 }
 
 const DAY_MAPS = {
@@ -811,21 +813,15 @@ const DAY_MAPS = {
 function getTodayRec(yearGroup, weeks, sessionsPerWeek, weekDone, weakTopic) {
   const target = Math.max(1, Math.min(7, sessionsPerWeek || 3));
   const done   = weekDone || 0;
-
-  // Final stretch override for P7
-  if (yearGroup === 'P7' && weeks !== null && weeks <= 8) {
-    return { title: 'Full Coached Mock', sub: 'Final stretch — a full 56-question mock is the best prep right now. Give it everything!', href: 'mock.html' };
-  }
+  const qCount = yearGroup === 'P7' ? 15 : 10;
 
   // Week complete
   if (done >= target) {
-    return { title: 'Bonus Sprint — Keep the Streak!', sub: 'You\'ve hit your weekly target. A bonus sprint keeps the momentum going!', href: 'study.html' };
+    return { title: 'Bonus Mini Mock — Keep the Streak!', sub: 'You\'ve hit your weekly target. A bonus sprint keeps the momentum going!', href: 'study.html?mode=mini-mock' };
   }
 
-  // Build year-group-aware rotation; skip entries that are not yet live (href === '#')
-  const rotation     = buildRotation(yearGroup).filter(r => r.href !== '#');
-  const next         = rotation[done % rotation.length];
-  const remaining    = target - done;
+  const rotation = buildRotation(yearGroup, weeks);
+  const next     = rotation[done % rotation.length];
 
   let href = next.href;
   let sub;
@@ -837,15 +833,16 @@ function getTodayRec(yearGroup, weeks, sessionsPerWeek, weekDone, weakTopic) {
     } else {
       sub = `Session ${done + 1} of ${target} — focus on your weakest topic for the fastest improvement.`;
     }
-  } else if (next.name === 'Quick Sprint') {
+  } else if (next.name === 'Mini Mock') {
     sub = weakTopic
-      ? `Your weakest area is ${weakTopic} — let's work on it today.`
-      : `Session ${done + 1} of ${target} this week — 10 questions, instant feedback. Let's go!`;
+      ? `${qCount} mixed questions — your weakest area (${weakTopic}) will come up. Session ${done + 1} of ${target}.`
+      : `${qCount} mixed questions, instant feedback. Session ${done + 1} of ${target} this week — let's go!`;
   } else if (next.name === 'Full Mock') {
     sub = `Session ${done + 1} of ${target} — 56 questions in full exam format. Give it your best shot!`;
-  } else if (next.name === 'Real Life Test') {
-    sub = `Time for a printed test! Sit it under timed conditions and ask a parent to mark it using the answer key.`;
+  } else if (next.name === 'Guardian Supervised Test') {
+    sub = `Print this test, sit it under timed conditions, and ask a parent or guardian to mark it using the answer key.`;
   } else {
+    const remaining = target - done;
     sub = `${remaining} session${remaining !== 1 ? 's' : ''} left this week.`;
   }
 
@@ -988,11 +985,11 @@ function buildTopics(toReview, hasData) {
   });
 }
 
-function buildWeeklySchedule(sessionsPerWeek, weekDone, yearGroup) {
+function buildWeeklySchedule(sessionsPerWeek, weekDone, yearGroup, weeks) {
   const target   = Math.max(1, Math.min(7, sessionsPerWeek || 3));
   const done     = Math.min(weekDone || 0, target);
   const pct      = Math.round((done / target) * 100);
-  const rotation = buildRotation(yearGroup || 'P6').filter(r => r.href !== '#');
+  const rotation = buildRotation(yearGroup || 'P6', weeks ?? null);
 
   document.getElementById('week-done-num').textContent    = done;
   document.getElementById('week-target-num').textContent  = target;
@@ -1034,6 +1031,14 @@ function buildWeeklySchedule(sessionsPerWeek, weekDone, yearGroup) {
       (isNext ? '<div class="week-card-next-badge">Up next</div>' : '');
 
     container.appendChild(card);
+  }
+
+  // P6 monthly mock tip
+  if ((yearGroup || 'P6') !== 'P7') {
+    const tip = document.createElement('p');
+    tip.style.cssText = 'margin-top:12px;font-size:.8rem;color:var(--text-mid);text-align:center;';
+    tip.textContent = '💡 A Full Mock once a month is great for P6 — tap the Full Mock card below to try one.';
+    container.parentElement.appendChild(tip);
   }
 }
 
@@ -1392,7 +1397,7 @@ async function init() {
     if (count) count.textContent = '';
     if (grid) grid.innerHTML = `<div class="no-data-state"><div class="nd-icon">📊</div><h3>Unlock your topic recommendations</h3><p>Complete your baseline sprint and STAR will show you exactly which topics to focus on first.</p></div>`;
   } else {
-    buildWeeklySchedule(sessionsPerWeek, weekDone, yearGroup);
+    buildWeeklySchedule(sessionsPerWeek, weekDone, yearGroup, weeks);
     buildSkillsMap(sessionsCount || 0, _preloadedQR, baselineComplete);
     buildTopics(toReview, hasData);
   }
