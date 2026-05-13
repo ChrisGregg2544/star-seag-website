@@ -329,13 +329,6 @@
     try {
       if (accessToken) await syncGuestSessions(accessToken)
 
-      const childrenResult = await client.from('profiles').select('id').eq('parent_id', userId).limit(5)
-
-      if (!childrenResult.error && childrenResult.data && childrenResult.data.length > 0) {
-        window.location.href = 'parent-dashboard.html'
-        return
-      }
-
       const profileResult = await client.from('profiles').select('onboarded').eq('id', userId).maybeSingle()
 
       if (!profileResult.error && profileResult.data?.onboarded === true) {
