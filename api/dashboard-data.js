@@ -93,6 +93,20 @@ export default async function handler(req, res) {
   );
   const weekDoneCount = countHeader(weekCountRes);
 
+  // 2b. Guardian Supervised Test count this week
+  const guardianCountRes = await fetch(
+    `${SUPABASE_URL}/rest/v1/sessions?user_id=eq.${childId}&session_type=eq.guardian_test&completed_at=gte.${weekStart}&select=id`,
+    {
+      headers: {
+        'apikey':        serviceKey,
+        'Authorization': `Bearer ${serviceKey}`,
+        'Prefer':        'count=exact',
+        'Range':         '0-0',
+      },
+    }
+  );
+  const guardianTestCount = countHeader(guardianCountRes);
+
   // 3. Progress summary (last score + topics to review)
   const psRes  = await sbGet(
     `progress_summary?user_id=eq.${childId}&select=last_score,last_total,topics_to_review&limit=1`,
@@ -118,6 +132,7 @@ export default async function handler(req, res) {
     ok:               true,
     sessionsCount,
     weekDoneCount,
+    guardianTestCount,
     lastScore:        ps?.last_score    ?? null,
     lastTotal:        ps?.last_total    ?? null,
     topicsToReview:   ps?.topics_to_review ?? [],

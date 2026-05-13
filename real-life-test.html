@@ -158,6 +158,9 @@
     /* ── UTILS ── */
     .hidden { display:none !important; }
     .error-msg{color:var(--red);font-size:.85rem;text-align:center;margin-top:12px;}
+    .limit-msg{background:#FFF7ED;border:2px solid #FED7AA;border-radius:10px;padding:16px;text-align:center;margin-top:12px;}
+    .limit-msg-title{font-size:.95rem;font-weight:800;color:#EA6C0A;margin-bottom:4px;}
+    .limit-msg-sub{font-size:.82rem;color:var(--text-mid);line-height:1.5;}
   </style>
 </head>
 <body>
@@ -191,6 +194,10 @@
 
     <button id="btn-generate" class="btn-generate" disabled>Generate Paper</button>
     <p id="setup-error" class="error-msg hidden"></p>
+    <div id="limit-msg" class="limit-msg hidden">
+      <div class="limit-msg-title">🗓️ Weekly limit reached</div>
+      <div class="limit-msg-sub">You have reached your limit of 3 Guardian Supervised Tests this week. Come back next Monday for more!</div>
+    </div>
     <p class="setup-note">Each paper is randomly assembled from the question bank — every print is a unique test.</p>
   </div>
 </div>
@@ -223,17 +230,83 @@ const SUPABASE_URL = 'https://iutcgogmxhaqgaxkznxu.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml1dGNnb2dteGhhcWdheGt6bnh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM3NjE4MTQsImV4cCI6MjA4OTMzNzgxNH0.o0plRQzH8ezfttG_sEeWu3F4IUtKnyzcXtPEGJ9xRF0';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-let parentId  = null;
-let userYear  = 'P6';
-let paperData = null; // { practice, english, maths, passage, childName, yearGroup, generated }
+const WEEKLY_LIMIT   = 3;
+let parentId         = null;
+let _accessToken     = null;
+let userYear         = 'P6';
+let paperData        = null;
+let weeklyTestCount  = 0;
+let hasChildren      = false;
 
 /* ════════════════════════════════
    AUTH
 ════════════════════════════════ */
+function getWeekStart() {
+  const now = new Date();
+  const day = now.getDay(); // 0=Sun,1=Mon...6=Sat
+  const monday = new Date(now);
+  monday.setDate(now.getDate() - (day === 0 ? 6 : day - 1));
+  monday.setHours(0, 0, 0, 0);
+  return monday.toISOString();
+}
+
+async function checkAndApplyLimit(childId) {
+  if (!childId || !_accessToken) return;
+  try {
+    const r = await fetch(
+      `/api/dashboard-data?childId=${encodeURIComponent(childId)}&weekStart=${encodeURIComponent(getWeekStart())}`,
+      { headers: { 'Authorization': `Bearer ${_accessToken}` } }
+    );
+    if (r.ok) {
+      const d = await r.json();
+      weeklyTestCount = d.guardianTestCount ?? 0;
+    }
+  } catch (e) { /* silently ignore — don't block on network errors */ }
+  applyLimitUI();
+}
+
+function applyLimitUI() {
+  const atLimit = weeklyTestCount >= WEEKLY_LIMIT;
+  const btn = document.getElementById('btn-generate');
+  const msg = document.getElementById('limit-msg');
+  if (hasChildren) btn.disabled = atLimit;
+  msg.classList.toggle('hidden', !atLimit);
+}
+
+async function saveGuardianSession(childId, pd) {
+  if (!_accessToken || !childId) return;
+  const allQs = [...pd.practice, ...pd.english, ...pd.maths];
+  try {
+    await fetch('/api/save-session', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${_accessToken}` },
+      body: JSON.stringify({
+        childId,
+        session: {
+          session_type: 'guardian_test',
+          track: null,
+          score: null,
+          total_questions: allQs.length,
+          english_score: null,
+          maths_score: null,
+        },
+        questionResults: allQs.map(q => ({
+          question_id: q.id,
+          topic: q.topic,
+          question_type: q.question_type,
+          correct: null,
+        })),
+        missedTopics: [],
+      }),
+    });
+  } catch (e) { /* non-fatal */ }
+}
+
 async function init() {
   const { data } = await sb.auth.getSession();
   if (!data?.session?.user) { window.location.href = 'login.html'; return; }
-  parentId = data.session.user.id;
+  parentId     = data.session.user.id;
+  _accessToken = data.session.access_token;
 
   // Subscription check — Guardian Supervised Test is a paid feature
   try {
@@ -280,15 +353,20 @@ async function init() {
     const yr  = opt?.dataset?.year || document.getElementById('year-select').value;
     document.getElementById('year-select').value = yr;
     userYear = yr;
+    checkAndApplyLimit(sel.value);
   });
 
   document.getElementById('year-select').addEventListener('change', e => {
     userYear = e.target.value;
   });
 
-  document.getElementById('btn-generate').disabled = false;
+  hasChildren = allChildren.length > 0;
+  if (hasChildren) document.getElementById('btn-generate').disabled = false;
   document.getElementById('btn-generate').addEventListener('click', generatePaper);
   document.getElementById('btn-new').addEventListener('click', resetToSetup);
+
+  const initialChildId = sel.value;
+  if (initialChildId) await checkAndApplyLimit(initialChildId);
 }
 
 /* ════════════════════════════════
@@ -436,6 +514,10 @@ async function generatePaper() {
     };
 
     renderPaper(paperData);
+
+    // Save session server-side (tracks weekly count + question history)
+    saveGuardianSession(childId, paperData).catch(() => {});
+    weeklyTestCount++;
 
   } catch (err) {
     document.getElementById('loading-screen').classList.add('hidden');
@@ -678,6 +760,7 @@ function resetToSetup() {
   document.getElementById('paper-wrap').innerHTML = '';
   document.getElementById('answer-key-wrap').innerHTML = '';
   document.getElementById('setup-screen').classList.remove('hidden');
+  applyLimitUI();
 }
 
 window.addEventListener('DOMContentLoaded', init);
