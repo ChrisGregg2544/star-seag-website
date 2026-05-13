@@ -302,7 +302,7 @@
     if (sessions.length === 0) return
 
     try {
-      const res = await fetch('/api/sync-guest-sessions', {
+      const res = await fetch('/api/profile?action=sync-guest', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

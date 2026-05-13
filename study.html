@@ -1872,7 +1872,7 @@ function showBaselineReport() {
   sb.auth.getSession().then(({ data }) => {
     const token = data?.session?.access_token;
     if (!token) return;
-    fetch('/api/set-baseline', {
+    fetch('/api/profile?action=set-baseline', {
       method: 'POST',
       headers: { 'Authorization': `Bearer ${token}` },
     }).then(r => {

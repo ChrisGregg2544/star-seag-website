@@ -380,7 +380,7 @@ async function submit() {
     if (!data?.session) { window.location.href = 'login.html'; return; }
     accessToken = data.session.access_token;
 
-    const res = await fetch('/api/add-child', {
+    const res = await fetch('/api/child?action=add', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

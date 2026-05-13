@@ -1186,7 +1186,7 @@ async function init() {
   if (_starSessionsLS.length > 0) {
     console.log('[dashboard] unsynced guest sessions found — syncing now');
     try {
-      const _syncRes = await fetch('/api/sync-guest-sessions', {
+      const _syncRes = await fetch('/api/profile?action=sync-guest', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${accessToken}` },
         body: JSON.stringify({ sessions: _starSessionsLS }),

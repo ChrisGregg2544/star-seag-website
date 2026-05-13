@@ -348,7 +348,7 @@
       <div class="ph-sub" id="ph-sub">Loading…</div>
     </div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;">
-      <a class="btn-add-child" href="real-life-test.html" style="background:#7C3AED;box-shadow:0 4px 0 #5B21B6;">📄 Print Test</a>
+      <a class="btn-add-child" href="real-life-test.html" style="background:#7C3AED;box-shadow:0 4px 0 #5B21B6;">📄 Print Full Mock Test</a>
       <a class="btn-add-child" href="add-child.html">+ Add Child</a>
     </div>
   </div>
@@ -582,13 +582,10 @@ function buildCard(child, idx, sessions, progress, insightsHtml = '', subscribed
         <div class="topics-tags">${topicsHtml}</div>
       </div>
       <div class="card-actions">
-        <button class="btn-action ${subscribed ? 'btn-action-primary' : 'btn-action-secondary'}"
-          onclick="window.location.href='${subscribed ? `study.html` : `pricing.html`}'">
-          ${subscribed ? '▶ Start Sprint' : '🔒 Subscribe to Start'}</button>
         <button class="btn-action btn-action-secondary" onclick="goToPage('${child.id}','dashboard.html')">Go to Student Dashboard</button>
         <button class="btn-action btn-action-secondary"
           onclick="window.location.href='${subscribed ? `real-life-test.html?childId=${child.id}&year=${child.year_group}` : `pricing.html`}'">
-          ${subscribed ? '📄 Print Test' : '🔒 Print Test'}</button>
+          ${subscribed ? '📄 Print Full Mock Test' : '🔒 Print Full Mock Test'}</button>
       </div>
       ${insightsHtml}
     </div>`;
@@ -673,7 +670,7 @@ async function saveEdit() {
     const { data: session } = await sb.auth.getSession();
     const token = session?.session?.access_token || _accessToken;
 
-    const res  = await fetch('/api/edit-child', {
+    const res  = await fetch('/api/child?action=edit', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
       body: JSON.stringify({ childId: _editingChildId, name, year_group: _editSelYear, exam_year: examYear }),
