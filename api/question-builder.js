@@ -170,8 +170,17 @@ function ukEnglishWarnings(text) {
   return [...new Set(US_UK_PAIRS.filter(([us]) => new RegExp(`\\b${us}\\b`,'i').test(lower)).map(([us]) => us))];
 }
 
-function fingerprint(text) {
-  return (text || '').toLowerCase().replace(/\s+/g,' ').trim().slice(0, 80);
+function wordSet(text) {
+  return new Set(
+    (text || '').toLowerCase().replace(/[^a-z0-9\s]/g, ' ').split(/\s+/).filter(w => w.length > 2)
+  );
+}
+
+function wordOverlapRatio(setA, setB) {
+  if (!setA.size || !setB.size) return 0;
+  let shared = 0;
+  for (const w of setA) { if (setB.has(w)) shared++; }
+  return shared / Math.min(setA.size, setB.size);
 }
 
 function difficultyLabel(d) {
@@ -309,6 +318,9 @@ ${failSection}
 
 ${passSection}
 
+## DIVERSITY REQUIREMENTS
+Do not repeat question scenarios, contexts or number combinations already common in the bank. Vary topics widely — if generating geometry questions use a different shape, context and calculation type for each question. Each question in this batch must be clearly distinct from the others.
+
 ## OUTPUT FORMAT
 Return ONLY a valid JSON array with exactly ${batch_size} objects. No preamble, no markdown.
 
@@ -403,7 +415,7 @@ async function handleGenerateQuestions(req, res) {
         `questions?select=question_text&topic=eq.${encodeURIComponent(category)}&year_group=eq.${encodeURIComponent(year_group)}&limit=5000`),
     ]);
 
-    const existingFingerprints = new Set(existingRows.map(r => fingerprint(r.question_text)));
+    const existingWordSets = existingRows.map(r => wordSet(r.question_text));
 
     let allItems = [];
 
@@ -453,7 +465,7 @@ async function handleGenerateQuestions(req, res) {
         supabaseFetch(supabaseUrl, serviceKey,
           `validation_results?select=question_text,v1_score,v2_score,v3_score&category=eq.${encodeURIComponent(category)}&year_group=eq.${encodeURIComponent(year_group)}&outcome=eq.pass&order=v1_score.desc,v2_score.desc,v3_score.desc&limit=10`),
       ]);
-      console.log(`generate-questions: standard mode for ${category} ${year_group}, refs=${refRows.length} fails=${failRows.length} passes=${passRows.length} existing=${existingFingerprints.size}`);
+      console.log(`generate-questions: standard mode for ${category} ${year_group}, refs=${refRows.length} fails=${failRows.length} passes=${passRows.length} existing=${existingWordSets.length}`);
 
       const prompt = buildGeneratePrompt({ category, year_group, batch_size, references: refRows, failReasons: failRows, passExamples: passRows });
 
@@ -483,9 +495,10 @@ async function handleGenerateQuestions(req, res) {
     const unique = [];
     let skipped = 0;
     for (const q of withUkCheck) {
-      const fp = fingerprint(q.question_text);
-      if (existingFingerprints.has(fp)) { skipped++; }
-      else { existingFingerprints.add(fp); unique.push(q); }
+      const qWords = wordSet(q.question_text);
+      const isDuplicate = existingWordSets.some(existing => wordOverlapRatio(qWords, existing) > 0.70);
+      if (isDuplicate) { skipped++; }
+      else { existingWordSets.push(qWords); unique.push(q); }
     }
 
     console.log(`generate-questions: ${unique.length} unique, ${skipped} duplicates skipped`);
