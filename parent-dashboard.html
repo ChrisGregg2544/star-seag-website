@@ -244,6 +244,85 @@
     .empty-icon  { font-size: 3rem; margin-bottom: 14px; }
     .empty-title { font-size: 1.2rem; font-weight: 900; color: var(--text-dark); margin-bottom: 8px; }
     .empty-sub   { font-size: .88rem; color: var(--text-mid); line-height: 1.6; margin-bottom: 24px; }
+
+    /* ── Edit pencil button ── */
+    .edit-pencil-btn {
+      flex-shrink: 0; background: none;
+      border: 1.5px solid var(--cream-border); border-radius: 8px;
+      width: 34px; height: 34px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; color: var(--text-light);
+      transition: all .15s;
+    }
+    .edit-pencil-btn:hover { background: var(--cream); color: var(--orange); border-color: var(--orange-light); }
+
+    /* ── Edit modal ── */
+    .modal-overlay {
+      position: fixed; inset: 0; z-index: 500;
+      background: rgba(0,0,0,.45);
+      display: flex; align-items: center; justify-content: center;
+      padding: 20px;
+      opacity: 0; pointer-events: none;
+      transition: opacity .2s;
+    }
+    .modal-overlay.open { opacity: 1; pointer-events: all; }
+    .modal-box {
+      background: #fff; border-radius: 20px;
+      padding: 32px 28px 28px;
+      width: 100%; max-width: 420px;
+      box-shadow: 0 16px 48px rgba(0,0,0,.22);
+      transform: translateY(14px);
+      transition: transform .2s;
+    }
+    .modal-overlay.open .modal-box { transform: translateY(0); }
+    .modal-title {
+      font-size: 1.2rem; font-weight: 900; color: var(--text-dark);
+      margin-bottom: 22px;
+    }
+    .modal-label {
+      font-size: .68rem; font-weight: 900; letter-spacing: .1em;
+      text-transform: uppercase; color: var(--text-light);
+      margin-bottom: 8px; display: block;
+    }
+    .modal-input {
+      width: 100%; background: #fff;
+      border: 2px solid var(--card-border); border-radius: 12px;
+      padding: 13px 16px; margin-bottom: 20px;
+      font-family: 'Nunito', sans-serif; font-size: 1rem; font-weight: 700;
+      color: var(--text-dark); outline: none;
+      transition: border-color .2s, box-shadow .2s;
+    }
+    .modal-input:focus { border-color: var(--orange); box-shadow: 0 0 0 3px rgba(249,115,22,.12); }
+    .modal-yr-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+    .modal-yr-btn {
+      background: var(--cream); border: 2px solid var(--cream-border);
+      border-radius: 12px; padding: 14px 10px;
+      display: flex; flex-direction: column; align-items: center; gap: 3px;
+      font-family: 'Nunito', sans-serif; cursor: pointer;
+      transition: all .2s; position: relative; overflow: hidden;
+    }
+    .modal-yr-btn:hover { border-color: var(--orange-light); background: #FFF3E8; }
+    .modal-yr-btn.sel {
+      border-color: var(--orange); background: #FFF3E8;
+      box-shadow: 0 3px 0 var(--orange-light);
+    }
+    .modal-yr-btn.sel::after {
+      content: ''; position: absolute; top: 7px; right: 8px;
+      width: 14px; height: 14px; border-radius: 50%;
+      background: var(--orange);
+      -webkit-mask: url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='3' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E") center/10px no-repeat;
+      mask: url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='3' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E") center/10px no-repeat;
+    }
+    .modal-yr-lbl { font-size: 1.1rem; font-weight: 900; color: var(--text-dark); }
+    .modal-yr-sub { font-size: .65rem; font-weight: 700; color: var(--text-light); }
+    .modal-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 8px; }
+    .modal-error {
+      display: none; background: rgba(239,68,68,.08);
+      border: 1.5px solid rgba(239,68,68,.3); border-radius: 10px;
+      padding: 10px 14px; font-size: .8rem; color: var(--red);
+      font-weight: 700; margin-bottom: 14px; text-align: center;
+    }
+    .modal-error.show { display: block; }
   </style>
 </head>
 <body>
@@ -283,6 +362,17 @@ const sb = createClient(
   'https://iutcgogmxhaqgaxkznxu.supabase.co',
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml1dGNnb2dteGhhcWdheGt6bnh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM3NjE4MTQsImV4cCI6MjA4OTMzNzgxNH0.o0plRQzH8ezfttG_sEeWu3F4IUtKnyzcXtPEGJ9xRF0'
 );
+
+// Module-level state — needed by edit modal and card refresh
+let _kidsData        = [];   // [{id, name, year_group, exam_year}]
+let _kidsIdx         = {};   // childId → array index
+let _sessionsByChild = {};
+let _progressByChild = {};
+let _qrByChild       = {};
+let _subscribed      = false;
+let _accessToken     = null;
+let _editingChildId  = null;
+let _editSelYear     = null;
 
 const AVATARS   = ['👦','👧','🧒','🌟','⭐','📚'];
 const TOPIC_MAP = {
@@ -462,7 +552,7 @@ function buildCard(child, idx, sessions, progress, insightsHtml = '', subscribed
     : `<span class="stat-value" style="font-size:1.1rem;color:var(--text-light)">—</span><div class="stat-sub">No data yet</div>`;
 
   return `
-    <div class="child-card">
+    <div class="child-card" id="child-card-${child.id}">
       <div class="card-header">
         <div class="child-avatar">${avatar}</div>
         <div class="card-header-meta">
@@ -472,6 +562,9 @@ function buildCard(child, idx, sessions, progress, insightsHtml = '', subscribed
             ${lastActive ? `<span class="last-active">· ${lastActive}</span>` : ''}
           </div>
         </div>
+        <button class="edit-pencil-btn" onclick="openEditModal('${child.id}')" title="Edit child details">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        </button>
       </div>
       <div class="card-stats">
         <div class="stat-item">
@@ -501,28 +594,153 @@ function buildCard(child, idx, sessions, progress, insightsHtml = '', subscribed
     </div>`;
 }
 
+/* ════════════════════════════════
+   EDIT CHILD MODAL
+════════════════════════════════ */
+function openEditModal(childId) {
+  const child = _kidsData[_kidsIdx[childId]];
+  if (!child) return;
+  _editingChildId = childId;
+
+  document.getElementById('edit-name-input').value = child.name || '';
+
+  _editSelYear = child.year_group || 'P6';
+  document.getElementById('edit-yr-p6').classList.toggle('sel', _editSelYear === 'P6');
+  document.getElementById('edit-yr-p7').classList.toggle('sel', _editSelYear === 'P7');
+
+  // Default exam_year: current year unless after Nov 22 → next year
+  const _now = new Date();
+  const defaultYear = _now > new Date(_now.getFullYear(), 10, 22)
+    ? _now.getFullYear() + 1 : _now.getFullYear();
+  document.getElementById('edit-exam-year-input').value = child.exam_year || defaultYear;
+
+  document.getElementById('edit-modal-error').classList.remove('show');
+  document.getElementById('edit-modal-error').textContent = '';
+  document.getElementById('edit-save-btn').disabled  = false;
+  document.getElementById('edit-save-btn').textContent = 'Save Changes';
+
+  document.getElementById('edit-modal-overlay').classList.add('open');
+  document.getElementById('edit-name-input').focus();
+}
+
+function editSelectYear(yr) {
+  _editSelYear = yr;
+  document.getElementById('edit-yr-p6').classList.toggle('sel', yr === 'P6');
+  document.getElementById('edit-yr-p7').classList.toggle('sel', yr === 'P7');
+}
+
+function cancelEdit() {
+  document.getElementById('edit-modal-overlay').classList.remove('open');
+  _editingChildId = null;
+}
+
+function handleOverlayClick(e) {
+  if (e.target === document.getElementById('edit-modal-overlay')) cancelEdit();
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') cancelEdit();
+});
+
+async function saveEdit() {
+  const name     = document.getElementById('edit-name-input').value.trim();
+  const examYear = parseInt(document.getElementById('edit-exam-year-input').value, 10);
+  const errEl    = document.getElementById('edit-modal-error');
+  const saveBtn  = document.getElementById('edit-save-btn');
+
+  errEl.classList.remove('show');
+
+  if (!name) {
+    errEl.textContent = 'Please enter a name.';
+    errEl.classList.add('show');
+    return;
+  }
+  if (!_editSelYear) {
+    errEl.textContent = 'Please select a year group.';
+    errEl.classList.add('show');
+    return;
+  }
+  if (!examYear || examYear < 2025 || examYear > 2040) {
+    errEl.textContent = 'Please enter a valid exam year (2025–2040).';
+    errEl.classList.add('show');
+    return;
+  }
+
+  saveBtn.disabled  = true;
+  saveBtn.textContent = 'Saving…';
+
+  try {
+    const { data: session } = await sb.auth.getSession();
+    const token = session?.session?.access_token || _accessToken;
+
+    const res  = await fetch('/api/edit-child', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ childId: _editingChildId, name, year_group: _editSelYear, exam_year: examYear }),
+    });
+    const json = await res.json();
+
+    if (!res.ok || !json.ok) {
+      errEl.textContent = json.error || 'Failed to save. Please try again.';
+      errEl.classList.add('show');
+      saveBtn.disabled  = false;
+      saveBtn.textContent = 'Save Changes';
+      return;
+    }
+
+    // Update module-level data
+    const idx = _kidsIdx[_editingChildId];
+    if (idx !== undefined) {
+      _kidsData[idx] = { ..._kidsData[idx], name, year_group: _editSelYear, exam_year: examYear };
+    }
+
+    cancelEdit();
+    refreshCardDOM(_editingChildId);
+
+  } catch (err) {
+    console.error('[edit-child]', err);
+    errEl.textContent = 'Network error. Please try again.';
+    errEl.classList.add('show');
+    saveBtn.disabled  = false;
+    saveBtn.textContent = 'Save Changes';
+  }
+}
+
+function refreshCardDOM(childId) {
+  const idx = _kidsIdx[childId];
+  if (idx === undefined) return;
+  const child        = _kidsData[idx];
+  const sessions     = _sessionsByChild[childId] || [];
+  const insights     = computeInsights(sessions, _qrByChild[childId] || []);
+  const insightsHtml = buildInsightsHtml(insights, childId);
+  const cardEl       = document.getElementById('child-card-' + childId);
+  if (!cardEl) return;
+  const tmp = document.createElement('div');
+  tmp.innerHTML = buildCard(child, idx, sessions, _progressByChild[childId] || null, insightsHtml, _subscribed);
+  cardEl.replaceWith(tmp.firstElementChild);
+}
+
 window.addEventListener('DOMContentLoaded', async () => {
   const { data: authData } = await sb.auth.getSession();
   if (!authData?.session?.user) { window.location.href = 'login.html'; return; }
-  const parentId    = authData.session.user.id;
-  const accessToken = authData.session.access_token;
+  const parentId = authData.session.user.id;
+  _accessToken   = authData.session.access_token;
 
   // Subscription check — gates session buttons
-  let subscribed = false;
   try {
     const subRes = await fetch('/api/subscription?action=check', {
-      headers: { 'Authorization': `Bearer ${accessToken}` },
+      headers: { 'Authorization': `Bearer ${_accessToken}` },
     });
     if (subRes.ok) {
       const subData = await subRes.json();
-      subscribed = subData.subscribed === true;
+      _subscribed = subData.subscribed === true;
     }
   } catch (e) {
     console.error('[parent-dashboard] subscription check failed:', e.message);
   }
 
   // Lock header Print Test button for unsubscribed parents
-  if (!subscribed) {
+  if (!_subscribed) {
     const headerPrintBtn = document.querySelector('a[href="real-life-test.html"]');
     if (headerPrintBtn) headerPrintBtn.href = 'pricing.html';
   }
@@ -530,14 +748,14 @@ window.addEventListener('DOMContentLoaded', async () => {
   // 1. Fetch own profile (child set up during onboarding lives here, not in a parent_id row)
   const { data: ownProfile } = await sb
     .from('profiles')
-    .select('id, name, year_group')
+    .select('id, name, year_group, exam_year')
     .eq('id', parentId)
     .single();
 
   // 2. Fetch additional children added via add-child.html
   const { data: children, error: childErr } = await sb
     .from('profiles')
-    .select('id, name, year_group')
+    .select('id, name, year_group, exam_year')
     .eq('parent_id', parentId)
     .order('name', { ascending: true });
 
@@ -594,26 +812,60 @@ window.addEventListener('DOMContentLoaded', async () => {
   const allQR       = stats.questionResults || [];
 
   // 3. Group by child id
-  const sessionsByChild = {};
-  const progressByChild = {};
-  const qrByChild       = {};
-  childIds.forEach(id => { sessionsByChild[id] = []; qrByChild[id] = []; });
-  allSessions.forEach(s => { if (sessionsByChild[s.user_id]) sessionsByChild[s.user_id].push(s); });
-  allProgress.forEach(p => { progressByChild[p.user_id] = p; });
-  allQR.forEach(r => { if (qrByChild[r.user_id]) qrByChild[r.user_id].push(r); });
+  childIds.forEach(id => { _sessionsByChild[id] = []; _qrByChild[id] = []; });
+  allSessions.forEach(s => { if (_sessionsByChild[s.user_id]) _sessionsByChild[s.user_id].push(s); });
+  allProgress.forEach(p => { _progressByChild[p.user_id] = p; });
+  allQR.forEach(r => { if (_qrByChild[r.user_id]) _qrByChild[r.user_id].push(r); });
 
-  // 4. Render
+  // 4. Store kids in module scope for card refresh
+  _kidsData = kids;
+  kids.forEach((c, i) => { _kidsIdx[c.id] = i; });
+
+  // 5. Render
   const grid = document.createElement('div');
   grid.className = 'children-grid';
   grid.innerHTML = kids.map((child, i) => {
-    const childSessions = sessionsByChild[child.id] || [];
-    const insights      = computeInsights(childSessions, qrByChild[child.id] || []);
+    const childSessions = _sessionsByChild[child.id] || [];
+    const insights      = computeInsights(childSessions, _qrByChild[child.id] || []);
     const insightsHtml  = buildInsightsHtml(insights, child.id);
-    return buildCard(child, i, childSessions, progressByChild[child.id] || null, insightsHtml, subscribed);
+    return buildCard(child, i, childSessions, _progressByChild[child.id] || null, insightsHtml, _subscribed);
   }).join('');
   document.getElementById('content').replaceWith(grid);
   document.body.style.opacity = '1';
 });
 </script>
+
+<!-- ── Edit child modal ── -->
+<div id="edit-modal-overlay" class="modal-overlay" onclick="handleOverlayClick(event)">
+  <div class="modal-box" onclick="event.stopPropagation()">
+    <div class="modal-title">✏️ Edit Child</div>
+
+    <label class="modal-label" for="edit-name-input">First name</label>
+    <input class="modal-input" id="edit-name-input" type="text" maxlength="64" placeholder="Child's first name" />
+
+    <label class="modal-label">Year group</label>
+    <div class="modal-yr-row">
+      <button class="modal-yr-btn" id="edit-yr-p6" onclick="editSelectYear('P6')">
+        <span class="modal-yr-lbl">P6</span>
+        <span class="modal-yr-sub">Builder Track</span>
+      </button>
+      <button class="modal-yr-btn" id="edit-yr-p7" onclick="editSelectYear('P7')">
+        <span class="modal-yr-lbl">P7</span>
+        <span class="modal-yr-sub">Executor Track</span>
+      </button>
+    </div>
+
+    <label class="modal-label" for="edit-exam-year-input">Exam year</label>
+    <input class="modal-input" id="edit-exam-year-input" type="number" min="2025" max="2040" />
+
+    <div id="edit-modal-error" class="modal-error"></div>
+
+    <div class="modal-actions">
+      <button class="btn-action btn-action-secondary" onclick="cancelEdit()">Cancel</button>
+      <button class="btn-action btn-action-primary" id="edit-save-btn" onclick="saveEdit()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
