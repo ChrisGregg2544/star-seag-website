@@ -437,7 +437,7 @@ async function handleGenerateQuestions(req, res) {
           const aiResponse = await fetch(ANTHROPIC_URL, {
             method: 'POST',
             headers: { 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
-            body: JSON.stringify({ model: HAIKU_MODEL, max_tokens: 1000, messages: [{ role: 'user', content: prompt }] }),
+            body: JSON.stringify({ model: SONNET_MODEL, max_tokens: 1500, messages: [{ role: 'user', content: prompt }] }),
           });
           const aiData = await aiResponse.json();
           if (!aiResponse.ok) { console.warn(`generate-questions: variation ${i + 1} AI error: ${aiData.error?.message}`); continue; }
@@ -472,7 +472,7 @@ async function handleGenerateQuestions(req, res) {
       const aiResponse = await fetch(ANTHROPIC_URL, {
         method: 'POST',
         headers: { 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
-        body: JSON.stringify({ model: HAIKU_MODEL, max_tokens: 8000, messages: [{ role: 'user', content: prompt }] }),
+        body: JSON.stringify({ model: SONNET_MODEL, max_tokens: 8000, messages: [{ role: 'user', content: prompt }] }),
       });
       const aiData = await aiResponse.json();
       if (!aiResponse.ok) return res.status(500).json({ error: aiData.error?.message || 'AI API error' });
@@ -958,6 +958,31 @@ Score 8+ = pass, 6-7 = warn, 1-5 = fail.`;
   return { score: Number(result.score) || 0, reason: result.reason || '', verdict: result.verdict || 'warn' };
 }
 
+async function validateVocabulary(question_text, correct_answer, year_group, optionsBlock, apiKey) {
+  const ages = year_group === 'P6' ? '10–11' : '11–12';
+  const system = `You are a specialist SEAG vocabulary validator for Northern Ireland ${year_group} pupils (ages ${ages}).
+
+Check that:
+1. The correct answer is definitively the best answer — no better option exists.
+2. The wrong options are clearly not the right answer but are plausible distractors.
+3. Vocabulary level is appropriate for ${year_group} (ages ${ages}) — not too advanced or too basic.
+4. The question is clear and unambiguous.
+
+Score 8+ = pass, 6–7 = warn, 1–5 = fail.
+Return ONLY JSON: {"score":<1-10>,"reason":"<brief>","verdict":"<pass|warn|fail>"}`;
+
+  const user = `Question: ${question_text}\n${optionsBlock}\nCorrect answer: ${correct_answer}`;
+  const response = await fetch(ANTHROPIC_URL, {
+    method: 'POST',
+    headers: anthropicHeaders(apiKey),
+    body: JSON.stringify({ model: SONNET_MODEL, max_tokens: 300, system, messages: [{ role: 'user', content: user }] }),
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error?.message || 'Vocabulary validator error');
+  const result = parseValidatorResponse(data.content?.[0]?.text || '');
+  return { score: Number(result.score) || 0, reason: result.reason || '', verdict: result.verdict || 'warn' };
+}
+
 async function validateByCategory(question, apiKey) {
   const { question_text, correct_answer, category, year_group, options, passage } = question;
 
@@ -979,8 +1004,10 @@ async function validateByCategory(question, apiKey) {
     case 'comprehension_mc':
     case 'comprehension_written':
       return await validateComprehension(question_text, correct_answer, passage, year_group, apiKey);
+    case 'vocabulary':
+      return await validateVocabulary(question_text, correct_answer, year_group, optionsBlock, apiKey);
     default:
-      return await validatePunctuation(question_text, correct_answer, category, year_group, optionsBlock, apiKey);
+      return await validateVocabulary(question_text, correct_answer, year_group, optionsBlock, apiKey);
   }
 }
 
@@ -1179,6 +1206,7 @@ async function handleSaveGenerated(req, res) {
     explanation:       q.explanation || null,
     diagram:           q.diagram_svg || q.diagram || (q.diagram_description ? generateSVGFromDescription(q.diagram_description) : null),
     validated:         true,
+    active:            true,
     source:            'ai_generated_v2',
     validator_verdict: q.validator_verdict || q.validation?.outcome || 'pass',
     validator_reason:  combineReasons(q),
