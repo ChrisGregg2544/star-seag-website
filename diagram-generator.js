@@ -74,10 +74,30 @@ function triangle(opts = {}) {
 
   let extras = '';
 
-  // Right-angle marker
+  // Right-angle marker — square at p0 (bottom-left, where 90° actually is)
   if (subtype === 'right-angled') {
-    const [rx, ry] = p1;
-    extras += `<rect x="${rx}" y="${ry}" width="16" height="16" fill="none" stroke="${BLUE}" stroke-width="1.5"/>`;
+    const [rx, ry] = p0;
+    extras += `<rect x="${rx}" y="${ry - 16}" width="16" height="16" fill="none" stroke="${BLUE}" stroke-width="1.5"/>`;
+  }
+
+  // Equilateral — 60° label at each vertex
+  if (subtype === 'equilateral') {
+    const eqOffsets = [[0, 18], [22, -8], [-22, -8]];
+    [p0, p1, p2].forEach((pt, i) => {
+      extras += `<text x="${r2(pt[0] + eqOffsets[i][0])}" y="${r2(pt[1] + eqOffsets[i][1])}" text-anchor="middle" fill="${PURPLE}" font-size="11" font-weight="bold">60°</text>`;
+    });
+  }
+
+  // Isosceles — tick marks on the two equal sides (p0→p1 and p0→p2)
+  if (subtype === 'isosceles') {
+    [[p0, p1], [p0, p2]].forEach(([pa, pb]) => {
+      const mx = (pa[0] + pb[0]) / 2, my = (pa[1] + pb[1]) / 2;
+      const dx = pb[0] - pa[0], dy = pb[1] - pa[1];
+      const len = Math.sqrt(dx * dx + dy * dy);
+      const px = -dy / len, py = dx / len; // perpendicular unit vector
+      const t = 7;
+      extras += `<line x1="${r2(mx - t * px)}" y1="${r2(my - t * py)}" x2="${r2(mx + t * px)}" y2="${r2(my + t * py)}" stroke="${PURPLE}" stroke-width="2"/>`;
+    });
   }
 
   // Side labels (midpoints)
@@ -94,14 +114,16 @@ function triangle(opts = {}) {
     }
   });
 
-  // Angle labels near vertices
-  const angleOffsets = [[-16, 14], [18, -4], [12, 14]];
-  const angleLabels = unknownAngle ? ['a°', angleB, angleC] : [angleA, angleB, angleC];
-  angleLabels.forEach((lbl, i) => {
-    if (lbl) {
-      extras += `<text x="${r2(pts[i][0]+angleOffsets[i][0])}" y="${r2(pts[i][1]+angleOffsets[i][1])}" text-anchor="middle" fill="${PURPLE}" font-size="12" font-weight="bold">${lbl}</text>`;
-    }
-  });
+  // Angle labels near vertices (not used for equilateral — handled above)
+  if (subtype !== 'equilateral') {
+    const angleOffsets = [[-16, 14], [18, -4], [12, 14]];
+    const angleLabels = unknownAngle ? ['a°', angleB, angleC] : [angleA, angleB, angleC];
+    angleLabels.forEach((lbl, i) => {
+      if (lbl) {
+        extras += `<text x="${r2(pts[i][0]+angleOffsets[i][0])}" y="${r2(pts[i][1]+angleOffsets[i][1])}" text-anchor="middle" fill="${PURPLE}" font-size="12" font-weight="bold">${lbl}</text>`;
+      }
+    });
+  }
 
   return wrap(`<path d="${pathD}" fill="${FILL}" stroke="${BLUE}" stroke-width="2.5" stroke-linejoin="round"/>${extras}`);
 }
