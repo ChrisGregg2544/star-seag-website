@@ -276,6 +276,7 @@
     .missed-topic-tag { font-size: .7rem; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: var(--text-light); margin-bottom: 6px; }
     .missed-video-link { display: inline-flex; align-items: center; gap: 6px; font-size: .78rem; font-weight: 700; color: var(--blue-hint); text-decoration: none; margin-top: 8px; }
     .missed-video-link:hover { text-decoration: underline; }
+    .missed-reading-tip { font-size: .78rem; color: var(--text-mid); line-height: 1.5; margin-top: 6px; font-style: italic; }
     .missed-context { font-size: .82rem; color: var(--text-mid); line-height: 1.6; background: #FEF3E2; border-left: 3px solid var(--orange-light); padding: 8px 12px; border-radius: 0 8px 8px 0; margin-bottom: 10px; font-weight: 700; }
     .missed-segments { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; align-items: flex-end; }
     .all-correct-msg { text-align: center; padding: 24px; background: rgba(88,204,2,.1); border: 2px solid rgba(88,204,2,.25); border-radius: 14px; margin-bottom: 24px; }
@@ -1525,6 +1526,30 @@ async function nextQuestion() {
 /* ════════════════════════════════
    VIDEO SOURCE HELPER
 ════════════════════════════════ */
+const CORBETT_URLS = {
+  arithmetic:        'https://corbettmathsprimary.com/2018/05/30/addition-video/',
+  geometry:          'https://corbettmathsprimary.com/2018/07/18/2d-shapes-video/',
+  fractions_decimals:'https://corbettmathsprimary.com/2018/07/24/fractions-decimals-and-percentages-video/',
+  measurement:       'https://corbettmathsprimary.com/2018/07/31/units-length-video/',
+  statistics:        'https://corbettmathsprimary.com/2018/06/01/bar-charts-video/',
+  algebra_sequences: 'https://corbettmathsprimary.com/2018/07/31/sequences-video/',
+};
+
+const BITESIZE_URLS = {
+  punctuation:           'https://www.bbc.co.uk/bitesize/topics/zpmws82',
+  grammar:               'https://www.bbc.co.uk/bitesize/topics/znxjfdm',
+  spelling:              'https://www.bbc.co.uk/bitesize/topics/zt78p9q',
+  vocabulary:            'https://www.bbc.co.uk/bitesize/primary#ni',
+  comprehension_mc:      'https://www.bbc.co.uk/bitesize/primary#ni',
+  comprehension_written: 'https://www.bbc.co.uk/bitesize/primary#ni',
+};
+
+const READING_TIPS = {
+  vocabulary:            'The best vocabulary builder is reading! Visit your local library and pick a book at your level 📚',
+  comprehension_mc:      'The best comprehension practice is reading! Ask your local library for books recommended for your age group 📖',
+  comprehension_written: 'The best comprehension practice is reading! Ask your local library for books recommended for your age group 📖',
+};
+
 function getEffectiveVideo(q) {
   const typeLower  = (q.type  || '').toLowerCase();
   const topicLower = (q.topic || '').toLowerCase();
@@ -1532,11 +1557,12 @@ function getEffectiveVideo(q) {
     ['punctuation', 'grammar', 'spelling', 'comprehension'].some(t => topicLower.includes(t));
   const source = q.videoSource || (isEng ? 'BBC Bitesize' : 'CorbettMaths');
   let url = q.videoUrl || '';
-  // Re-derive URL if the stored URL doesn't match the correct source
-  if (source === 'CorbettMaths' && !url.includes('corbett')) {
-    url = 'https://corbettmathsprimary.com/?s=' + encodeURIComponent(q.videoTopic || q.topic || '');
-  } else if (source !== 'CorbettMaths' && !url.includes('bbc.co.uk')) {
-    url = 'https://www.bbc.co.uk/bitesize/search?q=' + encodeURIComponent(q.videoTopic || q.topic || '');
+  if (source === 'CorbettMaths') {
+    url = CORBETT_URLS[q.videoTopic || q.topic] ||
+          'https://corbettmathsprimary.com/?s=' + encodeURIComponent(q.videoTopic || q.topic || '');
+  } else {
+    url = BITESIZE_URLS[q.videoTopic || q.topic] ||
+          'https://www.bbc.co.uk/bitesize/search?q=' + encodeURIComponent(q.videoTopic || q.topic || '');
   }
   return { source, url };
 }
@@ -1711,7 +1737,8 @@ function _showResultsInternal() {
           <span class="missed-chip yours">✗ Your answer: ${studentAns}</span>
           <span class="missed-chip correct">✓ Correct: ${correctAns}</span>
         </div>
-        <a class="missed-video-link" href="${vid.url}" target="_blank" rel="noopener">🔍 Search: ${q.videoTopic || q.topic} on ${vid.source}</a>`;
+        <a class="missed-video-link" href="${vid.url}" target="_blank" rel="noopener">▶ Watch on ${vid.source}</a>
+        ${READING_TIPS[q.videoTopic || q.topic] ? `<div class="missed-reading-tip">${READING_TIPS[q.videoTopic || q.topic]}</div>` : ''}`;
       missedList.appendChild(card);
     });
   }

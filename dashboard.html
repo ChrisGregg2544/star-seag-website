@@ -353,6 +353,7 @@
     .topic-source-tag { font-size: .65rem; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--text-light); }
     .topic-name { font-size: 1rem; font-weight: 900; color: var(--text-dark); margin-bottom: 3px; }
     .topic-preview { font-size: .8rem; font-weight: 600; color: var(--text-mid); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 480px; }
+    .topic-reading-tip { font-size: .8rem; color: var(--text-mid); line-height: 1.5; margin-top: 4px; font-style: italic; }
     .btn-tutorial {
       flex-shrink: 0; display: inline-flex; align-items: center; gap: 6px;
       padding: 10px 16px; border-radius: var(--radius-btn);
@@ -701,8 +702,8 @@
       <p class="star-footer-text">Empowering P6 &amp; P7 students for Transfer Test success.<br>Smart, personalised practice — built for Northern Ireland.</p>
     </div>
     <div>
-      <div class="star-footer-col-label">Educational Partners</div>
-      <p class="star-footer-text">Visual tutorials powered by <a href="https://corbettmathsprimary.com" target="_blank" rel="noopener">CorbettMaths Primary</a> and <a href="https://www.bbc.co.uk/bitesize" target="_blank" rel="noopener">BBC Bitesize</a>.</p>
+      <div class="star-footer-col-label">Learning Resources</div>
+      <p class="star-footer-text">We recommend <a href="https://corbettmathsprimary.com" target="_blank" rel="noopener">CorbettMaths Primary</a> and <a href="https://www.bbc.co.uk/bitesize" target="_blank" rel="noopener">BBC Bitesize</a> for additional practice and tutorials.</p>
     </div>
     <div>
       <div class="star-footer-col-label">Legal</div>
@@ -974,18 +975,40 @@ function buildTopics(toReview, hasData) {
     return;
   }
   count.textContent = toReview.length + ' topic' + (toReview.length > 1 ? 's' : '');
+  const CORBETT_URLS = {
+    arithmetic:        'https://corbettmathsprimary.com/2018/05/30/addition-video/',
+    geometry:          'https://corbettmathsprimary.com/2018/07/18/2d-shapes-video/',
+    fractions_decimals:'https://corbettmathsprimary.com/2018/07/24/fractions-decimals-and-percentages-video/',
+    measurement:       'https://corbettmathsprimary.com/2018/07/31/units-length-video/',
+    statistics:        'https://corbettmathsprimary.com/2018/06/01/bar-charts-video/',
+    algebra_sequences: 'https://corbettmathsprimary.com/2018/07/31/sequences-video/',
+  };
+  const BITESIZE_URLS = {
+    punctuation:           'https://www.bbc.co.uk/bitesize/topics/zpmws82',
+    grammar:               'https://www.bbc.co.uk/bitesize/topics/znxjfdm',
+    spelling:              'https://www.bbc.co.uk/bitesize/topics/zt78p9q',
+    vocabulary:            'https://www.bbc.co.uk/bitesize/primary#ni',
+    comprehension_mc:      'https://www.bbc.co.uk/bitesize/primary#ni',
+    comprehension_written: 'https://www.bbc.co.uk/bitesize/primary#ni',
+  };
+  const READING_TIPS = {
+    vocabulary:            'The best vocabulary builder is reading! Visit your local library and pick a book at your level 📚',
+    comprehension_mc:      'The best comprehension practice is reading! Ask your local library for books recommended for your age group 📖',
+    comprehension_written: 'The best comprehension practice is reading! Ask your local library for books recommended for your age group 📖',
+  };
   toReview.forEach(item => {
     const isCorbett = (item.videoSource||'').toLowerCase().includes('corbett');
     const type = isCorbett ? 'maths'
       : ['fraction','area','perimeter','multiplication','division','algebra','percentage','ratio','decimal','geometry']
           .some(k => (item.topic||'').toLowerCase().includes(k)) ? 'maths' : 'english';
+    const topicKey = (item.topic || '').toLowerCase().replace(/\s+/g, '_');
     let videoUrl = item.videoUrl || '';
     if (!videoUrl) {
-      const searchTerm = encodeURIComponent(item.videoTitle || item.topic || '');
       videoUrl = isCorbett
-        ? 'https://corbettmathsprimary.com/?s=' + searchTerm
-        : 'https://www.bbc.co.uk/bitesize/search?q=' + searchTerm;
+        ? (CORBETT_URLS[topicKey] || 'https://corbettmathsprimary.com/?s=' + encodeURIComponent(item.videoTitle || item.topic || ''))
+        : (BITESIZE_URLS[topicKey] || 'https://www.bbc.co.uk/bitesize/search?q=' + encodeURIComponent(item.videoTitle || item.topic || ''));
     }
+    const readingTip = READING_TIPS[topicKey] || '';
     const card = document.createElement('div');
     card.className = 'topic-card';
     card.innerHTML = `
@@ -995,6 +1018,7 @@ function buildTopics(toReview, hasData) {
           <span class="topic-source-tag">${isCorbett?'CorbettMaths':'BBC Bitesize'}</span>
         </div>
         <div class="topic-name">${item.topic}</div>
+        ${readingTip ? `<div class="topic-reading-tip">${readingTip}</div>` : ''}
         ${item.questionText?`<div class="topic-preview">${item.questionText}</div>`:''}
       </div>
       <a class="btn-tutorial ${isCorbett?'btn-corbett':'btn-bitesize'}" href="${videoUrl}" target="_blank" rel="noopener">▶ Watch Tutorial</a>`;

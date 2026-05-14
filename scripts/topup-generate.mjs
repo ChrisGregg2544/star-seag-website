@@ -30,11 +30,9 @@ if (!SERVICE_KEY) { console.error('Missing SUPABASE_SERVICE_ROLE_KEY in .env'); 
 
 // ── Jobs ───────────────────────────────────────────────────────────────────
 const JOBS = [
-  { category: 'vocabulary',  year_group: 'P7', target: 250 },
-  { category: 'vocabulary',  year_group: 'P6', target: 200 },
-  { category: 'punctuation', year_group: 'P7', target: 200 },
-  { category: 'punctuation', year_group: 'P6', target: 200 },
-  { category: 'geometry',    year_group: 'P6', target: 200 },
+  { category: 'punctuation', year_group: 'P7', target: 505 },
+  { category: 'punctuation', year_group: 'P6', target: 513 },
+  { category: 'geometry',    year_group: 'P6', target: 505 },
 ];
 
 // ── Helpers ────────────────────────────────────────────────────────────────

@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>STAR – Enter Paper Results</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --orange:#F97316;--orange-dark:#EA6C0A;--orange-light:#FB923C;
+      --cream:#FEF3E2;--cream-border:#F0E0C0;
+      --text-dark:#333333;--text-mid:#666666;--text-light:#999999;
+      --green:#58CC02;--green-dark:#46A801;--red:#EF4444;--red-dark:#DC2626;
+      --blue:#3B82F6;
+      --radius:16px;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    body{background:var(--cream);min-height:100vh;font-family:'Nunito',sans-serif;font-weight:600;color:var(--text-dark);}
+
+    /* ── NAV ── */
+    .top-nav{position:sticky;top:0;z-index:100;background:var(--orange);display:flex;align-items:center;justify-content:space-between;padding:0 24px;height:64px;box-shadow:0 4px 0 var(--orange-dark);}
+    .nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none;}
+    .nav-logo-star{width:38px;height:38px;border-radius:10px;background:#F59E0B;border:3px solid rgba(0,0,0,.15);display:flex;align-items:center;justify-content:center;font-size:1.3rem;}
+    .nav-logo-name{font-size:1.1rem;font-weight:900;color:#fff;letter-spacing:.04em;}
+    .nav-home{font-size:.75rem;font-weight:800;letter-spacing:.05em;text-transform:uppercase;padding:7px 14px;border-radius:8px;background:rgba(255,255,255,.2);color:#fff;border:2px solid rgba(255,255,255,.4);cursor:pointer;text-decoration:none;}
+    .nav-home:hover{background:rgba(255,255,255,.32);}
+
+    /* ── SHARED CARD ── */
+    .center-wrap{max-width:520px;margin:48px auto;padding:0 20px;}
+    .card{background:#fff;border-radius:var(--radius);border:2px solid var(--cream-border);box-shadow:0 4px 0 rgba(0,0,0,.06);padding:36px 32px;}
+    .card-icon{font-size:2.6rem;text-align:center;margin-bottom:16px;}
+    .card-title{font-size:1.45rem;font-weight:900;text-align:center;color:var(--text-dark);margin-bottom:8px;}
+    .card-sub{font-size:.9rem;color:var(--text-mid);text-align:center;line-height:1.6;margin-bottom:28px;}
+
+    /* ── STEP 1: CODE ENTRY ── */
+    .code-input-wrap{position:relative;margin-bottom:20px;}
+    #code-input{
+      width:100%;padding:14px 18px;border:2.5px solid var(--cream-border);
+      border-radius:12px;font-family:'Nunito',sans-serif;font-size:1.6rem;
+      font-weight:900;letter-spacing:.22em;text-align:center;text-transform:uppercase;
+      color:var(--text-dark);background:#fff;transition:border-color .15s;
+    }
+    #code-input:focus{outline:none;border-color:var(--orange);}
+    #code-input::placeholder{letter-spacing:.05em;font-size:1rem;font-weight:700;color:var(--text-light);}
+    .btn-primary{width:100%;padding:15px;background:var(--orange);color:#fff;border:none;border-radius:12px;font-family:'Nunito',sans-serif;font-size:1rem;font-weight:800;letter-spacing:.04em;cursor:pointer;box-shadow:0 4px 0 var(--orange-dark);transition:all .15s;}
+    .btn-primary:hover{transform:translateY(-1px);box-shadow:0 5px 0 var(--orange-dark);}
+    .btn-primary:active{transform:translateY(1px);box-shadow:0 2px 0 var(--orange-dark);}
+    .btn-primary:disabled{opacity:.5;cursor:not-allowed;transform:none;box-shadow:0 4px 0 var(--orange-dark);}
+
+    /* ── STEP 2: CONFIRM ── */
+    .paper-info-card{background:var(--cream);border:1.5px solid var(--cream-border);border-radius:12px;padding:20px 24px;margin-bottom:20px;}
+    .paper-info-name{font-size:1.3rem;font-weight:900;color:var(--text-dark);margin-bottom:6px;}
+    .paper-info-row{font-size:.88rem;color:var(--text-mid);display:flex;gap:16px;flex-wrap:wrap;}
+    .paper-info-badge{background:#fff;border:1.5px solid var(--cream-border);border-radius:20px;padding:3px 10px;font-weight:800;font-size:.78rem;color:var(--text-dark);}
+    .resubmit-warn{background:#FFF7ED;border:1.5px solid #FED7AA;border-radius:10px;padding:12px 16px;font-size:.85rem;color:#92400E;line-height:1.5;margin-bottom:18px;}
+    .btn-back{display:block;text-align:center;margin-top:14px;font-size:.82rem;color:var(--text-mid);cursor:pointer;text-decoration:underline;background:none;border:none;font-family:'Nunito',sans-serif;font-weight:700;width:100%;}
+    .btn-back:hover{color:var(--text-dark);}
+
+    /* ── STEP 3: ANSWER GRID ── */
+    .answers-wrap{max-width:680px;margin:0 auto;padding:0 20px 60px;}
+    .answers-header{padding:32px 0 20px;}
+    .answers-title{font-size:1.3rem;font-weight:900;color:var(--text-dark);margin-bottom:4px;}
+    .answers-sub{font-size:.88rem;color:var(--text-mid);}
+    .progress-bar-wrap{background:var(--cream-border);border-radius:99px;height:8px;margin:12px 0 0;overflow:hidden;}
+    .progress-bar-fill{height:100%;background:var(--orange);border-radius:99px;transition:width .3s;}
+    .progress-label{font-size:.75rem;color:var(--text-mid);margin-top:4px;}
+
+    .section-band{background:var(--orange);color:#fff;font-size:.72rem;font-weight:900;letter-spacing:.1em;text-transform:uppercase;padding:8px 16px;border-radius:10px;margin:20px 0 10px;}
+    .section-band.maths{background:#3B82F6;}
+
+    .q-row{display:flex;align-items:center;gap:12px;padding:8px 4px;border-bottom:1px solid #F5ECD8;}
+    .q-row:last-child{border-bottom:none;}
+    .q-num{font-size:.78rem;font-weight:900;color:var(--text-light);min-width:32px;text-align:right;flex-shrink:0;}
+    .q-topic{font-size:.65rem;font-weight:800;color:var(--text-light);min-width:48px;text-align:left;flex-shrink:0;letter-spacing:.03em;text-transform:lowercase;}
+    .btn-group{display:flex;gap:6px;flex-wrap:wrap;}
+    .ans-btn{
+      min-width:38px;height:38px;padding:0 6px;
+      border:2px solid var(--cream-border);border-radius:8px;
+      background:#fff;font-family:'Nunito',sans-serif;
+      font-size:.85rem;font-weight:900;color:var(--text-mid);
+      cursor:pointer;transition:all .12s;flex-shrink:0;
+    }
+    .ans-btn:hover{border-color:var(--orange);color:var(--orange);}
+    .ans-btn.selected{background:var(--orange);border-color:var(--orange);color:#fff;}
+    .ans-btn.correct-btn{min-width:90px;font-size:.78rem;}
+    .ans-btn.correct-btn.selected{background:var(--green);border-color:var(--green-dark);color:#fff;}
+    .ans-btn.incorrect-btn{min-width:90px;font-size:.78rem;}
+    .ans-btn.incorrect-btn.selected{background:var(--red);border-color:var(--red-dark);color:#fff;}
+
+    .submit-bar{margin-top:28px;display:flex;flex-direction:column;align-items:stretch;gap:12px;}
+    .incomplete-warn{background:#FFF7ED;border:1.5px solid #FED7AA;border-radius:10px;padding:12px 16px;font-size:.85rem;color:#92400E;text-align:center;}
+
+    /* ── STEP 4: RESULTS ── */
+    .results-wrap{max-width:600px;margin:0 auto;padding:0 20px 60px;}
+    .results-header{padding:32px 0 20px;}
+    .results-title{font-size:1.4rem;font-weight:900;color:var(--text-dark);margin-bottom:4px;}
+    .results-sub{font-size:.9rem;color:var(--text-mid);}
+
+    .scores-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:24px;}
+    .score-card{background:#fff;border:2px solid var(--cream-border);border-radius:14px;padding:20px 12px;text-align:center;}
+    .score-card.total{background:var(--orange);border-color:var(--orange-dark);}
+    .score-card.total .score-num{color:#fff;}
+    .score-card.total .score-label{color:rgba(255,255,255,.8);}
+    .score-card.total .score-pct{display:block;font-size:1rem;font-weight:900;color:rgba(255,255,255,.9);margin-bottom:2px;}
+    .score-num{display:block;font-size:1.4rem;font-weight:900;color:var(--text-dark);line-height:1;}
+    .score-label{display:block;font-size:.72rem;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--text-mid);margin-top:4px;}
+    .score-pct{display:none;}
+
+    .topics-panel{background:#fff;border:2px solid var(--cream-border);border-radius:14px;padding:20px 24px;margin-bottom:24px;}
+    .topics-title{font-size:.8rem;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:var(--text-mid);margin-bottom:14px;}
+    .topic-chips{display:flex;flex-wrap:wrap;gap:8px;}
+    .topic-chip{background:#FFF7ED;border:1.5px solid #FED7AA;border-radius:20px;padding:5px 14px;font-size:.8rem;font-weight:800;color:#92400E;}
+    .topic-chip.strong{background:#F0FDF4;border-color:#BBF7D0;color:#166534;}
+    .all-good{font-size:.9rem;color:var(--text-mid);font-style:italic;}
+
+    .results-actions{display:flex;flex-direction:column;gap:12px;align-items:stretch;}
+    .btn-secondary{padding:14px;background:#fff;color:var(--orange);border:2px solid var(--orange);border-radius:12px;font-family:'Nunito',sans-serif;font-size:1rem;font-weight:800;letter-spacing:.04em;cursor:pointer;text-align:center;text-decoration:none;transition:all .15s;}
+    .btn-secondary:hover{background:var(--cream);}
+    .link-home{text-align:center;font-size:.85rem;color:var(--text-mid);text-decoration:underline;cursor:pointer;}
+    .link-home:hover{color:var(--text-dark);}
+
+    /* ── LOADING ── */
+    .loading-wrap{text-align:center;padding:24px 0;}
+    .spinner{width:36px;height:36px;border:3.5px solid rgba(249,115,22,.2);border-top-color:var(--orange);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 12px;}
+    @keyframes spin{to{transform:rotate(360deg);}}
+    .loading-text{font-size:.9rem;color:var(--text-mid);}
+
+    /* ── UTILS ── */
+    .hidden{display:none !important;}
+    .error-msg{background:#FEF2F2;border:1.5px solid #FECACA;border-radius:10px;padding:12px 16px;font-size:.85rem;color:var(--red);margin-top:14px;text-align:center;}
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav class="top-nav">
+    <a class="nav-logo" href="/">
+      <div class="nav-logo-star">⭐</div>
+      <span class="nav-logo-name">STAR</span>
+    </a>
+    <a class="nav-home" href="/">Home</a>
+  </nav>
+
+  <!-- ═══════════════════════════════
+       STEP 1 — CODE ENTRY
+  ═══════════════════════════════ -->
+  <div id="sec-code" class="center-wrap">
+    <div class="card">
+      <div class="card-icon">📋</div>
+      <div class="card-title">Enter Paper Results</div>
+      <div class="card-sub">Enter the 6-character code from the answer key, or scan the QR code to open this page automatically.</div>
+
+      <div class="code-input-wrap">
+        <input id="code-input" type="text" maxlength="6" placeholder="e.g. AB3X7R"
+          autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false" />
+      </div>
+
+      <div id="code-loading" class="loading-wrap hidden">
+        <div class="spinner"></div>
+        <div class="loading-text">Looking up paper…</div>
+      </div>
+
+      <button id="btn-find" class="btn-primary">Find Paper</button>
+      <div id="code-error" class="error-msg hidden"></div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════
+       STEP 2 — CONFIRM PAPER
+  ═══════════════════════════════ -->
+  <div id="sec-confirm" class="center-wrap hidden">
+    <div class="card">
+      <div class="card-icon">✅</div>
+      <div class="card-title">Paper Found</div>
+
+      <div class="paper-info-card">
+        <div class="paper-info-name" id="confirm-name">—</div>
+        <div class="paper-info-row">
+          <span class="paper-info-badge" id="confirm-year">—</span>
+          <span id="confirm-date" style="font-size:.82rem;color:var(--text-mid);align-self:center;"></span>
+        </div>
+      </div>
+
+      <div id="resubmit-warn" class="resubmit-warn hidden">
+        Results have already been entered for this paper. Submitting again will replace the previous results.
+      </div>
+
+      <button id="btn-enter-answers" class="btn-primary">Enter Answers</button>
+      <button class="btn-back" id="btn-back-code">Wrong paper? Try a different code</button>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════
+       STEP 3 — ANSWER GRID
+  ═══════════════════════════════ -->
+  <div id="sec-answers" class="hidden">
+    <div class="answers-wrap">
+      <div class="answers-header">
+        <div class="answers-title" id="answers-title">Enter Answers</div>
+        <div class="answers-sub">Select the answer for each question. Written questions (Q23–28) — mark as Correct or Incorrect based on the model answer.</div>
+        <div class="progress-bar-wrap">
+          <div class="progress-bar-fill" id="progress-fill" style="width:0%"></div>
+        </div>
+        <div class="progress-label" id="progress-label">0 / 56 answered</div>
+      </div>
+
+      <div class="section-band">English — Q1 to Q28</div>
+      <div id="grid-english"></div>
+
+      <div class="section-band maths">Maths — Q29 to Q56</div>
+      <div id="grid-maths"></div>
+
+      <div class="submit-bar">
+        <div id="incomplete-warn" class="incomplete-warn hidden">Please answer all 56 questions before submitting.</div>
+        <div id="submit-loading" class="loading-wrap hidden">
+          <div class="spinner"></div>
+          <div class="loading-text">Saving results…</div>
+        </div>
+        <button id="btn-submit" class="btn-primary">Submit Results</button>
+        <div id="submit-error" class="error-msg hidden"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════
+       STEP 4 — RESULTS SUMMARY
+  ═══════════════════════════════ -->
+  <div id="sec-results" class="hidden">
+    <div class="results-wrap">
+      <div class="results-header">
+        <div class="results-title" id="results-title">Results</div>
+        <div class="results-sub" id="results-sub"></div>
+      </div>
+
+      <div class="scores-row">
+        <div class="score-card total">
+          <span class="score-pct" id="res-pct"></span>
+          <span class="score-num" id="res-total"></span>
+          <span class="score-label">Total</span>
+        </div>
+        <div class="score-card">
+          <span class="score-num" id="res-english"></span>
+          <span class="score-label">English</span>
+        </div>
+        <div class="score-card">
+          <span class="score-num" id="res-maths"></span>
+          <span class="score-label">Maths</span>
+        </div>
+      </div>
+
+      <div class="topics-panel" id="topics-panel"></div>
+
+      <div class="results-actions">
+        <button class="btn-primary" id="btn-another">Enter Another Paper</button>
+        <a class="btn-secondary" href="/parent-dashboard.html">View Dashboard</a>
+        <a class="link-home" href="/">Return to home</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+  /* ════════════════════════════════
+     STATE
+  ════════════════════════════════ */
+  let paperCode    = '';
+  let paperMeta    = null;   // { child_name, year_group, generated_at, already_submitted, questions }
+  const answers    = {};     // { 1:'A', 2:'C', 23:'CORRECT', ... }
+
+  /* ════════════════════════════════
+     HELPERS
+  ════════════════════════════════ */
+  function show(id)  { document.getElementById(id).classList.remove('hidden'); }
+  function hide(id)  { document.getElementById(id).classList.add('hidden'); }
+  function text(id, v) { document.getElementById(id).textContent = v; }
+  function html(id, v) { document.getElementById(id).innerHTML = v; }
+
+  function fmtDate(iso) {
+    if (!iso) return '';
+    return new Date(iso).toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' });
+  }
+
+  function topicLabel(topic) {
+    const labels = {
+      punctuation:            'Punctuation',
+      grammar:                'Grammar',
+      spelling:               'Spelling',
+      vocabulary:             'Vocabulary',
+      comprehension_mc:       'Comprehension',
+      comprehension_written:  'Comprehension (Written)',
+      arithmetic:             'Arithmetic',
+      geometry:               'Geometry',
+      fractions_decimals:     'Fractions & Decimals',
+      measurement:            'Measurement',
+      statistics:             'Statistics',
+      algebra_sequences:      'Algebra & Sequences',
+    };
+    return labels[topic] || topic.replace(/_/g, ' ');
+  }
+
+  function optLetters(topic) {
+    if (topic === 'punctuation' || topic === 'spelling') return ['A','B','C','D','N'];
+    return ['A','B','C','D','E'];
+  }
+
+  function updateProgress() {
+    const total    = 56;
+    const answered = Object.keys(answers).length;
+    const pct      = Math.round(answered / total * 100);
+    document.getElementById('progress-fill').style.width = pct + '%';
+    text('progress-label', `${answered} / ${total} answered`);
+  }
+
+  /* ════════════════════════════════
+     BUILD ANSWER GRID
+  ════════════════════════════════ */
+  function buildGrid(questions) {
+    const engEl   = document.getElementById('grid-english');
+    const mathsEl = document.getElementById('grid-maths');
+    engEl.innerHTML = '';
+    mathsEl.innerHTML = '';
+
+    for (const q of questions) {
+      const container = q.n <= 28 ? engEl : mathsEl;
+      const isWritten = q.type === 'written';
+      const letters   = optLetters(q.topic);
+
+      const row = document.createElement('div');
+      row.className = 'q-row';
+      row.dataset.n = q.n;
+
+      let btnHtml = '';
+      if (isWritten) {
+        btnHtml = `
+          <button class="ans-btn correct-btn" data-n="${q.n}" data-val="CORRECT">✓ Correct</button>
+          <button class="ans-btn incorrect-btn" data-n="${q.n}" data-val="INCORRECT">✗ Incorrect</button>`;
+      } else {
+        btnHtml = letters.map(l =>
+          `<button class="ans-btn" data-n="${q.n}" data-val="${l}">${l}</button>`
+        ).join('');
+      }
+
+      row.innerHTML = `
+        <span class="q-num">Q${q.n}</span>
+        <span class="q-topic">${isWritten ? 'written' : q.topic.replace(/_/g,' ').replace('comprehension ','').replace('fractions decimals','frac/dec').replace('algebra sequences','alg/seq')}</span>
+        <div class="btn-group">${btnHtml}</div>`;
+
+      container.appendChild(row);
+    }
+
+    // Attach click handlers
+    document.querySelectorAll('.ans-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const n   = Number(btn.dataset.n);
+        const val = btn.dataset.val;
+        answers[n] = val;
+
+        // Deselect siblings in same question row
+        btn.closest('.btn-group').querySelectorAll('.ans-btn').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        updateProgress();
+        hide('incomplete-warn');
+      });
+    });
+  }
+
+  /* ════════════════════════════════
+     API CALLS
+  ════════════════════════════════ */
+  async function fetchPaper(code) {
+    const res = await fetch(`/api/save-session?action=get-paper&code=${encodeURIComponent(code)}`);
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.error || `Server error (${res.status})`);
+    }
+    return res.json();
+  }
+
+  async function submitResults(code, answerArray) {
+    const res = await fetch('/api/save-session', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'submit-results', code, answers: answerArray }),
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.error || `Server error (${res.status})`);
+    }
+    return res.json();
+  }
+
+  /* ════════════════════════════════
+     STEP TRANSITIONS
+  ════════════════════════════════ */
+  function showStep(step) {
+    ['sec-code','sec-confirm','sec-answers','sec-results'].forEach(id => hide(id));
+    show(step);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function showConfirm(data) {
+    paperMeta = data;
+    text('confirm-name', data.child_name);
+    text('confirm-year', data.year_group);
+    text('confirm-date', 'Generated ' + fmtDate(data.generated_at));
+    if (data.already_submitted) show('resubmit-warn'); else hide('resubmit-warn');
+    showStep('sec-confirm');
+  }
+
+  function showAnswerGrid() {
+    text('answers-title', `Enter Answers — ${paperMeta.child_name}`);
+    Object.keys(answers).forEach(k => delete answers[k]);
+    buildGrid(paperMeta.questions);
+    updateProgress();
+    showStep('sec-answers');
+  }
+
+  function showResults(data) {
+    const pct = Math.round(data.score / data.total * 100);
+    text('results-title', `Results — ${paperMeta.child_name}`);
+    text('results-sub',   `${data.score} out of ${data.total} questions correct`);
+    text('res-total',     `${data.score}/${data.total}`);
+    text('res-pct',       `${pct}%`);
+    text('res-english',   `${data.english_score}/28`);
+    text('res-maths',     `${data.maths_score}/28`);
+
+    const allTopics = [...new Set(paperMeta.questions.map(q => q.topic))];
+    const review    = data.topics_to_review || [];
+    const strong    = allTopics.filter(t => !review.includes(t));
+
+    let topicsHtml = '';
+    if (review.length) {
+      topicsHtml += `<div class="topics-title">Needs Practice</div><div class="topic-chips">`;
+      topicsHtml += review.map(t => `<span class="topic-chip">${topicLabel(t)}</span>`).join('');
+      topicsHtml += `</div>`;
+    }
+    if (strong.length && review.length) {
+      topicsHtml += `<div class="topics-title" style="margin-top:14px;">Strong Areas</div><div class="topic-chips">`;
+      topicsHtml += strong.map(t => `<span class="topic-chip strong">${topicLabel(t)}</span>`).join('');
+      topicsHtml += `</div>`;
+    }
+    if (!review.length) {
+      topicsHtml = `<div class="topics-title">Topic Breakdown</div><div class="all-good">Excellent work — accuracy above 70% in every topic!</div>`;
+    }
+
+    html('topics-panel', topicsHtml);
+    showStep('sec-results');
+  }
+
+  /* ════════════════════════════════
+     EVENT HANDLERS
+  ════════════════════════════════ */
+  // Step 1 — enforce uppercase + digits only, find paper
+  const codeInput = document.getElementById('code-input');
+  codeInput.addEventListener('input', () => {
+    const v = codeInput.value.toUpperCase().replace(/[^A-Z2-9]/g, '');
+    codeInput.value = v;
+    hide('code-error');
+  });
+
+  async function doFindPaper() {
+    const code = codeInput.value.trim().toUpperCase();
+    if (code.length !== 6) {
+      show('code-error');
+      text('code-error', 'Please enter the full 6-character paper code.');
+      return;
+    }
+
+    hide('code-error');
+    const findBtn = document.getElementById('btn-find');
+    findBtn.disabled = true;
+    show('code-loading');
+
+    try {
+      const data = await fetchPaper(code);
+      paperCode = code;
+      showConfirm(data);
+    } catch (e) {
+      show('code-error');
+      text('code-error', e.message === 'Paper not found'
+        ? 'Paper not found. Check the code and try again.'
+        : e.message);
+    } finally {
+      findBtn.disabled = false;
+      hide('code-loading');
+    }
+  }
+
+  document.getElementById('btn-find').addEventListener('click', doFindPaper);
+  codeInput.addEventListener('keydown', e => { if (e.key === 'Enter') doFindPaper(); });
+
+  // Step 2 — confirm
+  document.getElementById('btn-enter-answers').addEventListener('click', showAnswerGrid);
+  document.getElementById('btn-back-code').addEventListener('click', () => {
+    showStep('sec-code');
+    codeInput.value = '';
+    paperCode = '';
+    paperMeta = null;
+  });
+
+  // Step 3 — submit
+  document.getElementById('btn-submit').addEventListener('click', async () => {
+    const total     = 56;
+    const answered  = Object.keys(answers).length;
+    if (answered < total) {
+      show('incomplete-warn');
+      // Scroll to first unanswered question
+      const allNs = paperMeta.questions.map(q => q.n);
+      const missing = allNs.find(n => answers[n] == null);
+      if (missing) {
+        const row = document.querySelector(`.q-row[data-n="${missing}"]`);
+        if (row) row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+      return;
+    }
+
+    hide('incomplete-warn');
+    hide('submit-error');
+    document.getElementById('btn-submit').disabled = true;
+    show('submit-loading');
+
+    const answerArray = Object.entries(answers).map(([n, answer]) => ({ n: Number(n), answer }));
+    try {
+      const data = await submitResults(paperCode, answerArray);
+      showResults(data);
+    } catch (e) {
+      show('submit-error');
+      text('submit-error', 'Could not save results: ' + e.message);
+    } finally {
+      document.getElementById('btn-submit').disabled = false;
+      hide('submit-loading');
+    }
+  });
+
+  // Step 4 — enter another paper
+  document.getElementById('btn-another').addEventListener('click', () => {
+    paperCode = '';
+    paperMeta = null;
+    Object.keys(answers).forEach(k => delete answers[k]);
+    codeInput.value = '';
+    hide('resubmit-warn');
+    showStep('sec-code');
+  });
+
+  /* ════════════════════════════════
+     AUTO-LOAD FROM URL ?code=XXXXXX
+  ════════════════════════════════ */
+  (function autoLoad() {
+    const params = new URLSearchParams(window.location.search);
+    const code   = (params.get('code') || '').toUpperCase().replace(/[^A-Z2-9]/g, '').slice(0, 6);
+    if (code.length === 6) {
+      codeInput.value = code;
+      // Small delay so the page renders before the API call
+      setTimeout(doFindPaper, 150);
+    }
+  })();
+  </script>
+</body>
+</html>

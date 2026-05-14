@@ -188,7 +188,8 @@ async function handleSubmitResults(req, res, serviceKey) {
 
   for (const q of paperQs) {
     const submitted = answerMap[q.n] ?? null;
-    const correct   = submitted !== null && submitted === q.answer;
+    const correct   = submitted !== null &&
+      (q.type === 'written' ? submitted === 'CORRECT' : submitted === q.answer);
     const isEnglish = q.n <= 28;
 
     if (correct) { score++; if (isEnglish) englishScore++; else mathsScore++; }

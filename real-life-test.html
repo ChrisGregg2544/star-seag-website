@@ -10,6 +10,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <style>
     :root {
       --orange:#F97316;--orange-dark:#EA6C0A;--orange-light:#FB923C;
@@ -119,6 +120,10 @@
     .ak-header{background:var(--cream);border-bottom:2px solid var(--cream-border);padding:20px 24px;}
     .ak-title{font-size:1.2rem;font-weight:900;color:var(--text-dark);margin-bottom:4px;}
     .ak-sub{font-size:.82rem;color:var(--text-mid);}
+    .ak-header-row{display:flex;align-items:flex-start;gap:20px;}
+    .ak-header-info{flex:1;min-width:0;}
+    .ak-qr-block{display:flex;flex-direction:column;align-items:center;gap:5px;flex-shrink:0;}
+    .ak-code-text{font-size:.72rem;font-weight:900;letter-spacing:.1em;color:var(--text-dark);font-family:monospace;}
     .ak-body{padding:20px 24px;}
     .ak-section-label{font-size:.7rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--text-mid);margin:16px 0 8px;border-top:1.5px solid #F0E0C0;padding-top:14px;}
     .ak-section-label:first-child{border-top:none;margin-top:0;padding-top:0;}
@@ -151,6 +156,7 @@
 
       body.print-paper .answer-key-wrap { display:none !important; }
       body.print-key   .paper-wrap      { display:none !important; }
+      .ak-qr-block canvas,.ak-qr-block img { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
 
       @page { margin:15mm 18mm; }
     }
@@ -273,33 +279,30 @@ function applyLimitUI() {
   msg.classList.toggle('hidden', !atLimit);
 }
 
-async function saveGuardianSession(childId, pd) {
-  if (!_accessToken || !childId) return;
+async function savePaper(childId, pd) {
+  if (!_accessToken || !childId) return null;
   const allQs = [...pd.practice, ...pd.english, ...pd.maths];
+  const scoredQuestions = [
+    ...pd.english.map((q, i) => ({ n: i + 1,  id: q.id, topic: q.topic, type: q.question_type, answer: q.correct_answer })),
+    ...pd.maths.map(  (q, i) => ({ n: i + 29, id: q.id, topic: q.topic, type: q.question_type, answer: q.correct_answer })),
+  ];
   try {
-    await fetch('/api/save-session', {
+    const res = await fetch('/api/save-session', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${_accessToken}` },
       body: JSON.stringify({
+        action: 'save-paper',
         childId,
-        session: {
-          session_type: 'guardian_test',
-          track: null,
-          score: null,
-          total_questions: allQs.length,
-          english_score: null,
-          maths_score: null,
-        },
-        questionResults: allQs.map(q => ({
-          question_id: q.id,
-          topic: q.topic,
-          question_type: q.question_type,
-          correct: null,
-        })),
-        missedTopics: [],
+        childName: pd.childName,
+        yearGroup: pd.yearGroup,
+        scoredQuestions,
+        historyQuestionIds: allQs.map(q => q.id),
       }),
     });
-  } catch (e) { /* non-fatal */ }
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data.ok ? { paper_code: data.paper_code, session_id: data.session_id } : null;
+  } catch (e) { return null; }
 }
 
 async function init() {
@@ -513,10 +516,25 @@ async function generatePaper() {
       generated: new Date().toLocaleString('en-GB'),
     };
 
+    // Save paper server-side first so paper_code is ready for QR render
+    const saved = await savePaper(childId, paperData).catch(() => null);
+    if (saved?.paper_code) paperData.paperCode = saved.paper_code;
+
     renderPaper(paperData);
 
-    // Save session server-side (tracks weekly count + question history)
-    saveGuardianSession(childId, paperData).catch(() => {});
+    // Render QR code into answer key placeholder
+    if (saved?.paper_code) {
+      const qrDiv = document.getElementById('ak-qr-canvas');
+      if (qrDiv) {
+        new QRCode(qrDiv, {
+          text: `${window.location.origin}/enter-results.html?code=${saved.paper_code}`,
+          width: 112, height: 112,
+          colorDark: '#333333', colorLight: '#ffffff',
+          correctLevel: QRCode.CorrectLevel.M,
+        });
+      }
+    }
+
     weeklyTestCount++;
 
   } catch (err) {
@@ -594,7 +612,7 @@ function renderQuestion(q, displayNum, isPractice) {
   </div>`;
 }
 
-function renderPaper({ practice, english, maths, passage, childName, yearGroup, generated }) {
+function renderPaper({ practice, english, maths, passage, childName, yearGroup, generated, paperCode }) {
   // ── Question Paper ──
   const paperWrap = document.getElementById('paper-wrap');
 
@@ -691,8 +709,14 @@ function renderPaper({ practice, english, maths, passage, childName, yearGroup, 
 
   const keyHtml = `<div class="answer-key-card">
     <div class="ak-header">
-      <div class="ak-title">Answer Key — ${yearGroup} · ${childName}</div>
-      <div class="ak-sub">Generated ${generated} · Keep this page separate from the question paper</div>
+      <div class="ak-header-row">
+        <div class="ak-header-info">
+          <div class="ak-title">Answer Key — ${yearGroup} · ${childName}</div>
+          <div class="ak-sub">Generated ${generated} · Keep this page separate from the question paper</div>
+          ${paperCode ? `<div class="ak-sub" style="margin-top:6px;">Paper code: <strong style="font-family:monospace;letter-spacing:.06em;">${paperCode}</strong> · Enter results at staraitutor.co.uk/enter-results</div>` : ''}
+        </div>
+        ${paperCode ? `<div class="ak-qr-block"><div id="ak-qr-canvas"></div><div class="ak-code-text">${paperCode}</div></div>` : ''}
+      </div>
     </div>
     <div class="ak-body">
       <div class="ak-section-label">Warm-Up Practice (P1–P10) — not scored</div>
