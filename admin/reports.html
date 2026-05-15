@@ -109,7 +109,7 @@ async function load() {
       document.getElementById('list').innerHTML = `<div class="err">Error: ${data.error}</div>`;
       return;
     }
-    allReports = data.reports || [];
+    allReports = (data.reports || []).map(r => ({ ...r, dismissed: false }));
     updateStats();
     render();
   } catch (e) {
@@ -120,7 +120,7 @@ async function load() {
 function updateStats() {
   const total  = allReports.reduce((s, r) => s + r.report_count, 0);
   const unique = allReports.length;
-  const active = allReports.filter(r => r.validated).length;
+  const active = allReports.filter(r => r.validated && !r.dismissed).length;
   document.getElementById('stat-total').textContent  = total;
   document.getElementById('stat-unique').textContent = unique;
   document.getElementById('stat-active').textContent = active;
@@ -141,7 +141,7 @@ function fmtDate(iso) {
 function render() {
   const list = document.getElementById('list');
   let items = allReports;
-  if (currentFilter === 'active')      items = items.filter(r => r.validated);
+  if (currentFilter === 'active')      items = items.filter(r => r.validated && !r.dismissed);
   if (currentFilter === 'deactivated') items = items.filter(r => !r.validated);
 
   if (items.length === 0) {
@@ -170,7 +170,7 @@ function render() {
         <div class="q-text">${qText}</div>
         <div class="q-actions">
           ${actionBtn}
-          <button class="btn-dismiss" onclick="dismiss('${r.question_id}', this)">Dismiss</button>
+          <button class="btn-dismiss" ${r.dismissed ? 'disabled' : `onclick="dismiss('${r.question_id}', this)"`}>${r.dismissed ? 'Dismissed ✓' : 'Dismiss'}</button>
         </div>
       </div>`;
   }).join('');
@@ -237,7 +237,10 @@ async function dismiss(questionId, btn) {
       body: JSON.stringify({ questionId }),
     });
     if (res.ok) {
-      btn.textContent = 'Dismissed ✓';
+      const r = allReports.find(r => r.question_id === questionId);
+      if (r) r.dismissed = true;
+      updateStats();
+      render();
     } else {
       btn.textContent = 'Dismiss';
       btn.disabled = false;
