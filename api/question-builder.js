@@ -202,7 +202,7 @@ function categoryGuidance(category) {
     fractions_decimals:     `Generate questions involving fractions, decimals, percentages, and conversions between them. Appropriate for P6/P7. Multiple choice A–E.`,
     measurement:            `Generate questions about length, mass, capacity, time, temperature, money, and unit conversions. Use metric units. Multiple choice A–E.`,
     statistics:             `Generate questions about bar charts, pictograms, line graphs, pie charts, mean, and range. Describe any required diagram in diagram_description. Multiple choice A–E.`,
-    algebra_sequences:      `Generate questions about number sequences, function machines, simple algebra (find the missing number), and patterns. Multiple choice A–E.`,
+    algebra_sequences:      `Generate questions about number sequences, function machines, simple algebra (find the missing number), and patterns. Multiple choice A–E. NEVER generate two-step equations in the format ax + b = c or ax - b = c where both multiplication and addition/subtraction are required to solve. Only generate one-step equations like a + 12 = 27 or 417 ÷ f = 139 where a single operation finds the answer. The format 2p + 5 = 3p - 2 (variables on both sides) is also forbidden. Stick to the style of the real SEAG reference questions.`,
   };
   return guides[category] || 'Generate appropriate SEAG transfer test questions for this category.';
 }
