@@ -264,6 +264,14 @@
       color: var(--text-light); margin-bottom: 8px;
     }
 
+    /* ── Chart placeholder ── */
+    .card-chart-placeholder {
+      padding: 16px 22px;
+      border-bottom: 2px solid var(--cream-border);
+      font-size: .76rem; color: var(--text-light);
+      font-style: italic; text-align: center; line-height: 1.5;
+    }
+
     /* ── Topics two-column ── */
     .topics-two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 
@@ -764,7 +772,7 @@ function buildCard(child, idx, sessions, progress, insightsHtml = '', subscribed
   const weakTopicKeys = new Set((progress?.topics_to_review || []).map(t => t.topic));
   const weakTopics    = [...weakTopicKeys].map(t => TOPIC_MAP[t] || topicLabel(t));
 
-  // ── Strengths (from question_results — ≥70% accuracy, ≥3 answered, not already weak) ──
+  // ── Strengths (from question_results — ≥70% accuracy, ≥3 answered) ──
   const topicAcc = {};
   qr.forEach(r => {
     if (!r.topic) return;
@@ -773,7 +781,8 @@ function buildCard(child, idx, sessions, progress, insightsHtml = '', subscribed
     if (r.correct) topicAcc[r.topic].c++;
   });
   const strengths = Object.entries(topicAcc)
-    .filter(([topic, v]) => v.t >= 3 && (v.c / v.t) >= 0.70 && !weakTopicKeys.has(topic))
+    .filter(([, v]) => v.t >= 3 && (v.c / v.t) >= 0.70)
+    .sort((a, b) => (b[1].c / b[1].t) - (a[1].c / a[1].t))
     .map(([topic]) => TOPIC_MAP[topic] || topicLabel(topic));
 
   // ── Topics HTML ──
@@ -802,19 +811,36 @@ function buildCard(child, idx, sessions, progress, insightsHtml = '', subscribed
     <div class="topics-tags">${weakTagsHtml}</div>`;
 
   // ── Last session ──
-  const lastSessionHtml = sessions.length
-    ? `<div class="card-last-session">Last session: ${esc(formatSessionType(sessions[0]))}</div>`
-    : '';
+  // If track looks like a year group (P6/P7) rather than a topic, derive the topic
+  // from the most-answered topic in question_results for that session.
+  let lastSessionHtml = '';
+  if (sessions.length) {
+    const s = sessions[0];
+    let derivedTrack = s.track;
+    if (derivedTrack && /^P[67]$/i.test(derivedTrack)) {
+      const topicCount = {};
+      qr.filter(r => r.session_id === s.id).forEach(r => {
+        if (r.topic) topicCount[r.topic] = (topicCount[r.topic] || 0) + 1;
+      });
+      const best = Object.entries(topicCount).sort((a, b) => b[1] - a[1])[0];
+      if (best) derivedTrack = best[0];
+    }
+    lastSessionHtml = `<div class="card-last-session">Last session: ${esc(formatSessionType({ ...s, track: derivedTrack }))}</div>`;
+  }
 
   // ── Weekly progress ──
-  const weeklyDone   = computeWeeklyCount(sessions);
-  const weeklyTarget = child.sessions_per_week || 5;
-  const weeklyPct    = Math.min(100, Math.round(weeklyDone / weeklyTarget * 100));
-  const weeklyColor  = weeklyDone >= weeklyTarget ? 'var(--green)' : weeklyDone > 0 ? 'var(--orange)' : '#C8B89A';
-  const weeklyHtml   = `
+  const weeklyDone     = computeWeeklyCount(sessions);
+  const weeklyTarget   = child.sessions_per_week || 5;
+  const weeklyExceeded = weeklyDone >= weeklyTarget;
+  const weeklyPct      = Math.min(100, Math.round(weeklyDone / weeklyTarget * 100));
+  const weeklyColor    = weeklyExceeded ? 'var(--green)' : weeklyDone > 0 ? 'var(--orange)' : '#C8B89A';
+  const weeklyLabel    = weeklyExceeded
+    ? `${weeklyDone} sessions this week — target exceeded! 🎉`
+    : `${weeklyDone} of ${weeklyTarget} sessions this week`;
+  const weeklyHtml     = `
     <div class="card-weekly">
       <div class="weekly-row">
-        <span class="weekly-text">${weeklyDone} of ${weeklyTarget} sessions this week</span>
+        <span class="weekly-text">${weeklyLabel}</span>
       </div>
       <div class="weekly-bar-wrap">
         <div class="weekly-bar-fill" style="width:${weeklyPct}%;background:${weeklyColor}"></div>
@@ -826,7 +852,7 @@ function buildCard(child, idx, sessions, progress, insightsHtml = '', subscribed
   const chartSvg  = buildChartSvg(chartData);
   const chartHtml = chartSvg
     ? `<div class="card-chart"><div class="chart-title">Score trend — last 6 weeks</div>${chartSvg}</div>`
-    : '';
+    : `<div class="card-chart-placeholder">📈 Progress chart will appear here as your child completes more sessions</div>`;
 
   // ── Parent tip ──
   const tipText = buildTip(sessions, qr, avgPct, chartData);
