@@ -1014,7 +1014,7 @@ async function reportQuestion(questionId, btn) {
   btn.disabled = true;
   btn.textContent = '…';
   try {
-    const r = await fetch('/api/save-report', {
+    const r = await fetch('/api/admin?action=save-report', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ question_id: questionId, child_id: currentUserId || null }),

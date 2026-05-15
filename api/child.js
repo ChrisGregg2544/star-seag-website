@@ -2,8 +2,9 @@
    /api/child.js
    Consolidated child-profile management endpoint.
 
-     POST ?action=add   — create child profile + update Stripe billing
-     POST ?action=edit  — update child name / year_group / exam_year
+     POST ?action=add              — create child profile + update Stripe billing
+     POST ?action=edit             — update child name / year_group / exam_year
+     POST ?action=get-parent-stats — sessions + progress for parent's children
 ══════════════════════════════════════════════════════ */
 export const config = { maxDuration: 15 };
 
@@ -197,6 +198,43 @@ async function handleEdit(req, res, serviceKey, callerId) {
   return res.status(200).json({ ok: true, child });
 }
 
+// ── action=get-parent-stats ───────────────────────────────────────────────────
+async function handleGetParentStats(req, res, serviceKey, callerId) {
+  const { childIds } = req.body || {};
+  if (!Array.isArray(childIds) || childIds.length === 0) {
+    return res.status(400).json({ ok: false, error: 'childIds must be a non-empty array' });
+  }
+
+  // Verify all requested childIds belong to this parent
+  const ownerRes  = await sbFetch(`profiles?parent_id=eq.${callerId}&select=id`, 'GET', undefined, serviceKey);
+  const ownedRows = ownerRes.ok ? await ownerRes.json() : [];
+  const ownedIds  = new Set((ownedRows || []).map(r => r.id));
+  ownedIds.add(callerId);
+  const verified  = childIds.filter(id => ownedIds.has(id));
+
+  if (verified.length === 0) {
+    return res.status(403).json({ ok: false, error: 'No authorised children in request' });
+  }
+
+  const idList = verified.join(',');
+  const [sessionsRes, progressRes, qrRes] = await Promise.all([
+    sbFetch(`sessions?user_id=in.(${idList})&select=id,user_id,score,total_questions,completed_at,session_type,track&order=completed_at.desc`, 'GET', undefined, serviceKey),
+    sbFetch(`progress_summary?user_id=in.(${idList})&select=user_id,topics_to_review,last_session_at`, 'GET', undefined, serviceKey),
+    sbFetch(`question_results?user_id=in.(${idList})&select=user_id,session_id,topic,correct`, 'GET', undefined, serviceKey),
+  ]);
+
+  const sessions        = sessionsRes.ok ? await sessionsRes.json() : [];
+  const progress        = progressRes.ok ? await progressRes.json() : [];
+  const questionResults = qrRes.ok       ? await qrRes.json()       : [];
+
+  if (!sessionsRes.ok) console.error('[child/get-parent-stats] sessions error:', sessionsRes.status);
+  if (!progressRes.ok) console.error('[child/get-parent-stats] progress error:', progressRes.status);
+  if (!qrRes.ok)       console.error('[child/get-parent-stats] question_results error:', qrRes.status);
+
+  console.log(`[child/get-parent-stats] parent:${callerId} children:${verified.length} sessions:${sessions.length} qr:${questionResults.length}`);
+  return res.status(200).json({ ok: true, sessions, progress, questionResults });
+}
+
 // ── Router ────────────────────────────────────────────────────────────────────
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -216,8 +254,9 @@ export default async function handler(req, res) {
 
   const action = req.query?.action;
   switch (action) {
-    case 'add':  return handleAdd(req, res, serviceKey, callerId);
-    case 'edit': return handleEdit(req, res, serviceKey, callerId);
-    default:     return res.status(400).json({ ok: false, error: `Unknown action: ${action}` });
+    case 'add':               return handleAdd(req, res, serviceKey, callerId);
+    case 'edit':              return handleEdit(req, res, serviceKey, callerId);
+    case 'get-parent-stats':  return handleGetParentStats(req, res, serviceKey, callerId);
+    default:                  return res.status(400).json({ ok: false, error: `Unknown action: ${action}` });
   }
 }

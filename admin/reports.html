@@ -100,7 +100,7 @@ let currentFilter = 'all';
 
 async function load() {
   try {
-    const res  = await fetch('/api/get-reports');
+    const res  = await fetch('/api/admin?action=get-reports');
     const data = await res.json();
     if (!data.ok) {
       document.getElementById('list').innerHTML = `<div class="err">Error: ${data.error}</div>`;

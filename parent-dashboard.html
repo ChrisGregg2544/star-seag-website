@@ -1109,7 +1109,7 @@ window.addEventListener('DOMContentLoaded', async () => {
 
   // 2. Fetch sessions + progress via service-role API to bypass RLS
   //    (parent's anon token can't read children's session rows directly)
-  const statsRes = await fetch('/api/get-parent-stats', {
+  const statsRes = await fetch('/api/child?action=get-parent-stats', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
