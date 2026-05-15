@@ -245,11 +245,13 @@ export default async function handler(req, res) {
     return res.status(401).json({ error: 'Unauthorised' });
   }
 
+  const dry = req.query.dry === 'true';
+
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!serviceKey) return res.status(500).json({ error: 'SUPABASE_SERVICE_ROLE_KEY not configured' });
 
   const resendKey = process.env.RESEND_API_KEY;
-  if (!resendKey) return res.status(500).json({ error: 'RESEND_API_KEY not configured' });
+  if (!dry && !resendKey) return res.status(500).json({ error: 'RESEND_API_KEY not configured' });
 
   const weekStart = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
   const tip = PARENT_TIPS[getISOWeek(new Date()) % PARENT_TIPS.length];
@@ -304,6 +306,7 @@ export default async function handler(req, res) {
   }
 
   let sent = 0, skipped = 0;
+  const dryResults = [];
 
   for (const sub of subs) {
     const parent = parentMap[sub.parent_id];
@@ -324,8 +327,21 @@ export default async function handler(req, res) {
       continue;
     }
 
-    const html = buildEmailHtml(parent.name, activeChildren, tip);
+    const html      = buildEmailHtml(parent.name, activeChildren, tip);
     const dateLabel = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long' });
+    const subject   = `Your weekly STAR progress report — ${dateLabel}`;
+
+    if (dry) {
+      console.log(`[weekly-email] DRY — would send to ${parent.parent_email}`);
+      dryResults.push({
+        to:       parent.parent_email,
+        subject,
+        children: activeChildren.map(c => ({ name: c.name, year_group: c.year_group, stats: c.stats })),
+        html,
+      });
+      sent++;
+      continue;
+    }
 
     try {
       const emailRes = await fetch('https://api.resend.com/emails', {
@@ -335,9 +351,9 @@ export default async function handler(req, res) {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          from:    'STAR AI Tutor <no-reply@staraitutor.co.uk>',
-          to:      [parent.parent_email],
-          subject: `Your weekly STAR progress report — ${dateLabel}`,
+          from: 'STAR AI Tutor <no-reply@staraitutor.co.uk>',
+          to:   [parent.parent_email],
+          subject,
           html,
         }),
       });
@@ -359,6 +375,8 @@ export default async function handler(req, res) {
     }
   }
 
-  console.log(`[weekly-email] Complete — sent:${sent} skipped:${skipped}`);
+  console.log(`[weekly-email] Complete — sent:${sent} skipped:${skipped}${dry ? ' (DRY RUN)' : ''}`);
+
+  if (dry) return res.status(200).json({ ok: true, dry: true, wouldSend: sent, skipped, emails: dryResults });
   return res.status(200).json({ ok: true, sent, skipped });
 }
