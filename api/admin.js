@@ -6,6 +6,7 @@
      POST ?action=update-verdict  — update question validator verdict
      POST ?action=save-feedback   — save human reviewer feedback
      POST ?action=deactivate      — deactivate a question (validated=false)
+     POST ?action=reactivate      — reactivate a previously deactivated question
      POST ?action=dismiss-reports — mark reports reviewed without deactivating
      POST ?action=save-report     — save a student question report
      GET  ?action=get-reports     — fetch all reports for admin view
@@ -177,6 +178,40 @@ async function handleDismissReports(req, res) {
   return res.status(200).json({ ok: true });
 }
 
+// ── action=reactivate ─────────────────────────────────────────────────────────
+async function handleReactivate(req, res) {
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+
+  const { questionId } = req.body || {};
+  if (!questionId) return res.status(400).json({ error: 'Missing questionId' });
+
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY;
+  if (!serviceKey) return res.status(500).json({ error: 'Service key not configured' });
+
+  const response = await fetch(
+    `${SUPABASE_URL}/rest/v1/questions?id=eq.${encodeURIComponent(questionId)}`,
+    {
+      method: 'PATCH',
+      headers: {
+        'Content-Type':  'application/json',
+        'apikey':        serviceKey,
+        'Authorization': `Bearer ${serviceKey}`,
+        'Prefer':        'return=minimal',
+      },
+      body: JSON.stringify({ validated: true, source: 'ai_generated' }),
+    }
+  );
+
+  if (!response.ok) {
+    const text = await response.text();
+    console.error('[admin/reactivate] Supabase error:', response.status, text.slice(0, 200));
+    return res.status(500).json({ error: `Supabase error ${response.status}` });
+  }
+
+  console.log('[admin/reactivate] Reactivated question:', questionId);
+  return res.status(200).json({ ok: true });
+}
+
 // ── action=save-report ────────────────────────────────────────────────────────
 async function handleSaveReport(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ ok: false, error: 'Method not allowed' });
@@ -279,6 +314,7 @@ export default async function handler(req, res) {
     case 'update-verdict':  return handleUpdateVerdict(req, res);
     case 'save-feedback':   return handleSaveFeedback(req, res);
     case 'deactivate':      return handleDeactivate(req, res);
+    case 'reactivate':      return handleReactivate(req, res);
     case 'dismiss-reports': return handleDismissReports(req, res);
     case 'save-report':     return handleSaveReport(req, res);
     case 'get-reports':     return handleGetReports(req, res);

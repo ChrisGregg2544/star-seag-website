@@ -58,6 +58,9 @@
   .btn-dismiss { background: var(--surface2); border: 1px solid var(--border); color: var(--muted); border-radius: 8px; padding: 5px 14px; font-size: .78rem; font-weight: 700; cursor: pointer; transition: all .15s; font-family: inherit; }
   .btn-dismiss:hover:not(:disabled) { border-color: var(--green); color: var(--green); }
   .btn-dismiss:disabled { opacity: .4; cursor: not-allowed; }
+  .btn-reactivate { background: rgba(52,211,153,.1); border: 1px solid rgba(52,211,153,.3); color: var(--green); border-radius: 8px; padding: 5px 14px; font-size: .78rem; font-weight: 700; cursor: pointer; transition: all .15s; font-family: inherit; }
+  .btn-reactivate:hover:not(:disabled) { background: rgba(52,211,153,.2); }
+  .btn-reactivate:disabled { opacity: .4; cursor: not-allowed; }
 
   .loading { padding: 48px 24px; text-align: center; color: var(--muted); font-size: .9rem; }
   .empty { padding: 64px 24px; text-align: center; color: var(--muted); }
@@ -147,14 +150,15 @@ function render() {
   }
 
   list.innerHTML = items.map(r => {
-    const deactivatedAttr = !r.validated ? 'disabled' : '';
-    const deactivatedLabel = !r.validated ? 'Deactivated' : 'Deactivate';
     const statusHtml = r.validated
       ? `<span class="status-active">● Active</span>`
       : `<span class="status-deactivated">● Deactivated</span>`;
     const qText = r.question_text.length > 240
       ? r.question_text.slice(0, 237) + '…'
       : r.question_text;
+    const actionBtn = r.validated
+      ? `<button class="btn-deactivate" onclick="deactivate('${r.question_id}', this)">Deactivate</button>`
+      : `<button class="btn-reactivate" onclick="reactivate('${r.question_id}', this)">Reactivate</button>`;
     return `
       <div class="q-card ${r.validated ? '' : 'deactivated'}" id="card-${r.question_id}">
         <div class="q-meta">
@@ -165,7 +169,7 @@ function render() {
         </div>
         <div class="q-text">${qText}</div>
         <div class="q-actions">
-          <button class="btn-deactivate" ${deactivatedAttr} onclick="deactivate('${r.question_id}', this)">${deactivatedLabel}</button>
+          ${actionBtn}
           <button class="btn-dismiss" onclick="dismiss('${r.question_id}', this)">Dismiss</button>
         </div>
       </div>`;
@@ -194,6 +198,31 @@ async function deactivate(questionId, btn) {
     }
   } catch (e) {
     btn.textContent = 'Deactivate';
+    btn.disabled = false;
+  }
+}
+
+async function reactivate(questionId, btn) {
+  btn.disabled = true;
+  btn.textContent = '…';
+  try {
+    const res = await fetch('/api/admin?action=reactivate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ questionId }),
+    });
+    if (res.ok) {
+      const r = allReports.find(r => r.question_id === questionId);
+      if (r) r.validated = true;
+      updateStats();
+      render();
+    } else {
+      btn.textContent = 'Reactivate';
+      btn.disabled = false;
+      alert('Error — check the console.');
+    }
+  } catch (e) {
+    btn.textContent = 'Reactivate';
     btn.disabled = false;
   }
 }
