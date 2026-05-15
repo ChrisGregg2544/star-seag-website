@@ -55,7 +55,7 @@ export default async function handler(req, res) {
 
   const [sessionsRes, progressRes, qrRes] = await Promise.all([
     fetch(
-      `${SUPABASE_URL}/rest/v1/sessions?user_id=in.(${idList})&select=id,user_id,score,total_questions,completed_at&order=completed_at.desc`,
+      `${SUPABASE_URL}/rest/v1/sessions?user_id=in.(${idList})&select=id,user_id,score,total_questions,completed_at,session_type,track&order=completed_at.desc`,
       { headers: { 'apikey': serviceKey, 'Authorization': `Bearer ${serviceKey}` } }
     ),
     fetch(

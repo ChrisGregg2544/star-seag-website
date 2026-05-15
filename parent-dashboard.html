@@ -234,6 +234,50 @@
     .badge-improving { background: #D1FAE5; color: #065F46; }
     .badge-strong    { background: #DCFCE7; color: #166534; }
 
+    /* ── Exam badge ── */
+    .exam-badge {
+      display: inline-flex; align-items: center;
+      padding: 3px 10px; border-radius: 99px;
+      font-size: .63rem; font-weight: 900; letter-spacing: .06em;
+      background: #FFF3E0; color: var(--orange);
+      border: 1px solid rgba(249,115,22,.25);
+    }
+
+    /* ── Last session line ── */
+    .card-last-session {
+      padding: 8px 22px;
+      border-bottom: 1px solid var(--cream-border);
+      font-size: .76rem; color: var(--text-mid); font-weight: 700;
+    }
+
+    /* ── Weekly progress ── */
+    .card-weekly { padding: 10px 22px 12px; border-bottom: 2px solid var(--cream-border); }
+    .weekly-row  { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+    .weekly-text { font-size: .72rem; font-weight: 800; color: var(--text-dark); }
+    .weekly-bar-wrap { background: #EDE5D5; border-radius: 99px; height: 7px; overflow: hidden; }
+    .weekly-bar-fill { height: 100%; border-radius: 99px; transition: width .5s ease; }
+
+    /* ── Score chart ── */
+    .card-chart  { padding: 12px 22px 14px; border-bottom: 2px solid var(--cream-border); }
+    .chart-title {
+      font-size: .62rem; font-weight: 900; letter-spacing: .1em; text-transform: uppercase;
+      color: var(--text-light); margin-bottom: 8px;
+    }
+
+    /* ── Topics two-column ── */
+    .topics-two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+    /* ── Parent tip ── */
+    .card-tip {
+      margin: 0 22px 14px;
+      background: #FFFBEB;
+      border: 1.5px solid rgba(245,158,11,.22);
+      border-radius: 12px;
+      padding: 10px 14px;
+      font-size: .78rem; color: #78350F;
+      line-height: 1.55; font-weight: 700;
+    }
+
     /* Empty state */
     .empty-state {
       max-width: 480px; margin: 60px auto; text-align: center;
@@ -390,6 +434,9 @@ const TOPIC_MAP = {
   algebra_sequences:     'Algebra',
 };
 
+const ENGLISH_TOPICS = new Set(['punctuation','grammar','spelling','vocabulary','comprehension_mc','comprehension_written']);
+const MATHS_TOPICS   = new Set(['arithmetic','geometry','fractions_decimals','measurement','statistics','algebra_sequences']);
+
 function esc(s) {
   return String(s).replace(/[&<>"']/g, c =>
     ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c])
@@ -423,6 +470,181 @@ async function signOut() {
 
 function topicLabel(raw) {
   return TOPIC_MAP[raw] || raw.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+}
+
+function relativeTime(iso) {
+  if (!iso) return null;
+  const ms   = Date.now() - new Date(iso).getTime();
+  const mins = Math.floor(ms / 60000);
+  if (mins < 2)   return 'just now';
+  if (mins < 60)  return `${mins} minutes ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24)   return `${hrs} hour${hrs > 1 ? 's' : ''} ago`;
+  const days = Math.floor(hrs / 24);
+  if (days === 1) return 'yesterday';
+  if (days < 7)   return `${days} days ago`;
+  const wks = Math.floor(days / 7);
+  if (wks < 8)    return `${wks} week${wks > 1 ? 's' : ''} ago`;
+  return new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+}
+
+function getMondayOfWeek(d) {
+  const date = new Date(d);
+  date.setHours(0, 0, 0, 0);
+  date.setDate(date.getDate() - ((date.getDay() + 6) % 7));
+  return date;
+}
+
+function weekKey(date) {
+  return getMondayOfWeek(date).toISOString().slice(0, 10);
+}
+
+function titleCase(s) {
+  if (!s) return '';
+  return s.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+}
+
+function formatSessionType(session) {
+  if (!session) return null;
+  const { session_type, track, score, total_questions, completed_at } = session;
+  let label;
+  if      (session_type === 'full_mock')     label = 'Full Mock';
+  else if (session_type === 'topic_sprint')  label = track ? `${titleCase(track)} Sprint` : 'Topic Sprint';
+  else if (session_type === 'guardian_test') label = 'Supervised Test';
+  else if (total_questions >= 50)            label = 'Full Mock';
+  else                                       label = 'Session';
+  const scoreStr = (score != null && total_questions > 0) ? `${score}/${total_questions}` : '';
+  const when     = relativeTime(completed_at);
+  const detail   = [scoreStr, when].filter(Boolean).join(' · ');
+  return detail ? `${label} — ${detail}` : label;
+}
+
+function computeWeeklyCount(sessions) {
+  const mon = getMondayOfWeek(new Date());
+  const sun = new Date(mon); sun.setDate(sun.getDate() + 7);
+  return sessions.filter(s => { const d = new Date(s.completed_at); return d >= mon && d < sun; }).length;
+}
+
+function computeExamWeeks(examYear) {
+  if (!examYear) return null;
+  const nov1     = new Date(examYear, 10, 1);
+  const firstThu = 1 + ((4 - nov1.getDay() + 7) % 7);
+  const examDate = new Date(examYear, 10, firstThu + 14);
+  const msLeft   = examDate - Date.now();
+  if (msLeft < 0) return null;
+  return Math.ceil(msLeft / (7 * 24 * 3600 * 1000));
+}
+
+function computeChartData(sessions, qr) {
+  const sidToWeek = {};
+  sessions.forEach(s => { if (s.completed_at) sidToWeek[s.id] = weekKey(s.completed_at); });
+
+  const buckets = {};
+  qr.forEach(r => {
+    const wk = sidToWeek[r.session_id];
+    if (!wk) return;
+    if (!buckets[wk]) buckets[wk] = { eng: { c:0,t:0 }, mat: { c:0,t:0 } };
+    const subj = ENGLISH_TOPICS.has(r.topic) ? 'eng' : MATHS_TOPICS.has(r.topic) ? 'mat' : null;
+    if (!subj) return;
+    buckets[wk][subj].t++;
+    if (r.correct) buckets[wk][subj].c++;
+  });
+
+  const weeks = [];
+  const now   = getMondayOfWeek(new Date());
+  for (let i = 5; i >= 0; i--) {
+    const mon = new Date(now); mon.setDate(mon.getDate() - i * 7);
+    const wk  = mon.toISOString().slice(0, 10);
+    const lbl = mon.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+    const b   = buckets[wk];
+    weeks.push({
+      wk, label: lbl,
+      engPct: (b && b.eng.t >= 2) ? Math.round(b.eng.c / b.eng.t * 100) : null,
+      matPct: (b && b.mat.t >= 2) ? Math.round(b.mat.c / b.mat.t * 100) : null,
+    });
+  }
+
+  const weeksWithData = weeks.filter(w => w.engPct !== null || w.matPct !== null).length;
+  return { weeks, hasData: weeksWithData >= 2 };
+}
+
+function buildChartSvg({ hasData, weeks }) {
+  if (!hasData) return '';
+
+  const VW = 280, VH = 128;
+  const pL = 26, pR = 6, pT = 8, pB = 22;
+  const plotW = VW - pL - pR;
+  const plotH = VH - pT - pB;
+  const n     = weeks.length;
+  const xOf   = i   => pL + (i / (n - 1)) * plotW;
+  const yOf   = pct => pT + plotH - (pct / 100) * plotH;
+  const r1    = v   => Math.round(v * 10) / 10;
+
+  let s = `<svg viewBox="0 0 ${VW} ${VH}" width="100%" xmlns="http://www.w3.org/2000/svg" style="display:block">`;
+
+  [25, 50, 75].forEach(y => {
+    s += `<line x1="${pL}" y1="${r1(yOf(y))}" x2="${pL + plotW}" y2="${r1(yOf(y))}" stroke="#EDE5D5" stroke-width="1"/>`;
+  });
+  s += `<line x1="${pL}" y1="${pT}" x2="${pL}" y2="${pT + plotH}" stroke="#D0C0A0" stroke-width="1"/>`;
+  s += `<line x1="${pL}" y1="${pT + plotH}" x2="${pL + plotW}" y2="${pT + plotH}" stroke="#D0C0A0" stroke-width="1"/>`;
+
+  [0, 50, 100].forEach(y => {
+    s += `<text x="${pL - 3}" y="${r1(yOf(y) + 3.5)}" text-anchor="end" font-size="7" fill="#AAA" font-family="Nunito,sans-serif">${y}</text>`;
+  });
+  weeks.forEach((w, i) => {
+    s += `<text x="${r1(xOf(i))}" y="${VH - 1}" text-anchor="middle" font-size="7" fill="#AAA" font-family="Nunito,sans-serif">${w.label}</text>`;
+  });
+
+  [['eng', '#3B82F6', 'engPct'], ['mat', '#F97316', 'matPct']].forEach(([, color, key]) => {
+    let pts = [];
+    const flush = () => {
+      if (pts.length >= 2) {
+        s += `<polyline points="${pts.map(p => `${p[0]},${p[1]}`).join(' ')}" fill="none" stroke="${color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`;
+      }
+      pts = [];
+    };
+    weeks.forEach((w, i) => { if (w[key] !== null) pts.push([r1(xOf(i)), r1(yOf(w[key]))]); else flush(); });
+    flush();
+    weeks.forEach((w, i) => {
+      if (w[key] !== null) s += `<circle cx="${r1(xOf(i))}" cy="${r1(yOf(w[key]))}" r="3.5" fill="${color}" stroke="#fff" stroke-width="1.5"/>`;
+    });
+  });
+
+  const lx = pL + plotW - 60, ly = pT + 2;
+  s += `<rect x="${lx}" y="${ly}" width="8" height="8" rx="2" fill="#3B82F6"/>`;
+  s += `<text x="${lx + 11}" y="${ly + 7}" font-size="7.5" fill="#666" font-family="Nunito,sans-serif" font-weight="700">English</text>`;
+  s += `<rect x="${lx}" y="${ly + 13}" width="8" height="8" rx="2" fill="#F97316"/>`;
+  s += `<text x="${lx + 11}" y="${ly + 20}" font-size="7.5" fill="#666" font-family="Nunito,sans-serif" font-weight="700">Maths</text>`;
+
+  s += '</svg>';
+  return s;
+}
+
+function buildTip(sessions, qr, avgPct, chartData) {
+  if (!sessions.length) return null;
+
+  const compQr = qr.filter(r => r.topic === 'comprehension_mc' || r.topic === 'comprehension_written');
+  if (compQr.length >= 3) {
+    const compPct = Math.round(compQr.filter(r => r.correct).length / compQr.length * 100);
+    if (compPct < 50) return '📚 Try reading together for 10 minutes before bed — it makes a big difference for comprehension.';
+  }
+
+  if (avgPct !== null && avgPct < 50) return '⏱️ Short daily sessions work better than long weekly ones — even 15 minutes a day adds up.';
+
+  if (chartData?.hasData) {
+    const { weeks } = chartData;
+    const avgOf = ws => {
+      const pts = ws.flatMap(w => [w.engPct, w.matPct]).filter(v => v !== null);
+      return pts.length ? pts.reduce((a, b) => a + b, 0) / pts.length : null;
+    };
+    const rAvg = avgOf(weeks.slice(-2));
+    const pAvg = avgOf(weeks.slice(-4, -2));
+    if (rAvg !== null && pAvg !== null && rAvg - pAvg >= 10) return '🚀 Great progress recently! Keep the momentum going.';
+  }
+
+  if (avgPct !== null && avgPct >= 80) return '🎓 Excellent work! Consider trying a Full Mock to simulate real exam conditions.';
+
+  return null;
 }
 
 function toggleInsights(childId) {
@@ -523,7 +745,7 @@ function buildInsightsHtml(insights, childId) {
     </div>`;
 }
 
-function buildCard(child, idx, sessions, progress, insightsHtml = '', subscribed = true) {
+function buildCard(child, idx, sessions, progress, insightsHtml = '', subscribed = true, qr = []) {
   const avatar     = AVATARS[idx % AVATARS.length];
   const yearLabel  = child.year_group === 'P7' ? 'P7' : 'P6';
   const lastActive = timeAgo(progress?.last_session_at ?? sessions[0]?.completed_at);
@@ -533,20 +755,84 @@ function buildCard(child, idx, sessions, progress, insightsHtml = '', subscribed
     ? Math.round(sessions.reduce((a, s) => a + (s.total_questions > 0 ? s.score / s.total_questions * 100 : 0), 0) / total)
     : null;
 
-  const weakTopics = (progress?.topics_to_review || [])
-    .map(t => TOPIC_MAP[t.topic] || t.topic)
-    .filter((v, i, a) => a.indexOf(v) === i);
+  // ── Exam countdown ──
+  const examWeeks = computeExamWeeks(child.exam_year);
+  const examBadge = examWeeks === null ? '' :
+    `<span class="exam-badge">${examWeeks <= 2 ? '🗓️ Exam very soon!' : `🗓️ ${examWeeks} weeks to exam`}</span>`;
 
-  let topicsHtml;
+  // ── Weak topics (from progress_summary) ──
+  const weakTopicKeys = new Set((progress?.topics_to_review || []).map(t => t.topic));
+  const weakTopics    = [...weakTopicKeys].map(t => TOPIC_MAP[t] || topicLabel(t));
+
+  // ── Strengths (from question_results — ≥70% accuracy, ≥3 answered, not already weak) ──
+  const topicAcc = {};
+  qr.forEach(r => {
+    if (!r.topic) return;
+    if (!topicAcc[r.topic]) topicAcc[r.topic] = { c: 0, t: 0 };
+    topicAcc[r.topic].t++;
+    if (r.correct) topicAcc[r.topic].c++;
+  });
+  const strengths = Object.entries(topicAcc)
+    .filter(([topic, v]) => v.t >= 3 && (v.c / v.t) >= 0.70 && !weakTopicKeys.has(topic))
+    .map(([topic]) => TOPIC_MAP[topic] || topicLabel(topic));
+
+  // ── Topics HTML ──
+  let weakTagsHtml;
   if (total === 0) {
-    topicsHtml = `<span class="topic-tag no-data">No sprints yet</span>`;
+    weakTagsHtml = `<span class="topic-tag no-data">No sprints yet</span>`;
   } else if (weakTopics.length === 0) {
-    topicsHtml = `<span class="topic-tag strong">✅ All topics strong</span>`;
+    weakTagsHtml = `<span class="topic-tag strong">✅ All topics strong</span>`;
   } else {
-    topicsHtml = weakTopics.slice(0, 6).map(t => `<span class="topic-tag weak">⚠️ ${esc(t)}</span>`).join('');
-    if (weakTopics.length > 6) topicsHtml += `<span class="topic-tag no-data">+${weakTopics.length - 6} more</span>`;
+    weakTagsHtml = weakTopics.slice(0, 4).map(t => `<span class="topic-tag weak">⚠️ ${esc(t)}</span>`).join('');
+    if (weakTopics.length > 4) weakTagsHtml += `<span class="topic-tag no-data">+${weakTopics.length - 4} more</span>`;
   }
 
+  const topicsHtml = strengths.length > 0 ? `
+    <div class="topics-two-col">
+      <div>
+        <div class="topics-label">Topics to review</div>
+        <div class="topics-tags">${weakTagsHtml}</div>
+      </div>
+      <div>
+        <div class="topics-label">Strengths</div>
+        <div class="topics-tags">${strengths.slice(0, 4).map(t => `<span class="topic-tag strong">✅ ${esc(t)}</span>`).join('')}</div>
+      </div>
+    </div>` : `
+    <div class="topics-label">Topics to review</div>
+    <div class="topics-tags">${weakTagsHtml}</div>`;
+
+  // ── Last session ──
+  const lastSessionHtml = sessions.length
+    ? `<div class="card-last-session">Last session: ${esc(formatSessionType(sessions[0]))}</div>`
+    : '';
+
+  // ── Weekly progress ──
+  const weeklyDone   = computeWeeklyCount(sessions);
+  const weeklyTarget = child.sessions_per_week || 5;
+  const weeklyPct    = Math.min(100, Math.round(weeklyDone / weeklyTarget * 100));
+  const weeklyColor  = weeklyDone >= weeklyTarget ? 'var(--green)' : weeklyDone > 0 ? 'var(--orange)' : '#C8B89A';
+  const weeklyHtml   = `
+    <div class="card-weekly">
+      <div class="weekly-row">
+        <span class="weekly-text">${weeklyDone} of ${weeklyTarget} sessions this week</span>
+      </div>
+      <div class="weekly-bar-wrap">
+        <div class="weekly-bar-fill" style="width:${weeklyPct}%;background:${weeklyColor}"></div>
+      </div>
+    </div>`;
+
+  // ── Score trend chart ──
+  const chartData = computeChartData(sessions, qr);
+  const chartSvg  = buildChartSvg(chartData);
+  const chartHtml = chartSvg
+    ? `<div class="card-chart"><div class="chart-title">Score trend — last 6 weeks</div>${chartSvg}</div>`
+    : '';
+
+  // ── Parent tip ──
+  const tipText = buildTip(sessions, qr, avgPct, chartData);
+  const tipHtml = tipText ? `<div class="card-tip">${tipText}</div>` : '';
+
+  // ── Stats strip ──
   const avgHtml = avgPct !== null
     ? `<span class="stat-value ${scoreClass(avgPct)}">${avgPct}%</span><div class="stat-sub">${avgPct >= 75 ? 'Great work' : avgPct >= 50 ? 'Building up' : 'Needs practice'}</div>`
     : `<span class="stat-value" style="font-size:1.1rem;color:var(--text-light)">—</span><div class="stat-sub">No data yet</div>`;
@@ -559,6 +845,7 @@ function buildCard(child, idx, sessions, progress, insightsHtml = '', subscribed
           <div class="child-name">${esc(child.name || 'Child')}</div>
           <div class="card-meta-row">
             <span class="year-badge">${yearLabel}</span>
+            ${examBadge}
             ${lastActive ? `<span class="last-active">· ${lastActive}</span>` : ''}
           </div>
         </div>
@@ -577,14 +864,17 @@ function buildCard(child, idx, sessions, progress, insightsHtml = '', subscribed
           ${avgHtml}
         </div>
       </div>
+      ${lastSessionHtml}
+      ${weeklyHtml}
+      ${chartHtml}
       <div class="card-topics">
-        <div class="topics-label">Topics to review</div>
-        <div class="topics-tags">${topicsHtml}</div>
+        ${topicsHtml}
       </div>
+      ${tipHtml}
       <div class="card-actions">
         <button class="btn-action btn-action-secondary" onclick="goToPage('${child.id}','dashboard.html')">Go to Student Dashboard</button>
         <button class="btn-action btn-action-secondary"
-          onclick="window.location.href='${subscribed ? `real-life-test.html?childId=${child.id}&year=${child.year_group}` : `pricing.html`}'">
+          onclick="window.location.href='${subscribed ? `real-life-test.html?childId=${child.id}&year=${child.year_group}` : 'pricing.html'}'">
           ${subscribed ? '📄 Print Full Mock Test' : '🔒 Print Full Mock Test'}</button>
       </div>
       ${insightsHtml}
@@ -708,12 +998,13 @@ function refreshCardDOM(childId) {
   if (idx === undefined) return;
   const child        = _kidsData[idx];
   const sessions     = _sessionsByChild[childId] || [];
-  const insights     = computeInsights(sessions, _qrByChild[childId] || []);
+  const qr           = _qrByChild[childId]       || [];
+  const insights     = computeInsights(sessions, qr);
   const insightsHtml = buildInsightsHtml(insights, childId);
   const cardEl       = document.getElementById('child-card-' + childId);
   if (!cardEl) return;
   const tmp = document.createElement('div');
-  tmp.innerHTML = buildCard(child, idx, sessions, _progressByChild[childId] || null, insightsHtml, _subscribed);
+  tmp.innerHTML = buildCard(child, idx, sessions, _progressByChild[childId] || null, insightsHtml, _subscribed, qr);
   cardEl.replaceWith(tmp.firstElementChild);
 }
 
@@ -745,14 +1036,14 @@ window.addEventListener('DOMContentLoaded', async () => {
   // 1. Fetch own profile (child set up during onboarding lives here, not in a parent_id row)
   const { data: ownProfile } = await sb
     .from('profiles')
-    .select('id, name, year_group, exam_year')
+    .select('id, name, year_group, exam_year, sessions_per_week')
     .eq('id', parentId)
     .single();
 
   // 2. Fetch additional children added via add-child.html
   const { data: children, error: childErr } = await sb
     .from('profiles')
-    .select('id, name, year_group, exam_year')
+    .select('id, name, year_group, exam_year, sessions_per_week')
     .eq('parent_id', parentId)
     .order('name', { ascending: true });
 
@@ -823,9 +1114,10 @@ window.addEventListener('DOMContentLoaded', async () => {
   grid.className = 'children-grid';
   grid.innerHTML = kids.map((child, i) => {
     const childSessions = _sessionsByChild[child.id] || [];
-    const insights      = computeInsights(childSessions, _qrByChild[child.id] || []);
+    const childQr       = _qrByChild[child.id]       || [];
+    const insights      = computeInsights(childSessions, childQr);
     const insightsHtml  = buildInsightsHtml(insights, child.id);
-    return buildCard(child, i, childSessions, _progressByChild[child.id] || null, insightsHtml, _subscribed);
+    return buildCard(child, i, childSessions, _progressByChild[child.id] || null, insightsHtml, _subscribed, childQr);
   }).join('');
   document.getElementById('content').replaceWith(grid);
   document.body.style.opacity = '1';
