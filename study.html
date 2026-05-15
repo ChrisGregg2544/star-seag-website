@@ -257,6 +257,12 @@
     .rv-wrong { background: rgba(239,68,68,.1); color: #C53030; }
     .rv-correct { background: rgba(88,204,2,.12); color: #2F7A00; }
     .rv-expl { font-size: .78rem; color: var(--text-mid); line-height: 1.5; margin-top: 5px; font-weight: 400; }
+    .rv-report-btn { background: none; border: 1px solid transparent; color: #bbb; font-size: .68rem; font-weight: 700; cursor: pointer; padding: 2px 6px; margin-top: 6px; border-radius: 4px; font-family: inherit; display: inline-block; }
+    .rv-report-btn:hover { background: rgba(239,68,68,.08); border-color: rgba(239,68,68,.25); color: #C53030; }
+    .rv-reported-msg { font-size: .68rem; color: #2F7A00; font-weight: 700; margin-top: 6px; display: inline-block; }
+    .missed-report-btn { background: none; border: 1px solid transparent; color: #bbb; font-size: .72rem; font-weight: 700; cursor: pointer; padding: 3px 8px; margin-top: 10px; border-radius: 6px; font-family: inherit; display: inline-block; }
+    .missed-report-btn:hover { background: rgba(239,68,68,.08); border-color: rgba(239,68,68,.25); color: #C53030; }
+    .missed-reported-msg { font-size: .72rem; color: #2F7A00; font-weight: 700; margin-top: 10px; display: inline-block; }
     .results-header { text-align: center; margin-bottom: 28px; }
     .results-emoji { font-size: 3rem; margin-bottom: 10px; display: block; }
     .results-title { font-size: 1.75rem; font-weight: 900; color: var(--text-dark); margin-bottom: 6px; }
@@ -1003,6 +1009,31 @@ async function startStudy(topic) {
   }
 }
 
+async function reportQuestion(questionId, btn) {
+  if (!questionId) return;
+  btn.disabled = true;
+  btn.textContent = '…';
+  try {
+    const r = await fetch('/api/save-report', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ question_id: questionId, child_id: currentUserId || null }),
+    });
+    if (r.ok) {
+      const conf = document.createElement('span');
+      conf.className = btn.classList.contains('missed-report-btn') ? 'missed-reported-msg' : 'rv-reported-msg';
+      conf.textContent = "Thanks — we'll review this question";
+      btn.replaceWith(conf);
+    } else {
+      btn.textContent = '🚩 Report';
+      btn.disabled = false;
+    }
+  } catch {
+    btn.textContent = '🚩 Report';
+    btn.disabled = false;
+  }
+}
+
 /* ════════════════════════════════
    REVIEW SCREEN
    Shows wrong answers grouped by topic before the results panel.
@@ -1043,6 +1074,7 @@ function buildAndShowReviewScreen() {
       html += `<div class="rv-q">${qText}</div>`;
       html += `<div class="rv-answers"><span class="rv-chip rv-wrong">✗ ${studentAns}</span><span class="rv-chip rv-correct">✓ ${correctDisplay}</span></div>`;
       if (expl) html += `<div class="rv-expl">${expl}</div>`;
+      if (q.id) html += `<button class="rv-report-btn" onclick="reportQuestion('${q.id}', this)">🚩 Report</button>`;
       html += `</div>`;
     });
     html += `</div>`;
@@ -1739,6 +1771,13 @@ function _showResultsInternal() {
         </div>
         <a class="missed-video-link" href="${vid.url}" target="_blank" rel="noopener">▶ Watch on ${vid.source}</a>
         ${READING_TIPS[q.videoTopic || q.topic] ? `<div class="missed-reading-tip">${READING_TIPS[q.videoTopic || q.topic]}</div>` : ''}`;
+      if (q.id) {
+        const reportBtn = document.createElement('button');
+        reportBtn.className = 'missed-report-btn';
+        reportBtn.textContent = '🚩 Report';
+        reportBtn.onclick = () => reportQuestion(q.id, reportBtn);
+        card.appendChild(reportBtn);
+      }
       missedList.appendChild(card);
     });
   }
