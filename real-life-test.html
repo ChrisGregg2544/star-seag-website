@@ -394,8 +394,6 @@ async function fetchPool(subject, topic, count, excludeIds = []) {
     .eq('topic',      topic)
     .eq('year_group', userYear)
     .eq('validated',  true)
-    .eq('active',     true)
-    .eq('source',     'ai_generated_v2')
     .limit(count * 5);
   if (excluded.length) q = q.not('id', 'in', `(${excluded.join(',')})`);
   const { data, error } = await q;
@@ -432,14 +430,12 @@ async function assembleEnglish(excludeIds) {
       .select('id,topic,question_type,question_text,passage,options,correct_answer,diagram')
       .eq('passage_id', chosenPassage.id)
       .eq('topic',      'comprehension_mc')
-      .eq('source',     'ai_generated_v2')
-      .eq('active',     true),
+      .eq('validated',  true),
     sb.from('questions')
       .select('id,topic,question_type,question_text,passage,options,correct_answer,explanation,diagram')
       .eq('passage_id', chosenPassage.id)
       .eq('topic',      'comprehension_written')
-      .eq('source',     'ai_generated_v2')
-      .eq('active',     true),
+      .eq('validated',  true),
     fetchPool('english', 'punctuation', 5, excludeIds),
     fetchPool('english', 'grammar',     5, excludeIds),
     fetchPool('english', 'spelling',    5, excludeIds),

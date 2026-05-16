@@ -881,8 +881,7 @@ async function fetchBatch() {
     .from('questions')
     .select('id,subject,topic,year_group,difficulty,question_type,question_text,passage,options,correct_answer,explanation,diagram')
     .eq('year_group', userYear)
-    .eq('source',     'ai_generated_v2')
-    .eq('active',     true)
+    .eq('validated',  true)
     .in('difficulty',  diffTiers)
     .limit(50);
 
@@ -893,8 +892,7 @@ async function fetchBatch() {
       .from('questions')
       .select('id,subject,topic,year_group,difficulty,question_type,question_text,passage,options,correct_answer,explanation,diagram')
       .eq('year_group', userYear)
-      .eq('source',     'ai_generated_v2')
-      .eq('active',     true)
+      .eq('validated',  true)
       .in('difficulty',  diffTiers)
       .limit(25);
     const addSeen = (q) => seenIds.length > 0 ? q.not('id', 'in', `(${seenIds.join(',')})`) : q;
