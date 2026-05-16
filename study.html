@@ -1142,6 +1142,14 @@ async function init() {
   const urlMode  = params.get('mode');
   const urlTrack = params.get('track');
 
+  // Set end-screen primary button label based on session type
+  const primaryBtn = document.getElementById('results-btn-primary');
+  if (primaryBtn) {
+    primaryBtn.textContent = (urlMode === 'topic' || urlTopic)
+      ? '🎯 Try Another Topic Sprint'
+      : '⚡ Try Another Mini Mock';
+  }
+
   // When launched as the baseline mock (from onboarding), ensure the flag is set
   // so showBaselineReport() fires after completion regardless of login path taken.
   if (params.get('baseline') === 'true') {

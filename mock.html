@@ -431,12 +431,10 @@
         <div class="results-score-label">Maths</div>
       </div>
     </div>
-    <div class="wrong-section" id="wrong-section"></div>
+    <div class="wrong-section" id="wrong-section" style="display:none;"></div>
     <div class="results-actions">
-      <button class="results-btn primary" id="btn-retry" style="display:none" onclick="startRetry()">🔁 Retry These Questions</button>
-      <button class="results-btn primary" onclick="window.location.href='mock.html'">📝 Take Another Mock</button>
-      <button class="results-btn secondary" onclick="window.location.href='study.html'">📚 Study by Topic</button>
-      <button class="results-btn secondary" onclick="window.location.href='dashboard.html'">← Back to Dashboard</button>
+      <button class="results-btn primary" id="btn-review" style="display:none" onclick="toggleWrongAnswers()">📋 Review Wrong Answers</button>
+      <button class="results-btn secondary" onclick="window.location.href='dashboard.html'">← Go to Dashboard</button>
     </div>
   </div>
 </div>
@@ -451,8 +449,7 @@
     <div class="results-title" id="retry-done-title">Good effort!</div>
     <div class="results-sub" id="retry-done-sub" style="margin-bottom:28px;"></div>
     <div class="results-actions">
-      <button class="results-btn primary" onclick="window.location.href='mock.html'">📝 Take Another Mock</button>
-      <button class="results-btn secondary" onclick="window.location.href='dashboard.html'">← Back to Dashboard</button>
+      <button class="results-btn secondary" onclick="window.location.href='dashboard.html'">← Go to Dashboard</button>
     </div>
   </div>
 </div>
@@ -1481,7 +1478,7 @@ function buildWrongAnswers() {
 
   if (wrongQs.length === 0) {
     wrongSection.innerHTML = '<div style="text-align:center;padding:20px;color:rgba(255,255,255,.5);font-size:.88rem;">🎉 You got every question right on the main test!</div>';
-    document.getElementById('btn-retry').style.display = 'none';
+    document.getElementById('btn-review').style.display = 'none';
     return;
   }
 
@@ -1511,7 +1508,20 @@ function buildWrongAnswers() {
     wrongSection.appendChild(div);
   });
 
-  document.getElementById('btn-retry').style.display = '';
+  document.getElementById('btn-review').style.display = '';
+}
+
+function toggleWrongAnswers() {
+  const section = document.getElementById('wrong-section');
+  const btn = document.getElementById('btn-review');
+  if (section.style.display === 'none') {
+    section.style.display = '';
+    section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    btn.textContent = '📋 Hide Review';
+  } else {
+    section.style.display = 'none';
+    btn.textContent = '📋 Review Wrong Answers';
+  }
 }
 
 /* ════════════════════════════════════════
