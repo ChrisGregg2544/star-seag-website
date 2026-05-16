@@ -1019,7 +1019,6 @@ function buildTopics(toReview, hasData) {
         </div>
         <div class="topic-name">${item.topic}</div>
         ${readingTip ? `<div class="topic-reading-tip">${readingTip}</div>` : ''}
-        ${item.questionText?`<div class="topic-preview">${item.questionText}</div>`:''}
       </div>
       <a class="btn-tutorial ${isCorbett?'btn-corbett':'btn-bitesize'}" href="${videoUrl}" target="_blank" rel="noopener">▶ Watch Tutorial</a>`;
     grid.appendChild(card);
