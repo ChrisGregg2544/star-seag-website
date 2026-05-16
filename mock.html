@@ -608,14 +608,15 @@ async function init() {
   if (!selectedChildId) { window.location.href = 'dashboard.html'; return; }
   userId = selectedChildId;
 
-  // Subscription lives on the parent's profile; name/year live on the child's profile
-  const [{ data: parentProfile }, { data: profile }] = await Promise.all([
-    sb.from('parent_subscriptions').select('subscription_status').eq('parent_id', parentId).maybeSingle(),
+  const accessToken = authData.session.access_token;
+
+  // Check subscription server-side (bypasses RLS — same as dashboard and study.html)
+  const [subRes, { data: profile }] = await Promise.all([
+    fetch('/api/subscription?action=check', { headers: { 'Authorization': `Bearer ${accessToken}` } }),
     sb.from('profiles').select('name, year_group').eq('id', selectedChildId).maybeSingle(),
   ]);
-
-  const status = parentProfile?.subscription_status;
-  if (status !== 'active' && status !== 'trialing') {
+  const subJson = subRes.ok ? await subRes.json() : {};
+  if (!subJson.subscribed) {
     window.location.href = 'pricing.html';
     return;
   }
