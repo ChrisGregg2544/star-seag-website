@@ -997,30 +997,26 @@ function buildTopics(toReview, hasData) {
     comprehension_written: 'The best comprehension practice is reading! Ask your local library for books recommended for your age group 📖',
   };
   toReview.forEach(item => {
-    const isCorbett = (item.videoSource||'').toLowerCase().includes('corbett');
-    const type = isCorbett ? 'maths'
-      : ['fraction','area','perimeter','multiplication','division','algebra','percentage','ratio','decimal','geometry']
-          .some(k => (item.topic||'').toLowerCase().includes(k)) ? 'maths' : 'english';
     const topicKey = (item.topic || '').toLowerCase().replace(/\s+/g, '_');
-    let videoUrl = item.videoUrl || '';
-    if (!videoUrl) {
-      videoUrl = isCorbett
-        ? (CORBETT_URLS[topicKey] || 'https://corbettmathsprimary.com/?s=' + encodeURIComponent(item.videoTitle || item.topic || ''))
-        : (BITESIZE_URLS[topicKey] || 'https://www.bbc.co.uk/bitesize/search?q=' + encodeURIComponent(item.videoTitle || item.topic || ''));
-    }
+    const isMaths  = CORBETT_URLS.hasOwnProperty(topicKey);
+    const type     = isMaths ? 'maths' : 'english';
+    const videoUrl = item.videoUrl ||
+      (isMaths
+        ? (CORBETT_URLS[topicKey] || 'https://corbettmathsprimary.com/?s=' + encodeURIComponent(item.topic || ''))
+        : (BITESIZE_URLS[topicKey] || 'https://www.bbc.co.uk/bitesize/search?q=' + encodeURIComponent(item.topic || '')));
     const readingTip = READING_TIPS[topicKey] || '';
     const card = document.createElement('div');
     card.className = 'topic-card';
     card.innerHTML = `
       <div>
         <div class="topic-meta">
-          <span class="topic-type-badge ${type==='maths'?'badge-maths':'badge-english'}">${type==='maths'?'📐 Maths':'📖 English'}</span>
-          <span class="topic-source-tag">${isCorbett?'CorbettMaths':'BBC Bitesize'}</span>
+          <span class="topic-type-badge ${isMaths?'badge-maths':'badge-english'}">${isMaths?'📐 Maths':'📖 English'}</span>
+          <span class="topic-source-tag">${isMaths?'CorbettMaths':'BBC Bitesize'}</span>
         </div>
         <div class="topic-name">${item.topic}</div>
         ${readingTip ? `<div class="topic-reading-tip">${readingTip}</div>` : ''}
       </div>
-      <a class="btn-tutorial ${isCorbett?'btn-corbett':'btn-bitesize'}" href="${videoUrl}" target="_blank" rel="noopener">▶ Watch Tutorial</a>`;
+      <a class="btn-tutorial ${isMaths?'btn-corbett':'btn-bitesize'}" href="${videoUrl}" target="_blank" rel="noopener">▶ Watch Tutorial</a>`;
     grid.appendChild(card);
   });
 }
