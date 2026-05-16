@@ -270,7 +270,7 @@ export default async function handler(req, res) {
 
   // ── 2. Parent profiles + children (parallel) ─────────────────────────────
   const [parents, allChildren] = await Promise.all([
-    sbGet(`profiles?id=in.(${parentIds})&select=id,name,parent_email`, serviceKey),
+    sbGet(`profiles?id=in.(${parentIds})&select=id,name,parent_name,parent_email`, serviceKey),
     sbGet(`profiles?parent_id=in.(${parentIds})&select=id,name,year_group,parent_id`, serviceKey),
   ]);
 
@@ -327,7 +327,8 @@ export default async function handler(req, res) {
       continue;
     }
 
-    const html      = buildEmailHtml(parent.name, activeChildren, tip);
+    const greeting  = (parent.parent_name || parent.name || 'there').split(' ')[0];
+    const html      = buildEmailHtml(greeting, activeChildren, tip);
     const dateLabel = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long' });
     const subject   = `Your weekly STAR progress report — ${dateLabel}`;
 

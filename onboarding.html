@@ -112,12 +112,23 @@
       color: var(--text-dark);
       text-align: center;
       outline: none;
-      margin-bottom: 22px;
+      margin-bottom: 0;
       transition: border-color 0.2s;
     }
 
     .text-input::placeholder { color: #D1D5DB; }
     .text-input:focus { border-color: var(--orange); }
+
+    .field-group { margin-bottom: 16px; }
+    .field-label {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--text-mid);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      text-align: left;
+      margin-bottom: 6px;
+    }
 
     /* Year group buttons */
     .year-group-row {
@@ -297,7 +308,15 @@
     <div class="qlabel">Tell us about<br>your child</div>
     <div class="qsub">We'll match the questions to the right level.</div>
 
-    <input class="text-input" id="inp-child-name" type="text" placeholder="Child's first name…" autocomplete="off" maxlength="40"/>
+    <div class="field-group">
+      <div class="field-label">Your name (parent/guardian)</div>
+      <input class="text-input" id="inp-parent-name" type="text" placeholder="e.g. Sarah…" autocomplete="given-name" maxlength="60"/>
+    </div>
+
+    <div class="field-group" style="margin-bottom:22px;">
+      <div class="field-label">Your child's name</div>
+      <input class="text-input" id="inp-child-name" type="text" placeholder="e.g. Emma…" autocomplete="off" maxlength="40"/>
+    </div>
 
     <div class="year-group-row">
       <button class="year-btn" id="yr-p6" onclick="selYear('P6')">
@@ -387,7 +406,7 @@
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml1dGNnb2dteGhhcWdheGt6bnh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM3NjE4MTQsImV4cCI6MjA4OTMzNzgxNH0.o0plRQzH8ezfttG_sEeWu3F4IUtKnyzcXtPEGJ9xRF0'
   );
 
-  const state = { childName: '', year: null };
+  const state = { parentName: '', childName: '', year: null };
 
   /* Auth guard + onboarding-already-done check */
   (async () => {
@@ -396,6 +415,14 @@
       if (!data?.session?.user) { window.location.href = 'login.html'; return; }
       const { data: p } = await sb.from('profiles').select('onboarded').eq('id', data.session.user.id).single();
       if (p?.onboarded) { window.location.href = 'dashboard.html'; return; }
+
+      /* Pre-fill parent name from Google OAuth metadata */
+      const meta = data.session.user.user_metadata || {};
+      const oauthName = meta.full_name || meta.name || '';
+      if (oauthName) {
+        document.getElementById('inp-parent-name').value = oauthName;
+        updateStep0Btn();
+      }
     } catch(_) {}
 
     document.body.style.opacity = '1';
@@ -425,8 +452,13 @@
       : (month >= 11 ? now.getFullYear() + 2 : now.getFullYear() + 1);
   }
 
-  /* ── Child name + year group ── */
+  /* ── Parent name + child name + year group ── */
+  const pInp = document.getElementById('inp-parent-name');
   const cInp = document.getElementById('inp-child-name');
+
+  pInp.addEventListener('input', updateStep0Btn);
+  pInp.addEventListener('keydown', e => { if (e.key === 'Enter') cInp.focus(); });
+
   cInp.addEventListener('input', updateStep0Btn);
   cInp.addEventListener('keydown', e => {
     if (e.key === 'Enter' && !document.getElementById('btn-0').disabled) goNext(0);
@@ -440,15 +472,17 @@
   }
 
   function updateStep0Btn() {
-    const nameOk = cInp.value.trim().length > 0;
-    const yearOk = state.year !== null;
-    document.getElementById('btn-0').disabled = !(nameOk && yearOk);
+    const parentOk = pInp.value.trim().length > 0;
+    const nameOk   = cInp.value.trim().length > 0;
+    const yearOk   = state.year !== null;
+    document.getElementById('btn-0').disabled = !(parentOk && nameOk && yearOk);
   }
 
   /* ── Navigation ── */
   function goNext(from) {
     if (from === 0) {
-      state.childName = cInp.value.trim();
+      state.parentName = pInp.value.trim();
+      state.childName  = cInp.value.trim();
       const weeks = weeksUntilExam();
       document.getElementById('weeks-display').textContent = `${weeks} weeks until Paper 1`;
     }
@@ -486,7 +520,8 @@
   /* ── Summary ── */
   function buildSummary() {
     const weeks = weeksUntilExam();
-    document.getElementById('lbl-2').textContent = `You're all set, ${state.childName}! 🎉`;
+    const firstName = state.parentName.split(' ')[0];
+    document.getElementById('lbl-2').textContent = `You're all set, ${firstName}! 🎉`;
     document.getElementById('s-child').textContent = state.childName;
     document.getElementById('s-year').textContent  = state.year;
     document.getElementById('s-weeks-row').textContent =
@@ -511,6 +546,7 @@
       const { error } = await sb.from('profiles').upsert({
         id:           userId,
         parent_email: userEmail,
+        parent_name:  state.parentName,
         name:         state.childName,
         year_group:   state.year,
         exam_year:    examYear,
