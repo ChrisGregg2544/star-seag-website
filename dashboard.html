@@ -918,7 +918,7 @@ function buildSkillsMap(count, qrData, showReport = false) {
     grid.appendChild(chip);
   });
   container.appendChild(grid);
-  buildRecommendations(skills);
+  buildRecommendations(skills, qrData);
   if (showReport || count >= 3) showBaselineReportCard(skills);
 }
 
@@ -940,35 +940,66 @@ function formatTopicName(raw) {
   return map[raw] || raw.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
 }
 
-function buildRecommendations(skills) {
-  const weak = skills.filter(s => s.pct < 70).slice(0, 3);
-  if (weak.length === 0) return;
-
+function buildRecommendations(skills, qrData) {
   const section = document.getElementById('recommendations-section');
-  const card = document.getElementById('recs-card');
+  const card    = document.getElementById('recs-card');
   if (!section || !card) return;
 
   const locked = window._paywallActive || window._trialLocked;
-  card.innerHTML = `
-    <div class="recs-card-title">Your weakest topics right now</div>
-    <div class="recs-card-sub">Practice these to boost your score</div>
-    ${weak.map(s => {
-      const label = formatTopicName(s.name);
-      const href = locked
-        ? 'pricing.html'
-        : `study.html?topic=${encodeURIComponent(s.name)}&mode=topic`;
-      return `
-        <div class="rec-item">
-          <span class="rec-pct-badge ${s.c}">${s.pct}%</span>
-          <span class="rec-topic-name">${label}</span>
-          <a class="rec-btn" href="${href}">Practice →</a>
-        </div>`;
-    }).join('')}
-  `;
+  const weak   = skills.filter(s => s.pct < 70).slice(0, 3);
+
+  if (weak.length > 0) {
+    card.innerHTML = `
+      <div class="recs-card-title">Your weakest topics right now</div>
+      <div class="recs-card-sub">Practice these to boost your score</div>
+      ${weak.map(s => {
+        const label = formatTopicName(s.name);
+        const href  = locked
+          ? 'pricing.html'
+          : `study.html?topic=${encodeURIComponent(s.name)}&mode=topic`;
+        return `
+          <div class="rec-item">
+            <span class="rec-pct-badge ${s.c}">${s.pct}%</span>
+            <span class="rec-topic-name">${label}</span>
+            <a class="rec-btn" href="${href}">Practice →</a>
+          </div>`;
+      }).join('')}
+    `;
+    section.style.display = '';
+    return;
+  }
+
+  // All topics above threshold — check for untried topics
+  const attempted = new Set((qrData || []).map(r => r.topic).filter(Boolean));
+  const untried   = Object.keys(TOPIC_FRIENDLY).filter(t => !attempted.has(t));
+
+  if (untried.length > 0) {
+    const topicSlug = untried[0];
+    const topicName = TOPIC_FRIENDLY[topicSlug];
+    const href = locked ? 'pricing.html' : `study.html?topic=${encodeURIComponent(topicSlug)}&mode=topic`;
+    card.innerHTML = `
+      <div class="recs-card-title">Try a new topic!</div>
+      <div class="recs-card-sub">You haven't practised ${topicName} yet.</div>
+      <div class="rec-item" style="margin-top:8px;">
+        <span class="rec-topic-name">${topicName}</span>
+        <a class="rec-btn" href="${href}">Start →</a>
+      </div>
+    `;
+  } else {
+    const href = locked ? 'pricing.html' : 'mock.html';
+    card.innerHTML = `
+      <div class="recs-card-title">Doing great — keep all topics sharp!</div>
+      <div class="recs-card-sub">Why not challenge yourself with a Full Mock?</div>
+      <div class="rec-item" style="margin-top:8px;">
+        <span class="rec-topic-name">Full Mock — 56 questions</span>
+        <a class="rec-btn" href="${href}">Take Mock →</a>
+      </div>
+    `;
+  }
   section.style.display = '';
 }
 
-function buildTopics(toReview, hasData) {
+function buildTopics(toReview, hasData, qrData) {
   const grid  = document.getElementById('topic-grid');
   const count = document.getElementById('topics-count');
   grid.innerHTML = '';
@@ -978,8 +1009,19 @@ function buildTopics(toReview, hasData) {
     return;
   }
   if (toReview.length === 0) {
-    count.textContent = '0 to review';
-    grid.innerHTML = `<div class="empty-topics"><div class="ace">🎉</div><h3>Clean Sweep!</h3><p>You got every question right. Start a new sprint to keep going!</p></div>`;
+    count.textContent = '';
+    const locked    = window._paywallActive || window._trialLocked;
+    const attempted = new Set((qrData || []).map(r => r.topic).filter(Boolean));
+    const untried   = Object.keys(TOPIC_FRIENDLY).filter(t => !attempted.has(t));
+    if (untried.length > 0) {
+      const topicSlug = untried[0];
+      const topicName = TOPIC_FRIENDLY[topicSlug];
+      const href = locked ? 'pricing.html' : `study.html?topic=${encodeURIComponent(topicSlug)}&mode=topic`;
+      grid.innerHTML = `<div class="empty-topics"><div class="ace">🌟</div><h3>Try a new topic!</h3><p>You haven't practised ${topicName} yet.</p><a href="${href}" style="display:inline-block;margin-top:14px;background:var(--orange);color:#fff;padding:10px 22px;border-radius:10px;font-weight:800;font-size:.88rem;text-decoration:none;">Start ${topicName} →</a></div>`;
+    } else {
+      const href = locked ? 'pricing.html' : 'mock.html';
+      grid.innerHTML = `<div class="empty-topics"><div class="ace">🏆</div><h3>Doing great — keep all topics sharp!</h3><p>Why not challenge yourself with a Full Mock?</p><a href="${href}" style="display:inline-block;margin-top:14px;background:var(--orange);color:#fff;padding:10px 22px;border-radius:10px;font-weight:800;font-size:.88rem;text-decoration:none;">Take a Full Mock →</a></div>`;
+    }
     return;
   }
   count.textContent = toReview.length + ' topic' + (toReview.length > 1 ? 's' : '');
@@ -1451,7 +1493,7 @@ async function init() {
   } else {
     buildWeeklySchedule(sessionsPerWeek, weekDone, yearGroup, weeks, weekSessionTypes);
     buildSkillsMap(sessionsCount || 0, _preloadedQR, baselineComplete);
-    buildTopics(toReview, hasData);
+    buildTopics(toReview, hasData, _preloadedQR);
   }
 
   // Unlock all session entry points now that subscription state is fully resolved
