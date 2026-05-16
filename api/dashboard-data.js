@@ -79,19 +79,19 @@ export default async function handler(req, res) {
   });
   const sessionsCount = countHeader(totalCountRes);
 
-  // 2. Sessions this week count
-  const weekCountRes = await fetch(
-    `${SUPABASE_URL}/rest/v1/sessions?user_id=eq.${childId}&completed_at=gte.${weekStart}&select=id`,
+  // 2. Sessions this week — fetch rows (for count + actual session types)
+  const weekRowsRes = await fetch(
+    `${SUPABASE_URL}/rest/v1/sessions?user_id=eq.${childId}&completed_at=gte.${weekStart}&select=session_type,completed_at&order=completed_at.asc&limit=50`,
     {
       headers: {
         'apikey':        serviceKey,
         'Authorization': `Bearer ${serviceKey}`,
-        'Prefer':        'count=exact',
-        'Range':         '0-0',
       },
     }
   );
-  const weekDoneCount = countHeader(weekCountRes);
+  const weekRows    = weekRowsRes.ok ? await weekRowsRes.json() : [];
+  const weekDoneCount = Array.isArray(weekRows) ? weekRows.length : 0;
+  const weekSessions  = Array.isArray(weekRows) ? weekRows.map(r => r.session_type) : [];
 
   // 2b. Guardian Supervised Test count this week
   const guardianCountRes = await fetch(
@@ -132,6 +132,7 @@ export default async function handler(req, res) {
     ok:               true,
     sessionsCount,
     weekDoneCount,
+    weekSessions,
     guardianTestCount,
     lastScore:        ps?.last_score    ?? null,
     lastTotal:        ps?.last_total    ?? null,

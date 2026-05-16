@@ -784,6 +784,14 @@ const TOPIC_SPRINT  = { icon: '🎯', name: 'Topic Sprint',             href: 's
 const FULL_MOCK     = { icon: '📝', name: 'Full Mock',                href: 'mock.html' };
 const GUARDIAN_TEST = { icon: '🖨️', name: 'Guardian Supervised Test', href: 'real-life-test.html' };
 
+// Maps DB session_type → display entry for completed cards
+const SESSION_TYPE_MAP = {
+  mini_sprint:   MINI_MOCK,
+  topic_sprint:  TOPIC_SPRINT,
+  full_mock:     FULL_MOCK,
+  guardian_test: GUARDIAN_TEST,
+};
+
 function buildRotation(yearGroup, weeks) {
   if (yearGroup !== 'P7') {
     // P6: Mini Mock × 2, Topic Sprint × 1 (Full Mock suggested monthly, not in daily rotation)
@@ -1021,11 +1029,12 @@ function buildTopics(toReview, hasData) {
   });
 }
 
-function buildWeeklySchedule(sessionsPerWeek, weekDone, yearGroup, weeks) {
-  const target   = Math.max(1, Math.min(7, sessionsPerWeek || 3));
-  const done     = Math.min(weekDone || 0, target);
-  const pct      = Math.round((done / target) * 100);
-  const rotation = buildRotation(yearGroup || 'P6', weeks ?? null);
+function buildWeeklySchedule(sessionsPerWeek, weekDone, yearGroup, weeks, weekSessions) {
+  const target      = Math.max(1, Math.min(7, sessionsPerWeek || 3));
+  const done        = Math.min(weekDone || 0, target);
+  const pct         = Math.round((done / target) * 100);
+  const rotation    = buildRotation(yearGroup || 'P6', weeks ?? null);
+  const completedTypes = Array.isArray(weekSessions) ? weekSessions : [];
 
   document.getElementById('week-done-num').textContent    = done;
   document.getElementById('week-target-num').textContent  = target;
@@ -1049,11 +1058,15 @@ function buildWeeklySchedule(sessionsPerWeek, weekDone, yearGroup, weeks) {
   let nextFlagged = false;
 
   for (let i = 0; i < target; i++) {
-    const sess     = rotation[i % rotation.length];
-    const isDone   = i < done;
-    const isNext   = !isDone && !nextFlagged;
+    const isDone     = i < done;
+    const isNext     = !isDone && !nextFlagged;
     if (isNext) nextFlagged = true;
     const isUpcoming = !isDone && !isNext;
+
+    // For completed slots use the actual session type; fall back to rotation for display
+    const sess = isDone
+      ? (SESSION_TYPE_MAP[completedTypes[i]] || rotation[i % rotation.length])
+      : rotation[i % rotation.length];
 
     const card = document.createElement(isDone ? 'div' : 'a');
     if (!isDone) card.href = window._paywallActive ? 'pricing.html' : sess.href;
@@ -1315,6 +1328,7 @@ async function init() {
   const _dd = _ddRes.ok ? await _ddRes.json() : {};
   const sessionsCount    = _dd.sessionsCount    ?? 0;
   const weekDoneCount    = _dd.weekDoneCount    ?? 0;
+  const weekSessionTypes = _dd.weekSessions     || [];
   const baselineComplete = _dd.baselineComplete === true;
   const _preloadedQR     = _dd.questionResults  || [];
   console.log('[dashboard] subscribed:', subscribed, '| sessionsCount:', sessionsCount, '| weekDoneCount:', weekDoneCount, '| baselineComplete:', baselineComplete);
@@ -1435,7 +1449,7 @@ async function init() {
     if (count) count.textContent = '';
     if (grid) grid.innerHTML = `<div class="no-data-state"><div class="nd-icon">📊</div><h3>Unlock your topic recommendations</h3><p>Complete your baseline sprint and STAR will show you exactly which topics to focus on first.</p></div>`;
   } else {
-    buildWeeklySchedule(sessionsPerWeek, weekDone, yearGroup, weeks);
+    buildWeeklySchedule(sessionsPerWeek, weekDone, yearGroup, weeks, weekSessionTypes);
     buildSkillsMap(sessionsCount || 0, _preloadedQR, baselineComplete);
     buildTopics(toReview, hasData);
   }
