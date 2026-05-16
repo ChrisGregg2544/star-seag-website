@@ -317,7 +317,7 @@ let accessToken  = null;
     const infoEl = document.getElementById('pricing-info');
     if (!isSubscribed) {
       // No subscription yet — this is their first child setup
-      infoEl.innerHTML = `Adding your first child will set your subscription to <strong>£15/month</strong> after your 7-day free trial.`;
+      infoEl.innerHTML = `Adding your first child will set your subscription to <strong>£14.99/month</strong> after your 7-day free trial.`;
     } else if (totalExisting === 1) {
       // Subscribed for primary child only, adding second
       infoEl.innerHTML = `Adding another child will add <strong>£10/month</strong> to your subscription, bringing your total to <strong>£${newPrice}/month</strong>.`;

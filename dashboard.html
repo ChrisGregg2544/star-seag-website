@@ -526,7 +526,7 @@
   <div class="upgrade-banner-icon">⭐</div>
   <div class="upgrade-banner-text">
     <strong id="upgrade-banner-msg">Unlock unlimited practice</strong>
-    <span>Your first 7 days are completely free — then just £15/month. Cancel anytime.</span>
+    <span>Your first 7 days are completely free — then just £14.99/month. Cancel anytime.</span>
   </div>
   <a href="pricing.html" class="upgrade-banner-btn">Start Free Trial →</a>
 </div>
@@ -1395,7 +1395,7 @@ async function init() {
     // Post-baseline paywall — replace today card with subscription CTA
     if (window._trialLocked) {
       document.getElementById('today-title').textContent = '🔓 Start Your 7-Day Free Trial';
-      document.getElementById('today-sub').textContent   = 'Your baseline is complete — subscribe to unlock all sessions. 7 days free, then £15/month. Cancel anytime.';
+      document.getElementById('today-sub').textContent   = 'Your baseline is complete — subscribe to unlock all sessions. 7 days free, then £14.99/month. Cancel anytime.';
       document.getElementById('today-card').href         = 'pricing.html';
     }
   }
