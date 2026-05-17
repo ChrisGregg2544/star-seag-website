@@ -63,11 +63,17 @@
     });
   }
 
+  // Never interrupt an active study or mock session with the banner
+  var SESSION_PAGES = ['/study.html', '/mock.html'];
+  var onSessionPage = SESSION_PAGES.some(function (p) {
+    return window.location.pathname.endsWith(p);
+  });
+
   var consent = localStorage.getItem(STORAGE_KEY);
   if (consent === 'accepted') {
     loadGA();
-  } else if (consent !== 'declined') {
-    // No choice yet — show banner once DOM is ready
+  } else if (consent !== 'declined' && !onSessionPage) {
+    // No choice yet and not mid-session — show banner once DOM is ready
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', showBanner);
     } else {
