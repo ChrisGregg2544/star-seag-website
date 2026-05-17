@@ -873,7 +873,9 @@ async function fetchBatch() {
       .from('student_question_history')
       .select('question_id')
       .eq('user_id', currentUserId)
-      .gt('seen_at', thirtyDaysAgo);
+      .gt('seen_at', thirtyDaysAgo)
+      .order('seen_at', { ascending: false })
+      .limit(500);
     seenIds = (seenData || []).map(r => r.question_id).filter(Boolean);
   }
 
@@ -883,7 +885,7 @@ async function fetchBatch() {
     .eq('year_group', userYear)
     .eq('validated',  true)
     .in('difficulty',  diffTiers)
-    .limit(50);
+    .limit(200);
 
   if (selectedTopic === 'mixed') {
     const englishTopics = ['punctuation', 'grammar', 'spelling', 'vocabulary', 'comprehension_mc'];
@@ -894,7 +896,7 @@ async function fetchBatch() {
       .eq('year_group', userYear)
       .eq('validated',  true)
       .in('difficulty',  diffTiers)
-      .limit(25);
+      .limit(200);
     const addSeen = (q) => seenIds.length > 0 ? q.not('id', 'in', `(${seenIds.join(',')})`) : q;
     const [enRes, mathRes] = await Promise.all([
       addSeen(makeBase().in('topic', englishTopics)),
