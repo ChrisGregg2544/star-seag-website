@@ -25,8 +25,8 @@ async function handleUpdateVerdict(req, res) {
     return res.status(400).json({ error: 'Invalid verdict — must be PASS, WARN, or FAIL' });
   }
 
-  const serviceKey = process.env.SUPABASE_SERVICE_KEY;
-  if (!serviceKey) return res.status(500).json({ error: 'SUPABASE_SERVICE_KEY not configured' });
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!serviceKey) return res.status(500).json({ error: 'SUPABASE_SERVICE_ROLE_KEY not configured' });
 
   const update = { validator_verdict: verdict.toLowerCase(), validator_reason: reason || null };
   if (verdict === 'PASS') update.validated = true;
@@ -65,8 +65,8 @@ async function handleSaveFeedback(req, res) {
     return res.status(400).json({ ok: false, error: 'Missing required fields' });
   }
 
-  const serviceKey = process.env.SUPABASE_SERVICE_KEY;
-  if (!serviceKey) return res.status(500).json({ ok: false, error: 'SUPABASE_SERVICE_KEY not configured' });
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!serviceKey) return res.status(500).json({ ok: false, error: 'SUPABASE_SERVICE_ROLE_KEY not configured' });
 
   const response = await fetch(`${SUPABASE_URL}/rest/v1/validator_feedback`, {
     method: 'POST',
