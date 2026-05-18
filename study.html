@@ -2035,7 +2035,7 @@ async function checkAccess() {
 
     if (!data?.session?.user) {
       const guestDone = parseInt(localStorage.getItem('guest_sprints_done') || '0', 10);
-      if (guestDone < 3) {
+      if (guestDone < 2) {
         window._starAccess = { subscribed: false, freeUsed: 0, userId: null, isGuest: true };
         return true;
       }
@@ -2132,7 +2132,7 @@ window.addEventListener('DOMContentLoaded', async () => {
       Continue with Google
     </a>
     <a href="signup.html" class="guest-btn-email">Sign up with email instead</a>
-    <button onclick="document.getElementById('guest-signup-overlay').style.display='none'" class="guest-btn-dismiss">Maybe later</button>
+    <button onclick="window.location.href='index.html'" class="guest-btn-dismiss">Maybe later</button>
   </div>
 </div>
 </body>
