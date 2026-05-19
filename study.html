@@ -628,6 +628,7 @@ let allWrongAnswers      = [];  // accumulates wrong answers across all batches 
 let globalAnswers        = [];  // correct/wrong per global question index across all batches
 let allSessionQuestions  = [];  // all answered questions across batches for session save + history
 let usedIds          = new Set();
+let topicCounts      = {};        // tracks topic usage within a mixed session
 let sessionShownIds  = new Set(); // dedup at display time within one session
 let correctCount     = 0;      // cumulative correct for difficulty unlock
 let sessionCorrect   = 0;      // across all batches
@@ -855,6 +856,38 @@ function trackQuestionSeen(questionId) {
 }
 
 /* ════════════════════════════════
+   TOPIC-BALANCED PICKER
+   Selects `count` questions from pool, ensuring no topic appears more
+   than twice per session. Pass 1: 1 per topic; Pass 2: up to 2 per topic.
+════════════════════════════════ */
+function pickBalanced(pool, count) {
+  const picked = [];
+  // Pass 1: one per topic not yet at limit
+  for (const q of pool) {
+    if (picked.length >= count) break;
+    const t = q.topic || '';
+    if ((topicCounts[t] || 0) < 1) {
+      picked.push(q);
+      topicCounts[t] = (topicCounts[t] || 0) + 1;
+    }
+  }
+  // Pass 2: fill remaining up to 2 per topic
+  if (picked.length < count) {
+    const pickedIds = new Set(picked.map(q => q.id));
+    for (const q of pool) {
+      if (picked.length >= count) break;
+      if (pickedIds.has(q.id)) continue;
+      const t = q.topic || '';
+      if ((topicCounts[t] || 0) < 2) {
+        picked.push(q);
+        topicCounts[t] = (topicCounts[t] || 0) + 1;
+      }
+    }
+  }
+  return picked;
+}
+
+/* ════════════════════════════════
    FETCH BATCH FROM DB
 ════════════════════════════════ */
 async function fetchBatch() {
@@ -904,9 +937,12 @@ async function fetchBatch() {
     ]);
     if (enRes.error) throw new Error(enRes.error.message);
     if (mathRes.error) throw new Error(mathRes.error.message);
-    const enPool   = shuffle((enRes.data || []).filter(q => !usedIds.has(q.id)));
-    const mathPool = shuffle((mathRes.data || []).filter(q => !usedIds.has(q.id)));
-    const taken    = [...enPool.slice(0, 5), ...mathPool.slice(0, 5)];
+    const enPool        = shuffle((enRes.data || []).filter(q => !usedIds.has(q.id)));
+    const mathPool      = shuffle((mathRes.data || []).filter(q => !usedIds.has(q.id)));
+    const questionsNeeded = MAX_QUESTIONS - sessionTotal;
+    const enCount       = Math.ceil(questionsNeeded / 2);
+    const mathCount     = questionsNeeded - enCount;
+    const taken         = [...pickBalanced(enPool, enCount), ...pickBalanced(mathPool, mathCount)];
     if (taken.length === 0) return [];
     const questions = shuffle(taken);
     questions.forEach(q => usedIds.add(q.id));
@@ -956,6 +992,7 @@ async function startStudy(topic) {
   MAX_QUESTIONS    = userYear === 'P7' ? 15 : 10;
   selectedTopic    = topic;
   usedIds          = new Set();
+  topicCounts      = {};
   sessionShownIds  = new Set();
   correctCount     = 0;
   sessionCorrect   = 0;
