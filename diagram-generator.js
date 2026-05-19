@@ -762,25 +762,57 @@ function pieChart(opts = {}) {
 
 // ── function-machine ─────────────────────────────────────────────────────────
 
+// Word-wrap rule text to fit inside the rule box (96px wide, 88px usable).
+// Tries progressively smaller font sizes and splits at word boundaries.
+// Returns { lines: string[], fontSize: number }.
+function wrapRuleText(text) {
+  // [maxCharsPerLine, fontSize] candidates — widest/largest first
+  const candidates = [
+    [11, 13],
+    [13, 11],
+    [16,  9],
+  ];
+
+  function bestSplit(t, maxChars) {
+    if (t.length <= maxChars) return [t];
+    const words = t.split(' ');
+    for (let i = words.length - 1; i >= 1; i--) {
+      const l1 = words.slice(0, i).join(' ');
+      const l2 = words.slice(i).join(' ');
+      if (l1.length <= maxChars && l2.length <= maxChars) return [l1, l2];
+    }
+    return null; // no valid split at this width
+  }
+
+  for (const [maxChars, fontSize] of candidates) {
+    const lines = bestSplit(text, maxChars);
+    if (lines) return { lines, fontSize };
+  }
+
+  // Fallback: hard-truncate to 16 chars at font-size 9
+  return { lines: [text.slice(0, 15) + '…'], fontSize: 9 };
+}
+
 function functionMachine({ rule = '× 3', input = '?', output = '?' } = {}) {
   // Layout: [Input] → [  Rule box  ] → [Output]
   // Centred vertically at y=90. Horizontal flow across 280px.
   const cy = 90;
 
   // Box dimensions
-  const ioW = 52, ioH = 36, ioR = 8;      // input/output boxes
+  const ioW = 52, ioH = 36, ioR = 8;       // input/output boxes
   const ruleW = 96, ruleH = 50, ruleR = 12; // rule box (larger)
   const arrowLen = 22;
 
   // X positions
-  const ioX1 = 8;                                        // input box left
-  const arr1X = ioX1 + ioW + 2;                          // arrow 1 start
-  const ruleX = arr1X + arrowLen + 2;                    // rule box left
-  const arr2X = ruleX + ruleW + 2;                       // arrow 2 start
-  const ioX2 = arr2X + arrowLen + 2;                     // output box left
+  const ioX1 = 8;                           // input box left
+  const arr1X = ioX1 + ioW + 2;             // arrow 1 start
+  const ruleX = arr1X + arrowLen + 2;        // rule box left
+  const arr2X = ruleX + ruleW + 2;           // arrow 2 start
+  const ioX2  = arr2X + arrowLen + 2;        // output box left
 
   const ioY  = cy - ioH / 2;
   const ruleY = cy - ruleH / 2;
+  const ruleCX = ruleX + ruleW / 2;
 
   // Arrow helper: horizontal arrow from (x1,y) to (x2,y)
   function arrow(x1, x2, y) {
@@ -789,9 +821,9 @@ function functionMachine({ rule = '× 3', input = '?', output = '?' } = {}) {
             <polygon points="${x2},${y} ${hx},${y - 5} ${hx},${y + 5}" fill="${BLUE}"/>`;
   }
 
-  // Input box
-  const inputFill  = input  === '?' ? '#FFF7ED' : FILL;
-  const outputFill = output === '?' ? '#FFF7ED' : FILL;
+  // Input / output colour
+  const inputFill    = input  === '?' ? '#FFF7ED' : FILL;
+  const outputFill   = output === '?' ? '#FFF7ED' : FILL;
   const inputStroke  = input  === '?' ? '#F59E0B' : BLUE;
   const outputStroke = output === '?' ? '#F59E0B' : BLUE;
 
@@ -800,12 +832,21 @@ function functionMachine({ rule = '× 3', input = '?', output = '?' } = {}) {
     <text x="${ioX1 + ioW / 2}" y="${cy + 5}" text-anchor="middle" font-size="15" font-weight="bold" fill="${input === '?' ? '#F59E0B' : PURPLE}">${input}</text>
     <text x="${ioX1 + ioW / 2}" y="${ioY - 6}" text-anchor="middle" font-size="9" fill="${GREY}">INPUT</text>`;
 
-  // Rule box
+  // Rule box — word-wrapped text
+  const { lines, fontSize } = wrapRuleText(String(rule));
+  const lineH   = fontSize * 1.35;
+  const totalH  = lines.length * lineH;
+  const textY0  = cy - totalH / 2 + fontSize * 0.85; // top baseline
+  const ruleTextEl = lines.length === 1
+    ? `<text x="${ruleCX}" y="${cy + fontSize * 0.35}" text-anchor="middle" font-size="${fontSize}" font-weight="bold" fill="${PURPLE}">${lines[0]}</text>`
+    : `<text text-anchor="middle" font-size="${fontSize}" font-weight="bold" fill="${PURPLE}">${
+        lines.map((l, i) => `<tspan x="${ruleCX}" y="${textY0 + i * lineH}">${l}</tspan>`).join('')
+      }</text>`;
+
   const ruleBox = `
     <rect x="${ruleX}" y="${ruleY}" width="${ruleW}" height="${ruleH}" rx="${ruleR}" fill="${FILL}" stroke="${BLUE}" stroke-width="2.5"/>
-    <text x="${ruleX + ruleW / 2}" y="${cy + 5}" text-anchor="middle" font-size="13" font-weight="bold" fill="${PURPLE}">${rule}</text>`;
+    ${ruleTextEl}`;
 
-  // Output box
   const outputBox = `
     <rect x="${ioX2}" y="${ioY}" width="${ioW}" height="${ioH}" rx="${ioR}" fill="${outputFill}" stroke="${outputStroke}" stroke-width="2"/>
     <text x="${ioX2 + ioW / 2}" y="${cy + 5}" text-anchor="middle" font-size="15" font-weight="bold" fill="${output === '?' ? '#F59E0B' : PURPLE}">${output}</text>
