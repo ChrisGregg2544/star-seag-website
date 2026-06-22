@@ -808,6 +808,7 @@ function normalizeDBQuestion(dbQ) {
 
   if (rawTopic === 'punctuation') {
     segments = ['A','B','C','D'].map(k => opts?.[k]).filter(Boolean);
+    text = 'Find the section with the punctuation mistake. Mark N if there is no mistake.';
   } else if (rawTopic === 'spelling') {
     const parts = text.split('\n\n');
     text    = 'Find the section with the spelling mistake. Mark N if there are no mistakes.';
@@ -894,7 +895,7 @@ async function fetchBatch() {
   if (sessionTotal >= MAX_QUESTIONS) return [];
 
   // Difficulty unlocks after 5 cumulative correct answers
-  const diffTiers = correctCount >= 5 ? [1, 2, 3, 4] : [1, 2];
+  const diffTiers = correctCount >= 5 ? [1, 2, 3, 4] : [1, 2, 3];
 
   const BATCH_SIZE = 10;
 

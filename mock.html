@@ -627,7 +627,7 @@ async function init() {
   if (saved) {
     try {
       const s = JSON.parse(saved);
-      if (s.userId === userId && s.questions && s.questions.length > 0) {
+      if (s.userId === userId && s.questions && s.questions.length > 0 && s.version === 2) {
         if (confirm('You have a mock in progress! Continue where you left off?')) {
           resumeMock(s);
           return;
@@ -699,7 +699,7 @@ function normalizeDBQuestion(dbQ) {
   if (topic === 'punctuation') {
     // A/B/C/D shown as labeled segment blocks; A–D + N as clickable option buttons
     segments = ['A','B','C','D'].map(k => opts?.[k]).filter(Boolean);
-    // text = the instruction from question_text
+    text = 'Find the section with the punctuation mistake. Mark N if there is no mistake.';
   } else if (topic === 'spelling') {
     // question_text = "instruction\n\npassage with [A][B][C][D] word markers"
     const parts = text.split('\n\n');
@@ -940,6 +940,7 @@ function resumeMock(saved) {
 ════════════════════════════════════════ */
 function saveMockProgress() {
   localStorage.setItem('star_mock_inprogress', JSON.stringify({
+    version: 2,
     userId, questions: ALL_QUESTIONS, answers,
     currentSection, currentIdx, skipPractice, startOrder, mockStartTime
   }));
@@ -1336,6 +1337,7 @@ async function startMainTest() {
         console.warn('[mock] Background mock_english rejected, re-fetching:', bgErr.message);
         ENGLISH_QS = await fetchSection('mock_english', 28);
       }
+      ALL_QUESTIONS = [...PRACTICE_QS, ...ENGLISH_QS];
       if (!mathsFetchPromise) mathsFetchPromise = fetchSection('mock_maths', 28);
     } else {
       if (!mathsFetchPromise) mathsFetchPromise = fetchSection('mock_maths', 28);
@@ -1344,11 +1346,13 @@ async function startMainTest() {
         console.warn('[mock] Background mock_maths rejected, re-fetching:', bgErr.message);
         MATHS_QS = await fetchSection('mock_maths', 28);
       }
+      ALL_QUESTIONS = [...PRACTICE_QS, ...MATHS_QS];
       if (!englishFetchPromise) englishFetchPromise = fetchSection('mock_english', 28);
     }
     stopTips();
     currentSection = firstSection;
     currentIdx     = 0;
+    saveMockProgress();
     showScreen('question');
     renderQuestion();
   } catch(err) {
