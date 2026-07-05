@@ -1198,6 +1198,9 @@ async function submitAnswer() {
     document.getElementById('btn-next').disabled        = true;
 
     try {
+      // Guard against a hung/slow marking request leaving Next disabled forever
+      const ctrl = new AbortController();
+      const timeout = setTimeout(() => ctrl.abort(), 15000);
       const resp = await fetch('/api/mark-written', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -1205,8 +1208,9 @@ async function submitAnswer() {
           question:      q.text,
           correctAnswer: q.answer,
           studentAnswer: userAnswer
-        })
-      });
+        }),
+        signal: ctrl.signal
+      }).finally(() => clearTimeout(timeout));
       if (!resp.ok) throw new Error('HTTP ' + resp.status);
       const json = await resp.json();
       isCorrect  = !!json.pass;
