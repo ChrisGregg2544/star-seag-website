@@ -96,6 +96,10 @@
     .mc-btn.wrong-ans{border-color:var(--red)!important;background:#FFF0F0!important;box-shadow:none!important;}
     .mc-btn.wrong-ans .mc-letter{background:var(--red)!important;border-color:#B71C1C!important;color:#fff!important;}
     .mc-btn:disabled{cursor:default;transform:none!important;}
+    /* Letter-only buttons for punctuation/spelling (segment text shown above) */
+    .mc-options:has(.mc-btn-compact){flex-direction:row;flex-wrap:wrap;gap:10px;}
+    .mc-btn-compact{padding:12px 16px;justify-content:center;}
+    .mc-btn-compact .mc-letter{margin:0;}
 
     /* ── FREE RESPONSE ── */
     .fr-wrap{padding:0 0 6px;}
@@ -1063,13 +1067,19 @@ function renderQuestion() {
   if (!hasFR) {
     mcWrap.style.display = '';
     frWrap.style.display = 'none';
+    // Punctuation/spelling questions show segment text in the labelled blocks above,
+    // so their answer buttons are letter-only (N still reads "No mistake").
+    const hasSegments = q.segments && q.segments.length > 0;
     q.options.forEach((opt, i) => {
       const letter = opt.split('.')[0].trim();
-      const text   = opt.split('.').slice(1).join('.').trim();
+      let text     = opt.split('.').slice(1).join('.').trim();
+      if (hasSegments) text = (letter === 'N') ? 'No mistake' : '';
       const btn = document.createElement('button');
-      btn.className = 'mc-btn';
+      btn.className = 'mc-btn' + (hasSegments && letter !== 'N' ? ' mc-btn-compact' : '');
       btn.dataset.letter = letter;
-      btn.innerHTML = `<div class="mc-letter">${letter}</div><span>${text}</span>`;
+      btn.innerHTML = text
+        ? `<div class="mc-letter">${letter}</div><span>${text}</span>`
+        : `<div class="mc-letter">${letter}</div>`;
       btn.addEventListener('click', () => selectMC(letter, btn));
       mcWrap.appendChild(btn);
     });
