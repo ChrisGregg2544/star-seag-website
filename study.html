@@ -885,6 +885,17 @@ function pickBalanced(pool, count) {
       }
     }
   }
+  // Pass 3: still short — fill from anything left, ignoring the per-topic cap,
+  // so a full session is served even when only a few topics have questions
+  if (picked.length < count) {
+    const pickedIds = new Set(picked.map(q => q.id));
+    for (const q of pool) {
+      if (picked.length >= count) break;
+      if (pickedIds.has(q.id)) continue;
+      picked.push(q);
+      topicCounts[q.topic || ''] = (topicCounts[q.topic || ''] || 0) + 1;
+    }
+  }
   return picked;
 }
 
@@ -945,11 +956,22 @@ async function fetchBatch() {
     ]);
     if (enRes.error) throw new Error(enRes.error.message);
     if (mathRes.error) throw new Error(mathRes.error.message);
-    const enPool        = shuffle((enRes.data || []).filter(q => !usedIds.has(q.id)));
-    const mathPool      = shuffle((mathRes.data || []).filter(q => !usedIds.has(q.id)));
+    let enPool        = shuffle((enRes.data || []).filter(q => !usedIds.has(q.id)));
+    let mathPool      = shuffle((mathRes.data || []).filter(q => !usedIds.has(q.id)));
     const questionsNeeded = MAX_QUESTIONS - sessionTotal;
     const enCount       = Math.ceil(questionsNeeded / 2);
     const mathCount     = questionsNeeded - enCount;
+
+    // Fallback: seen-history exclusion depleted the pools — re-fetch ignoring seenIds
+    if ((enPool.length < enCount || mathPool.length < mathCount) && seenIds.length > 0) {
+      const [enFb, mathFb] = await Promise.all([
+        makeBase().in('topic', englishTopics),
+        makeBase().in('topic', mathsTopics),
+      ]);
+      if (!enFb.error && enFb.data)   enPool   = shuffle(enFb.data.filter(q => !usedIds.has(q.id)));
+      if (!mathFb.error && mathFb.data) mathPool = shuffle(mathFb.data.filter(q => !usedIds.has(q.id)));
+    }
+
     const taken         = [...pickBalanced(enPool, enCount), ...pickBalanced(mathPool, mathCount)];
     if (taken.length === 0) return [];
     const questions = shuffle(taken);
