@@ -1,25 +1,32 @@
 # STAR Improvement Plan — ordered, self-contained tasks
 Each task is independent and small enough for the stated model to execute. After each task: test, commit, push.
 
-## EXECUTION ORDER (do in THIS order, not document order)
-| # | Task | Model to use | Why this model |
-|---|------|--------------|----------------|
-| 1 | E5 — lint gate in all seeding scripts | Sonnet | Simple edits, but must not break seeding |
-| 2 | A1 — auth + rate-limit star-chat & mark-written | Sonnet | Standard auth pattern, needs careful testing |
-| 3 | A2 — stop exposing correct answers | **Opus/frontier** | Touches RLS + the core answer loop; highest breakage risk in the plan |
-| 4 | A3 — server-side admin auth | Sonnet | Contained, low risk |
-| 5 | E1 — rewrite ~700 segment grammar | Sonnet (script runs itself) | Adapting a proven script; Haiku can run the commands |
-| 6 | E2 — re-segment spelling/punctuation | Sonnet | Same |
-| 7 | E3 — fix duplicate/gap options | Sonnet | Small new script, self-verifying via linter |
-| 8 | E4 — regenerate comprehension bank | Sonnet to operate pipeline | Volume generation; existing pipeline does the work |
-| 9 | B1 — test Haiku for star-chat | Human judges output | Run 10 questions, compare |
-| 10 | B2 — cache written marking | Sonnet | Simple table + hash |
-| 11 | C1 — results history page | Sonnet | New read-only page |
-| 12 | C2 — error/timeout polish | Sonnet | Mechanical audit |
-| 13 | C3 — mobile/cross-browser QA | **Human** (no model) | Real devices required |
-| 14 | E6 — weekly lint/dupe check | Haiku | Just runs commands, reads counts |
+## EXECUTION ORDER — complete, do in THIS order (not document order)
+Details for each task ID are in the phase sections below.
 
-Rule of thumb: Haiku = run existing scripts and report; Sonnet = write/adapt code against a spec in this file; Opus/frontier = anything touching RLS, auth flows, payment, or the answer-checking loop.
+| Step | Task | Model | Notes |
+|------|------|-------|-------|
+| 1 | F2 — Anthropic spend cap + alert | **Human** (5 min, no code) | console.anthropic.com → budget limit. Do TODAY: bounds worst-case bill while endpoints are still open |
+| 2 | F1 — question bank backup script | Sonnet writes; Human/Haiku runs weekly | Your core asset currently has no backup |
+| 3 | E5 — lint gate in all seeding scripts | Sonnet | Makes bank corruption impossible to reintroduce |
+| 4 | A1 — auth + rate-limit star-chat & mark-written | Sonnet | Stops credit-draining abuse |
+| 5 | A2 — stop exposing correct answers to browser | **Opus/frontier** | Touches RLS + core answer loop; highest breakage risk — test a full mock after |
+| 6 | A3 — server-side admin page auth | Sonnet | Remove hardcoded STAR2026admin |
+| 7 | E4 — regenerate comprehension bank | Sonnet operates pipeline | Do before launch: comprehension is the thin spot (~130 sprint questions per year group) |
+| 8 | E1 — rewrite ~700 segment-style grammar | Sonnet | Proven script pattern, adapt + run |
+| 9 | E2 — re-segment overlapping spelling/punctuation | Sonnet | Proven reconstruct+verify pattern |
+| 10 | E3 — fix duplicate/gap options (~100) | Sonnet | Small script, self-verifies via linter |
+| 11 | B1 — trial Haiku for star-chat | Human judges | ~12x cost saving if quality holds |
+| 12 | B2 — cache written-answer marking | Sonnet | Table + hash lookup |
+| 13 | C1 — results history page | Sonnet | Read-only page from sessions table |
+| 14 | C2 — error/timeout polish on all fetches | Sonnet | Mechanical audit |
+| 15 | F3 — client error logging endpoint | Sonnet | See real-world breakage before users report it |
+| 16 | C3 — mobile + cross-browser QA | **Human** | Real devices: iPhone Safari, Android Chrome, Firefox, Edge |
+| 17 | F4 — full dress rehearsal as a real family | **Human** | Fresh account on a phone: pay (test card) → add child → onboard → sprint → mock → parent email |
+| 18 | F5 — launch switches | **Human** | Stripe live keys, confirm-email on, final branding sweep |
+| 19 | E6 — weekly maintenance loop | Haiku (ongoing) | lint + duplicates + monthly AI validation |
+
+Rule of thumb: **Haiku** = run existing scripts, report numbers. **Sonnet** = write/adapt code against a spec in this file. **Opus/frontier** = anything touching RLS, auth, payment, or answer-checking. **Human** = devices, judgement calls, money, and anything in the Anthropic/Stripe dashboards.
 
 ## PHASE A — Security (do before launch)
 
