@@ -1,5 +1,25 @@
 # STAR Improvement Plan — ordered, self-contained tasks
-Each task is independent and small enough for any model to execute. Do them in order. After each task: test, commit, push.
+Each task is independent and small enough for the stated model to execute. After each task: test, commit, push.
+
+## EXECUTION ORDER (do in THIS order, not document order)
+| # | Task | Model to use | Why this model |
+|---|------|--------------|----------------|
+| 1 | E5 — lint gate in all seeding scripts | Sonnet | Simple edits, but must not break seeding |
+| 2 | A1 — auth + rate-limit star-chat & mark-written | Sonnet | Standard auth pattern, needs careful testing |
+| 3 | A2 — stop exposing correct answers | **Opus/frontier** | Touches RLS + the core answer loop; highest breakage risk in the plan |
+| 4 | A3 — server-side admin auth | Sonnet | Contained, low risk |
+| 5 | E1 — rewrite ~700 segment grammar | Sonnet (script runs itself) | Adapting a proven script; Haiku can run the commands |
+| 6 | E2 — re-segment spelling/punctuation | Sonnet | Same |
+| 7 | E3 — fix duplicate/gap options | Sonnet | Small new script, self-verifying via linter |
+| 8 | E4 — regenerate comprehension bank | Sonnet to operate pipeline | Volume generation; existing pipeline does the work |
+| 9 | B1 — test Haiku for star-chat | Human judges output | Run 10 questions, compare |
+| 10 | B2 — cache written marking | Sonnet | Simple table + hash |
+| 11 | C1 — results history page | Sonnet | New read-only page |
+| 12 | C2 — error/timeout polish | Sonnet | Mechanical audit |
+| 13 | C3 — mobile/cross-browser QA | **Human** (no model) | Real devices required |
+| 14 | E6 — weekly lint/dupe check | Haiku | Just runs commands, reads counts |
+
+Rule of thumb: Haiku = run existing scripts and report; Sonnet = write/adapt code against a spec in this file; Opus/frontier = anything touching RLS, auth flows, payment, or the answer-checking loop.
 
 ## PHASE A — Security (do before launch)
 
@@ -80,6 +100,13 @@ In every generation/seeding script (seed-questions.js, api/question-builder.js i
 1. `node scripts/lint-questions.mjs` — must stay at 0 violations.
 2. `node find-duplicates.js` after any seeding.
 3. Monthly: `DRY_RUN=1 node scripts/validate-all-ai.js` (semantic check, Haiku).
+
+## PHASE F — Launch-readiness extras (owner + any model)
+- F1. **Back up the question bank** (your core asset): weekly export of the questions + passages tables to a local file. `node -e` script with service key → JSON dump, keep 4 rotations. (Sonnet writes it once; Haiku/human runs it.)
+- F2. **Anthropic spend alert**: set a monthly budget limit + email alert in console.anthropic.com. (Human, 5 min — no code.)
+- F3. **Error visibility**: add a tiny `api/log-error.js` that client pages POST uncaught errors to, writing to a Supabase `client_errors` table; check weekly. (Sonnet.)
+- F4. **Full dress rehearsal**: create a brand-new parent account on a phone, pay with Stripe test card, add child, run onboarding → sprint → full mock → parent dashboard → weekly email. Fix everything that snags. (Human.)
+- F5. Existing CLAUDE.md launch items still open: Stripe live keys, Supabase confirm-email after SMTP verify, remaining Anthropic branding sweep.
 
 ## Notes for whoever executes this
 - Never put service-role or Anthropic keys in client code.
