@@ -46,6 +46,41 @@ Manual: iPhone Safari, Android Chrome, Firefox, Edge. Test: login → sprint →
 - D2. Review the 32 un-validated punctuation questions (validated=false) — hand-fix or delete.
 - D3. Weekly `find-duplicates.js` run after any seeding.
 
+## PHASE E — Question bank repair (post-quarantine, July 2026)
+State: 12,401 validated questions are 100% contract-clean (scripts/question-contract.mjs).
+2,405 quarantined: validated=false, validator_reason='lint-quarantine'. Details per question in scripts/lint-report.json (regenerate it any time with `node scripts/lint-questions.mjs`).
+Every task below: run on 5 first, eyeball output, then full batch. After ANY repair batch, re-run `node scripts/lint-questions.mjs` — repaired questions must show 0 violations before setting validated=true.
+
+### E1. Rewrite segment-style grammar (~700 questions) — AUTOMATED
+Adapt `scripts/rewrite-grammar-questions.mjs` (proven: 524/524 success):
+1. Change fetchFlagged() to select topic=grammar, validated=false, validator_reason='lint-quarantine'.
+2. Run `--limit 5` dry, check quality, then `--apply`.
+3. After rewrite, set validated=true and validator_reason=null on the rewritten IDs.
+4. Re-lint to confirm.
+
+### E2. Re-segment overlapping spelling/punctuation (~250) — AUTOMATED
+Adapt `scripts/resegment-punctuation.mjs` (has built-in independent verifier):
+1. Generalise topic filter to punctuation OR spelling; source from quarantined set.
+2. `--apply`: verified → update + validated=true; unverified → leave quarantined.
+3. Expect ~30% recovery; the rest stay out (correct outcome).
+
+### E3. Fix duplicate/empty/gap options (~100) — AUTOMATED
+New small script per rewrite-grammar pattern: send question + violation names to Sonnet, ask for corrected options only (keep question + answer), re-lint result in-script (import lintQuestion), only write if 0 violations, then validated=true.
+
+### E4. Comprehension + empty-answer questions (~1,400) — REGENERATE, do NOT repair
+1. DELETE quarantined questions with violations missing-passage / missing-passage-id / empty-correct-answer (they carry no salvageable value) — or leave quarantined if nervous; they cost nothing.
+2. Top up comprehension with fresh passage sets (7 MC + 6 written per passage) using the existing generation pipeline (seed-questions.js seedComprehension or question-builder), which stores passage + passage_id correctly.
+3. Target per CLAUDE.md: healthy counts per year group.
+
+### E5. Close the gate — MANDATORY, do this before any new seeding
+In every generation/seeding script (seed-questions.js, api/question-builder.js insert paths, topup scripts):
+`import { lintQuestion } from './scripts/question-contract.mjs'` — refuse to insert any question where lintQuestion(q).length > 0. This is what makes the fix permanent.
+
+### E6. Weekly maintenance (any model, 5 minutes)
+1. `node scripts/lint-questions.mjs` — must stay at 0 violations.
+2. `node find-duplicates.js` after any seeding.
+3. Monthly: `DRY_RUN=1 node scripts/validate-all-ai.js` (semantic check, Haiku).
+
 ## Notes for whoever executes this
 - Never put service-role or Anthropic keys in client code.
 - Supabase JS is pinned to 2.39.3 — do not upgrade.
