@@ -926,7 +926,7 @@ async function fetchBatch() {
   const makeTopicQuery = () => {
     let q = sb
       .from('questions')
-      .select('id,subject,topic,year_group,difficulty,question_type,question_text,passage,options,correct_answer,explanation,diagram')
+      .select('id,subject,topic,year_group,difficulty,question_type,question_text,passage,options,diagram')
       .eq('year_group', userYear)
       .eq('validated',  true)
       .in('difficulty',  diffTiers)
@@ -944,7 +944,7 @@ async function fetchBatch() {
     const mathsTopics   = ['arithmetic', 'geometry', 'fractions_decimals', 'measurement', 'statistics', 'algebra_sequences'];
     const makeBase = () => sb
       .from('questions')
-      .select('id,subject,topic,year_group,difficulty,question_type,question_text,passage,options,correct_answer,explanation,diagram')
+      .select('id,subject,topic,year_group,difficulty,question_type,question_text,passage,options,diagram')
       .eq('year_group', userYear)
       .eq('validated',  true)
       .in('difficulty',  diffTiers)
@@ -1427,11 +1427,29 @@ async function submitAnswer() {
   let aiFeedback = '';
 
   if (q.options && q.options.length) {
-    // ── Multiple choice ──────────────────────────────────
-    isCorrect = selectedMC === q.answer;
+    // ── Multiple choice (verified server-side) ───────────
+    try {
+      const token = (await sb.auth.getSession()).data.session?.access_token;
+      const resp = await fetch('/api/check-answer', {
+        method:  'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ question_id: q._id, answer: selectedMC }),
+        signal: AbortSignal.timeout(15000),
+      });
+      if (!resp.ok) throw new Error('HTTP ' + resp.status);
+      const json = await resp.json();
+      isCorrect = !!json.correct;
+      q.answer  = json.correct_answer || '';
+      if (json.explanation) q.explanation = json.explanation;
+    } catch (e) {
+      isCorrect = false;
+    }
     document.querySelectorAll('.mc-btn').forEach(btn => {
       btn.disabled = true;
-      if (btn.dataset.letter === q.answer)                       btn.classList.add('correct-ans');
+      if (q.answer && btn.dataset.letter === q.answer)           btn.classList.add('correct-ans');
       else if (btn.dataset.letter === selectedMC && !isCorrect)  btn.classList.add('wrong-ans');
     });
     const selBtn = document.querySelector(`.mc-btn[data-letter="${selectedMC}"]`);
@@ -1469,24 +1487,40 @@ async function submitAnswer() {
             'Content-Type': 'application/json',
             ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
           },
-          body:    JSON.stringify({ question: q.text, correctAnswer: q.answer, studentAnswer: userVal })
+          body:    JSON.stringify({ question_id: q._id, studentAnswer: userVal })
         });
         if (!resp.ok) throw new Error('HTTP ' + resp.status);
         const json = await resp.json();
         isCorrect  = !!json.pass;
         aiFeedback = json.feedback || '';
+        if (json.explanation) q.explanation = json.explanation;
       } catch (e) {
-        const norm = s => s.toLowerCase().replace(/\s+/g,' ').trim();
-        isCorrect  = norm(userVal) === norm(q.answer);
+        isCorrect = false;
       }
 
       frInput.classList.add(isCorrect ? 'correct-inp' : 'wrong-inp');
       document.getElementById('btn-next').disabled = false;
     } else {
-      // Whitespace-normalised string match for maths / other FR
-      const normalise = s => s.trim().toLowerCase().replace(/²/g,'2').replace(/\^2/g,'2').replace(/\s+/g,' ').trim();
-      const accepted  = (q.acceptedAnswers || [q.answer]).map(normalise);
-      isCorrect = accepted.includes(normalise(userVal));
+      // Maths / other free response — verified server-side
+      try {
+        const token = (await sb.auth.getSession()).data.session?.access_token;
+        const resp = await fetch('/api/check-answer', {
+          method:  'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+          },
+          body: JSON.stringify({ question_id: q._id, answer: userVal }),
+          signal: AbortSignal.timeout(15000),
+        });
+        if (!resp.ok) throw new Error('HTTP ' + resp.status);
+        const json = await resp.json();
+        isCorrect = !!json.correct;
+        q.answer  = json.correct_answer || '';
+        if (json.explanation) q.explanation = json.explanation;
+      } catch (e) {
+        isCorrect = false;
+      }
       frInput.classList.add(isCorrect ? 'correct-inp' : 'wrong-inp');
       document.getElementById('btn-submit').style.display = 'none';
       document.getElementById('btn-next').style.display   = 'inline-block';

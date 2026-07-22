@@ -64,12 +64,30 @@ export default async function handler(req, res) {
     return res.status(429).json({ error: "You've reached today's marking limit — come back tomorrow!" });
   }
 
-  const { question, correctAnswer, studentAnswer } = req.body || {};
-  if (!question || !correctAnswer || !studentAnswer) {
+  const { question_id, studentAnswer } = req.body || {};
+  if (!question_id || studentAnswer == null) {
     return res.status(400).json({ error: 'Missing required fields' });
   }
-  if (studentAnswer.trim().length === 0) {
+  if (String(studentAnswer).trim().length === 0) {
     return res.status(200).json({ pass: false, feedback: 'No answer was given.' });
+  }
+
+  // Look up the question text + model answer server-side (never sent by the client)
+  let question, correctAnswer, explanation;
+  try {
+    const r = await fetch(
+      `${SUPABASE_URL}/rest/v1/questions?id=eq.${encodeURIComponent(question_id)}&select=question_text,correct_answer,explanation`,
+      { headers: { 'apikey': serviceKey, 'Authorization': `Bearer ${serviceKey}` } }
+    );
+    if (!r.ok) throw new Error('lookup HTTP ' + r.status);
+    const row = (await r.json())?.[0];
+    if (!row) return res.status(404).json({ error: 'Question not found' });
+    question      = row.question_text || '';
+    correctAnswer = String(row.correct_answer ?? '');
+    explanation   = row.explanation || '';
+  } catch (e) {
+    console.error('[mark-written] lookup error:', e.message);
+    return res.status(500).json({ error: 'Could not load question' });
   }
 
   const apiKey = process.env.ANTHROPIC_API_KEY;
@@ -122,9 +140,9 @@ Reply with JSON only, no other text:
   } catch (e) {
     console.error('[mark-written] fetch error:', e.message);
     // Fallback: whitespace-normalised exact match
-    const norm = s => s.toLowerCase().replace(/\s+/g, ' ').trim();
+    const norm = s => String(s).toLowerCase().replace(/\s+/g, ' ').trim();
     const pass = norm(studentAnswer) === norm(correctAnswer);
-    return res.status(200).json({ pass, feedback: '', _fallback: true });
+    return res.status(200).json({ pass, feedback: '', explanation, _fallback: true });
   }
 
   // Parse JSON from Claude's response
@@ -141,6 +159,7 @@ Reply with JSON only, no other text:
 
   return res.status(200).json({
     pass:     !!result.pass,
-    feedback: (result.feedback || '').trim()
+    feedback: (result.feedback || '').trim(),
+    explanation
   });
 }

@@ -741,7 +741,7 @@ async function fetchPool(subject, topic, count, excludeIds = []) {
   const allExcluded = [...new Set([...excludeIds, ...mockSeenIds])];
   let query = sb
     .from('questions')
-    .select('id,subject,topic,year_group,difficulty,question_type,question_text,passage,options,correct_answer,explanation,diagram')
+    .select('id,subject,topic,year_group,difficulty,question_type,question_text,passage,options,diagram')
     .eq('subject',    subject)
     .eq('topic',      topic)
     .eq('year_group', userYear)
@@ -788,12 +788,12 @@ async function assembleEnglishFromDB() {
   // language pools get the excludeIds filter.
   const [mcResult, wrResult, punct, grammar, spelling] = await Promise.all([
     sb.from('questions')
-      .select('id,subject,topic,year_group,difficulty,question_type,question_text,passage,options,correct_answer,explanation,diagram')
+      .select('id,subject,topic,year_group,difficulty,question_type,question_text,passage,options,diagram')
       .eq('passage_id', chosenPassage.id)
       .eq('topic',      'comprehension_mc')
       .eq('validated',  true),
     sb.from('questions')
-      .select('id,subject,topic,year_group,difficulty,question_type,question_text,passage,options,correct_answer,explanation,diagram')
+      .select('id,subject,topic,year_group,difficulty,question_type,question_text,passage,options,diagram')
       .eq('passage_id', chosenPassage.id)
       .eq('topic',      'comprehension_written')
       .eq('validated',  true),
@@ -1217,8 +1217,7 @@ async function submitAnswer() {
           ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
         },
         body:    JSON.stringify({
-          question:      q.text,
-          correctAnswer: q.answer,
+          question_id:   q._id,
           studentAnswer: userAnswer
         }),
         signal: ctrl.signal
@@ -1227,20 +1226,40 @@ async function submitAnswer() {
       const json = await resp.json();
       isCorrect  = !!json.pass;
       aiFeedback = json.feedback || '';
+      if (json.explanation) q.explanation = json.explanation;
     } catch (e) {
-      // Fallback: whitespace-normalised exact match
-      const norm = s => s.toLowerCase().replace(/\s+/g, ' ').trim();
-      isCorrect = norm(userAnswer) === norm(q.answer || '');
+      // Network failure — cannot verify without revealing the answer; mark wrong
+      isCorrect = false;
     }
 
     document.getElementById('btn-next').disabled = false;
     showFeedbackPanel(isCorrect, aiFeedback || q.explanation, q.steps, true);
 
   } else {
-    isCorrect = selectedMC === q.answer;
+    // MC — verified server-side; the answer is not present in the browser
+    try {
+      const token = (await sb.auth.getSession()).data.session?.access_token;
+      const resp = await fetch('/api/check-answer', {
+        method:  'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ question_id: q._id, answer: selectedMC }),
+        signal: AbortSignal.timeout(15000),
+      });
+      if (!resp.ok) throw new Error('HTTP ' + resp.status);
+      const json = await resp.json();
+      isCorrect = !!json.correct;
+      q.answer  = json.correct_answer || '';
+      if (json.explanation) q.explanation = json.explanation;
+    } catch (e) {
+      // Network failure — cannot verify without revealing the answer; mark wrong
+      isCorrect = false;
+    }
     document.querySelectorAll('#mc-options .mc-btn').forEach(btn => {
       btn.disabled = true;
-      if (btn.dataset.letter === q.answer) btn.classList.add('correct-ans');
+      if (q.answer && btn.dataset.letter === q.answer) btn.classList.add('correct-ans');
       else if (btn.dataset.letter === selectedMC && !isCorrect) btn.classList.add('wrong-ans');
     });
   }
