@@ -38,10 +38,11 @@ Files: `api/star-chat.js`, `api/mark-written.js`
 4. Add a simple per-user daily cap: count today's calls in a `api_usage` table (user_id, date, count); reject over 200/day with a friendly message.
 
 ### A2. Stop exposing correct answers to the browser (CRITICAL)
-1. Create `api/check-answer.js` (service role): input `{question_id, answer}`, returns `{correct: bool, correct_answer, explanation}`. Only reveals the answer AFTER an attempt.
-2. In `study.html` and `mock.html`, remove `correct_answer, explanation` from the SELECT; call `api/check-answer` on submit instead.
-3. Change RLS: drop "Anon can read all questions"; keep public SELECT but create a Postgres VIEW `questions_public` without `correct_answer/explanation`, or use column-level grants.
-4. Test a full mock + sprint end-to-end after this change — it touches the core loop.
+**Part 1 — DONE (commit b0f6a2e).** api/check-answer.js created; api/mark-written.js now looks the answer up server-side by question_id; study.html + mock.html no longer SELECT correct_answer/explanation and check via the endpoints on submit. Answers are out of the client data flow and localStorage.
+**Part 2 — PENDING, do AFTER A3.** The base-table columns are still readable via the anon key. Once A3 has moved review.html/validate.html to a server-side (service-role) read path, revoke the columns:
+  1. `REVOKE SELECT (correct_answer, explanation) ON public.questions FROM anon, authenticated;` (keep SELECT on all other columns).
+  2. Also convert `real-life-test.html` (a printable answer-key generator): move answer-key rendering to a service-role endpoint gated to the paper's owner, since it deliberately displays answers and cannot use the check-answer pattern.
+  3. Re-test every question-fetch page after the revoke (study, mock, real-life-test, review, validate) — a stray SELECT of the revoked columns will error.
 
 ### A3. Lock admin pages
 1. Move `validate.html`, `review.html`, `admin/reports.html` behind a server check: small `api/admin-login.js` comparing against `ADMIN_PASSWORD` env var, sets an httpOnly cookie; pages fetch data only via APIs that check the cookie.
