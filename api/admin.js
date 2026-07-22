@@ -11,9 +11,47 @@
      POST ?action=save-report     — save a student question report
      GET  ?action=get-reports     — fetch all reports for admin view
 ══════════════════════════════════════════════════════ */
+import crypto from 'node:crypto';
+
 export const config = { maxDuration: 10 };
 
 const SUPABASE_URL = 'https://iutcgogmxhaqgaxkznxu.supabase.co';
+const ALLOWED_ORIGINS = [
+  'https://staraitutor.co.uk',
+  'https://www.staraitutor.co.uk',
+  'https://star-seag-website.vercel.app',
+];
+const ADMIN_COOKIE = 'star_admin';
+
+// Verify the HMAC-signed admin session cookie set by /api/admin-login.
+function verifyAdminCookie(req) {
+  const secret = process.env.ADMIN_SECRET;
+  if (!secret) return false;
+  const raw = (req.headers.cookie || '')
+    .split(';').map(s => s.trim()).find(s => s.startsWith(`${ADMIN_COOKIE}=`));
+  if (!raw) return false;
+  const [payload, mac] = raw.slice(ADMIN_COOKIE.length + 1).split('.');
+  if (!payload || !mac) return false;
+  const expected = Buffer.from(crypto.createHmac('sha256', secret).update(payload).digest()).toString('base64url');
+  const a = Buffer.from(mac), b = Buffer.from(expected);
+  if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) return false;
+  try {
+    const { exp } = JSON.parse(Buffer.from(payload, 'base64url').toString());
+    return typeof exp === 'number' && exp > Date.now();
+  } catch { return false; }
+}
+
+// Verify a Supabase student JWT (used for the student-facing save-report action).
+async function verifyStudentJwt(req) {
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY;
+  const jwt = (req.headers.authorization || '').replace(/^Bearer\s+/i, '');
+  if (!jwt || !serviceKey) return null;
+  const r = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
+    headers: { 'apikey': serviceKey, 'Authorization': `Bearer ${jwt}` },
+  });
+  if (!r.ok) return null;
+  return (await r.json())?.id || null;
+}
 
 // ── action=update-verdict ─────────────────────────────────────────────────────
 async function handleUpdateVerdict(req, res) {
@@ -304,20 +342,36 @@ async function handleGetReports(req, res) {
 
 // ── Router ────────────────────────────────────────────────────────────────────
 export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  const origin = req.headers.origin;
+  if (ALLOWED_ORIGINS.includes(origin)) res.setHeader('Access-Control-Allow-Origin', origin);
+  res.setHeader('Vary', 'Origin');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
   if (req.method === 'OPTIONS') return res.status(200).end();
 
   const action = req.query.action;
-  switch (action) {
-    case 'update-verdict':  return handleUpdateVerdict(req, res);
-    case 'save-feedback':   return handleSaveFeedback(req, res);
-    case 'deactivate':      return handleDeactivate(req, res);
-    case 'reactivate':      return handleReactivate(req, res);
-    case 'dismiss-reports': return handleDismissReports(req, res);
-    case 'save-report':     return handleSaveReport(req, res);
-    case 'get-reports':     return handleGetReports(req, res);
-    default:                return res.status(400).json({ error: `Unknown action: ${action}` });
+
+  // save-report is a student action — require a valid student session.
+  if (action === 'save-report') {
+    const userId = await verifyStudentJwt(req);
+    if (!userId) return res.status(401).json({ error: 'Please sign in.' });
+    return handleSaveReport(req, res);
   }
+
+  // Everything else is admin-only — require the signed admin session cookie.
+  const adminActions = ['update-verdict', 'save-feedback', 'deactivate', 'reactivate', 'dismiss-reports', 'get-reports'];
+  if (adminActions.includes(action)) {
+    if (!verifyAdminCookie(req)) return res.status(401).json({ error: 'Admin authentication required' });
+    switch (action) {
+      case 'update-verdict':  return handleUpdateVerdict(req, res);
+      case 'save-feedback':   return handleSaveFeedback(req, res);
+      case 'deactivate':      return handleDeactivate(req, res);
+      case 'reactivate':      return handleReactivate(req, res);
+      case 'dismiss-reports': return handleDismissReports(req, res);
+      case 'get-reports':     return handleGetReports(req, res);
+    }
+  }
+
+  return res.status(400).json({ error: `Unknown action: ${action}` });
 }

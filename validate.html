@@ -4,9 +4,25 @@
 <head>
 <meta charset="UTF-8">
 <script>
-  (function() {
-    var pw = prompt('Admin password required:');
-    if (pw !== 'STAR2026admin') { window.location.replace('index.html'); }
+  // Server-verified admin gate (password checked by /api/admin-login, sets an httpOnly cookie)
+  (async function adminGate() {
+    const HOME = 'index.html';
+    try {
+      const check = await fetch('/api/admin-login', { method: 'GET', credentials: 'same-origin' });
+      if (check.ok) return;
+    } catch {}
+    const pw = prompt('Admin password required:');
+    if (!pw) { window.location.replace(HOME); return; }
+    try {
+      const r = await fetch('/api/admin-login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify({ password: pw }),
+      });
+      if (r.ok) window.location.reload();
+      else window.location.replace(HOME);
+    } catch { window.location.replace(HOME); }
   })();
 </script>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
