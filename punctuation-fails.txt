@@ -1,0 +1,812 @@
+validate-all-ai   DRY_RUN=true  CONCURRENCY=5
+  topic filter: punctuation
+
+Fetching questions... 200 400 600 800 958
+
+Total to validate: 958
+Estimated time   : ~8 minutes
+
+  100/958  PASS=44  WARN=1  FAIL=55  ERR=0  (3.3/s, ETA ~4m)
+  200/958  PASS=115  WARN=1  FAIL=84  ERR=0  (3.4/s, ETA ~4m)
+  300/958  PASS=205  WARN=1  FAIL=94  ERR=0  (3.4/s, ETA ~3m)
+  400/958  PASS=265  WARN=1  FAIL=134  ERR=0  (3.3/s, ETA ~3m)
+  500/958  PASS=318  WARN=3  FAIL=179  ERR=0  (3.4/s, ETA ~2m)
+  600/958  PASS=342  WARN=3  FAIL=255  ERR=0  (3.4/s, ETA ~2m)
+  700/958  PASS=436  WARN=3  FAIL=261  ERR=0  (3.4/s, ETA ~1m)
+  800/958  PASS=513  WARN=5  FAIL=282  ERR=0  (3.5/s, ETA ~1m)
+  900/958  PASS=551  WARN=5  FAIL=344  ERR=0  (3.4/s, ETA ~0m)
+
+Completed in 4m 42s
+
+── Results by topic ─────────────────────────────────────────────────
+Topic                         Total   PASS   WARN   FAIL   ERR  Pass%
+──────────────────────────────────────────────────────────────────────
+punctuation                     958    568      6    384     0    59%
+──────────────────────────────────────────────────────────────────────
+TOTAL                           958    568      6    384     0    59%
+
+── FAIL details (384 total) ──────────────────────────────────
+
+  [punctuation] — 384 fails
+    00824fbf-4133-450a-9d39-8f680b11adf2  [P6]  Correct answer marked N but comma error exists
+    Q: 'Where did you put my football?' asked Mum in a worried voice.
+    303f8738-3b37-4f00-9eae-3dcb23711542  [P6]  Correct answer B is not itself an error
+    Q: Marcus found a lost puppy in the park, it was very hungry; he decided to help it
+    98affd08-df3a-4982-a4f4-816c0b9cd5d4  [P6]  Correct answer is grammatically incorrect explanation
+    Q: My friend loves playing football after school making her very tired and happy
+    ca4d7c71-3a2c-45ec-91ce-6cbf53866788  [P6]  correct answer B is incomplete fragment, not correction
+    Q: Marcus loves playing football after school, he always practices in the park.
+    4276204f-6b9f-48d4-9d6a-e3853a973271  [P6]  Correct answer B contains the error, not the fix
+    Q: Once a shy student in primary school Sarah has become the captain of the netball
+    c6da5363-d7d9-4ba7-a097-ed31ff541028  [P6]  Correct answer A contains no punctuation error
+    Q: Question: If you had just finished your homework before dinner,' Mum said, 'then
+    db219941-955b-4702-a2a9-b4ab124c4b16  [P6]  Correct answer B contains no error. Toms' is incorrect.
+    Q: During lunch, Toms' best friend showed up; he brought cupcakes for everyone.
+    03c32705-d6c8-414a-83c3-4420e8f6d2c3  [P6]  Correct answer C contains no error; full stop is correct
+    Q: Did you know that football is technically a sport. An exciting, fun sport!
+    0a1e3d75-98da-4c6e-b765-a1348b7cb29f  [P6]  Correct answer B contains no error; full sentence is correctly punctuated
+    Q: 'My dog loves playing fetch,' Sarah said, 'but he's always tired afterwards, isn
+    cedb570c-405c-4c9d-b190-f7b988a09c18  [P6]  correct answer C has no actual punctuation error
+    Q: The puppy's tail, when it gets excited, wags very fast because my friend's dog l
+    f461040d-ff79-4810-9935-93f8e9635ad2  [P6]  correct answer D is not the error location
+    Q: 'Can I have a slice of pizza?' Maya asked. 'There's not enough left in the box'!
+    3260b6c3-39c7-4782-b363-2cf673378940  [P6]  Correct answer D has no punctuation error
+    Q: Find the mistake with punctuation or use of capital letters: We played football 
+    dc2234ab-1a88-4e41-9b9d-ac18c4dc5e32  [P6]  Correct answer C has no punctuation error
+    Q: 'Unbelievable!' said Maria. 'Whenever we go to the park for a picnic it always g
+    e5b2e2d7-4c57-4349-acb2-e6addac64803  [P6]  Correct answer B contains correct apostrophe
+    Q: 'My dog loves playing fetch,' said Sarah, 'but he's always tired after,' Jake la
+    8ad7628f-0ace-4a21-8383-3e7e843482e2  [P6]  Correct answer B contains no error; apostrophe is correct
+    Q: During the football match, Toms' friends cheered; they were excited about the go
+    b44b8cfe-3dd7-4d79-a0bc-359c98e9dba9  [P6]  correct answer identifies no actual error
+    Q: 'Amazing!' shouted Sarah. 'Every time we go to the swimming pool, it always has 
+    67e21362-8162-450a-bbeb-37f990a0a6d3  [P6]  Correct answer B has no punctuation error
+    Q: 'The red ball is mine,' said Marcus, 'But that blue one is yours.' Find the mist
+    e80fe923-3900-4e14-9c79-e47493fa2e4a  [P6]  correct answer D is not actually wrong
+    Q: On Saturday morning, we went to the park; my best friend brought her skateboard
+    f8f6a280-cd04-4d3a-8c91-3b4715ea4b8b  [P6]  Correct answer B has no punctuation error
+    Q: My best friend loves to play football after school and she is really good at sco
+    67e951da-8e09-44b7-b569-8070f24b3e6a  [P6]  Correct answer C contains no punctuation error
+    Q: Marcus was excited about his soccer tournament, and felt nervous before the game
+    9b9d88be-f2b0-4624-8ca9-da75725426c9  [P6]  Correct answer C contains no punctuation error
+    Q: 'Amazing!' shouted Sarah. 'Every time we play football at the park, someone alwa
+    52c90558-0a53-40b3-a7a7-590502f10366  [P6]  Sentence is declarative, not interrogative. No error exists.
+    Q: Find the mistake with punctuation or use of capital letters: The children played
+    fc826d60-c987-4e1c-88c6-b6c3adb75ea8  [P6]  Correct answer B has no actual error
+    Q: 'Sarah, can you help me with my homework,' said her brother. Thankfully, she agr
+    64871190-e00a-415d-b76c-c0c67c6e91bc  [P6]  Correct answer marked as B but N is actually correct
+    Q: Last summer my family went to the beach for a holiday and we had lots of fun pla
+    0346e088-61f6-4acb-892b-9aa3317d6092  [P6]  Correct answer N is wrong; comma error exists after 'Mum.'
+    Q: 'Put your toys away!' said Mum. 'Your friends are arriving soon!'
+    10240c3c-e6d8-471a-aa0f-e53ba29e5563  [P6]  correct answer D is factually wrong
+    Q: Find the mistake with punctuation or use of capital letters: The players put on 
+    eb2d57b9-0e28-41a8-a63d-bee8e2a39f8a  [P6]  Correct answer B is not the actual error
+    Q: Find the mistake with punctuation or use of capital letters: The team practiced 
+    f89609b2-c41b-485b-b6b5-4df85bb18a91  [P6]  Correct answer explanation contradicts marked answer B
+    Q: He shouted, with great excitement 'I scored a goal!' and ran around the football
+    250debe1-0428-4637-86ee-e910dc87b2d2  [P6]  correct answer B contains no error; comma is present
+    Q: Marcus played football all afternoon, and he was exhausted; his mum made him a s
+    56af1d73-6e63-43d7-8469-a48f2a737141  [P6]  Explanation is incorrect; comma placement is wrong
+    Q: 'Brilliant!' shouted Maya. 'Every time we play football at the park, we always h
+    08f37003-9990-48ba-a24a-a19ddbd75943  [P6]  Correct answer D is not an error
+    Q: 'Please hurry,' Dad said, 'to finish your homework before dinner time'
+    31798469-7da1-42fa-80a5-9125bb66b334  [P6]  Correct answer D has no punctuation error
+    Q: It was a sunny, warm afternoon at the park; my friends were playing football
+    89698973-729d-40c2-89b8-5d6524e09f18  [P6]  Correct answer C has no punctuation error
+    Q: 'I really enjoy playing,' my friend said, 'that when summer arrives, I spend mor
+    3c1ae4b4-9c4e-4aa7-84f9-25cfdfd6fe09  [P6]  correct answer B does not contain the punctuation error
+    Q: Last summer we went to the beach; built sandcastles, and played in the waves all
+    cfa681ec-cfdd-413b-8d03-4c99ec1b8188  [P6]  Correct answer B identifies apostrophe error, but semicolon usage is acceptable
+    Q: During the football match, Toms' friends cheered; the crowd went wild.
+    d73ad24b-27b0-4041-bb62-f191852b6c56  [P6]  Correct answer A contains no error; question breaks
+    Q: 'Can I have some cake?' Sarah asked her mum, 'it smells really delicious.' Find 
+    e3cb971a-6c08-426e-a3b4-93dbce92ba31  [P6]  correct answer B has closing quotation mark present
+    Q: 'Sarah, will you help me with my homework?' asked Dad. She nodded and walked ove
+    533e3b88-3ec7-4e26-8b10-de23680b215a  [P6]  Correct answer D is not the error location
+    Q: My friend loves playing football after school making him the best player on the 
+    22ffd35a-59b3-47ff-bf15-c2e11988805b  [P6]  Correct answer B is already in sentence with comma present
+    Q: The old dog wagged it's tail happily and barked, 'Let's play fetch together!'
+    e4f4f876-313b-4c8f-a939-5a60828eb3b9  [P6]  Correct answer D is not an error
+    Q: My friend loves playing football, riding her bicycle and swimming in the pool
+    cd31629e-969b-4b9d-ab1f-294dd3ae9baf  [P6]  Correct answer B contains no punctuation error
+    Q: Marcus played football yesterday, excited about the game; he scored two goals.
+    ff5d1515-a49d-4f75-a6a1-6d7d2e178d74  [P6]  Correct answer C is grammatically wrong
+    Q: 'Brilliant!' exclaimed Sarah. 'Whenever we play football at the park, we always 
+    2e0d00ed-094c-4061-b139-5b48d9741a49  [P6]  Correct answer contradicts British English punctuation rules
+    Q: 'Do you want to play football with us,' asked Maya, 'or would you rather stay ho
+    8a63753a-43df-4548-b6ca-0578d0cc43b8  [P6]  correct answer D is not an error; sentence is correct
+    Q: Sarah loved playing football on sunny afternoons; her best friend Emma would alw
+    3f806dca-53ce-44b5-b3ff-f503acc926e1  [P6]  Correct answer identifies no error; punctuation is actually wrong
+    Q: If you had just finished your homework before dinner' Mum said, 'then you could 
+    502c72ff-d2a4-4477-a150-67537bba5f69  [P6]  correct answer D has no punctuation error
+    Q: To everyone's surprise, Sarah had won the swimming competition without any help.
+    01559548-72ed-48f9-a680-b904ad192825  [P6]  Correct answer is factually wrong on punctuation rule
+    Q: 'Do you want to play football with us,' asked Marcus, 'or would you rather stay 
+    37109716-d44a-4aaa-b3e6-ee984ba17362  [P6]  correct answer D has no error; N is correct
+    Q: My friend brought his skateboard to school; we played in the park after lessons 
+    a6d03ca4-b2d6-494a-9132-362b9b02cf9c  [P6]  Correct answer is factually wrong; no error exists
+    Q: Question: Much to Sarah's disappointment, her friend had cancelled the birthday 
+    bab3e7d0-8577-4ea9-bac5-3085d30adfbe  [P6]  Correct answer C has no punctuation error
+    Q: Did you know that ice cream is technically a frozen dessert. A sweet, creamy fro
+    9a678e39-3c33-4e2f-ac30-ccb710a7b9cc  [P6]  correct answer identifies non-existent error
+    Q: My best friend Sarah loves playing football runs very fast on the field.
+    f37f9cdd-2a57-41be-838b-ca505e6e7f85  [P6]  Correct answer identifies option B, not the error itself
+    Q: Although Sarah loves playing football after school she decided to join the tenni
+    512c413e-765f-418a-8098-151840a455b7  [P6]  Correct answer A is punctually correct; no error exists
+    Q: 'A semicolon?' Tommy asked his teacher, 'is used to join two sentences.' Find th
+    658e0378-31db-4410-81ff-331569cb3eaa  [P6]  Answer options formatted incorrectly; cannot identify errors
+    Q: 'Amazing!' shouted Sarah. 'I just scored a goal in the football match at manches
+    a76015e2-72ff-4428-97e2-6b0227404cdc  [P6]  Correct answer C is incorrect punctuation rule
+    Q: 'My favourite sport is playing football', said my best friend.
+Options: {"A":"'M
+    12594b72-36a5-4631-8ecd-b20431b695a4  [P6]  Correct answer identifies non-existent error
+    Q: Although Sarah loves to play football after school she always does her homework 
+    ad25f6d3-cb7e-4fa2-8072-def5fa0b7130  [P6]  Correct answer B contains no punctuation error
+    Q: 'The blue ball is mine,' said Tommy, 'But that red one is definitely yours.' Fin
+    23b56150-2125-48fa-96dd-d811be6c4e25  [P6]  Correct answer B contains no punctuation error
+    Q: Once my favourite toy as a young child my teddy bear is now kept safely in a mem
+    068bb7c3-0b2f-4c79-a902-e1096d808593  [P6]  Correct answer is factually wrong. No error exists.
+    Q: 'Can I have some ice cream?' Tommy asked his mum, 'after I finish my homework.' 
+    37c57424-5660-491b-8651-2564c620801c  [P6]  correct answer C has no actual error; explanation references sandwich
+    Q: Did you know that roller skates are basically shoes with wheels. Fast, fun shoes
+    8994aa33-9eb6-41ac-a959-2455f7dde979  [P6]  Correct answer B is incomplete; lacks full sentence context
+    Q: The teacher announced it's time for lunch and said, 'Everyone line up at the doo
+    0199900e-ee58-407f-8063-8660a6000b6b  [P6]  Correct answer is wrong; sentence has no error
+    Q: Marcus played football all afternoon, and he was exhausted; he fell asleep immed
+    62e20698-4d53-4b79-bcde-28bdfe7a38b9  [P6]  Correct answer C is incomplete, cannot assess error
+    Q: 'What a lovely birthday cake!' said Maya. 'Mums been baking all morning for the 
+    b17931ff-5208-449a-8959-81e5061bfdd7  [P6]  correct answer A is incomplete, not the error location
+    Q: My pet rabbit loves to hop around the garden enjoys eating fresh vegetables.
+    c225836a-61c0-4220-91dc-829479c1ccf6  [P6]  Correct answer B contains no error itself
+    Q: 'Sarah, can you help me with my homework,' said Tom. Nobody seemed to hear him.
+    28922964-faca-4cd2-b3df-bcd2aba2ce75  [P6]  correct answer marked B but error is at comma after 'school'
+    Q: Marcus loved playing football after school, he always practiced for an hour befo
+    ebf43e65-be51-4777-9578-a00f5b501423  [P6]  correct answer is factually incorrect; sentence is grammatically sound
+    Q: Marcus played football yesterday, so tired that he fell asleep right after dinne
+    deb7ef7b-15ef-445d-a01d-e9eb2fefb886  [P6]  Correct answer is factually wrong; no comma error exists
+    Q: It was a sunny, warm afternoon at the park; the children were playing happily to
+    98169f40-f728-4d83-a147-bf50b56cd098  [P6]  Correct answer B has no actual error
+    Q: 'The red ball is mine,' said Tommy, 'But that blue one is yours.' Find the mista
+    4b7f8819-24c7-4de4-99ec-59fe421effb6  [P6]  Correct answer D has no punctuation error
+    Q: To everyone's surprise, Sarah had won the school spelling bee
+    40bc7477-e8cf-41fe-891c-65f924c47599  [P6]  Correct answer D is incomplete, not a punctuation error
+    Q: 'Can you help me find my football?' Sarah asked. 'I left it in the park this aft
+    2ae6dc3e-69d8-4dc7-adb3-5ba00192e074  [P6]  Options C and D are identical; unanswerable
+    Q: My friend enjoys playing football after school making her very happy
+    acd41be5-5384-45bf-a1ca-0b2c93b4d689  [P6]  Explanation contradicts itself; only one tree means possessive is correct
+    Q: Sitting under the old oak tree's, Marcus thought about his favorite memories wit
+    09ce40fa-f893-44fd-aca3-3f00c66c7f86  [P6]  Explanation contradicts correct answer choice B
+    Q: He shouted, in an excited voice 'Goal!' and rushed towards his friends on the fo
+    cb30aa45-3c61-4bc3-b695-92f4e44366e1  [P6]  Options A-D are sentence fragments, not identifiable errors
+    Q: 'Put your toys away!' commanded Dad. 'Your friends are arriving soon!'
+    93e61dc5-99cd-416d-8969-501092383b14  [P6]  Correct answer D is not missing punctuation
+    Q: My dog loves to play fetch, running around the garden and jumping high over the 
+    5857d253-7ae4-4421-9c92-83a0ef698605  [P6]  Correct answer N is wrong; apostrophe error exists
+    Q: 'Where is my football?' she asked her brother, looking around the messy bedroom.
+    ada7e497-3bb6-4363-8d84-a2292cbc9b3f  [P6]  Correct answer B contains no error; explanation is confused
+    Q: 'Sarah, will you help me with my homework,' said Dad. Quietly, Sarah closed her 
+    25a25a64-6107-4324-8d6e-8542b3fcefec  [P6]  Correct answer is wrong; comma is present after 'said Tommy'
+    Q: 'The blue ball is mine,' said Tommy, 'But that red one is yours.' Find the mista
+    1d7afacc-b713-4274-a611-7780ba96c05e  [P6]  Correct answer A contains no error itself
+    Q: 'Can I have some ice cream?' Tommy asked his mum, 'please may I have a cone.' Fi
+    0a0ebfb1-d4b5-4e66-a7ef-66172c8898f9  [P6]  Correct answer marked N but comma error exists
+    Q: 'Put your toys away!' demanded Mum. 'Your friends are arriving soon!'
+    091f1c3d-e623-457b-ae5c-afa23499f5f6  [P6]  Correct answer D is not the error; comma needed before option D
+    Q: My friend loves playing football after school making her very happy and tired
+    c631380a-e24b-4255-a533-1817517f072b  [P6]  Correct answer B is not the error; answer should be A
+    Q: After winning the football match yesterday my best friend invited me to celebrat
+    8ee20bb0-68c7-417f-aaaf-d44919242c1f  [P6]  Correct answer D is punctually incorrect
+    Q: 'Can you help me with my homework,' asked Sarah, 'or are you too busy?
+    109e0d75-aba2-49b7-aeca-c5becd915fdd  [P6]  Correct answer B does not contain the error
+    Q: Laughing loudly the children ran into the playground 'We can play tag now!'
+    400ddcd5-8e1f-4e75-b103-321c4cad2da8  [P6]  correct answer C incomplete, missing apostrophe not shown
+    Q: 'What a lovely birthday party!' said Marcus. 'I cant wait to come back next year
+    0695094a-9f86-44bc-aef4-351070b37662  [P6]  Correct answer B is not an error
+    Q: Jumping with excitement the children shouted 'We won the football match!'
+    79f2fb18-c325-48fd-a66e-a649342d1011  [P6]  correct answer D is incomplete text fragment
+    Q: 'Can you come to my birthday party?' Maya asked. 'It's going to be so much fun'!
+    ac26b7b1-01a9-4ffb-b2b2-3a6d1ec266a8  [P6]  correct answer C doesn't contain the error
+    Q: 'What a fun day at the park!' said Marcus. 'I cant wait to go back there tomorro
+    46db3b86-246c-475a-be02-2ebe1ec3b29e  [P6]  Correct answer C contains no punctuation error
+    Q: 'What a lovely birthday party!' said Marcus. 'I cant wait to come again next yea
+    0904b67b-a059-4e98-9dba-7bad009131c5  [P6]  correct answer B has no punctuation error
+    Q: He shouted, with great excitement 'Look at my new skateboard!' while jumping up 
+    59881123-47ef-48e0-aa19-adf3357840af  [P6]  Option C is incomplete; cannot identify punctuation error
+    Q: 'What a great goal!' shouted Marcus. 'I cant believe you scored that!'
+    00295ba4-f110-49ba-a0f9-fd0207c2c390  [P6]  Correct answer C is incomplete/broken fragment
+    Q: 'What a great game!' said Marcus. 'I cant believe we won the match.'
+    a672cec3-da46-4da9-9ab3-c22c7e22555e  [P6]  Correct answer D is incomplete/nonsensical option
+    Q: 'Can you help me with my homework,' asked Maya, 'or are you too busy?
+    e30415c7-c419-4fe0-b024-8b6111f50896  [P6]  Correct answer A has no actual error
+    Q: 'A full stop.' my teacher said, 'should always end a sentence.' Find the mistake
+    52c8d757-134f-421b-ba3c-e691463318f3  [P6]  correct answer D has no punctuation error
+    Q: It was a sunny, warm afternoon at the park; the children's playground was packed
+    4996862a-9d10-42ad-a344-212e757b9d0a  [P6]  Correct answer identifies wrong error location
+    Q: During the soccer match, Toms' friends cheered; everyone was excited about the g
+    867f822f-bebb-4b25-bb6f-932cd5fab4fc  [P6]  Correct answer D is not the error in the sentence
+    Q: To Sarah's disappointment, her brother had lost her favourite pencil case
+    4db2c5c7-8def-4b58-bc70-e375dc4a4b54  [P6]  Question format broken: options split sentence into fragments
+    Q: 'Where did you put my football?' asked Mum in an angry voice.
+    7f412ffa-f49b-4c37-925e-5405d14a6da7  [P6]  Comma after 'match' is grammatically correct here
+    Q: Marcus scored a goal in the football match, winning the game for his team.
+    eea2f3b6-29a7-483c-b531-557188dc5a3b  [P6]  Correct answer C is factually wrong
+    Q: 'My favourite hobby is playing football', said Marcus to his friends.
+Options: {
+    a0639204-b26f-4cad-9a2d-279ca86e08bb  [P6]  Correct answer D contains no error
+    Q: My best friend loves playing football making him the star of our school team
+    ad9528dd-b918-4b92-9743-1e64b7cebddd  [P6]  Correct answer B contains no actual punctuation error
+    Q: 'The red ball is mine,' said Marcus, 'But that blue one is definitely yours.' Fi
+    29da4137-4caf-45cf-af98-bbfd4f76499b  [P6]  Correct answer identifies error in wrong option location
+    Q: During the football match, Toms' friends cheered; they were excited about the wi
+    e76d1530-d2f8-4154-97ca-c885147c22aa  [P6]  Correct answer B contains no error; comma needed before B
+    Q: Once a popular toy among children building blocks were replaced by video games i
+    020ec1c0-66aa-4a45-9eef-484700f67edd  [P6]  Option B contains semicolon error, not apostrophe error marked
+    Q: Yesterday after school, Toms' best friend called; he wanted to play football tog
+    e93044a8-3e5f-48b9-b87f-5a341d76b8f9  [P6]  correct answer D has no punctuation error
+    Q: My best friend loves playing football after school; he practises every day with 
+    69544da1-afae-44e0-9d1a-0b5688ded72f  [P6]  Correct answer explanation is factually incorrect
+    Q: He whispered, in an excited tone of voice 'I found your lost puppy,' and pointed
+    4a4d3390-9fc6-4969-a6cd-9dc75a61c1d8  [P6]  Correct answer C is incorrect; no comma error exists
+    Q: Bouncing with excitement, the boy told his friends 'I just scored a goal in the 
+    107d2cf2-c7d4-4b52-985e-90621ada37ae  [P6]  Correct answer marked D but error is in option A
+    Q: 'Do you want to play football,' asked Sara, 'or would you prefer to go to the pa
+    80ee5f82-57c8-4b36-a7b5-1f13d8bc8f3a  [P6]  Explanation contradicts correct answer marking
+    Q: Playing in the park's, Marcus found a lost puppy under the old oak tree.
+    19a3f79a-36e2-46b9-b391-ea900faa6a7f  [P6]  Correct answer C has no punctuation error
+    Q: 'She won't come to the party. She has to study play football or help at home!' s
+    74f4fa51-ed41-4a82-bb58-f8dfe668ab50  [P6]  Correct answer B is incomplete; missing closing punctuation
+    Q: The teacher smiled at us and said, 'Your homework is due tomorrow' without a com
+    743a1f38-4c79-44da-83ec-0ef26d2057e3  [P6]  Correct answer A is not an error; sentence is grammatically correct
+    Q: My pet dog enjoys playing fetch in the park, running around happily and having l
+    07671a28-1f46-441c-97d3-803478fd17db  [P6]  Correct answer B contains no error; question breaks
+    Q: 'Sarah, can you help me with my homework,' said Tom. Immediately, she came over.
+    b64f5806-0473-4fb8-baed-165bc7a6c3b2  [P6]  Correct answer D is not an error; comma already present
+    Q: To Sarah's surprise, her little brother had eaten all the chocolate cake
+    e2f3e0e5-c6c2-4029-af70-8b10aef847e4  [P6]  Correct answer B is not an error; quote placement is correct
+    Q: 'Sarah, can you help me with my homework,' said Dad. Naturally, she was busy pla
+    157d5791-5c24-4dd5-aaca-474d50d9e07e  [P6]  Correct answer B has no punctuation error
+    Q: He shouted, with great excitement 'Look at my new skateboard!' while showing it 
+    2a2bf218-ed0d-4be3-94be-fa050f4cb909  [P6]  Correct answer A has no actual error
+    Q: My favourite football player scores goals constantly and makes the crowd go wild
+    8f3a0555-7d8b-4ed4-aba9-41729fe0163e  [P6]  Correct answer A has no punctuation error
+    Q: "I can't believe it. My best friend is moving away next month so why didn't he t
+    2e3ebf9a-5d49-49dd-b97e-0d71f4311956  [P6]  Correct answer C contains no error; comma is correct
+    Q: My father was really happy about my soccer goals, and took me out for ice cream.
+    f3d4e172-bb44-432e-bfea-1c4d8a27324a  [P6]  Correct answer B contains no punctuation error
+    Q: 'My dog loves playing fetch,' Sarah said, 'but he's always too tired afterwards,
+    790193b4-34ed-4530-b477-d8f737228c2a  [P6]  correct answer B contains no punctuation error
+    Q: Playing in the park's, Marcus found a shiny football under the old oak tree.
+    36055a42-8d98-4c48-94e1-7a311b515f20  [P6]  Correct answer B contains no punctuation error
+    Q: He shouted, in an excited voice 'Look at my goal!' and ran towards his teammates
+    6a03eaf1-1c84-4980-a39f-c571bf02524a  [P6]  correct answer marked N but sentence has error
+    Q: 'Where did you put my football?' asked Sarah angrily.
+    eb889bac-3b70-4ce2-a0a6-228fc68621a7  [P6]  Correct answer B is incomplete, lacks full context
+    Q: The dog wagged it's tail happily and barked, 'I want to play fetch!'
+    a68317b4-ed18-4d59-9330-4c1ed2e05933  [P6]  Correct answer explanation is factually incorrect
+    Q: 'Can you help me find my football?' Marcus asked. 'I left it in the garden this 
+    6401554a-718d-4c0a-8a0e-5a47f9535e20  [P6]  'A' is capitalized in the original sentence
+    Q: 'A capital letter?' my teacher explained to us, 'must always start a sentence.' 
+    db325fe9-f906-4ae7-8760-765b9a89e490  [P6]  correct answer D contains no punctuation error
+    Q: My friend loves to play football after school making her very tired and hungry
+    7474c278-8e06-460c-917f-071579b94cdf  [P6]  Correct answer D is incorrect; no error exists
+    Q: To Sarah's surprise, her brother had eaten all the chocolate biscuits
+    4c67b594-e73f-4896-95d1-44d5facd3bd7  [P6]  Correct answer D is not an error; explanation is wrong
+    Q: It was a sunny, warm day at the park; the children were playing happily together
+    f373fa2e-a5f4-4c03-b022-4066f592c3f9  [P6]  Correct answer identifies non-existent error in option A
+    Q: If you had just finished your homework before dinner' Mum said, 'you could have 
+    6736db9b-9ebc-4d03-86c8-20ce909de383  [P6]  Correct answer B has no punctuation error
+    Q: He complained, in an angry voice 'That's not fair,' while stomping his feet acro
+    29cac6a0-0745-4525-a1cc-f9e81994a01b  [P6]  correct answer B contains no error in original text
+    Q: 'My dog loves playing in the park, but he's always tired afterwards,' Maya said.
+    432d4a03-a245-4b32-8c19-da26ecc02651  [P6]  correct answer omits speech mark error
+    Q: 'My dog ate all the biscuits,' Sarah said 'and now hes very sick.'
+    1b881c72-4c91-4a17-bbdf-14055567079c  [P6]  Option B contains no punctuation error
+    Q: 'Sarah, did you finish your homework,' said Dad. Obviously, she had not started 
+    7f917196-f5e5-45be-92f0-ebe35c603a93  [P6]  Correct answer D has no punctuation error
+    Q: 'Please remember,' Dad said, 'to bring your football kit to school tomorrow'
+    f6ada825-9862-4384-b8bd-45055ae2990a  [P6]  correct answer is factually wrong; punctuation placement error
+    Q: 'Do you want to play football?' Maya asked. 'I think it will be fun'!
+    50c63fb5-8f5c-4b81-b905-04aad2dbb4d7  [P6]  correct answer marked N but errors exist in sentence
+    Q: 'Put your toys away!' said Dad. 'Your friends are coming soon!'
+    39c18766-2c9b-4f3b-9b0c-00d56371da6f  [P6]  Comma after 'fun' is grammatically correct here
+    Q: Marcus's birthday party was really fun, and everyone had a great time playing ga
+    e5a2d4b6-872c-4bd6-9997-ddfa7571f188  [P6]  Correct answer C is actually correct punctuation
+    Q: The dogs' barking, which is very loud, disturbs many of my neighbours' sleep at 
+    600da191-d05c-4911-9e1f-9483abd31beb  [P6]  correct answer marked as N but sentence has punctuation error
+    Q: 'Where did you hide my birthday present?' asked Emma eagerly.
+    c5c5dfbb-4135-4fc0-ad6a-b991f8f5af67  [P6]  Correct answer A contains no punctuation error
+    Q: 'A comma?' said Tom, 'should always come before a name in speech.' Find the mist
+    3ba7ef2e-d6fb-4c60-9793-ed87ab63e258  [P6]  Options A–D are sentence fragments, not full sentences
+    Q: 'Put your toys away!' said Dad. 'Your friend is arriving soon!'
+    53871468-8a64-41be-a766-e67322f4da34  [P6]  Correct answer C contains no error
+    Q: My best friend loves playing football, and showed me his new skills.
+    8d5a6151-25f3-43dd-919a-f55cf952d7b0  [P6]  Correct answer B is not an error; no comma needed
+    Q: Once a popular toy in the 1990s, yo-yos have remained fun for children around th
+    660e68e6-68ed-4e4e-b532-0a4ce061f605  [P6]  Correct answer B contains no error; answer is wrong
+    Q: 'I really want to go to the park,' said Maya, but she's too tired today,' her mu
+    c21dcbcb-a380-4560-b937-a01e28342ce9  [P6]  Correct answer marked as B but comma already present after 'barked'
+    Q: The dog wagged it's tail happily and barked, 'Let's play fetch together!'
+    a731fc2d-7142-4712-9ff0-f253fb72970d  [P6]  Correct answer N is wrong; comma error exists
+    Q: 'Put on your shoes!' called Dad. 'We're going to the park now!'
+    e2b92139-10d0-4945-a19f-a67decbbe1ef  [P6]  Correct answer C has no punctuation error
+    Q: Did you know that ice cream is technically a frozen dessert. A creamy, delicious
+    e1b63796-f89c-4757-975a-c949de013818  [P6]  correct answer N invalid; sentence punctuation is wrong
+    Q: 'Put your toys away!' called Dad. 'Your friends are coming soon!'
+    d0118751-ef25-48de-9506-97e047f58fad  [P6]  Correct answer A is factually incorrect
+    Q: 'A semicolon?' Tom asked his teacher, 'is used to separate two related sentences
+    e9f4cc89-6a1d-4273-81b5-31faed38c989  [P6]  Correct answer D is factually wrong
+    Q: Question: To Sarah's surprise, her brother had eaten all of the birthday cake
+    b1dd3762-1f26-41c6-9af4-0d56dca8d727  [P6]  Correct answer A contains no error; explanation contradicts itself
+    Q: 'I can't believe it. My birthday is tomorrow, so why did you forget to buy me a 
+    90de1614-5601-49fe-98fa-22343c38b08e  [P6]  Correct answer A is factually incorrect
+    Q: Question: 'I can't believe it. My birthday party is next weekend, so why didn't 
+    48359fae-5230-4e59-9213-b5c67e570670  [P6]  Explanation contradicts correct answer N
+    Q: 'Put your toys away!' said Dad. 'It's time for dinner!'
+    2e2cdc13-6eb5-4a94-a697-0ae7246ebd15  [P6]  Question structure breaks option logic rules
+    Q: 'I really want to go to the park,' said Maya, 'but its raining outside,' her fri
+    ae06301a-3e5a-4e47-8407-9691d90b4582  [P6]  Correct answer A contains no error itself
+    Q: 'I can't believe it. My best friend is moving away next month, so I'm really sad
+    33cf7583-fa4e-4b70-8c38-69bc1677955d  [P6]  Correct answer contradicts British English punctuation convention
+    Q: 'Can I have some ice cream,' asked Maya, 'or should I eat fruit instead'?
+    7f5f36f3-0822-46d6-b79d-34e4a5b11ad8  [P6]  Correct answer B is not an error; punctuation is correct
+    Q: He shouted, with great excitement 'I scored a goal!' and raced across the footba
+    bc31539e-43c7-4976-9d93-c2c6e2e4d01b  [P6]  Correct answer C is incorrect; no comma error exists
+    Q: 'Amazing!' shouted Sarah. 'Every time we play football at the park, you always s
+    211c36cf-169c-49f6-aabd-dd029e7dd947  [P6]  Correct answer identifies wrong error in sentence
+    Q: During the match, Toms' friends cheered loudly; everyone was excited about the g
+    e413fff7-dd3e-4a14-8c02-45fb0598deec  [P6]  Correct answer is factually wrong. No comma error exists.
+    Q: 'A comma' said the teacher, 'should come before a person's name in dialogue.' Fi
+    961d8080-a663-461d-9963-08c57af28a78  [P6]  Correct answer D contradicts question text. Sentence is not a question.
+    Q: Find the mistake with punctuation or use of capital letters: The football match 
+    94a88058-be10-4d13-9700-aeecf9050bf0  [P6]  Correct answer C is not punctuation error
+    Q: 'Amazing!' said Sarah. 'Every time we go to the park, we always find the best ic
+    2ae2b70d-37cd-48f6-9397-bee26492ebde  [P6]  Correct answer D is not an error; explanation contradicts answer
+    Q: It was a sunny afternoon at the park; my friends were playing football
+    83f0ff45-7439-4b81-8e79-fa7c67021fa6  [P6]  correct answer D has no punctuation error
+    Q: 'The best part of my birthday,' said Marcus, 'was getting a puppy for a present.
+    cd0f626a-e8ff-4fa7-b424-f8b09977f042  [P6]  Correct answer D has no punctuation error
+    Q: On Saturday morning Emma went to the park; she played football with her friends 
+    7bac9cde-e4ef-42d9-b84a-75e76476acf2  [P6]  Correct answer C has no punctuation error
+    Q: 'Amazing!' shouted Sarah. 'I finally beat my best friend at tennis, and she actu
+    2b12bfc1-ac0c-4e31-acc5-b84efc4aef86  [P6]  Correct answer is factually wrong about punctuation rules
+    Q: 'A full stop?' Dad asked him, 'should always end a sentence.' Find the mistake
+    d237512b-c79a-4af0-9f6a-3ae23c6d80e0  [P6]  correct answer identifies no actual error
+    Q: My best friend Sarah loves playing football, enjoys reading books every day.
+    73fccb19-78aa-4b16-8c83-716b215852b3  [P6]  Correct answer identifies wrong error location
+    Q: During the school assembly, Marks' teacher announced; everyone listened carefull
+    fece5062-55a7-498e-85a8-3739c0994cff  [P6]  Correct answer A is incomplete; doesn't identify punctuation error
+    Q: My best friend Sarah loves playing football after school runs very fast.
+    3deecd5e-369e-4891-8cfb-b30ee109f1e4  [P6]  correct answer identification is incorrect
+    Q: Having played football since he was five years old Marcus was excited to join th
+    a293d5cd-1f9f-4680-a296-cc6a01e0e2f5  [P6]  Explanation contains factual error about comma placement
+    Q: 'Put your toys away!' said Dad. 'It's getting late!'
+    7ac9d43a-b448-4917-b12b-50434c259718  [P6]  Correct answer D contains no error; explanation contradicts marking
+    Q: My friend loves playing football after school wearing comfortable shoes and havi
+    967b660a-3b0d-427c-ad93-8c6172bbcaac  [P6]  Correct answer B is not a complete error; explanation contradicts itself
+    Q: Marcus played football all afternoon, tired but happy he had fun.
+    7a36cb1b-cf6a-49f6-a46a-2f4a1a2994c3  [P6]  Correct answer C has no punctuation error
+    Q: The puppy's soft fur, when you stroke it gently, makes our family feel happy and
+    8668607a-b736-4459-a938-f2f2e1d7345d  [P6]  Correct answer D has no punctuation error
+    Q: Find the mistake with punctuation or use of capital letters: The birthday cake w
+    a5041ae5-0020-4531-90a3-a88e9ee764a7  [P7]  Correct answer C is not the error location
+    Q: Always ready to help her friend Sarah picked up the heavy box.
+    bb916171-caf7-498a-a003-fc25324a072a  [P7]  Correct answer is wrong; comma needed after introductory clause
+    Q: Whenever the dogs played outside they would come back covered in mud.
+    1e6a2201-95bc-4ee0-ab13-e171e48c4ae9  [P7]  marked answer C has no punctuation error
+    Q: Although some people prefer chocolate ice cream the vanilla flavour is actually 
+    0af106a9-fd87-4716-91bd-8e3b04c0b620  [P7]  Correct answer C identifies wrong error location
+    Q: Always eager to help her mum baked cookies for the school bake sale.
+    2170668b-73cf-421b-a975-7af9c00f5342  [P7]  Correct answer is factually wrong about punctuation rules
+    Q: Marcus ran into the classroom and shouted, 'Has anyone seen my football'?
+    998a7284-8f41-450b-96fe-41d43a41634e  [P7]  Correct answer B identifies no punctuation error
+    Q: Although he loved football Marcus chose cricket to be his favorite sport.
+    322f91ef-09b8-46fa-af04-e81982112f38  [P7]  Correct answer C is incomplete fragment, not an error
+    Q: "I really want to go to the park" said James eagerly.
+    5b4b92ae-5235-41ef-8d6a-0a7ea3d11383  [P7]  Correct answer C has no punctuation error
+    Q: My friends birthday party will be at the swimming pool next Saturday.
+    57ddad56-6904-42bd-8454-0159bba5f0e1  [P7]  Correct answer is factually wrong; sentence has no error
+    Q: Question: David's friend's bicycle was stolen from Marcus's garage last week.
+    c2a08af4-db7e-45a6-8208-8ce61d4a8363  [P7]  Correct answer A is not an error
+    Q: 'Please bring me your homework notebooks,' said the teacher, 'and I promise you'
+    2214ff14-5dc8-4251-97b8-bfd6175f495d  [P7]  Correct answer B is incomplete; cannot identify error
+    Q: 'If I could choose any sport to play' sighed Maya 'I'd pick basketball!'
+    434b582e-88d4-48a9-8370-3a16a4f6304c  [P7]  correct answer C identifies no punctuation error
+    Q: 'After we finish our homework,' Mum said we can go to the park.'
+    a19930dd-7b51-488c-b6a0-68633aa06b7f  [P7]  Correct answer A is not the error itself
+    Q: 'Please bring me the blue ball' said my friend 'and I promise we'll have fun pla
+    0df712bb-b8ac-4a24-8a44-8061a80bae30  [P7]  correct answer has no actual error present
+    Q: 'When the match's over,' said Dad proudly, 'you can have ice cream.'
+    d8fc60f9-84cf-4844-ba3b-a239c78b12d7  [P7]  Correct answer B has no actual punctuation error
+    Q: Sarah was always reminded by her teacher friends and classmates to bring her hom
+    08fee93d-9d53-4823-b913-2931d20c42af  [P7]  correct answer marked as B, but option D is correct
+    Q: 'When you finish your lunch' Mum told Charlie, 'you can play outside.'
+    bd96f53e-5716-4b92-8994-2788e9e5dacf  [P7]  Correct answer C is not an error; explanation contradicts marking
+    Q: Always eager to help out Sarah volunteered at the animal shelter.
+    83263d0b-903e-41dc-aa00-5d27500b9162  [P7]  Correct answer C contains no punctuation error
+    Q: 'When you finish your homework', said Mum, 'please tidy your room.'
+    004425e4-160a-4083-b03e-cbcd7723d68f  [P7]  Correct answer D has no punctuation error
+    Q: Opened in 2010, the local skateboard park has brought joy to hundreds of childre
+    3bdd29f2-7949-4b09-8685-ea9f77fe2900  [P7]  Explanation contradicts British English dialogue punctuation rules
+    Q: Question: Marcus turned to his friend and said, 'Do you want to come to my birth
+    43900f90-d05c-4be4-b664-a21f7637562e  [P7]  Correct answer A has no error; theyre error in C
+    Q: Question: Dogs' toys aren't fun to chase, especially when theyre hidden under th
+    09ae3244-3eb7-4723-93a8-29caaa816639  [P7]  correct answer marked N but errors exist in original
+    Q: 'Can you pass the salt?' asked Mum. 'The soup needs more seasoning.'
+    3bb16dc4-8b1a-40a0-87e9-2ac2a6f82874  [P7]  Correct answer A contains no error; sentence is correctly punctuated
+    Q: 'Do you want to play football with us,' asked Sarah. 'We're meeting at the park 
+    bade42f2-f836-46b5-9d4f-b09b068ae754  [P7]  Correct answer is wrong; sentence has no error
+    Q: Children playing in the park often enjoy running, jumping and laughing at their 
+    36018c37-2f86-419e-9517-b8a1d570d0c1  [P7]  Explanation contradicts itself; marked answer has no error
+    Q: Question: The children's excitement grew as they watched the puppies' playing in
+    f6c4e210-df47-41e7-ab61-8e420e7e974c  [P7]  Correct answer B contains no error; dashes are correct
+    Q: The football match – scheduled for Saturday – was cancelled because of the rain.
+    dc6e8c36-f127-407f-9d51-c1cb96695153  [P7]  Correct answer D is incomplete/unclear reference
+    Q: 'You must finish your homework,' said Mum, glancing at the clock, 'before you go
+    025f9aa5-4be2-48b6-9390-7f089c5d9cca  [P7]  Correct answer is factually wrong about punctuation rule
+    Q: Question: Marcus turned to his friend and said, 'Do you want to play football'?
+    7d0b8684-a7c8-4949-8e16-3b04d657cc2e  [P7]  Comma before 'was' is grammatically incorrect
+    Q: Question: David's sister's toy was accidentally left at Tom's brother's house.
+    5c694c08-b6be-4d6b-8647-5d7f32e491b0  [P7]  Correct answer D contains no punctuation error
+    Q: 'You promised me,' whispered Jake, clutching his football, 'that you would help 
+    ff2e0eaf-bf95-47b5-b6b3-71f555e50d32  [P7]  Colon usage here is actually correct
+    Q: Believe it or not chocolate is a type of sweet: it is not healthy.
+    9ee9521a-5d24-459c-a34b-acebe9d518bb  [P7]  Correct answer identifies no actual error
+    Q: 'I can't believe you ate all the biscuits,' Dad said with frustration.
+    3fc92991-2510-4c5a-80e0-c3b60670723c  [P7]  'matches' equipment' is contextually ambiguous/correct
+    Q: Question: The football players' uniforms were covered in the muddy stains of the
+    f027e408-8370-402d-b9d9-ed9f34e50563  [P7]  Correct answer is wrong; 'Footballers'' is correct
+    Q: Footballers' skills aren't developed overnight, especially if you practice regul
+    19a15f89-d290-4b31-ac7b-5cccc8d54472  [P7]  Correct answer C is incorrect; error is in option A
+    Q: 'When you finish your homework,' mum said, you should tidy your bedroom.'
+    3dcf9d3a-b947-41bc-a622-ab4a296dcf0b  [P7]  Correct answer B contains no punctuation error
+    Q: The football match – scheduled for Saturday – was cancelled because of heavy rai
+    675255ad-f8ab-4134-94f3-141acdce1079  [P7]  Correct answer C identifies wrong error location
+    Q: 'I really want to go to the park tomorrow's,' said my best friend excitedly.
+    efdfe7b4-fa87-456a-aa40-4fda99da8662  [P7]  Correct answer A has no punctuation error
+    Q: Question: Jacob's football was accidentally left in Tom's friend's garage.
+    50cdfff8-0321-4378-afed-dbdb1865fdff  [P7]  Correct answer B is incomplete, cannot evaluate error
+    Q: 'If I could choose any sport to play' said Marcus 'I'd pick basketball!'
+    9f19d9a3-b0e5-4f4c-bf23-d8473bb33fec  [P7]  Correct answer C contains no error; marked answer is wrong
+    Q: 'When you finish your homework,' mum said, 'you can play outside.'
+    74ca7678-102e-457c-9b93-9f22a6525011  [P7]  Correct answer B identifies no error in text
+    Q: 'When you finish your breakfast' Mum told Jake 'you can play football.'
+    0205f899-36bb-4968-964e-46ec5c4cff72  [P7]  Correct answer A contains no error; comma is correct
+    Q: 'When the match's over,' said Dad proudly, 'you can have some ice cream.'
+    9c39945c-d3e6-4f0a-9251-704aaaecf1dd  [P7]  Correct answer C has no punctuation error
+    Q: Always eager to help her friend Sarah baked twenty cupcakes for the party.
+    6793f8d7-929a-4985-98ab-e80473c25f7c  [P7]  Correct answer contradicts itself; friends' is already correct
+    Q: Sarah wasn't excited about attending her friends' birthday party next weekend.
+    6fabb909-480f-49db-a4b8-431de73d6791  [P7]  correct answer A contains no punctuation error
+    Q: 'When you're ready,' said Dad cheerfully, 'we can go to the park.'
+    adbf3c2f-ff51-4f34-a79b-78ffd291460a  [P7]  Correct answer A has no punctuation error
+    Q: We should probably stop arguing and try – step by step – to sort out this proble
+    651d791e-af7c-444d-8a23-93b5d0038c8f  [P7]  Correct answer C contains no punctuation error
+    Q: 'When you finish your homework, Emma', said Mum, 'please tidy your room.'
+    54e49807-09e4-4ffc-8b06-f8716053c8ed  [P7]  Answer options do not match question format
+    Q: 'Can I have another slice of pizza?' asked Sarah. 'This one tastes amazing.'
+    47671f17-c880-4aa3-9dd2-8b9728572906  [P7]  Correct answer C contains no punctuation error
+    Q: 'When you finish your homework, Jake', said Mum, 'please tidy your room.'
+    a58bc5f8-df4e-4696-97c1-f29951c01213  [P7]  Correct answer D is incorrect; error is in option C
+    Q: 'You must finish your homework,' said Mum, sitting at the kitchen table, 'before
+    59117b46-70ae-4c87-bdcb-b5de2baa5cfe  [P7]  Correct answer A is not an error; punctuation is correct
+    Q: 'Please bring me the football from the garage,' asked Dad, 'and make sure you lo
+    f9f4fd3f-2097-45ee-ba53-bfdc424b9686  [P7]  Correct answer and explanation are contradictory/incorrect
+    Q: 'After finishing homework,' my mum said, you should play outside.'
+    9bc1130e-11d0-48f6-8c44-04d98f03b4a0  [P7]  Correct answer B is grammatically incorrect
+    Q: Children playing in the park often laugh, excited about their new football.
+    8480d4c7-d9d5-4ca0-8869-8357aa8b95df  [P7]  Correct answer C is not the error location
+    Q: Always keen to help her friends Sarah baked cookies for the school fair.
+    ad68a530-6009-4233-bbeb-4274393b383e  [P7]  Correct answer B is not an error; punctuation is correct
+    Q: 'Can we go to the park?' asked Sarah, running down the stairs in excitement.
+    28423245-381e-47f9-8a10-9feba6ae7be5  [P7]  Correct answer A has no punctuation error present
+    Q: Please just listen carefully and pay attention – one step at a time – to these i
+    6bfecece-b391-4f1f-8203-02a224911579  [P7]  Correct answer C is not the error location
+    Q: The birthday cake (which had taken three hours to bake tasted absolutely delicio
+    578f52ec-a102-4acb-9713-b7992bcb5aef  [P7]  Correct answer B has no punctuation error
+    Q: Students attending the school sports day always cheer, loudly for their friends'
+    f397a9c6-d270-4247-9b14-430e96c9c304  [P7]  Correct answer N is wrong; errors exist in question
+    Q: 'Can you pass the salt?' asked Mum. 'It's for the dinner table.'
+    286bae23-2bf6-43d4-9cbc-75ceeb70fa25  [P7]  Correct answer D is not an error; explanation is wrong
+    Q: Tom watched his best friend score a goal and shouted, 'That was amazing'!
+    aaa26090-81a9-465e-b293-941b3d23abce  [P7]  Correct answer C is not the error location
+    Q: Although some prefer chocolate my favourite dessert is actually ice cream.
+    0737a04f-fd90-40f8-a074-0dca34d45038  [P7]  Correct answer and explanation are contradictory
+    Q: Always eager to help her mum Sarah washed the dishes after dinner.
+    36f31158-4a2d-4b80-aba6-b4652dfce473  [P7]  Correct answer A has closing quotation mark present
+    Q: 'Please bring me your homework papers,' said the teacher, 'and I will mark them 
+    70774245-edc3-4650-8a33-3e3b14ac58d6  [P7]  correct answer B contains no error; question is broken
+    Q: 'Can you help me with my homework?' asked Emma, sitting at the kitchen table wit
+    f583ddeb-209c-456b-a449-93b21bb83509  [P7]  Correct answer C is not the error location
+    Q: 'After scoring the winning goal,' she shouted you will be the champion of the le
+    4ad8fe86-8674-49a7-8c05-cbaaf1291ed7  [P7]  correct answer is factually wrong; sentence has no error
+    Q: 'When your friends arrive,' said Dad cheerfully, 'we can start the party.'
+    048c13d5-d8a3-42ef-8312-ca96b199d54f  [P7]  Correct answer marked wrong; no genuine error exists
+    Q: 'You must tidy your room,' said Mum, speaking firmly, 'before you go to the foot
+    9da441fb-c7f6-40ea-b789-1fc05b374d7d  [P7]  Correct answer explanation contradicts marked answer B
+    Q: Surprisingly enough my best friend loves playing chess: he is not interested in 
+    5f6423aa-43c9-4efa-b9f8-98e31208269f  [P7]  Correct answer B is not actually incorrect
+    Q: Children playing in the park often laugh, excited by the new playground equipmen
+    6f926dbb-7c82-4fbb-9242-906948811f49  [P7]  Correct answer B has no punctuation error
+    Q: 'Can you help me build this sandcastle' Mum asked Sarah, 'before the tide comes 
+    c9f5d3a1-8419-47ab-9f86-9d066eac72fa  [P7]  Correct answer A contains no error; apostrophe is correct
+    Q: Footballers' skills aren't developed overnight, especially if you've trained har
+    fad06970-fe64-4210-b025-c862c8b84d30  [P7]  Correct answer explanation contradicts itself; punctuation rule unclear
+    Q: The football match – scheduled for saturday – was cancelled due to rain.
+    d174170e-be08-45bb-ad9e-bf8afcf7597d  [P7]  Correct answer A is incomplete and incorrect
+    Q: 'Please bring me the football,' asked my friend 'and we can play in the park.'
+    566d4e04-4082-4f9b-89bb-143eb6f267f2  [P7]  correct answer D contains no punctuation error
+    Q: 'You've finished your homework already haven't you, Sarah? That's impressive.' M
+    93e0ca9a-5731-434c-a652-7c742effc542  [P7]  Correct answer B identifies wrong error; colon is acceptable
+    Q: Surprisingly my best friend loves playing chess: he is not interested in footbal
+    5c9bba1f-ffad-4390-966c-09152f716449  [P7]  correct answer C is not the error location
+    Q: 'After we finish our homework,' my friend said we should go to the park.'
+    b65afc78-08b1-46d7-81e6-c65347bcc20b  [P7]  Marked answer A is grammatically correct; no error exists
+    Q: 'Bring me Someone who loves playing football,' said the coach, 'and I promise th
+    566241c4-e362-4bcb-908f-c4fedd9c94d1  [P7]  Correct answer identifies the wrong error location
+    Q: Although he loved football Marcus chose tennis to be his favourite sport.
+    9c89731c-0c1b-4e9a-b945-c6d5a0639ecf  [P7]  Correct answer C does not contain the error
+    Q: 'I scored three goals in yesterday's match,' Tom said proudly.
+    7dda4bdb-9ecd-4b02-834f-02cfd8ae93e1  [P7]  Correct answer D contains no punctuation error
+    Q: 'Every player on our football team works hard to win the trophy, Coach'
+    8630f3ee-f4ab-42ea-a9a8-cf8113ec50f6  [P7]  Correct answer A has no actual error
+    Q: Sarah's friend's toy was accidentally left at David's cousin's house.
+    17d689cb-8abe-4f74-8b49-cc485fadb25f  [P7]  'today's' in sentence already has correct apostrophe
+    Q: 'I scored three goals in today's match,' Jamie told his friends with pride.
+    ee7ef493-2218-4322-bb67-f5118e4b16c8  [P7]  Correct answer is wrong; no error exists
+    Q: We should all listen carefully and work – step by step – to solve this puzzle to
+    6a55cd62-50a0-4c24-bb33-3c9b1c373d94  [P7]  Comma required after introductory phrase 'homework'
+    Q: Once they'd finished their homework Sarah's dog started barking loudly.
+    89caaea5-099c-4178-be25-6ae6d40a6911  [P7]  Correct answer B is actually correct punctuation
+    Q: 'Can you help me with my homework?' asked Sarah, opening her backpack on the kit
+    2a64aa28-5df5-4dba-bc22-df87865ba9f2  [P7]  correct answer explanation is incorrect and confusing
+    Q: Question: Tom turned to his friend and said, 'Can you help me with my homework'?
+    bb0622d5-05e6-47a6-b625-3b62718030ef  [P7]  Correct answer identifies no actual error in option C
+    Q: The football match (which had started at three o'clock ended in a draw.
+    0db37e93-abde-4e7b-8a0e-6e1e0743e12f  [P7]  Correct answer B identifies no actual error
+    Q: In the school library the student's favourite books were arranged neatly on the 
+    deaa4730-4e9d-45a0-94de-a4fa042a36e7  [P7]  Comma needed after introductory adverbial clause
+    Q: Whenever the dog played in the garden something would always get knocked over.
+    247d9ec9-59fc-46b9-898a-93c9a244437c  [P7]  Correct answer D contains no error; error is in option C
+    Q: 'That's brilliant,' said Mum, 'if you dont mind helping with lunch.'
+    b3060df4-fc7a-4002-ab3e-0a88f299f954  [P7]  correct answer B identifies no error in isolation
+    Q: 'I really want to go to the party' said Emma 'but I have too much homework!'
+    73c4572f-49e4-4c2e-bd9c-22f71b6c6a37  [P7]  Correct answer C identifies no actual error
+    Q: Although some think chocolate is the best flavour, my favourite sweet treat is a
+    458c7e18-1119-42e3-acbf-6829c8ad21ff  [P7]  Correct answer is wrong; 'Teachers'' is correct
+    Q: Teachers' pets aren't always fair to choose, especially when you've picked your 
+    b722c41c-a7e5-4b57-9ae7-e7073b5eb88d  [P7]  Correct answer B contains no error. Quote mark placement is correct.
+    Q: 'Where did you put it' asked my friend, looking through the kitchen cupboards.
+    b8722620-b069-4733-9d15-52f5f1b1684c  [P7]  'friends'' is correct plural possessive form
+    Q: Sarah didn't enjoy making her friends' birthday cakes and decorating them very m
+    33a1bbbf-072d-48a7-9462-e569604dca45  [P7]  Apostrophe placement error explanation is confused
+    Q: Every player on our football team works hard to win the match, Coach'
+    8f558a34-4aae-482a-a5d1-044330869c20  [P7]  Correct answer C does not isolate the error
+    Q: 'I scored three goal's in the match,' Ahmed said proudly to his friends.
+    a6c041eb-2ddd-4fda-b157-4a6969bf9ab8  [P7]  Correct answer B is not the error location
+    Q: Although his favourite sport was cricket Marcus chose football to play at the we
+    9c119734-4051-44b0-8744-8d6d67df39d8  [P7]  Correct answer B contains no punctuation error
+    Q: At the football match the player's amazing skills impressed everyone.
+    b6049875-ce40-4226-acbf-78869b38200f  [P7]  Correct answer C contains no actual error
+    Q: 'After playing football,' she said, we should drink some water.'
+    23c2d59c-08fd-4d45-ac96-4730eea7ae31  [P7]  Correct answer N is incorrect; comma needed after dialogue
+    Q: 'You need to tidy your bedroom before dinner' Mum said to Sophie.
+    8681601f-0da8-45cf-8ecf-073c173ca763  [P7]  Correct answer wrong—comma needed after introductory clause
+    Q: Whenever his little brother played with the toys something would always go missi
+    ee9d6ca2-87de-4a87-b396-968d1858618f  [P7]  Correct answer C is not the error location
+    Q: The birthday cake (which had taken hours to decorate sat on the kitchen table.
+    105de500-168c-42cd-9144-ecf1059f8768  [P7]  Correct answer C does not contain the punctuation error
+    Q: The cake (which we had baked for the party tasted absolutely delicious.
+    62fb501b-06b8-452d-aa12-71fd3ccfb0a8  [P7]  No comma required after 'toy' in this sentence
+    Q: Question: David's sister's toy was left on Tom's brother's desk.
+    1cd131b4-b47c-47ce-8ff8-70e85737e491  [P7]  Correct answer C identifies wrong error; error is in option A
+    Q: My best friends birthday party will be at the swimming pool next Saturday.
+    08bc6b17-07df-4cfd-882a-65d706536f8d  [P7]  Correct answer A contains no error; apostrophe is correct
+    Q: Teachers' uniforms aren't required at our school, especially if you're in the yo
+    1a73ea50-0db3-4ac5-8dad-0d29a7d13c0f  [P7]  Correct answer B is not the error location
+    Q: 'I can't believe you ate my chocolate cake said my little sister as she started 
+    02f35cd8-aa0d-43a4-99e7-e200548efa44  [P7]  Correct answer N is factually wrong; sentence has errors
+    Q: 'You need to tidy your bedroom before dinner' said Mum to Sophie.
+    c6dcfe51-6c63-4aa1-9ac3-891bcd1e6bc8  [P7]  Apostrophe in 'Captain'' is not an error; missing closing quotation mark is actual error
+    Q: Every player on our football team works hard to win the match, Captain'
+    5fdc7d39-a0e6-4ed7-932e-d814ad7abae4  [P7]  Correct answer A has no actual error
+    Q: Question: Jacob's sister's phone was accidentally left at Tom's brother's house.
+    cad96ace-2b79-4fe1-946f-9fa97642f471  [P7]  Correct answer is wrong; punctuation is correct
+    Q: Question: Marcus threw the ball to his friend and said, 'Can you catch this'?
+Op
+    52b70d97-fe92-44d9-bc96-43893dfba24e  [P7]  Correct answer D has no punctuation error
+    Q: Opened in 1995, the popular theme park's attractions became famous worldwide; vi
+    2fde3f0a-b37c-4ae7-99fd-b8d0a6d9ec2d  [P7]  Correct answer punctuation rule is incorrect/inconsistent
+    Q: My best friend Sarah who loves playing football is very talented at sports.
+    db417a87-42cc-4b21-bbf3-dfb70d0fc327  [P7]  Correct answer D is not punctually wrong
+    Q: 'You need to listen,' said Marcus, speaking quietly, 'about the football match –
+    0cba4008-dd53-45de-9c2a-b8165b42d832  [P7]  Correct answer B identifies wrong error location
+    Q: 'Where are you going' asked Mum, searching for her car keys.
+    1f4c25cc-b1ee-431d-a0c6-9051df31640f  [P7]  Correct answer C is not the error location
+    Q: Although some prefer chocolate ice cream the best flavour is actually vanilla.
+    8e1da499-341f-4e8f-bbfa-832c130f0334  [P7]  Correct answer D contains no error; 'haven't' is correctly spelled
+    Q: 'That's brilliant,' said Mum, 'why don't you haven't finished your homework.'
+    aaaec644-ea67-4682-a752-c3fdb1d4988e  [P7]  Correct answer C contains no punctuation error
+    Q: Always keen to help her friends Sarah organised the school fundraiser.
+    55cf8aaf-80a6-4b6e-be1e-0de8c32bf518  [P7]  correct answer C contains no punctuation error
+    Q: 'When you finish your homework, Emma', said Mum, 'you can play outside.'
+    8322595d-cb6e-4c56-98ef-51c6c6b6a344  [P7]  correct answer B is itself correct punctuation
+    Q: 'Can we go to the park?' asked Maya, grabbing her skateboard from the hallway.
+    77af5abe-94cc-468c-ba16-ab4a3e9a6f1c  [P7]  Correct answer D is not actually an error
+    Q: Question: The football team celebrated their victory by eating the coaches' pizz
+    e06a2284-d609-4101-8b67-5a65e2aeeeb9  [P7]  Correct answer C contains no punctuation error
+    Q: 'I really want to go to the cinema,' said Maya, 'but my pocket money hasn't arri
+    0f3fa203-84bd-4209-8f97-de6e155644e2  [P7]  Correct answer uses dashes, not commas as stated
+    Q: My birthday party – planned for next Saturday – will have lots of cake and games
+    33a3f030-0a0b-4961-bdd2-e292e5529ab9  [P7]  Correct answer D has no error. Semicolon usage is correct.
+    Q: Painted last summer, my best friend's bicycle looked brand new; even though it w
+    44dd8784-96b6-4f5d-b7c5-f56fb6debe88  [P7]  Correct answer N is wrong; comma needed after 'please'
+    Q: 'Can you pass the salt please?' asked Mum. 'The food needs more flavour.'
+    f96d6688-e928-4c2d-866c-5121d06daee4  [P7]  Explanation contradicts itself on correct form
+    Q: Sarah didn't enjoy playing the guitars' in the school band very much.
+    fd1482d7-74bd-4245-a0b0-444274c9415e  [P7]  Correct answer C contains no punctuation error
+    Q: The cake (which I had baked for the party tasted amazing.
+    14ad2ad7-ef28-4769-839b-18356e781ab1  [P7]  Correct answer B is not the error location
+    Q: 'When you finish your lunch' Mum told Sophie, 'you can play in the garden.'
+    cd94d057-e977-48bd-9c52-aec7f4c297cf  [P7]  correct answer A incomplete; missing punctuation error
+    Q: 'Please can you help me with my homework said my friend, 'and I promise I'll ret
+    02f24d51-b42e-42b4-a6fc-2b786a45ac82  [P7]  Correct answer B contains no punctuation error
+    Q: 'If you tidy your room' Mum told Luke, 'you can have ice cream.'
+    27d1a219-de7e-4403-b300-199e9dfd0170  [P7]  Correct answer C identifies no error in that phrase
+    Q: Although some prefer chocolate the ice cream flavour that most kids choose is va
+    7b5114cf-ebf7-43c6-b0c3-2c5a78492d4b  [P7]  Correct answer marked N but sentence has punctuation error
+    Q: 'Can you help me with my homework tonight?' Emma asked her mum.
+    68f06a2f-8e4a-459d-b418-609af544684d  [P7]  Correct answer C contains no error
+    Q: 'When you finish your homework, James', said Mum, 'you can play outside.'
+    79df33fa-081c-443f-a42d-1ff57faa90b4  [P7]  Tense inconsistency: 'ended' conflicts with 'we've been celebrating'
+    Q: Question: After the football match ended, we've been celebrating with our friend
+    987adc48-7c1c-487f-8a81-ce9ae69c9217  [P7]  Correct answer D contains the error, not identifies it
+    Q: Question: Marcus ran into the classroom and shouted, 'Has anyone seen my footbal
+    66582dc6-36b1-496c-a9d0-ebe07d4405c6  [P7]  Options A, B, C are sentence fragments, not errors
+    Q: 'Can I have another slice of cake?' asked Emma. 'This one tastes amazing.'
+    07a91fa2-8476-4047-ab1a-f0582c00e69f  [P7]  Correct answer B is not an error itself
+    Q: 'If I could choose any sport to play' said Marcus 'I'd pick football!'
+    20b7bbd6-b8d2-4049-a1ce-b8850b506cc2  [P7]  Correct answer D has closing quotation mark present
+    Q: 'I really want to go to the cinema,' said Mia, 'but I don't have any money today
+    d8244a17-7f32-46b2-8d1d-ab3a2b996fa3  [P7]  Correct answer B has no punctuation error
+    Q: Students playing football after school usually enjoy running around the pitch.
+    db2dd243-d4ba-4dc3-91d4-7c8ceb6732c4  [P7]  Explanation contradicts punctuation rules; semicolon correct
+    Q: Launched in 2015, the popular gaming console's sales increased dramatically; pla
+    a5123d9e-881d-4d43-940e-864a1aa7cde4  [P7]  Correct answer C contains no error; answer should be D
+    Q: 'When you finish your homework,' my mum said you can play outside.'
+    cc473258-f4d0-4e48-9342-8324ba057807  [P7]  Correct answer A is not an error; full quote is punctuated correctly
+    Q: 'Do you want to play football,' asked Sarah. 'I have a new ball at home!'
+    025952c9-1b4b-4724-9074-f223589dc390  [P7]  Correct answer marked B has no error; sentence is correct
+    Q: The football match – scheduled for Saturday morning – was cancelled because of h
+    594e9081-4aeb-4c06-a779-85859f9bb2f0  [P7]  Correct answer C contains no actual error
+    Q: 'When you finish your homework, Tom', said Mum, 'please tidy your room.'
+    444e4d61-250f-4889-933c-ae576c39f169  [P7]  Correct answer identifies non-existent error
+    Q: 'Where did you put my football boots' asked James, 'I need them for practice tod
+    07874164-c949-495c-b290-6bbe119fa1b5  [P7]  correct answer C is not the actual error location
+    Q: 'When you finish your homework,' Mum said, you should tidy your room.'
+    9e44a9fd-81cf-4c9d-ba40-55eb914a100d  [P7]  Sentence contains tense error, not punctuation error
+    Q: After we finished playing football, we've been eating pizza at Jake's house.
+    2bc9cee9-7513-4a87-b286-bf67aad39afd  [P7]  Correct answer D is incorrect; error is in option N
+    Q: Question: Mum turned to me and said, 'Can you help me with dinner'?
+    583e163c-6575-42a1-be15-c338e2c70e9c  [P7]  Explanation contains false grammatical claim about commas
+    Q: Question: David's friend's laptop was accidentally left at Sophie's cousin's hou
+    1ce8dbc0-5f92-40f9-9d2f-8fc3070a652d  [P7]  Correct answer's explanation is grammatically incorrect
+    Q: Question: Jake's friend's bicycle was stolen from Sarah's parents garage.
+    b1ee0433-6652-4c87-a389-743fca65dbf0  [P7]  Correct answer C has no punctuation error
+    Q: 'After school tomorrow,' my friend said, we should play football at the park.'
+    bdb4d3d7-e28d-4190-8cbf-6ff65c4b92f7  [P7]  Correct answer marked C but error is in option A
+    Q: Although some prefer chocolate my favourite ice cream flavour is actually strawb
+    223e7b24-11ad-4101-8c3a-71883e44a585  [P7]  correct answer marked as A but error is elsewhere
+    Q: 'Please bring me your homework before lunch' said the teacher, 'or you'll get de
+    b7cff8cc-6d00-4eed-a95c-9ffa87ba0598  [P7]  Correct answer C is not the error location
+    Q: 'When you finish your homework,' Mum said, you can have a snack.'
+    65bdeb6f-2874-49dc-8ed4-2d827ed3e44b  [P7]  Correct answer C contains no punctuation error
+    Q: 'When you finish your homework, Lucy', said Mum, 'you can play outside.'
+    957a0599-594c-4107-b467-6ea932da86a9  [P7]  Correct answer C is incorrect; error is in option A
+    Q: 'After we finished our homework,' my friend said, we went to the park.'
+    35194d71-b946-4ed6-bc80-84516adfc137  [P7]  Correct answer D contains no actual error
+    Q: 'You'd better hurry,' said Mum, 'or you'll miss the bus.'
+    452c729d-eb08-444e-96ee-10db4dc620a4  [P7]  Correct answer identifies no genuine error
+    Q: The party – scheduled for saturday – was cancelled because of the rain.
+    ca28141b-e6a3-4615-885b-5723f60cbcd5  [P7]  Correct answer identifies wrong error; 'can't' already has apostrophe
+    Q: 'That's really unfair,' complained Maya, 'why can't I go to the party tonight.'
+    72f3f8f9-a245-458d-b115-c2a12ce4eae9  [P7]  marked answer N is incorrect; comma needed after closing quote
+    Q: 'You need to tidy your bedroom before dinner' Mum said to Emma.
+    efe053cc-5ae0-4b2e-9786-6c6d078ce7ec  [P7]  Correct answer D has no punctuation error
+    Q: Opened in 1995, the local swimming pool's facilities have improved dramatically;
+    20982b40-b75f-4f43-b3e9-30275ae71099  [P7]  Correct answer C is incorrectly explained; speech mark error is in option A
+    Q: 'When you finish your homework,' Mum said you should play outside.'
+    b66669e2-5f62-4a25-9aaf-9e6541dc8627  [P7]  Correct answer is factually wrong; sentence needs no comma
+    Q: Children playing football after school often get tired, hungry and thirsty.
+    d82f71f5-b6ca-4bbe-9186-b81fce5e2630  [P7]  Correct answer contradicts punctuation rule stated
+    Q: The football match – scheduled for Saturday morning – was cancelled because of r
+    4ec543cd-53ce-4a73-8bb4-fed675b752f0  [P7]  Correct answer B has no punctuation error
+    Q: Children playing in the park always enjoy, laughing at their friends' silly joke
+    0cefb7ea-6a21-4886-bb24-fbf15e68b1e4  [P7]  Correct answer B identifies no error in isolation
+    Q: 'I love playing football' said James excitedly.
+Options: {"A":"'I love playing f
+    6b896fc5-7c91-4ab7-aa25-ae13300656bc  [P7]  Semicolon usage explanation is incorrect
+    Q: Launched in 2015, the popular gaming console's sales exceeded everyone's expecta
+    c34a58cf-7257-4dfd-a581-da3b5d03dc1c  [P7]  Correct answer B is not an isolated error option
+    Q: 'Where is my football?' asked Tom, searching through the garage.
+    4bae3481-a845-4542-9826-3951b281f6c0  [P7]  Correct answer C identifies no error; answer should be A
+    Q: 'After we finish our homework,' my friend said, we can play football in the park
+    f5bc2854-e56a-4c13-a8c7-4ef50c7fe159  [P7]  Correct answer C is not the error location
+    Q: Always keen to help her mum Sarah washed the dishes after dinner.
+    031fd1c8-46d6-411d-a43d-f61b852457c6  [P7]  Correct answer C contains no punctuation error
+    Q: 'When you finish your homework, Lucy', said Mum, 'come and help with dinner.'
+    5c2abc9e-201d-4359-b04a-bccc630d4357  [P7]  Option D is incomplete and unselectable
+    Q: 'Can you help me find my football boots?' asked Sarah 'I've looked everywhere.'
+    cc73f182-497e-475d-a41d-daf68f8c4690  [P7]  Correct answer is wrong; comma needed after 'house'
+    Q: Whenever the dog ran into the house something would always get knocked over.
+    a2b4a7fe-ec0d-481d-81af-5e943ad5cc45  [P7]  correct answer is factually wrong
+    Q: Whenever the dog ran around the park he would chase every squirrel in sight.
+    a94fc14a-8d1a-4fd7-8f06-d7b2638d6e17  [P7]  Correct answer explanation is grammatically incorrect
+    Q: 'I really want to go to the park this afternoon,' said my friend with excitement
+    b6452d8b-0375-4e63-8778-c68fa48f58ee  [P7]  Correct answer A contains no error; comma is correctly placed
+    Q: 'If you finish your homework,' said Dad cheerfully, 'you can play football.'
+    228d023a-8a08-4352-8b45-454f82f34169  [P7]  Correct answer B contains no error; full quote is correct
+    Q: 'Can you help me with my homework?' asked Sarah, sitting at the kitchen table wi
+    df587b97-6661-4c49-a51b-77329b8aa29f  [P7]  Correct answer C does not appear in question text
+    Q: 'I scored three goals in today's match,' my friend said proudly.
+    c605dec3-b73b-4a11-ad36-8a4d2f76cf57  [P7]  Correct answer D contains no error; explanation is incorrect
+    Q: Painted last summer, my bedroom's walls looked amazing; the bright colours made 
+    cfef6f74-ea9e-4053-bcb6-962172c53279  [P7]  Correct answer B is not an error itself
+    Q: 'If I could pick any sport to play' said Maya 'I'd choose netball!'
+    9eb00dfb-17ed-4af1-809a-41756875551d  [P7]  Colon usage here is actually correct; no error exists
+    Q: Surprisingly my best friend loves playing chess: she is not interested in footba
+    4d153608-53ed-4854-bafa-4f26b1c6e2b0  [P7]  correct answer N is factually wrong; comma error present
+    Q: 'Can you help me with my homework tonight?' Sarah asked her mum.
+    1409571d-5ec1-4d64-8160-34c4e8159181  [P7]  correct answer D has no punctuation error
+    Q: 'You must finish your homework,' said Mum, checking the clock, 'before you go – 
+    7ab2bb57-fa96-4c72-8e39-2d959d9e7a31  [P7]  Correct answer A is not an error; needs comma before dash
+    Q: My best friend Sarah the girl with the curly hair – always helps me with my home
+    ee15ee75-b286-4073-b847-0e5550f219f5  [P7]  Correct answer D has no punctuation error
+    Q: Launched in 2015, the popular gaming console became a huge hit with teenagers; i
+    a9239bc7-15cd-43a6-a352-8ab1b586144a  [P7]  Correct answer C is not the error location
+    Q: Always keen to help her friends Sarah organized the charity fundraiser.
+    3e8704bf-5ad7-41d5-ac60-683d04b1f6e1  [P7]  Correct answer B does not contain the error
+    Q: Although he enjoyed football Jack decided to play basketball instead.
+    b2d581d6-e9a5-436e-ae42-f0343b3e871a  [P7]  Correct answer C is not an error; comma belongs after A
+    Q: Although some people prefer chocolate my favourite flavour is vanilla ice cream.
+    d80e6386-45cb-451d-a739-b1d60415fd8a  [P7]  correct answer C contains no punctuation error
+    Q: Sarah loves to read books and play football but sometimes she feels tired after 
+    445f523e-79f0-4ab1-b9f7-902415ab2578  [P7]  Correct answer A contains no error; dogs' is correct
+    Q: Dogs' toys aren't fun to play with, especially if they're made of plastic.
+    64e586ba-aae8-460a-97cb-1adbce168958  [P7]  Correct answer is factually wrong
+    Q: Dogs' toys aren't always safe, especially if they're made from plastic.
+    3a6dd98f-2542-418b-b7f1-76fd3aefdf93  [P7]  Correct answer explanation is incorrect
+    Q: 'I really want to go to the park,' said Maya, 'but mum says it's raining too har
+    e8f4b415-d47f-4578-a2bb-c35f9a987fc2  [P7]  Correct answer D has no error; muds' is the actual error
+    Q: Question: The football players' uniforms were covered in the muds' stains from t
+    98d2813c-537c-4c32-8607-02f9a1f03e27  [P7]  Question format unsuitable for punctuation testing
+    Q: Players must finish their homework before they go outside to play.
+    473ef92f-cf22-45ba-a892-45cfa8bb9094  [P7]  Correct answer marked as C but C is not an error
+    Q: Although some prefer chocolate cake the best dessert is actually ice cream.
+    ac989b92-fe7f-4ac8-a6c2-f865a46b0e09  [P7]  Correct answer A is incomplete; not a full error
+    Q: 'Please bring me your homework right now' said the teacher 'or you'll lose marks
+    2abd3723-b056-4466-a6fc-75a57b4e1217  [P7]  Correct answer C contains no punctuation error
+    Q: The skateboard (which belonged to my brother was left outside in the rain.
+    9a13e9cb-c468-44cf-9293-2afe777ff5c4  [P7]  Correct answer explanation contains two errors
+    Q: Children playing in the park often stop, tired when it gets dark.
+    8a5daaae-4460-4107-b396-5a57e2561a3e  [P7]  Correct answer C is not an error
+    Q: 'When you finish your homework, Jake', said Mum, 'you can play outside.'
+    508c9db4-1bb9-46e2-81d8-750ef5529935  [P7]  Correct answer C contains no error itself
+    Q: The football match (which had started early kicked off at the stadium.
+    625ede43-cf49-4d0e-b9a3-d097ff50c30f  [P7]  Correct answer B is punctually correct, not an error
+    Q: 'Can you pass the salt?' asked Mum, handing me the pasta bowl.
+    8a90a5c1-b09a-4c11-bb7e-270b6a45b1e7  [P7]  correct answer A contains no error
+    Q: 'Please bring me the birthday cake' said mum, 'and make sure everyone gets a sli
+    5558ae66-d463-4dcd-8669-7170d0418127  [P7]  Correct answer incorrect: comma needed after introductory phrase
+    Q: Watching the match carefully, Sarah could see the fast moving ball.
+    8abfd560-787d-496b-a43e-862633470d61  [P7]  correct answer A is incomplete fragment, not full error
+    Q: 'Do you want to play football' asked Maya. 'I think it will be fun!'
+
+── WARN summary (6 total — NOT removed from student view) ─
+     1x  Multiple errors; explanation incorrect a
+     1x  Appositive uses parentheses, not commas 
+     1x  Multiple errors present; should identify
+     1x  N answer valid but options A-D are sente
+     1x  Oxford comma debate; both B and N defens
+     1x  Explanation contradicts standard punctua
+
+DRY RUN — no DB changes made.

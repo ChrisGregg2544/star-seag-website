@@ -1434,7 +1434,7 @@ async function submitAnswer() {
     // ── Multiple choice (verified server-side) ───────────
     try {
       const token = (await sb.auth.getSession()).data.session?.access_token;
-      const resp = await fetch('/api/check-answer', {
+      const resp = await fetch('/api/mark-written?action=check', {
         method:  'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -1508,7 +1508,7 @@ async function submitAnswer() {
       // Maths / other free response — verified server-side
       try {
         const token = (await sb.auth.getSession()).data.session?.access_token;
-        const resp = await fetch('/api/check-answer', {
+        const resp = await fetch('/api/mark-written?action=check', {
           method:  'POST',
           headers: {
             'Content-Type': 'application/json',

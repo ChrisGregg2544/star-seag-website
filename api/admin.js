@@ -8,8 +8,13 @@
      POST ?action=deactivate      — deactivate a question (validated=false)
      POST ?action=reactivate      — reactivate a previously deactivated question
      POST ?action=dismiss-reports — mark reports reviewed without deactivating
-     POST ?action=save-report     — save a student question report
+     POST ?action=save-report     — save a student question report (student JWT)
      GET  ?action=get-reports     — fetch all reports for admin view
+     POST ?action=login          — verify ADMIN_PASSWORD, set signed cookie
+     GET  ?action=check          — is the current admin cookie valid?
+
+   Admin actions require the signed star_admin cookie (set by ?action=login);
+   save-report requires a student JWT. Requires env: ADMIN_PASSWORD, ADMIN_SECRET.
 ══════════════════════════════════════════════════════ */
 import crypto from 'node:crypto';
 
@@ -22,8 +27,36 @@ const ALLOWED_ORIGINS = [
   'https://star-seag-website.vercel.app',
 ];
 const ADMIN_COOKIE = 'star_admin';
+const ADMIN_TTL_MS = 8 * 60 * 60 * 1000; // 8 hours
 
-// Verify the HMAC-signed admin session cookie set by /api/admin-login.
+const b64url = buf => Buffer.from(buf).toString('base64url');
+
+function signAdminToken(payloadObj, secret) {
+  const payload = b64url(JSON.stringify(payloadObj));
+  const mac = b64url(crypto.createHmac('sha256', secret).update(payload).digest());
+  return `${payload}.${mac}`;
+}
+
+// action=login — verify ADMIN_PASSWORD and set the signed session cookie.
+function handleAdminLogin(req, res) {
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+  const secret = process.env.ADMIN_SECRET;
+  const adminPassword = process.env.ADMIN_PASSWORD;
+  if (!secret || !adminPassword) return res.status(500).json({ error: 'Admin auth not configured' });
+
+  const { password } = req.body || {};
+  const given = Buffer.from(String(password || ''));
+  const real = Buffer.from(adminPassword);
+  const match = given.length === real.length && crypto.timingSafeEqual(given, real);
+  if (!match) return res.status(401).json({ ok: false, error: 'Incorrect password' });
+
+  const token = signAdminToken({ exp: Date.now() + ADMIN_TTL_MS }, secret);
+  res.setHeader('Set-Cookie',
+    `${ADMIN_COOKIE}=${token}; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=${ADMIN_TTL_MS / 1000}`);
+  return res.status(200).json({ ok: true });
+}
+
+// Verify the HMAC-signed admin session cookie.
 function verifyAdminCookie(req) {
   const secret = process.env.ADMIN_SECRET;
   if (!secret) return false;
@@ -351,6 +384,14 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
 
   const action = req.query.action;
+
+  // Public admin-auth endpoints (no cookie required to reach them)
+  if (action === 'login') return handleAdminLogin(req, res);
+  if (action === 'check') {
+    return verifyAdminCookie(req)
+      ? res.status(200).json({ ok: true })
+      : res.status(401).json({ ok: false });
+  }
 
   // save-report is a student action — require a valid student session.
   if (action === 'save-report') {

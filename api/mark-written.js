@@ -1,7 +1,10 @@
 /* ══════════════════════════════════════════════════════
-   AI marking for written comprehension answers.
-   Accepts: { question, correctAnswer, studentAnswer }
-   Returns: { pass: bool, feedback: string }
+   Answer checking (both server-side; answers never sent to the client).
+   Default (no action): AI marking for written answers.
+     Accepts { question_id, studentAnswer } → { pass, feedback, explanation }
+   ?action=check: multiple-choice / maths free-response verification.
+     Accepts { question_id, answer } → { correct, correct_answer, explanation }
+   Both require a valid Supabase JWT and count toward the 200/day cap.
 ══════════════════════════════════════════════════════ */
 export const config = { maxDuration: 15 };
 
@@ -62,6 +65,32 @@ export default async function handler(req, res) {
   const usage = await bumpUsage(userId, serviceKey);
   if (usage > DAILY_CALL_CAP) {
     return res.status(429).json({ error: "You've reached today's marking limit — come back tomorrow!" });
+  }
+
+  // action=check — multiple-choice / maths free-response verification (merged from check-answer)
+  if (req.query.action === 'check') {
+    const { question_id: qid, answer } = req.body || {};
+    if (!qid) return res.status(400).json({ error: 'Missing question_id' });
+    let row;
+    try {
+      const r = await fetch(
+        `${SUPABASE_URL}/rest/v1/questions?id=eq.${encodeURIComponent(qid)}&select=correct_answer,explanation`,
+        { headers: { 'apikey': serviceKey, 'Authorization': `Bearer ${serviceKey}` } }
+      );
+      if (!r.ok) throw new Error('lookup HTTP ' + r.status);
+      row = (await r.json())?.[0];
+    } catch (e) {
+      console.error('[check] lookup error:', e.message);
+      return res.status(500).json({ error: 'Could not check answer' });
+    }
+    if (!row) return res.status(404).json({ error: 'Question not found' });
+    const correctAnswer = String(row.correct_answer ?? '');
+    const norm = s => String(s ?? '').toLowerCase().replace(/²/g, '2').replace(/\^2/g, '2').replace(/\s+/g, ' ').trim();
+    return res.status(200).json({
+      correct: norm(answer) === norm(correctAnswer),
+      correct_answer: correctAnswer,
+      explanation: row.explanation || '',
+    });
   }
 
   const { question_id, studentAnswer } = req.body || {};

@@ -1239,7 +1239,7 @@ async function submitAnswer() {
     // MC — verified server-side; the answer is not present in the browser
     try {
       const token = (await sb.auth.getSession()).data.session?.access_token;
-      const resp = await fetch('/api/check-answer', {
+      const resp = await fetch('/api/mark-written?action=check', {
         method:  'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -1,0 +1,59 @@
+validate-all-ai   DRY_RUN=true  CONCURRENCY=5
+  topic filter: grammar
+
+Fetching questions... 200 400 600 800 1000 1200 1400 1483
+
+Total to validate: 50
+Estimated time   : ~1 minutes
+
+
+Completed in 0m 13s
+
+── Results by topic ─────────────────────────────────────────────────
+Topic                         Total   PASS   WARN   FAIL   ERR  Pass%
+──────────────────────────────────────────────────────────────────────
+grammar                          50     32      2     16     0    64%
+──────────────────────────────────────────────────────────────────────
+TOTAL                            50     32      2     16     0    64%
+
+── FAIL details (16 total) ──────────────────────────────────
+
+  [grammar] — 16 fails
+    e5533f9e-bedb-4448-909e-c48d2f7b4f4d  [P6]  Correct answer is grammatically wrong; explanation contradicts itself
+    Q: We will play soccer ___ the sun goes down and the field gets dark.
+    a2f11d2b-0f93-4283-ad75-0576bf58e5fe  [P6]  Question asks two separate errors but only one correct answer
+    Q: Accept / Apart / Except / Aside / Besides for Mira, all the players was ready fo
+    11bdc162-a998-4af3-86e4-cc941747e03d  [P6]  Correct answer marked as B but should be C
+    Q: Although Marcus enjoy playing football after school, he always ___ his homework 
+    d988d70c-9a36-419d-bd05-7e8c53a60e7d  [P6]  correct answer D is wrong; However or Yet correct
+    Q: My sister enjoys playing football. [However] [Nevertheless] [Although] [Moreover
+    72d0c6ab-504a-41f7-a83b-4be6812db5ff  [P6]  Option D is incomplete; question unanswerable
+    Q: Why does my friend's bicycle need new tyres?
+    ac8233fd-8354-4143-822e-6a7b9a633fd9  [P6]  Options A-D are sentence fragments, not grammatical units
+    Q: Your chocolate cake taste delicious, Sarah. We should ___ it at the party tomorr
+    568fc14e-360d-4f65-8dcd-7d8012256fe8  [P6]  Option B is not a complete answer choice
+    Q: Marcus ___ his friends to his birthday party last weekend. They had a wonderful 
+    cb4762d4-6b30-4525-96d3-7505cb148ab9  [P6]  Correct answer A doesn't fix subject-verb error
+    Q: My friend always share his toys with me, [no matter what] [whether or not] [as l
+    e231932c-eadf-40a6-ab51-bb5ae102dc80  [P6]  Correct answer identifies error, but question format broken
+    Q: She was, without a doubt, the fastest runner that her class have ___ seen. Choos
+    c0efd6e7-b6f8-4591-bf56-7cbb71fc84a1  [P6]  correct answer A incomplete; lacks conjunction
+    Q: We went to the park ___ my friend arrived and we played football together.
+    44bb5639-3989-4a3e-8465-a7cfe37a912c  [P6]  Comma before dependent clause is stylistic, not mandatory
+    Q: The teacher asked the students to finish their homework before they went to lunc
+    95d45ec9-ca19-4cc6-8b82-c89a6b615490  [P6]  Correct answer B is not the error; answer is N
+    Q: Question: Either Sarah ___ Emma will help us carry the sports equipment to the f
+    61faa8b3-c578-47bb-a65b-65cd44c26e31  [P6]  Question format fundamentally broken; options are sentence fragments, not answer choices
+    Q: Your football kit is dirty, Sarah. We need to ___ it before tomorrow's match!
+    5f873a0b-2022-41f6-9f0f-be39f14805ab  [P6]  Question format breaks logic; answer B isolated from context
+    Q: The soccer match started at three o'clock, and the team still hadn't [decide] [d
+    df43deb9-d9b2-4613-bcf9-ba75bc6cd3bb  [P6]  Question format unclear; asks to identify error but options are sentence segments
+    Q: Question: Maria eagerly insisted ___ playing on the school netball team.
+    6f14af6c-68d9-402a-bc75-97051268bbcb  [P6]  Correct answer N is wrong; 'enjoy' should be 'enjoys'
+    Q: My sister enjoy playing football [every day] [all the time] [whenever she can] [
+
+── WARN summary (2 total — NOT removed from student view) ─
+     1x  Options B, C, D all equally acceptable h
+     1x  Question tests two errors; marking only 
+
+DRY RUN — no DB changes made.

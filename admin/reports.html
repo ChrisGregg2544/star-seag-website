@@ -3,17 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <script>
-  // Server-verified admin gate (password checked by /api/admin-login, sets an httpOnly cookie)
+  // Server-verified admin gate (password checked by /api/admin, sets an httpOnly cookie)
   (async function adminGate() {
     const HOME = '../index.html';
     try {
-      const check = await fetch('/api/admin-login', { method: 'GET', credentials: 'same-origin' });
+      const check = await fetch('/api/admin?action=check', { method: 'GET', credentials: 'same-origin' });
       if (check.ok) return;
     } catch {}
     const pw = prompt('Admin password required:');
     if (!pw) { window.location.replace(HOME); return; }
     try {
-      const r = await fetch('/api/admin-login', {
+      const r = await fetch('/api/admin?action=login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'same-origin',
