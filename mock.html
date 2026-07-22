@@ -1209,9 +1209,13 @@ async function submitAnswer() {
       // Guard against a hung/slow marking request leaving Next disabled forever
       const ctrl = new AbortController();
       const timeout = setTimeout(() => ctrl.abort(), 15000);
+      const token = (await sb.auth.getSession()).data.session?.access_token;
       const resp = await fetch('/api/mark-written', {
         method:  'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+        },
         body:    JSON.stringify({
           question:      q.text,
           correctAnswer: q.answer,

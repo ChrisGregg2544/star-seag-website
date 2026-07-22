@@ -1462,9 +1462,13 @@ async function submitAnswer() {
       document.getElementById('btn-next').disabled        = true;
 
       try {
+        const token = (await sb.auth.getSession()).data.session?.access_token;
         const resp = await fetch('/api/mark-written', {
           method:  'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+          },
           body:    JSON.stringify({ question: q.text, correctAnswer: q.answer, studentAnswer: userVal })
         });
         if (!resp.ok) throw new Error('HTTP ' + resp.status);

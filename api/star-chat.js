@@ -6,6 +6,51 @@
 ══════════════════════════════════════════════════════ */
 export const config = { maxDuration: 30 };
 
+const SUPABASE_URL = 'https://iutcgogmxhaqgaxkznxu.supabase.co';
+const ALLOWED_ORIGINS = [
+  'https://staraitutor.co.uk',
+  'https://www.staraitutor.co.uk',
+  'https://star-seag-website.vercel.app',
+];
+const DAILY_CALL_CAP = 200;
+
+function applyCors(req, res) {
+  const origin = req.headers.origin;
+  if (ALLOWED_ORIGINS.includes(origin)) res.setHeader('Access-Control-Allow-Origin', origin);
+  res.setHeader('Vary', 'Origin');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+}
+
+// Verify the Supabase JWT and return the user id, or null if invalid.
+async function verifyJwt(req, serviceKey) {
+  const jwt = (req.headers.authorization || '').replace(/^Bearer\s+/i, '');
+  if (!jwt) return null;
+  const r = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
+    headers: { 'apikey': serviceKey, 'Authorization': `Bearer ${jwt}` },
+  });
+  if (!r.ok) return null;
+  const user = await r.json();
+  return user?.id || null;
+}
+
+// Increment today's usage counter; return the new count. Fails open (returns
+// 0) if the api_usage table / RPC is not present yet, so the endpoint never
+// breaks — the cap simply activates once the migration SQL has been run.
+async function bumpUsage(userId, serviceKey) {
+  try {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/rpc/increment_api_usage`, {
+      method: 'POST',
+      headers: { 'apikey': serviceKey, 'Authorization': `Bearer ${serviceKey}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ uid: userId }),
+    });
+    if (!r.ok) return 0;
+    return Number(await r.json()) || 0;
+  } catch {
+    return 0;
+  }
+}
+
 function buildSystem() {
   return `ROLE: STAR (The Progressive SEAG Tutor Engine)
 
@@ -155,11 +200,22 @@ STAR is a premium commercial AI tutoring product being sold to students and guar
 }
 
 export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  applyCors(req, res);
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!serviceKey) return res.status(500).json({ error: 'Server auth not configured' });
+
+  // Require a valid Supabase session
+  const userId = await verifyJwt(req, serviceKey);
+  if (!userId) return res.status(401).json({ error: 'Please sign in to use STAR Chat.' });
+
+  // Per-user daily cap (fails open if the migration SQL has not been run yet)
+  const usage = await bumpUsage(userId, serviceKey);
+  if (usage > DAILY_CALL_CAP) {
+    return res.status(429).json({ error: "You've reached today's practice-helper limit — come back tomorrow!" });
+  }
 
   const { message, history = [], mode = 'student', childData = null } = req.body || {};
 

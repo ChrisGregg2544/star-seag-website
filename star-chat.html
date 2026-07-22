@@ -498,9 +498,13 @@
     showTyping();
 
     try {
+      const token = (await sb.auth.getSession()).data.session?.access_token;
       const res = await fetch('/api/star-chat', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+        },
         body: JSON.stringify({
           message: text,
           history,
