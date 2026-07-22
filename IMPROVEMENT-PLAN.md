@@ -39,15 +39,16 @@ Files: `api/star-chat.js`, `api/mark-written.js`
 
 ### A2. Stop exposing correct answers to the browser (CRITICAL)
 **Part 1 — DONE (commit b0f6a2e).** api/check-answer.js created; api/mark-written.js now looks the answer up server-side by question_id; study.html + mock.html no longer SELECT correct_answer/explanation and check via the endpoints on submit. Answers are out of the client data flow and localStorage.
-**Part 2 — PENDING, do AFTER A3.** The base-table columns are still readable via the anon key. Once A3 has moved review.html/validate.html to a server-side (service-role) read path, revoke the columns:
-  1. `REVOKE SELECT (correct_answer, explanation) ON public.questions FROM anon, authenticated;` (keep SELECT on all other columns).
-  2. Also convert `real-life-test.html` (a printable answer-key generator): move answer-key rendering to a service-role endpoint gated to the paper's owner, since it deliberately displays answers and cannot use the check-answer pattern.
-  3. Re-test every question-fetch page after the revoke (study, mock, real-life-test, review, validate) — a stray SELECT of the revoked columns will error.
+**Part 2 — PENDING, do AFTER A3.** The base-table columns are still readable via the anon key. Steps:
+  1. **First** convert validate.html + review.html off the anon key: add admin-cookie server endpoints (service role) for their question reads, and for validate.html's direct `validated=true`/`source=rejected` writes (currently anon via the "Anon can update validator fields" RLS policy). Then those pages no longer depend on anon column access. (This was scoped out of A3 core.)
+  2. Convert `real-life-test.html` (a printable answer-key generator): move answer-key rendering to a service-role endpoint gated to the paper's owner, since it deliberately displays answers and cannot use the check-answer pattern.
+  3. **Then** revoke: `REVOKE SELECT (correct_answer, explanation) ON public.questions FROM anon, authenticated;` (keep SELECT on all other columns). Also review the "Anon can update validator fields" RLS policy — tighten or drop once validate.html writes go server-side.
+  4. Re-test every question-fetch page after the revoke (study, mock, real-life-test, review, validate) — a stray SELECT of the revoked columns will error.
 
 ### A3. Lock admin pages
-1. Move `validate.html`, `review.html`, `admin/reports.html` behind a server check: small `api/admin-login.js` comparing against `ADMIN_PASSWORD` env var, sets an httpOnly cookie; pages fetch data only via APIs that check the cookie.
-2. Remove the hardcoded `STAR2026admin` strings.
-3. Rotate the password (it is now in git history).
+**CORE — DONE (commit 086f050).** api/admin-login.js added (ADMIN_PASSWORD + httpOnly HMAC-signed cookie via ADMIN_SECRET). api/admin.js: admin actions require the cookie, save-report requires a student JWT, CORS locked. validate.html/review.html/admin/reports.html use the server login; hardcoded STAR2026admin removed everywhere. study.html Report button sends its token.
+  - **Requires Vercel env vars: `ADMIN_PASSWORD` (new value, NOT STAR2026admin) and `ADMIN_SECRET` (long random string).** Until set, admin login returns 500 (fail-safe).
+**Still open (moved into A2 Part 2):** validate.html and review.html still read questions with the pasted anon key, and validate.html still writes validated/rejected directly via the anon RLS policy. These must move to admin-cookie server endpoints (service role) as part of A2 Part 2, before the anon column REVOKE.
 
 ## PHASE B — Cost
 
