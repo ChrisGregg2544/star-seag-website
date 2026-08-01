@@ -37,24 +37,46 @@ function signAdminToken(payloadObj, secret) {
   return `${payload}.${mac}`;
 }
 
+// Normalise a password value: trim whitespace, then strip one pair of matching
+// surrounding quotes (in case the env var was saved as "password" or 'password').
+function cleanSecret(s) {
+  let v = String(s ?? '').trim();
+  if (v.length >= 2 && ((v[0] === '"' && v[v.length - 1] === '"') || (v[0] === "'" && v[v.length - 1] === "'"))) {
+    v = v.slice(1, -1).trim();
+  }
+  return v;
+}
+
 // action=login — verify ADMIN_PASSWORD and set the signed session cookie.
 function handleAdminLogin(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
   const secret = process.env.ADMIN_SECRET;
   const adminPassword = process.env.ADMIN_PASSWORD;
+
+  // ── TEMP DEBUG (remove after diagnosing; logs land in Vercel function logs) ──
+  console.log('[admin-login] body type:', typeof req.body, '| password key present:', !!(req.body && req.body.password));
+  console.log('[admin-login] ADMIN_PASSWORD present:', !!adminPassword, '| ADMIN_SECRET present:', !!secret);
+
   if (!secret || !adminPassword) return res.status(500).json({ error: 'Admin auth not configured' });
 
-  // Trim both sides — a trailing newline/space pasted into the Vercel env var
-  // is never an intended part of the password.
   const { password } = req.body || {};
-  const given = Buffer.from(String(password || '').trim());
-  const real = Buffer.from(String(adminPassword).trim());
+  const givenClean = cleanSecret(password);
+  const realClean = cleanSecret(adminPassword);
+
+  // ── TEMP DEBUG ── JSON.stringify reveals quotes / whitespace / hidden chars
+  console.log('[admin-login] env raw:', JSON.stringify(adminPassword), '-> cleaned:', JSON.stringify(realClean), '(len', realClean.length + ')');
+  console.log('[admin-login] given raw:', JSON.stringify(password), '-> cleaned:', JSON.stringify(givenClean), '(len', givenClean.length + ')');
+  console.log('[admin-login] cleaned match:', givenClean === realClean);
+
+  const given = Buffer.from(givenClean);
+  const real = Buffer.from(realClean);
   const match = given.length === real.length && crypto.timingSafeEqual(given, real);
   if (!match) return res.status(401).json({ ok: false, error: 'Incorrect password' });
 
   const token = signAdminToken({ exp: Date.now() + ADMIN_TTL_MS }, secret);
-  res.setHeader('Set-Cookie',
-    `${ADMIN_COOKIE}=${token}; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=${ADMIN_TTL_MS / 1000}`);
+  const cookie = `${ADMIN_COOKIE}=${token}; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=${ADMIN_TTL_MS / 1000}`;
+  res.setHeader('Set-Cookie', cookie);
+  console.log('[admin-login] SUCCESS — Set-Cookie sent, token length', token.length);
   return res.status(200).json({ ok: true });
 }
 
