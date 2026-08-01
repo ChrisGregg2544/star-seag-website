@@ -52,31 +52,17 @@ function handleAdminLogin(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
   const secret = process.env.ADMIN_SECRET;
   const adminPassword = process.env.ADMIN_PASSWORD;
-
-  // ── TEMP DEBUG (remove after diagnosing; logs land in Vercel function logs) ──
-  console.log('[admin-login] body type:', typeof req.body, '| password key present:', !!(req.body && req.body.password));
-  console.log('[admin-login] ADMIN_PASSWORD present:', !!adminPassword, '| ADMIN_SECRET present:', !!secret);
-
   if (!secret || !adminPassword) return res.status(500).json({ error: 'Admin auth not configured' });
 
   const { password } = req.body || {};
-  const givenClean = cleanSecret(password);
-  const realClean = cleanSecret(adminPassword);
-
-  // ── TEMP DEBUG ── JSON.stringify reveals quotes / whitespace / hidden chars
-  console.log('[admin-login] env raw:', JSON.stringify(adminPassword), '-> cleaned:', JSON.stringify(realClean), '(len', realClean.length + ')');
-  console.log('[admin-login] given raw:', JSON.stringify(password), '-> cleaned:', JSON.stringify(givenClean), '(len', givenClean.length + ')');
-  console.log('[admin-login] cleaned match:', givenClean === realClean);
-
-  const given = Buffer.from(givenClean);
-  const real = Buffer.from(realClean);
+  const given = Buffer.from(cleanSecret(password));
+  const real = Buffer.from(cleanSecret(adminPassword));
   const match = given.length === real.length && crypto.timingSafeEqual(given, real);
   if (!match) return res.status(401).json({ ok: false, error: 'Incorrect password' });
 
   const token = signAdminToken({ exp: Date.now() + ADMIN_TTL_MS }, secret);
-  const cookie = `${ADMIN_COOKIE}=${token}; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=${ADMIN_TTL_MS / 1000}`;
-  res.setHeader('Set-Cookie', cookie);
-  console.log('[admin-login] SUCCESS — Set-Cookie sent, token length', token.length);
+  res.setHeader('Set-Cookie',
+    `${ADMIN_COOKIE}=${token}; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=${ADMIN_TTL_MS / 1000}`);
   return res.status(200).json({ ok: true });
 }
 

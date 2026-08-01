@@ -215,19 +215,44 @@
 let sb = null, queue = [], currentIdx = 0, reviewed = 0;
 let pendingFeedback = null; // set while feedback form is open
 
-async function connect() {
-  const url = document.getElementById('sb-url').value.trim();
-  const key = document.getElementById('sb-key').value.trim();
-  if (!url || !key) { showToast('Enter Supabase URL and key', 'error'); return; }
-  sb = supabase.createClient(url, key);
-  const { error } = await sb.from('questions').select('id').limit(1);
-  if (error) { showToast('Connection failed: ' + error.message, 'error'); return; }
+// Public anon key (reads questions; writes go through the protected
+// /api/admin server endpoints). A2 Part 2 will move reads server-side too.
+const REVIEW_SB_URL   = 'https://iutcgogmxhaqgaxkznxu.supabase.co';
+const REVIEW_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml1dGNnb2dteGhhcWdheGt6bnh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM3NjE4MTQsImV4cCI6MjA4OTMzNzgxNH0.o0plRQzH8ezfttG_sEeWu3F4IUtKnyzcXtPEGJ9xRF0';
+
+async function openTool() {
   document.getElementById('setup-screen').style.display = 'none';
   document.getElementById('main').style.display = 'block';
   await refreshStats();
   await loadQueue();
   document.addEventListener('keydown', handleKey);
 }
+
+// Auto-connect once the admin gate has passed — no Supabase credential prompt.
+async function autoConnect() {
+  sb = supabase.createClient(REVIEW_SB_URL, REVIEW_ANON_KEY);
+  const { error } = await sb.from('questions').select('id').limit(1);
+  if (error) { showToast('Connection failed: ' + error.message, 'error'); return; }
+  await openTool();
+}
+
+// Manual fallback (the setup form is kept only in case auto-connect ever fails).
+async function connect() {
+  const url = (document.getElementById('sb-url').value || REVIEW_SB_URL).trim();
+  const key = (document.getElementById('sb-key').value || REVIEW_ANON_KEY).trim();
+  sb = supabase.createClient(url, key);
+  const { error } = await sb.from('questions').select('id').limit(1);
+  if (error) { showToast('Connection failed: ' + error.message, 'error'); return; }
+  await openTool();
+}
+
+// On load, if the admin session cookie is valid, open the tool automatically.
+window.addEventListener('DOMContentLoaded', async () => {
+  try {
+    const chk = await fetch('/api/admin?action=check', { credentials: 'same-origin' });
+    if (chk.ok) autoConnect();
+  } catch {}
+});
 
 async function refreshStats() {
   const { data: flagged } = await sb.from('questions').select('validator_verdict').in('validator_verdict', ['warn','fail']).eq('validated', false);
