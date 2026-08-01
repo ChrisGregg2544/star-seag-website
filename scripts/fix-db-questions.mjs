@@ -9,6 +9,7 @@
 import { readFileSync } from 'fs';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
+import { lintQuestion } from './question-contract.mjs';
 
 const __dir = dirname(fileURLToPath(import.meta.url));
 const envVars = {};
@@ -78,10 +79,22 @@ async function sbPatch(filter, updates) {
 }
 
 async function sbInsert(rows) {
+  // Contract gate — refuse to insert any question that violates question-contract.mjs
+  const clean = [];
+  for (const r of rows) {
+    const violations = lintQuestion(r);
+    if (violations.length > 0) {
+      console.warn(`   ⚠️  Skipped ${r.topic} ${r.year_group}: ${violations.join(', ')}`);
+      continue;
+    }
+    clean.push(r);
+  }
+  if (clean.length === 0) { console.warn('   ⚠️  No questions passed the contract — nothing inserted'); return; }
+
   const r = await fetch(SB + '/rest/v1/questions', {
     method: 'POST',
     headers: { apikey: SK, Authorization: 'Bearer ' + SK, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
-    body: JSON.stringify(rows),
+    body: JSON.stringify(clean),
   });
   if (!r.ok) throw new Error(await r.text());
 }

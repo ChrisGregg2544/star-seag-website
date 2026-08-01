@@ -14,6 +14,7 @@
 ══════════════════════════════════════════════════════ */
 
 import { generateDiagram } from '../diagram-generator.js';
+import { lintQuestion } from '../scripts/question-contract.mjs';
 
 export const config = { maxDuration: 60 };
 
@@ -1229,11 +1230,29 @@ async function handleSaveGenerated(req, res) {
       attempts:      1,
     }));
 
+  // Contract gate — never insert a question that violates question-contract.mjs.
+  // (Comprehension generated with the passage embedded in question_text and no
+  // passage_id is correctly rejected here — use the passage-linked flow instead.)
+  const cleanRows = [];
+  const skipped = [];
+  for (const r of questionRows) {
+    const violations = lintQuestion(r);
+    if (violations.length > 0) {
+      skipped.push({ topic: r.topic, year_group: r.year_group, violations });
+      console.warn(`save-generated: skipped ${r.topic}/${r.year_group}: ${violations.join(', ')}`);
+      continue;
+    }
+    cleanRows.push(r);
+  }
+  if (cleanRows.length === 0) {
+    return res.status(200).json({ savedCount: 0, skipped: skipped.length, skippedDetail: skipped, message: 'All questions failed the contract — nothing inserted' });
+  }
+
   try {
     const response = await fetch(`${supabaseUrl}/rest/v1/questions`, {
       method: 'POST',
       headers: supabaseHeaders(serviceKey, { 'Prefer': 'return=representation' }),
-      body: JSON.stringify(questionRows),
+      body: JSON.stringify(cleanRows),
     });
 
     const responseText = await response.text();
@@ -1265,8 +1284,8 @@ async function handleSaveGenerated(req, res) {
       }).catch(e => console.warn('save-generated: validation_results insert failed:', e.message));
     }
 
-    console.log(`save-generated: confirmed ${savedCount} rows inserted, ${validationRows.length} validation results queued`);
-    return res.status(200).json({ saved: savedCount });
+    console.log(`save-generated: confirmed ${savedCount} rows inserted, ${skipped.length} skipped by contract, ${validationRows.length} validation results queued`);
+    return res.status(200).json({ saved: savedCount, skipped: skipped.length, skippedDetail: skipped });
 
   } catch (err) {
     console.error('save-generated error:', err.message);

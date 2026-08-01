@@ -14,6 +14,7 @@
 import 'dotenv/config';
 import Anthropic from '@anthropic-ai/sdk';
 import { createClient } from '@supabase/supabase-js';
+import { lintQuestion } from './scripts/question-contract.mjs';
 
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
 const SUPABASE_URL      = 'https://iutcgogmxhaqgaxkznxu.supabase.co';
@@ -119,6 +120,7 @@ function buildRows(passage, parsed) {
   const base = {
     subject:    'english',
     year_group: passage.year_group,
+    passage:    passage.content,   // store the passage text on each row (contract requires it)
     passage_id: passage.id,
     source:     'ai_generated_v2',
     active:     true,
@@ -183,14 +185,26 @@ async function main() {
         if (mcCount < 7) console.warn(`  WARNING: only ${mcCount}/7 MC questions`);
         if (wrCount < 6) console.warn(`  WARNING: only ${wrCount}/6 written questions`);
 
+        // Contract gate — refuse to insert any row that violates question-contract.mjs
+        const cleanRows = [];
+        for (const r of rows) {
+          const violations = lintQuestion(r);
+          if (violations.length > 0) {
+            console.warn(`  ⚠️  Skipped ${r.topic}: ${violations.join(', ')}`);
+            continue;
+          }
+          cleanRows.push(r);
+        }
+
         if (!DRY_RUN) {
-          const { error } = await sb.from('questions').insert(rows);
+          if (cleanRows.length === 0) { console.warn('  No rows passed the contract — skipping passage'); continue; }
+          const { error } = await sb.from('questions').insert(cleanRows);
           if (error) {
             console.error(`  INSERT failed: ${error.message}`);
             totalFailed++;
           } else {
-            console.log(`  Inserted ${rows.length} rows ✓`);
-            totalInserted += rows.length;
+            console.log(`  Inserted ${cleanRows.length} rows ✓`);
+            totalInserted += cleanRows.length;
           }
         } else {
           console.log(`  [DRY RUN] Would insert ${rows.length} rows`);

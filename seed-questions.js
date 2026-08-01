@@ -10,6 +10,7 @@ import 'dotenv/config';
 import Anthropic from '@anthropic-ai/sdk';
 import { createClient } from '@supabase/supabase-js';
 import { generateDiagram } from './diagram-generator.js';
+import { lintQuestion } from './scripts/question-contract.mjs';
 
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY  || 'YOUR_KEY_HERE';
 const SUPABASE_URL      = process.env.SUPABASE_URL       || 'https://iutcgogmxhaqgaxkznxu.supabase.co';
@@ -690,12 +691,20 @@ async function insertQuestions(questions, subject, topic, yearGroup, difficulty,
     };
   });
 
-  // Validate before inserting
-  const valid = rows.filter(r => r.question_text && r.question_text.trim().length > 10);
-  if (valid.length < rows.length) {
-    console.warn(`   ⚠️  Skipped ${rows.length - valid.length} questions with empty question_text`);
+  // Contract gate — refuse to insert any question that violates question-contract.mjs
+  const valid = [];
+  for (const r of rows) {
+    const violations = lintQuestion(r);
+    if (violations.length > 0) {
+      console.warn(`   ⚠️  Skipped ${r.topic} ${r.year_group}: ${violations.join(', ')}`);
+      continue;
+    }
+    valid.push(r);
   }
-  if (valid.length === 0) throw new Error('All questions had empty question_text — skipping batch');
+  if (valid.length < rows.length) {
+    console.warn(`   ⚠️  ${rows.length - valid.length}/${rows.length} questions failed the contract and were skipped`);
+  }
+  if (valid.length === 0) throw new Error('All questions failed the contract — skipping batch');
 
   const { error, data } = await supabase.from('questions').insert(valid).select('id');
   if (error) throw new Error(`Supabase insert error: ${error.message}`);

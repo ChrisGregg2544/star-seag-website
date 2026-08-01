@@ -101,9 +101,16 @@ New small script per rewrite-grammar pattern: send question + violation names to
 2. Top up comprehension with fresh passage sets (7 MC + 6 written per passage) using the existing generation pipeline (seed-questions.js seedComprehension or question-builder), which stores passage + passage_id correctly.
 3. Target per CLAUDE.md: healthy counts per year group.
 
-### E5. Close the gate — MANDATORY, do this before any new seeding
-In every generation/seeding script (seed-questions.js, api/question-builder.js insert paths, topup scripts):
-`import { lintQuestion } from './scripts/question-contract.mjs'` — refuse to insert any question where lintQuestion(q).length > 0. This is what makes the fix permanent.
+### E5. Close the gate — DONE (commit pending)
+lintQuestion() is now imported and enforced before every `questions`-table insert:
+- seed-questions.js (insertQuestions pre-insert filter)
+- api/question-builder.js (save-generated — the API path all generator scripts call; skips violators, returns a `skipped` count). Note: its save-comprehension-set writes to `reference_questions` (different table), so it is NOT gated.
+- scripts/fill-questions.mjs (insertQuestions)
+- generate-passage-questions.mjs (also FIXED to store `passage` text, not just passage_id — that omission was the original missing-passage bug)
+- scripts/fix-db-questions.mjs (sbInsert)
+bulk-generate.js inserts via the question-builder API, so it is covered automatically.
+Behaviour: violating questions are logged with their reasons and skipped, never inserted.
+KNOWN EFFECT: comprehension generated the old way (passage embedded in question_text, no passage_id) is now rejected by save-generated — use the passage-linked flow (seed-questions.js seedComprehension / generate-passage-questions.mjs).
 
 ### E6. Weekly maintenance (any model, 5 minutes)
 1. `node scripts/lint-questions.mjs` — must stay at 0 violations.
