@@ -19,9 +19,13 @@
         credentials: 'same-origin',
         body: JSON.stringify({ password: pw }),
       });
-      if (r.ok) window.location.reload();
-      else window.location.replace(HOME);
-    } catch { window.location.replace(HOME); }
+      if (r.ok) { window.location.reload(); return; }
+      if (r.status === 401) { window.location.replace(HOME); return; }
+      // 500 etc. — a server/config problem, not a wrong password. Surface it.
+      const msg = await r.json().catch(() => ({}));
+      alert('Admin login error (' + r.status + '): ' + (msg.error || 'server not configured — check ADMIN_PASSWORD and ADMIN_SECRET env vars'));
+      window.location.replace(HOME);
+    } catch (e) { alert('Admin login failed: ' + e.message); window.location.replace(HOME); }
   })();
 </script>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">

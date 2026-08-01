@@ -44,9 +44,11 @@ function handleAdminLogin(req, res) {
   const adminPassword = process.env.ADMIN_PASSWORD;
   if (!secret || !adminPassword) return res.status(500).json({ error: 'Admin auth not configured' });
 
+  // Trim both sides — a trailing newline/space pasted into the Vercel env var
+  // is never an intended part of the password.
   const { password } = req.body || {};
-  const given = Buffer.from(String(password || ''));
-  const real = Buffer.from(adminPassword);
+  const given = Buffer.from(String(password || '').trim());
+  const real = Buffer.from(String(adminPassword).trim());
   const match = given.length === real.length && crypto.timingSafeEqual(given, real);
   if (!match) return res.status(401).json({ ok: false, error: 'Incorrect password' });
 
