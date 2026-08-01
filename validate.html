@@ -188,7 +188,6 @@
   <p>Enter your credentials. The enhanced checker compares every question against the real Catapult Papers standard — automatically.</p>
   <div class="field"><label>Supabase URL</label><input type="text" id="sb-url" value="https://iutcgogmxhaqgaxkznxu.supabase.co" /></div>
   <div class="field"><label>Supabase Service Role Key</label><input type="text" id="sb-key" placeholder="eyJ..." /></div>
-  <div class="field"><label>Anthropic API Key</label><input type="text" id="ai-key" placeholder="sk-ant-..." /></div>
   <button class="btn btn-primary" onclick="connect()">Connect & Start Validating</button>
 </div>
 
@@ -228,6 +227,7 @@
       <p>Checks every pending question against the Catapult Papers standard.<br>PASS → approve. WARN → flag for manual review. FAIL → reject. 1 question every 2 seconds.</p>
     </div>
     <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+      <input type="password" id="ai-key" placeholder="Anthropic key (only for AI checks)" style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-family:var(--mono);font-size:12px;outline:none;width:220px;" />
       <div class="auto-progress" id="auto-progress"></div>
       <button class="btn btn-auto" id="btn-auto-run" onclick="startAutoRun()">▶ Run All</button>
       <button class="btn btn-stop" id="btn-auto-stop" onclick="stopAutoRun()" style="display:none;">⏹ Stop</button>
@@ -374,19 +374,46 @@ P6: straightforward conversions, simple time. P7: multi-step time problems, comp
 };
 
 // ── Connect ────────────────────────────────────────────────────────────────────
-async function connect() {
-  const url = document.getElementById('sb-url').value.trim();
-  const key = document.getElementById('sb-key').value.trim();
-  anthropicKey = document.getElementById('ai-key').value.trim();
-  if (!url || !key) { showToast('Please enter Supabase URL and key', 'error'); return; }
-  sb = supabase.createClient(url, key);
-  const { error } = await sb.from('questions').select('id').limit(1);
-  if (error) { showToast('Connection failed: ' + error.message, 'error'); return; }
+// Public anon key (same one every page uses). It can read questions and update
+// validator fields (validated/source), so it covers everything the validator
+// needs — no service-role key in the browser. (A2 Part 2 will move these reads
+// and writes to admin-cookie server endpoints and revoke this anon access.)
+const VALIDATE_SB_URL   = 'https://iutcgogmxhaqgaxkznxu.supabase.co';
+const VALIDATE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml1dGNnb2dteGhhcWdheGt6bnh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM3NjE4MTQsImV4cCI6MjA4OTMzNzgxNH0.o0plRQzH8ezfttG_sEeWu3F4IUtKnyzcXtPEGJ9xRF0';
+
+async function openTool() {
   document.getElementById('setup-screen').style.display = 'none';
   document.getElementById('main').style.display = 'block';
   await refreshStats();
   await loadQueue();
 }
+
+// Auto-connect once the admin gate has passed — no Supabase credential prompt.
+async function autoConnect() {
+  sb = supabase.createClient(VALIDATE_SB_URL, VALIDATE_ANON_KEY);
+  const { error } = await sb.from('questions').select('id').limit(1);
+  if (error) { showToast('Connection failed: ' + error.message, 'error'); return; }
+  await openTool();
+}
+
+// Manual fallback (the setup form is kept only in case auto-connect ever fails).
+async function connect() {
+  const url = (document.getElementById('sb-url').value || VALIDATE_SB_URL).trim();
+  const key = (document.getElementById('sb-key').value || VALIDATE_ANON_KEY).trim();
+  anthropicKey = (document.getElementById('ai-key')?.value || '').trim();
+  sb = supabase.createClient(url, key);
+  const { error } = await sb.from('questions').select('id').limit(1);
+  if (error) { showToast('Connection failed: ' + error.message, 'error'); return; }
+  await openTool();
+}
+
+// On load, if the admin session cookie is valid, open the tool automatically.
+window.addEventListener('DOMContentLoaded', async () => {
+  try {
+    const chk = await fetch('/api/admin?action=check', { credentials: 'same-origin' });
+    if (chk.ok) autoConnect();
+  } catch {}
+});
 
 // ── Stats ──────────────────────────────────────────────────────────────────────
 async function refreshStats() {
@@ -611,6 +638,7 @@ async function runCheck(q) {
 
 // ── Manual AI check ────────────────────────────────────────────────────────────
 async function aiCheck() {
+  anthropicKey = (document.getElementById('ai-key')?.value || '').trim();
   if (!anthropicKey) { showToast('Enter your Anthropic key first', 'error'); return; }
   const q = queue[currentIdx];
   const btn = document.getElementById('btn-check');
@@ -634,6 +662,7 @@ async function aiCheck() {
 
 // ── Auto-run ───────────────────────────────────────────────────────────────────
 async function startAutoRun() {
+  anthropicKey = (document.getElementById('ai-key')?.value || '').trim();
   if (!anthropicKey) { showToast('Enter your Anthropic key first', 'error'); return; }
   if (autoRunning) return;
   autoRunning = true;
