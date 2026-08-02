@@ -80,21 +80,20 @@ State: 12,401 validated questions are 100% contract-clean (scripts/question-cont
 2,405 quarantined: validated=false, validator_reason='lint-quarantine'. Details per question in scripts/lint-report.json (regenerate it any time with `node scripts/lint-questions.mjs`).
 Every task below: run on 5 first, eyeball output, then full batch. After ANY repair batch, re-run `node scripts/lint-questions.mjs` — repaired questions must show 0 violations before setting validated=true.
 
-### E1. Rewrite segment-style grammar (~700 questions) — AUTOMATED
-Adapt `scripts/rewrite-grammar-questions.mjs` (proven: 524/524 success):
-1. Change fetchFlagged() to select topic=grammar, validated=false, validator_reason='lint-quarantine'.
-2. Run `--limit 5` dry, check quality, then `--apply`.
-3. After rewrite, set validated=true and validator_reason=null on the rewritten IDs.
-4. Re-lint to confirm.
+### E1. Rewrite segment-style grammar — DONE (commit 2121988)
+419 quarantined grammar questions rewritten to word-choice via
+scripts/rewrite-grammar-questions.mjs; 419/419, 0 failures. Grammar quarantine now 0.
 
-### E2. Re-segment overlapping spelling/punctuation (~250) — AUTOMATED
-Adapt `scripts/resegment-punctuation.mjs` (has built-in independent verifier):
-1. Generalise topic filter to punctuation OR spelling; source from quarantined set.
-2. `--apply`: verified → update + validated=true; unverified → leave quarantined.
-3. Expect ~30% recovery; the rest stay out (correct outcome).
+### E2. Re-segment overlapping spelling/punctuation — DONE (commit 9d58b7f)
+scripts/resegment-punctuation.mjs adapted for both topics (topic-aware prompt +
+independent verifier + re-lint). 94 quarantined segment questions → 75 revalidated,
+19 left quarantined, 0 errors (~80% recovery).
 
-### E3. Fix duplicate/empty/gap options (~100) — AUTOMATED
-New small script per rewrite-grammar pattern: send question + violation names to Sonnet, ask for corrected options only (keep question + answer), re-lint result in-script (import lintQuestion), only write if 0 violations, then validated=true.
+### E3. Fix duplicate/empty/gap options — DONE (commit 79f5f10)
+scripts/fix-option-questions.mjs: fixes A-E MC (maths+vocab) with a duplicate/blank/
+gap option, keeping question+answer; structural re-lint + independent semantic
+verifier (catches near-synonym distractors). 13 targets → 12 revalidated, 1 left
+quarantined. Segment-style option issues were E2's; comprehension is E4.
 
 ### E4. Comprehension + empty-answer questions (~1,400) — REGENERATE, do NOT repair
 1. DELETE quarantined questions with violations missing-passage / missing-passage-id / empty-correct-answer (they carry no salvageable value) — or leave quarantined if nervous; they cost nothing.
