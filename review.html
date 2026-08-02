@@ -215,10 +215,14 @@
 let sb = null, queue = [], currentIdx = 0, reviewed = 0;
 let pendingFeedback = null; // set while feedback form is open
 
-// Public anon key (reads questions; writes go through the protected
-// /api/admin server endpoints). A2 Part 2 will move reads server-side too.
-const REVIEW_SB_URL   = 'https://iutcgogmxhaqgaxkznxu.supabase.co';
-const REVIEW_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml1dGNnb2dteGhhcWdheGt6bnh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM3NjE4MTQsImV4cCI6MjA4OTMzNzgxNH0.o0plRQzH8ezfttG_sEeWu3F4IUtKnyzcXtPEGJ9xRF0';
+// All question reads/writes go through the admin-cookie server endpoints
+// (service role) — no Supabase anon key in this page.
+async function adminApi(action, params = {}, body = null) {
+  const qs = new URLSearchParams({ action, ...params });
+  const opts = { credentials: 'same-origin' };
+  if (body) { opts.method = 'POST'; opts.headers = { 'Content-Type': 'application/json' }; opts.body = JSON.stringify(body); }
+  return fetch('/api/admin?' + qs.toString(), opts);
+}
 
 async function openTool() {
   document.getElementById('setup-screen').style.display = 'none';
@@ -228,23 +232,8 @@ async function openTool() {
   document.addEventListener('keydown', handleKey);
 }
 
-// Auto-connect once the admin gate has passed — no Supabase credential prompt.
-async function autoConnect() {
-  sb = supabase.createClient(REVIEW_SB_URL, REVIEW_ANON_KEY);
-  const { error } = await sb.from('questions').select('id').limit(1);
-  if (error) { showToast('Connection failed: ' + error.message, 'error'); return; }
-  await openTool();
-}
-
-// Manual fallback (the setup form is kept only in case auto-connect ever fails).
-async function connect() {
-  const url = (document.getElementById('sb-url').value || REVIEW_SB_URL).trim();
-  const key = (document.getElementById('sb-key').value || REVIEW_ANON_KEY).trim();
-  sb = supabase.createClient(url, key);
-  const { error } = await sb.from('questions').select('id').limit(1);
-  if (error) { showToast('Connection failed: ' + error.message, 'error'); return; }
-  await openTool();
-}
+async function autoConnect() { await openTool(); }
+async function connect()     { await openTool(); }
 
 // On load, if the admin session cookie is valid, open the tool automatically.
 window.addEventListener('DOMContentLoaded', async () => {
@@ -255,12 +244,12 @@ window.addEventListener('DOMContentLoaded', async () => {
 });
 
 async function refreshStats() {
-  const { data: flagged } = await sb.from('questions').select('validator_verdict').in('validator_verdict', ['warn','fail']).eq('validated', false);
-  const warns = (flagged||[]).filter(q => q.validator_verdict === 'warn').length;
-  const fails = (flagged||[]).filter(q => q.validator_verdict === 'fail').length;
-  document.getElementById('stat-total').textContent = (flagged||[]).length;
-  document.getElementById('stat-warn').textContent = warns;
-  document.getElementById('stat-fail').textContent = fails;
+  const res = await adminApi('question-counts');
+  if (!res.ok) { showToast('Stats failed', 'error'); return; }
+  const { warn = 0, fail = 0 } = await res.json();
+  document.getElementById('stat-total').textContent = warn + fail;
+  document.getElementById('stat-warn').textContent = warn;
+  document.getElementById('stat-fail').textContent = fail;
   document.getElementById('stat-done').textContent = reviewed;
 }
 
@@ -269,13 +258,14 @@ async function loadQueue() {
   const subject = document.getElementById('filter-subject').value;
   const year = document.getElementById('filter-year').value;
   const topic = document.getElementById('filter-topic').value;
-  let q = sb.from('questions').select('*').in('validator_verdict', verdict ? [verdict] : ['warn','fail']).eq('validated', false).order('validator_verdict', { ascending: false }).order('created_at', { ascending: true }).limit(100);
-  if (subject) q = q.eq('subject', subject);
-  if (year) q = q.eq('year_group', year);
-  if (topic) q = q.eq('topic', topic);
-  const { data, error } = await q;
-  if (error) { showToast('Error loading questions', 'error'); return; }
-  queue = data || [];
+  const p = { scope: 'flagged', limit: '100' };
+  if (verdict) p.verdict = verdict;
+  if (subject) p.subject = subject;
+  if (year) p.year_group = year;
+  if (topic) p.topic = topic;
+  const res = await adminApi('list-questions', p);
+  if (!res.ok) { showToast('Error loading questions', 'error'); return; }
+  queue = (await res.json()).rows || [];
   currentIdx = 0;
   renderCurrent();
 }

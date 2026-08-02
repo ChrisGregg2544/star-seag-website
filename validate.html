@@ -388,24 +388,17 @@ async function openTool() {
   await loadQueue();
 }
 
-// Auto-connect once the admin gate has passed — no Supabase credential prompt.
-async function autoConnect() {
-  sb = supabase.createClient(VALIDATE_SB_URL, VALIDATE_ANON_KEY);
-  const { error } = await sb.from('questions').select('id').limit(1);
-  if (error) { showToast('Connection failed: ' + error.message, 'error'); return; }
-  await openTool();
+// All question reads/writes now go through the admin-cookie server endpoints
+// (service role) — no Supabase anon key in this page.
+async function adminApi(action, params = {}, body = null) {
+  const qs = new URLSearchParams({ action, ...params });
+  const opts = { credentials: 'same-origin' };
+  if (body) { opts.method = 'POST'; opts.headers = { 'Content-Type': 'application/json' }; opts.body = JSON.stringify(body); }
+  return fetch('/api/admin?' + qs.toString(), opts);
 }
 
-// Manual fallback (the setup form is kept only in case auto-connect ever fails).
-async function connect() {
-  const url = (document.getElementById('sb-url').value || VALIDATE_SB_URL).trim();
-  const key = (document.getElementById('sb-key').value || VALIDATE_ANON_KEY).trim();
-  anthropicKey = (document.getElementById('ai-key')?.value || '').trim();
-  sb = supabase.createClient(url, key);
-  const { error } = await sb.from('questions').select('id').limit(1);
-  if (error) { showToast('Connection failed: ' + error.message, 'error'); return; }
-  await openTool();
-}
+async function autoConnect() { await openTool(); }
+async function connect()     { await openTool(); }
 
 // On load, if the admin session cookie is valid, open the tool automatically.
 window.addEventListener('DOMContentLoaded', async () => {
@@ -417,15 +410,10 @@ window.addEventListener('DOMContentLoaded', async () => {
 
 // ── Stats ──────────────────────────────────────────────────────────────────────
 async function refreshStats() {
-  const totalResult    = await sb.from('questions').select('*', { count: 'exact', head: true });
-  const approvedResult = await sb.from('questions').select('*', { count: 'exact', head: true }).eq('validated', true);
-  const rejectedResult = await sb.from('questions').select('*', { count: 'exact', head: true }).eq('source', 'rejected');
-  const total    = totalResult.count;
-  const approved = approvedResult.count;
-  const rejected = rejectedResult.count;
-  const t = total    || 0;
-  const a = approved || 0;
-  const r = rejected || 0;
+  const res = await adminApi('question-counts');
+  if (!res.ok) { showToast('Stats failed', 'error'); return; }
+  const { total = 0, validated = 0, rejected = 0 } = await res.json();
+  const t = total, a = validated, r = rejected;
   const pending = t - a - r;
   document.getElementById('stat-total').textContent    = t;
   document.getElementById('stat-pending').textContent  = pending;
@@ -435,17 +423,21 @@ async function refreshStats() {
 }
 
 // ── Load queue ─────────────────────────────────────────────────────────────────
-async function loadQueue() {
+function currentFilters() {
+  const p = {};
   const subject = document.getElementById('filter-subject').value;
   const year    = document.getElementById('filter-year').value;
   const topic   = document.getElementById('filter-topic').value;
-  let q = sb.from('questions').select('*').eq('validated', false).neq('source', 'rejected').order('created_at', { ascending: true }).limit(50);
-  if (subject) q = q.eq('subject', subject);
-  if (year)    q = q.eq('year_group', year);
-  if (topic)   q = q.eq('topic', topic);
-  const { data, error } = await q;
-  if (error) { showToast('Error loading questions', 'error'); return; }
-  queue = data || [];
+  if (subject) p.subject = subject;
+  if (year)    p.year_group = year;
+  if (topic)   p.topic = topic;
+  return p;
+}
+
+async function loadQueue() {
+  const res = await adminApi('list-questions', { scope: 'unvalidated', limit: '50', ...currentFilters() });
+  if (!res.ok) { showToast('Error loading questions', 'error'); return; }
+  queue = (await res.json()).rows || [];
   currentIdx = 0;
   renderCurrent();
 }
@@ -678,15 +670,8 @@ async function startAutoRun() {
 
   // Load ALL pending (up to 1000) — only questions not yet touched by the validator
   // (.is('validator_verdict', null) prevents re-processing WARN questions and erasing them)
-  const subject = document.getElementById('filter-subject').value;
-  const year    = document.getElementById('filter-year').value;
-  const topic   = document.getElementById('filter-topic').value;
-  let q = sb.from('questions').select('*').eq('validated', false).neq('source', 'rejected').is('validator_verdict', null).order('created_at', { ascending: true }).limit(1000);
-  if (subject) q = q.eq('subject', subject);
-  if (year)    q = q.eq('year_group', year);
-  if (topic)   q = q.eq('topic', topic);
-  const { data } = await q;
-  const allPending = data || [];
+  const res = await adminApi('list-questions', { scope: 'pending-null', limit: '1000', ...currentFilters() });
+  const allPending = res.ok ? ((await res.json()).rows || []) : [];
 
   let processed = 0, approved = 0, rejected = 0;
 
@@ -745,8 +730,8 @@ function addLog(logEl, msg, type) {
 
 // ── Approve / Reject / Skip ────────────────────────────────────────────────────
 async function approve(id) {
-  const { error } = await sb.from('questions').update({ validated: true }).eq('id', id);
-  if (error) { showToast('Error: ' + error.message, 'error'); return; }
+  const res = await adminApi('update-verdict', {}, { questionId: id, verdict: 'PASS' });
+  if (!res.ok) { showToast('Error: ' + res.status, 'error'); return; }
   showToast('✅ Approved', 'success');
   queue.splice(currentIdx, 1);
   await refreshStats();
@@ -754,8 +739,8 @@ async function approve(id) {
 }
 
 async function reject(id) {
-  const { error } = await sb.from('questions').update({ source: 'rejected' }).eq('id', id);
-  if (error) { showToast('Error: ' + error.message, 'error'); return; }
+  const res = await adminApi('update-verdict', {}, { questionId: id, verdict: 'FAIL' });
+  if (!res.ok) { showToast('Error: ' + res.status, 'error'); return; }
   showToast('❌ Rejected', 'error');
   queue.splice(currentIdx, 1);
   await refreshStats();

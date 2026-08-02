@@ -96,6 +96,57 @@ async function verifyStudentJwt(req) {
   return (await r.json())?.id || null;
 }
 
+// ── Supabase REST helpers (service role) ─────────────────────────────────────
+function sbHeaders(extra = {}) {
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  return { 'apikey': key, 'Authorization': `Bearer ${key}`, ...extra };
+}
+async function sbCount(filterQs) {
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/questions?select=id&limit=1&${filterQs}`,
+    { headers: sbHeaders({ 'Prefer': 'count=exact' }) });
+  const cr = r.headers.get('content-range') || '*/0';
+  return parseInt(cr.split('/')[1], 10) || 0;
+}
+
+// ── action=list-questions (admin) — returns full rows incl. answers ───────────
+async function handleListQuestions(req, res) {
+  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) return res.status(500).json({ error: 'service key not configured' });
+  const { scope, subject, year_group, topic, verdict, limit } = req.query;
+  const enc = encodeURIComponent;
+  const filters = [];
+  if (scope === 'unvalidated' || scope === 'pending-null') {
+    filters.push('validated=eq.false', 'source=neq.rejected');
+    if (scope === 'pending-null') filters.push('validator_verdict=is.null');
+  } else if (scope === 'flagged') {
+    filters.push('validated=eq.false');
+    filters.push(verdict ? `validator_verdict=eq.${enc(verdict)}` : 'validator_verdict=in.(warn,fail)');
+  } else {
+    return res.status(400).json({ error: 'bad scope' });
+  }
+  if (subject)    filters.push(`subject=eq.${enc(subject)}`);
+  if (year_group) filters.push(`year_group=eq.${enc(year_group)}`);
+  if (topic)      filters.push(`topic=eq.${enc(topic)}`);
+  const order = scope === 'flagged' ? 'validator_verdict.desc,created_at.asc' : 'created_at.asc';
+  const lim = Math.min(parseInt(limit, 10) || 50, 2000);
+  const url = `${SUPABASE_URL}/rest/v1/questions?select=*&${filters.join('&')}&order=${order}&limit=${lim}`;
+  const r = await fetch(url, { headers: sbHeaders() });
+  if (!r.ok) return res.status(500).json({ error: `Supabase ${r.status}: ${(await r.text()).slice(0, 120)}` });
+  return res.status(200).json({ rows: await r.json() });
+}
+
+// ── action=question-counts (admin) — stat tiles for validate/review ───────────
+async function handleQuestionCounts(req, res) {
+  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) return res.status(500).json({ error: 'service key not configured' });
+  const [total, validated, rejected, warn, fail] = await Promise.all([
+    sbCount('id=not.is.null'),
+    sbCount('validated=eq.true'),
+    sbCount('source=eq.rejected'),
+    sbCount('validated=eq.false&validator_verdict=eq.warn'),
+    sbCount('validated=eq.false&validator_verdict=eq.fail'),
+  ]);
+  return res.status(200).json({ total, validated, rejected, warn, fail });
+}
+
 // ── action=update-verdict ─────────────────────────────────────────────────────
 async function handleUpdateVerdict(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
@@ -111,6 +162,7 @@ async function handleUpdateVerdict(req, res) {
 
   const update = { validator_verdict: verdict.toLowerCase(), validator_reason: reason || null };
   if (verdict === 'PASS') update.validated = true;
+  if (verdict === 'FAIL') update.source = 'rejected';
 
   const response = await fetch(
     `${SUPABASE_URL}/rest/v1/questions?id=eq.${encodeURIComponent(questionId)}`,
@@ -411,7 +463,7 @@ export default async function handler(req, res) {
   }
 
   // Everything else is admin-only — require the signed admin session cookie.
-  const adminActions = ['update-verdict', 'save-feedback', 'deactivate', 'reactivate', 'dismiss-reports', 'get-reports'];
+  const adminActions = ['update-verdict', 'save-feedback', 'deactivate', 'reactivate', 'dismiss-reports', 'get-reports', 'list-questions', 'question-counts'];
   if (adminActions.includes(action)) {
     if (!verifyAdminCookie(req)) return res.status(401).json({ error: 'Admin authentication required' });
     switch (action) {
@@ -421,6 +473,8 @@ export default async function handler(req, res) {
       case 'reactivate':      return handleReactivate(req, res);
       case 'dismiss-reports': return handleDismissReports(req, res);
       case 'get-reports':     return handleGetReports(req, res);
+      case 'list-questions':  return handleListQuestions(req, res);
+      case 'question-counts': return handleQuestionCounts(req, res);
     }
   }
 
