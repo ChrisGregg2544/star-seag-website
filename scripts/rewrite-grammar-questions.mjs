@@ -20,6 +20,7 @@ import { readFileSync } from 'fs';
 import { dirname, resolve } from 'path';
 import { fileURLToPath } from 'url';
 import { createClient } from '@supabase/supabase-js';
+import { lintQuestion } from './question-contract.mjs';
 
 const __dir = dirname(fileURLToPath(import.meta.url));
 const envVars = {};
@@ -52,18 +53,23 @@ function isFlagged(q) {
   return longOpt || gap;
 }
 
+// Target the quarantined grammar questions (validated=false, lint-quarantine).
 async function fetchFlagged() {
   let all = [], from = 0, size = 1000;
   while (true) {
     const { data, error } = await sb.from('questions')
       .select('id,year_group,difficulty,question_text,options,correct_answer,explanation')
-      .eq('topic', 'grammar').eq('validated', true).range(from, from + size - 1);
+      .eq('topic', 'grammar')
+      .eq('validated', false)
+      .eq('validator_reason', 'lint-quarantine')
+      .order('id')
+      .range(from, from + size - 1);
     if (error) throw new Error(error.message);
     all = all.concat(data);
     if (data.length < size) break;
     from += size;
   }
-  return all.filter(isFlagged);
+  return all;
 }
 
 // ── Sonnet rewrite ──────────────────────────────────────────────────────────────
@@ -173,16 +179,32 @@ async function main() {
         catch (e) { if (++attempts >= 3) throw e; }
       }
 
+      const newRow = {
+        topic:          'grammar',
+        year_group:     q.year_group,
+        difficulty:     q.difficulty,
+        question_type:  'Multiple_Choice',
+        question_text:  parsed.question_text,
+        options:        { A: parsed.options.A, B: parsed.options.B, C: parsed.options.C, D: parsed.options.D, E: parsed.options.E },
+        correct_answer: String(parsed.correct_answer),
+      };
+
+      // Re-lint the rewrite before trusting it — never re-validate a still-broken question
+      const violations = lintQuestion(newRow);
+      if (violations.length > 0) throw new Error('rewrite still violates contract: ' + violations.join(', '));
+
       if (APPLY) {
         const { error } = await sb.from('questions').update({
-          question_text:  parsed.question_text,
-          options:        { A: parsed.options.A, B: parsed.options.B, C: parsed.options.C, D: parsed.options.D, E: parsed.options.E },
-          correct_answer: String(parsed.correct_answer),
-          explanation:    parsed.explanation || null,
-          question_type:  'Multiple_Choice',
+          question_text:    newRow.question_text,
+          options:          newRow.options,
+          correct_answer:   newRow.correct_answer,
+          explanation:      parsed.explanation || null,
+          question_type:    'Multiple_Choice',
+          validated:        true,
+          validator_reason: null,
         }).eq('id', q.id);
         if (error) throw new Error('DB update: ' + error.message);
-        console.log('updated');
+        console.log('updated + revalidated');
       } else {
         console.log('OK (dry)');
         console.log('   OLD opts:', JSON.stringify(q.options));
