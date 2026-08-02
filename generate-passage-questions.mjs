@@ -145,7 +145,7 @@ function buildRows(passage, parsed) {
     question_type: 'written',
     question_text: q.question_text,
     options:       null,
-    correct_answer:null,
+    correct_answer:q.model_answer || null,   // the model answer IS the correct answer
     explanation:   q.model_answer || null,
   }));
 
