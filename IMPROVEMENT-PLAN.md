@@ -95,10 +95,23 @@ gap option, keeping question+answer; structural re-lint + independent semantic
 verifier (catches near-synonym distractors). 13 targets → 12 revalidated, 1 left
 quarantined. Segment-style option issues were E2's; comprehension is E4.
 
-### E4. Comprehension + empty-answer questions (~1,400) — REGENERATE, do NOT repair
-1. DELETE quarantined questions with violations missing-passage / missing-passage-id / empty-correct-answer (they carry no salvageable value) — or leave quarantined if nervous; they cost nothing.
-2. Top up comprehension with fresh passage sets (7 MC + 6 written per passage) using the existing generation pipeline (seed-questions.js seedComprehension or question-builder), which stores passage + passage_id correctly.
-3. Target per CLAUDE.md: healthy counts per year group.
+### E4. Comprehension quarantine — IN PROGRESS
+**Deterministic repair — DONE (commit 9ea89bd).** scripts/repair-comprehension-passages.mjs:
+325 quarantined comprehension had a valid passage_id but no passage TEXT on the row.
+Copied passage.content from the linked passages row, re-linted, set validated=true.
+Result: 175 repaired (150 skipped — also empty-correct-answer), 0 AI cost.
+comprehension_mc: P6 70→154, P7 70→161.
+
+**Two follow-up decisions (approved):**
+1. DELETE the ~1,653 quarantined comprehension — DONE for 1,562 (backed up to scratchpad
+   deleted-comprehension-quarantine-backup.json first). 91 could NOT be deleted: they are
+   referenced by student_question_history / question_results (FK). They stay validated=false
+   (never served). To physically remove them, delete their history/results rows first — held
+   for a decision.
+2. GENERATE fresh volume: 5 new passage sets per year group (5 P6 + 5 P7 = 10 passages),
+   each 7 MC + 6 written, stored with passage text + passage_id (contract-clean).
+   generate-passage-questions.mjs only generates QUESTIONS for existing passages, so new
+   passages must be created first (scripts/generate-passages.mjs), then questions generated.
 
 ### E5. Close the gate — DONE (commit pending)
 lintQuestion() is now imported and enforced before every `questions`-table insert:
