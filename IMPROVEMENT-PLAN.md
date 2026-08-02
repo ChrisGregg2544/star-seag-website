@@ -102,16 +102,26 @@ Copied passage.content from the linked passages row, re-linted, set validated=tr
 Result: 175 repaired (150 skipped — also empty-correct-answer), 0 AI cost.
 comprehension_mc: P6 70→154, P7 70→161.
 
-**Two follow-up decisions (approved):**
-1. DELETE the ~1,653 quarantined comprehension — DONE for 1,562 (backed up to scratchpad
-   deleted-comprehension-quarantine-backup.json first). 91 could NOT be deleted: they are
-   referenced by student_question_history / question_results (FK). They stay validated=false
-   (never served). To physically remove them, delete their history/results rows first — held
-   for a decision.
-2. GENERATE fresh volume: 5 new passage sets per year group (5 P6 + 5 P7 = 10 passages),
-   each 7 MC + 6 written, stored with passage text + passage_id (contract-clean).
-   generate-passage-questions.mjs only generates QUESTIONS for existing passages, so new
-   passages must be created first (scripts/generate-passages.mjs), then questions generated.
+**Two follow-up decisions — DONE.**
+1. DELETE the ~1,653 quarantined comprehension — 1,562 deleted (backed up to scratchpad
+   deleted-comprehension-quarantine-backup.json first). 91 could NOT be deleted: referenced
+   by student_question_history / question_results (FK). They stay validated=false (never
+   served). To physically remove them, delete their history/results rows first — STILL HELD.
+2. GENERATE fresh volume — DONE (commits 302647f, 3617a71). Added 10 fresh passages
+   (5 P6 + 5 P7) via scripts/generate-passages.mjs (varied styles/domains, dedup guard),
+   then 130 questions (7 MC + 6 written each) via generate-passage-questions.mjs.
+   BUG FOUND + FIXED: generate-passage-questions.mjs set correct_answer=null on written
+   questions (model answer only in explanation) — every written comprehension it ever made
+   was unmarkable and gate-rejected. Now sets correct_answer = model answer.
+
+**E4 net result:** comprehension_mc P6 70→189, P7 70→196; comprehension_written P6 58→88,
+P7 59→89. Passages 25→35. Bank: 13,212 validated, 0 contract violations.
+Note: the applied passages are a fresh generation (equivalent variety), not the exact
+preview — the generator does not persist previews.
+
+## PHASE E COMPLETE (E1-E5 done; E6 = ongoing weekly maintenance).
+Still-quarantined residue (~110): 91 FK-held comprehension + ~19 segment/option questions
+the verifiers could not confirm. All validated=false (never served). Optional cleanup.
 
 ### E5. Close the gate — DONE (commit pending)
 lintQuestion() is now imported and enforced before every `questions`-table insert:
