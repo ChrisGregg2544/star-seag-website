@@ -300,9 +300,9 @@ async function savePaper(childId, pd) {
         historyQuestionIds: allQs.map(q => q.id),
       }),
     });
-    const data = res.ok ? await res.json().catch(() => ({})) : {};
+    const data = await res.json().catch(() => ({}));   // read body on success AND error
     console.log('[rlt-debug] save-paper:', res.status, 'ok:', data.ok, 'answers:', Object.keys(data.answers || {}).length, 'code:', data.paper_code || '(none)');
-    if (!res.ok) console.warn('[rlt-debug] save-paper error body:', JSON.stringify(data).slice(0, 200));
+    if (!res.ok) console.warn('[rlt-debug] save-paper error:', data.error || JSON.stringify(data).slice(0, 200));
     return data.ok ? { paper_code: data.paper_code, session_id: data.session_id, answers: data.answers || {} } : null;
   } catch (e) { console.error('[rlt-debug] savePaper threw:', e.message); return null; }
 }

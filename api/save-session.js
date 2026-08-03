@@ -70,23 +70,27 @@ async function handleSavePaper(req, res, serviceKey, parentId) {
   if (!authorized) return res.status(403).json({ ok: false, error: 'Not authorised for this child' });
 
   // 0. Look up correct answers server-side (the client no longer sends them).
-  //    Covers all paper questions so the guardian answer key can be built.
+  //    Never allowed to break paper saving — on any failure, degrade to no map.
   const lookupIds = [...new Set(
     (Array.isArray(historyQuestionIds) && historyQuestionIds.length
       ? historyQuestionIds
       : scoredQuestions.map(q => q.id)).filter(Boolean)
   )];
   const answers = {}; // id -> { answer, explanation }
-  if (lookupIds.length) {
-    const aRes = await sbFetch(
-      `questions?id=in.(${lookupIds.join(',')})&select=id,correct_answer,explanation`,
-      'GET', undefined, serviceKey
-    );
-    if (aRes.ok) {
-      for (const row of await aRes.json()) answers[row.id] = { answer: row.correct_answer, explanation: row.explanation };
-    } else {
-      console.warn('[save-paper] answer lookup failed:', (await aRes.text()).slice(0, 150));
+  try {
+    // Chunk the id list so the request URL never gets too long for the pooler.
+    for (let i = 0; i < lookupIds.length; i += 40) {
+      const chunk = lookupIds.slice(i, i + 40);
+      const aRes = await sbFetch(
+        `questions?id=in.(${chunk.join(',')})&select=id,correct_answer,explanation`,
+        'GET', undefined, serviceKey
+      );
+      if (!aRes.ok) { console.warn('[save-paper] answer lookup chunk failed:', aRes.status, (await aRes.text()).slice(0, 120)); continue; }
+      const rows = await aRes.json();
+      for (const row of rows) answers[row.id] = { answer: row.correct_answer, explanation: row.explanation };
     }
+  } catch (e) {
+    console.warn('[save-paper] answer lookup threw (continuing without answers):', e.message);
   }
   // Enrich the stored scoredQuestions with the looked-up answer
   const enrichedScored = scoredQuestions.map(q => ({ ...q, answer: answers[q.id]?.answer ?? null }));
@@ -298,7 +302,14 @@ export default async function handler(req, res) {
   if (!userRes.ok) return res.status(401).json({ ok: false, error: 'Invalid or expired session token' });
   const { id: parentId } = await userRes.json();
 
-  if (action === 'save-paper') return handleSavePaper(req, res, serviceKey, parentId);
+  if (action === 'save-paper') {
+    try {
+      return await handleSavePaper(req, res, serviceKey, parentId);
+    } catch (e) {
+      console.error('[save-paper] UNCAUGHT:', e && e.message, e && e.stack ? e.stack.slice(0, 400) : '');
+      return res.status(500).json({ ok: false, error: 'save-paper failed: ' + (e && e.message ? e.message : String(e)) });
+    }
+  }
 
   // 2. Validate payload
   const { childId, session, questionResults, missedTopics } = req.body || {};
