@@ -69,6 +69,28 @@ async function handleSavePaper(req, res, serviceKey, parentId) {
   }
   if (!authorized) return res.status(403).json({ ok: false, error: 'Not authorised for this child' });
 
+  // 0. Look up correct answers server-side (the client no longer sends them).
+  //    Covers all paper questions so the guardian answer key can be built.
+  const lookupIds = [...new Set(
+    (Array.isArray(historyQuestionIds) && historyQuestionIds.length
+      ? historyQuestionIds
+      : scoredQuestions.map(q => q.id)).filter(Boolean)
+  )];
+  const answers = {}; // id -> { answer, explanation }
+  if (lookupIds.length) {
+    const aRes = await sbFetch(
+      `questions?id=in.(${lookupIds.join(',')})&select=id,correct_answer,explanation`,
+      'GET', undefined, serviceKey
+    );
+    if (aRes.ok) {
+      for (const row of await aRes.json()) answers[row.id] = { answer: row.correct_answer, explanation: row.explanation };
+    } else {
+      console.warn('[save-paper] answer lookup failed:', (await aRes.text()).slice(0, 150));
+    }
+  }
+  // Enrich the stored scoredQuestions with the looked-up answer
+  const enrichedScored = scoredQuestions.map(q => ({ ...q, answer: answers[q.id]?.answer ?? null }));
+
   // 1. INSERT session row (score=null — filled in when results submitted)
   const sessionInsertRes = await sbFetch('sessions', 'POST', {
     user_id: childId, session_type: 'guardian_test',
@@ -101,7 +123,7 @@ async function handleSavePaper(req, res, serviceKey, parentId) {
   const paperInsertRes = await sbFetch('guardian_papers', 'POST', {
     paper_code, child_id: childId, parent_id: parentId,
     child_name: childName, year_group: yearGroup,
-    session_id: sessionId, questions: scoredQuestions,
+    session_id: sessionId, questions: enrichedScored,
   }, serviceKey, { 'Prefer': 'return=minimal' });
 
   if (!paperInsertRes.ok) {
@@ -111,7 +133,7 @@ async function handleSavePaper(req, res, serviceKey, parentId) {
   }
 
   console.log(`[save-paper] ✅ paper ${paper_code} saved for child ${childId}`);
-  return res.status(200).json({ ok: true, paper_code, session_id: sessionId });
+  return res.status(200).json({ ok: true, paper_code, session_id: sessionId, answers });
 }
 
 // ══════════════════════════════════════════════════════════════

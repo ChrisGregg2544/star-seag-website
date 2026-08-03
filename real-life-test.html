@@ -282,9 +282,10 @@ function applyLimitUI() {
 async function savePaper(childId, pd) {
   if (!_accessToken || !childId) return null;
   const allQs = [...pd.practice, ...pd.english, ...pd.maths];
+  // Answers are resolved server-side (never fetched by this page) and returned below.
   const scoredQuestions = [
-    ...pd.english.map((q, i) => ({ n: i + 1,  id: q.id, topic: q.topic, type: q.question_type, answer: q.correct_answer })),
-    ...pd.maths.map(  (q, i) => ({ n: i + 29, id: q.id, topic: q.topic, type: q.question_type, answer: q.correct_answer })),
+    ...pd.english.map((q, i) => ({ n: i + 1,  id: q.id, topic: q.topic, type: q.question_type })),
+    ...pd.maths.map(  (q, i) => ({ n: i + 29, id: q.id, topic: q.topic, type: q.question_type })),
   ];
   try {
     const res = await fetch('/api/save-session', {
@@ -301,7 +302,7 @@ async function savePaper(childId, pd) {
     });
     if (!res.ok) return null;
     const data = await res.json();
-    return data.ok ? { paper_code: data.paper_code, session_id: data.session_id } : null;
+    return data.ok ? { paper_code: data.paper_code, session_id: data.session_id, answers: data.answers || {} } : null;
   } catch (e) { return null; }
 }
 
@@ -389,7 +390,7 @@ function shuffle(arr) {
 async function fetchPool(subject, topic, count, excludeIds = []) {
   const excluded = [...new Set([...excludeIds, ...seenIds])];
   let q = sb.from('questions')
-    .select('id,subject,topic,question_type,question_text,passage,options,correct_answer,diagram')
+    .select('id,subject,topic,question_type,question_text,passage,options,diagram')
     .eq('subject',    subject)
     .eq('topic',      topic)
     .eq('year_group', userYear)
@@ -427,12 +428,12 @@ async function assembleEnglish(excludeIds) {
 
   const [mcRes, wrRes, punct, grammar, spelling] = await Promise.all([
     sb.from('questions')
-      .select('id,topic,question_type,question_text,passage,options,correct_answer,diagram')
+      .select('id,topic,question_type,question_text,passage,options,diagram')
       .eq('passage_id', chosenPassage.id)
       .eq('topic',      'comprehension_mc')
       .eq('validated',  true),
     sb.from('questions')
-      .select('id,topic,question_type,question_text,passage,options,correct_answer,explanation,diagram')
+      .select('id,topic,question_type,question_text,passage,options,diagram')
       .eq('passage_id', chosenPassage.id)
       .eq('topic',      'comprehension_written')
       .eq('validated',  true),
@@ -512,9 +513,22 @@ async function generatePaper() {
       generated: new Date().toLocaleString('en-GB'),
     };
 
-    // Save paper server-side first so paper_code is ready for QR render
+    // Save paper server-side first so paper_code is ready for QR render.
+    // save-paper also returns the answer key (resolved server-side — this page
+    // never fetches correct answers).
     const saved = await savePaper(childId, paperData).catch(() => null);
     if (saved?.paper_code) paperData.paperCode = saved.paper_code;
+
+    // Merge the server-resolved answers back onto the question objects so the
+    // guardian answer key renders (renderPaper reads q.correct_answer/explanation).
+    const ansMap = saved?.answers || {};
+    [...paperData.practice, ...paperData.english, ...paperData.maths].forEach(q => {
+      const a = ansMap[q.id];
+      if (a) { q.correct_answer = a.answer; q.explanation = a.explanation; }
+    });
+    if (!Object.keys(ansMap).length) {
+      console.warn('[real-life-test] no answer key returned — paper printable but answer key will show dashes');
+    }
 
     renderPaper(paperData);
 
