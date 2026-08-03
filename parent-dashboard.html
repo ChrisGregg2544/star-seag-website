@@ -518,7 +518,7 @@ function formatSessionType(session) {
   let label;
   if      (session_type === 'full_mock')     label = 'Full Mock';
   else if (session_type === 'topic_sprint')  label = track ? `${titleCase(track)} Sprint` : 'Topic Sprint';
-  else if (session_type === 'guardian_test') label = 'Supervised Test';
+  else if (session_type === 'real_life_test') label = 'Supervised Test';
   else if (total_questions >= 50)            label = 'Full Mock';
   else                                       label = 'Session';
   const scoreStr = (score != null && total_questions > 0) ? `${score}/${total_questions}` : '';

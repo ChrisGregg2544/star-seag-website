@@ -93,9 +93,9 @@ export default async function handler(req, res) {
   const weekDoneCount = Array.isArray(weekRows) ? weekRows.length : 0;
   const weekSessions  = Array.isArray(weekRows) ? weekRows.map(r => r.session_type) : [];
 
-  // 2b. Guardian Supervised Test count this week
+  // 2b. Real Life Test count this week (session_type in the schema is 'real_life_test')
   const guardianCountRes = await fetch(
-    `${SUPABASE_URL}/rest/v1/sessions?user_id=eq.${childId}&session_type=eq.guardian_test&completed_at=gte.${weekStart}&select=id`,
+    `${SUPABASE_URL}/rest/v1/sessions?user_id=eq.${childId}&session_type=eq.real_life_test&completed_at=gte.${weekStart}&select=id`,
     {
       headers: {
         'apikey':        serviceKey,

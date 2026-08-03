@@ -97,7 +97,7 @@ async function handleSavePaper(req, res, serviceKey, parentId) {
 
   // 1. INSERT session row (score=null — filled in when results submitted)
   const sessionInsertRes = await sbFetch('sessions', 'POST', {
-    user_id: childId, session_type: 'guardian_test',
+    user_id: childId, session_type: 'real_life_test',
     track: null, score: null, total_questions: 56,
     english_score: null, maths_score: null,
   }, serviceKey, { 'Prefer': 'return=representation' });
