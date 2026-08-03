@@ -300,10 +300,11 @@ async function savePaper(childId, pd) {
         historyQuestionIds: allQs.map(q => q.id),
       }),
     });
-    if (!res.ok) return null;
-    const data = await res.json();
+    const data = res.ok ? await res.json().catch(() => ({})) : {};
+    console.log('[rlt-debug] save-paper:', res.status, 'ok:', data.ok, 'answers:', Object.keys(data.answers || {}).length, 'code:', data.paper_code || '(none)');
+    if (!res.ok) console.warn('[rlt-debug] save-paper error body:', JSON.stringify(data).slice(0, 200));
     return data.ok ? { paper_code: data.paper_code, session_id: data.session_id, answers: data.answers || {} } : null;
-  } catch (e) { return null; }
+  } catch (e) { console.error('[rlt-debug] savePaper threw:', e.message); return null; }
 }
 
 async function init() {
@@ -522,10 +523,14 @@ async function generatePaper() {
     // Merge the server-resolved answers back onto the question objects so the
     // guardian answer key renders (renderPaper reads q.correct_answer/explanation).
     const ansMap = saved?.answers || {};
+    let merged = 0;
     [...paperData.practice, ...paperData.english, ...paperData.maths].forEach(q => {
       const a = ansMap[q.id];
-      if (a) { q.correct_answer = a.answer; q.explanation = a.explanation; }
+      if (a) { q.correct_answer = a.answer; q.explanation = a.explanation; merged++; }
     });
+    console.log('[rlt-debug] saved:', !!saved, 'ansMap keys:', Object.keys(ansMap).length,
+      'merged onto:', merged, 'sample english[0].id:', paperData.english[0]?.id,
+      '-> answer:', paperData.english[0]?.correct_answer);
     if (!Object.keys(ansMap).length) {
       console.warn('[real-life-test] no answer key returned — paper printable but answer key will show dashes');
     }
