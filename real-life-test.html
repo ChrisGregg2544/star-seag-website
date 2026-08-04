@@ -117,6 +117,7 @@
     /* ── ANSWER KEY ── */
     .answer-key-wrap{max-width:860px;margin:0 auto;padding:0 20px 60px;}
     .answer-key-card{background:#fff;border:2px solid var(--cream-border);border-radius:16px;overflow:hidden;}
+    .ak-warning{background:#FEF3C7;border-bottom:3px solid #F59E0B;color:#92400E;padding:14px 22px;font-weight:800;font-size:.95rem;line-height:1.5;text-align:center;}
     .ak-header{background:var(--cream);border-bottom:2px solid var(--cream-border);padding:20px 24px;}
     .ak-title{font-size:1.2rem;font-weight:900;color:var(--text-dark);margin-bottom:4px;}
     .ak-sub{font-size:.82rem;color:var(--text-mid);}
@@ -301,10 +302,9 @@ async function savePaper(childId, pd) {
       }),
     });
     const data = await res.json().catch(() => ({}));   // read body on success AND error
-    console.log('[rlt-debug] save-paper:', res.status, 'ok:', data.ok, 'answers:', Object.keys(data.answers || {}).length, 'code:', data.paper_code || '(none)');
-    if (!res.ok) console.warn('[rlt-debug] save-paper error:', data.error || JSON.stringify(data).slice(0, 200));
+    if (!res.ok) console.warn('[save-paper] error:', data.error || res.status);
     return data.ok ? { paper_code: data.paper_code, session_id: data.session_id, answers: data.answers || {} } : null;
-  } catch (e) { console.error('[rlt-debug] savePaper threw:', e.message); return null; }
+  } catch (e) { console.error('[save-paper] request failed:', e.message); return null; }
 }
 
 async function init() {
@@ -523,14 +523,10 @@ async function generatePaper() {
     // Merge the server-resolved answers back onto the question objects so the
     // guardian answer key renders (renderPaper reads q.correct_answer/explanation).
     const ansMap = saved?.answers || {};
-    let merged = 0;
     [...paperData.practice, ...paperData.english, ...paperData.maths].forEach(q => {
       const a = ansMap[q.id];
-      if (a) { q.correct_answer = a.answer; q.explanation = a.explanation; merged++; }
+      if (a) { q.correct_answer = a.answer; q.explanation = a.explanation; }
     });
-    console.log('[rlt-debug] saved:', !!saved, 'ansMap keys:', Object.keys(ansMap).length,
-      'merged onto:', merged, 'sample english[0].id:', paperData.english[0]?.id,
-      '-> answer:', paperData.english[0]?.correct_answer);
     if (!Object.keys(ansMap).length) {
       console.warn('[real-life-test] no answer key returned — paper printable but answer key will show dashes');
     }
@@ -723,6 +719,7 @@ function renderPaper({ practice, english, maths, passage, childName, yearGroup, 
   }
 
   const keyHtml = `<div class="answer-key-card">
+    <div class="ak-warning">⚠️ PARENT/GUARDIAN ONLY — Please keep this answer key separate from the question paper. Do not show this page to your child before or during the test.</div>
     <div class="ak-header">
       <div class="ak-header-row">
         <div class="ak-header-info">
