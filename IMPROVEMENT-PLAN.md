@@ -37,18 +37,15 @@ Files: `api/star-chat.js`, `api/mark-written.js`
 3. Replace CORS `*` with `https://staraitutor.co.uk` and the vercel.app domain.
 4. Add a simple per-user daily cap: count today's calls in a `api_usage` table (user_id, date, count); reject over 200/day with a friendly message.
 
-### A2. Stop exposing correct answers to the browser (CRITICAL)
-**Part 1 — DONE (commit b0f6a2e).** api/check-answer.js created; api/mark-written.js now looks the answer up server-side by question_id; study.html + mock.html no longer SELECT correct_answer/explanation and check via the endpoints on submit. Answers are out of the client data flow and localStorage.
-**Part 2 — PENDING, do AFTER A3.** The base-table columns are still readable via the anon key. Steps:
-  1. **First** convert validate.html + review.html off the anon key: add admin-cookie server endpoints (service role) for their question reads, and for validate.html's direct `validated=true`/`source=rejected` writes (currently anon via the "Anon can update validator fields" RLS policy). Then those pages no longer depend on anon column access. (This was scoped out of A3 core.)
-  2. Convert `real-life-test.html` (a printable answer-key generator): move answer-key rendering to a service-role endpoint gated to the paper's owner, since it deliberately displays answers and cannot use the check-answer pattern.
-  3. **Then** revoke: `REVOKE SELECT (correct_answer, explanation) ON public.questions FROM anon, authenticated;` (keep SELECT on all other columns). Also review the "Anon can update validator fields" RLS policy — tighten or drop once validate.html writes go server-side.
-  4. Re-test every question-fetch page after the revoke (study, mock, real-life-test, review, validate) — a stray SELECT of the revoked columns will error.
+### A2. Stop exposing correct answers to the browser (CRITICAL) — ✅ FULLY DONE
+**Part 1 — DONE (b0f6a2e).** Answer checking moved server-side (api/mark-written.js ?action=check by question_id); study.html + mock.html stopped selecting correct_answer/explanation.
+**Part 2a — DONE (e6fe4d2).** validate.html + review.html moved off the anon key: api/admin list-questions + question-counts (admin-cookie, service role); validate.html approve/reject go through update-verdict (which now also sets source='rejected' on FAIL).
+**Part 2b — DONE (92d7d98, 53b1e27).** real-life-test.html no longer selects answers; save-paper resolves them server-side and returns an {id:{answer,explanation}} map the client merges for the guardian answer key. (Uncovered + fixed a pre-existing bug: session_type 'guardian_test' violated the check constraint — switched to 'real_life_test' everywhere; the Real Life Test save/limit had never worked.)
+**Part 2c — DONE (migration run).** REVOKE SELECT ON questions FROM anon, authenticated + GRANT SELECT on all columns except correct_answer/explanation. Verified: anon SELECT of correct_answer now returns permission-denied. Rollback in migrations/revoke_answer_columns.sql. The answer-exposure hole is closed.
 
-### A3. Lock admin pages
-**CORE — DONE (commit 086f050).** api/admin-login.js added (ADMIN_PASSWORD + httpOnly HMAC-signed cookie via ADMIN_SECRET). api/admin.js: admin actions require the cookie, save-report requires a student JWT, CORS locked. validate.html/review.html/admin/reports.html use the server login; hardcoded STAR2026admin removed everywhere. study.html Report button sends its token.
-  - **Requires Vercel env vars: `ADMIN_PASSWORD` (new value, NOT STAR2026admin) and `ADMIN_SECRET` (long random string).** Until set, admin login returns 500 (fail-safe).
-**Still open (moved into A2 Part 2):** validate.html and review.html still read questions with the pasted anon key, and validate.html still writes validated/rejected directly via the anon RLS policy. These must move to admin-cookie server endpoints (service role) as part of A2 Part 2, before the anon column REVOKE.
+### A3. Lock admin pages — ✅ DONE
+**CORE — DONE (086f050).** api/admin-login.js folded into api/admin.js (?action=login/check; ADMIN_PASSWORD + httpOnly HMAC cookie via ADMIN_SECRET). admin actions require the cookie, save-report requires a student JWT, CORS locked. validate/review/reports use the server login; hardcoded STAR2026admin removed. Env vars ADMIN_PASSWORD + ADMIN_SECRET set in Vercel and verified working.
+**Admin read/write routing — DONE** as part of A2 Part 2a (validate.html + review.html now use the admin-cookie server endpoints, no anon key).
 
 ## PHASE B — Cost
 
@@ -140,7 +137,8 @@ KNOWN EFFECT: comprehension generated the old way (passage embedded in question_
 3. Monthly: `DRY_RUN=1 node scripts/validate-all-ai.js` (semantic check, Haiku).
 
 ## PHASE F — Launch-readiness extras (owner + any model)
-- F1. **Back up the question bank** (your core asset): weekly export of the questions + passages tables to a local file. `node -e` script with service key → JSON dump, keep 4 rotations. (Sonnet writes it once; Haiku/human runs it.)
+- F1. **Back up the question bank** — DONE. `scripts/backup-question-bank.mjs` exports questions + passages to timestamped JSON under ./backups (gitignored), keeps the 4 most recent of each. Run weekly: `node scripts/backup-question-bank.mjs`. First run: 13,776 question rows + 35 passages.
+  - **Supabase keep-alive (temporary):** api/send-weekly-emails.js now does a `SELECT id FROM questions LIMIT 1` at the start of the Sunday cron so the free-tier project isn't paused for inactivity. Remove once Supabase is upgraded to Pro before launch. Failure is swallowed so it never blocks the emails.
 - F2. **Anthropic spend alert**: set a monthly budget limit + email alert in console.anthropic.com. (Human, 5 min — no code.)
 - F3. **Error visibility**: add a tiny `api/log-error.js` that client pages POST uncaught errors to, writing to a Supabase `client_errors` table; check weekly. (Sonnet.)
 - F4. **Full dress rehearsal**: create a brand-new parent account on a phone, pay with Stripe test card, add child, run onboarding → sprint → full mock → parent dashboard → weekly email. Fix everything that snags. (Human.)

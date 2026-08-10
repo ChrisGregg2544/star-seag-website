@@ -250,6 +250,16 @@ export default async function handler(req, res) {
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!serviceKey) return res.status(500).json({ error: 'SUPABASE_SERVICE_ROLE_KEY not configured' });
 
+  // Supabase keep-alive — a trivial query so the free-tier project registers
+  // weekly activity and isn't paused for inactivity. Temporary until Supabase
+  // is upgraded to Pro before launch; failure here must never block the emails.
+  try {
+    await sbGet('questions?select=id&limit=1', serviceKey);
+    console.log('[weekly-emails] Supabase keep-alive ping ok');
+  } catch (e) {
+    console.warn('[weekly-emails] keep-alive ping failed (continuing):', e.message);
+  }
+
   const resendKey = process.env.RESEND_API_KEY;
   if (!dry && !resendKey) return res.status(500).json({ error: 'RESEND_API_KEY not configured' });
 
