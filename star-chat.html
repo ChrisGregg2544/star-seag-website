@@ -675,12 +675,15 @@
       appendMsg('assistant', greeting);
       addStarterChips();
     } else {
-      // Student greeting — fetch name + year group to pass in childData so the
-      // system prompt can skip the name/age/year questions.
+      // Student greeting — read the ACTIVE child's profile. These are parent
+      // accounts with child selection, so the active child is selectedChildId
+      // (localStorage), NOT the session user id. Fall back to the session id
+      // for direct student logins.
+      const profileId = localStorage.getItem('selectedChildId') || userId;
       const { data: profile } = await sb
         .from('profiles')
         .select('name, year_group')
-        .eq('id', userId)
+        .eq('id', profileId)
         .maybeSingle();
 
       const firstName = (profile?.name || '').split(' ')[0] || 'there';
