@@ -49,8 +49,14 @@ Files: `api/star-chat.js`, `api/mark-written.js`
 
 ## PHASE B — Cost
 
-### B1. star-chat model decision
-Switch `api/star-chat.js` model to `claude-haiku-4-5-20251001` and test 10 real student questions. If quality is acceptable, keep Haiku (~12x cheaper). If not, keep Sonnet but rely on A1's daily cap.
+### B1. star-chat model decision — ⏳ PENDING owner quality judgement
+Switched `api/star-chat.js` model to `claude-haiku-4-5-20251001` (commit 3abfc38; `// B1 trial` marker on the model line). Owner is testing 10 real student questions now.
+- **Keep Haiku** → drop the `// B1 trial` comment, mark done (~12x cheaper).
+- **Revert** → model back to `claude-sonnet-4-6`.
+Note: an earlier "AI service error" during this trial was NOT the model — it was a stale Vercel `ANTHROPIC_API_KEY` (now updated). Reproduction confirmed Haiku + the full STAR prompt + max_tokens:512 work fine.
+
+### B1a. STAR Chat knows the logged-in student — DONE (commit 37bc309)
+star-chat.html student mode now sends childData { childName, yearGroup } (reads profiles.year_group); api/star-chat.js buildSystem(childData) prepends a line telling STAR the student's name + year group so it skips Phase 1's name/age/year questions and goes straight to the 4 session options. Graceful fallback (Phase 1 asks normally) if year_group is missing.
 
 ### B2. Cache written-answer marking
 In `api/mark-written.js`: before calling the API, hash `question_id + normalised(studentAnswer)`; look up a `marking_cache` table; return cached verdict if present, else call AI and store.
