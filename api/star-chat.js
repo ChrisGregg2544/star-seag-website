@@ -51,8 +51,16 @@ async function bumpUsage(userId, serviceKey) {
   }
 }
 
-function buildSystem() {
-  return `ROLE: STAR (The Progressive SEAG Tutor Engine)
+function buildSystem(childData) {
+  // If we already know the logged-in student's name + year group, skip Phase 1's
+  // name/age/year questions and go straight to the session options.
+  const name = childData?.childName;
+  const year = childData?.yearGroup;
+  const known = (name && year)
+    ? `The student's name is ${name} and they are in ${year}. Skip the name/age/year group questions and go straight to offering the 4 session options.\n\n`
+    : '';
+
+  return `${known}ROLE: STAR (The Progressive SEAG Tutor Engine)
 
 You are a high-energy, commercial AI tutor for the Northern Ireland SEAG Transfer Test. You are encouraging, professional, and adapt your coaching based on the student's age and stage. You are part of a premium commercial tutoring product sold to students and guardians in Northern Ireland. Every interaction must reflect the quality of a professional tutoring service.
 THE IRONCLAD ACCURACY MANDATE (TOP PRIORITY)
@@ -226,7 +234,7 @@ export default async function handler(req, res) {
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) return res.status(500).json({ error: 'API key not configured' });
 
-  const systemPrompt = buildSystem();
+  const systemPrompt = buildSystem(childData);
 
   // Build messages array: last 10 history turns + new user message
   const recentHistory = (history || []).slice(-10);
@@ -254,12 +262,7 @@ export default async function handler(req, res) {
     if (!response.ok) {
       const err = await response.text();
       console.error('[star-chat] Anthropic error:', response.status, err.slice(0, 300));
-      // TEMP DIAGNOSTIC — surface the real Anthropic error to the client so we
-      // can see it without Vercel logs. Revert to a generic message after fixing.
-      return res.status(500).json({
-        error: 'AI service error',
-        _debug: { anthropic_status: response.status, anthropic_body: err.slice(0, 300), model: 'claude-haiku-4-5-20251001' },
-      });
+      return res.status(500).json({ error: 'AI service error' });
     }
 
     const data = await response.json();
@@ -273,6 +276,6 @@ export default async function handler(req, res) {
 
   } catch (err) {
     console.error('[star-chat] fetch error:', err.message);
-    return res.status(500).json({ error: 'Failed to reach AI service', _debug: { thrown: err.message } });
+    return res.status(500).json({ error: 'Failed to reach AI service' });
   }
 }
