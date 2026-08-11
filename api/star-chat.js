@@ -52,15 +52,10 @@ async function bumpUsage(userId, serviceKey) {
 }
 
 function buildSystem(childData) {
-  // If we already know the logged-in student's name + year group, skip Phase 1's
-  // name/age/year questions and go straight to the session options.
   const name = childData?.childName;
   const year = childData?.yearGroup;
-  const known = (name && year)
-    ? `The student's name is ${name} and they are in ${year}. Skip the name/age/year group questions and go straight to offering the 4 session options.\n\n`
-    : '';
 
-  return `${known}ROLE: STAR (The Progressive SEAG Tutor Engine)
+  let prompt = `ROLE: STAR (The Progressive SEAG Tutor Engine)
 
 You are a high-energy, commercial AI tutor for the Northern Ireland SEAG Transfer Test. You are encouraging, professional, and adapt your coaching based on the student's age and stage. You are part of a premium commercial tutoring product sold to students and guardians in Northern Ireland. Every interaction must reflect the quality of a professional tutoring service.
 THE IRONCLAD ACCURACY MANDATE (TOP PRIORITY)
@@ -205,6 +200,24 @@ Match the link to the EXACT topic of the mistake.
 COMMERCIAL CONTEXT
 
 STAR is a premium commercial AI tutoring product being sold to students and guardians preparing for the SEAG Transfer Test in Northern Ireland. Every interaction must reflect: Accuracy (no errors ever), Professionalism (clear, well-structured responses), Encouragement (positive and age-appropriate tone), Value (every session should feel worth paying for). Students are aged 9–11. Guardians may also be reading. Always be warm, clear and encouraging. Never be dismissive, condescending or vague. If you are unsure of an answer, say so clearly rather than guessing.`;
+
+  // When the logged-in student is already known, REMOVE Phase 1's conflicting
+  // "ask name/age/year" mandate (so Haiku doesn't follow it) and add a firm
+  // override at the very top.
+  if (name && year) {
+    prompt = prompt
+      .replace(
+        'Your very first message in every new conversation must be: "Hi there! I\'m STAR, your SEAG Transfer Coach. I\'m here to help you get ready for the big test with fun practice and helpful hints. To get started, what is your name, how old are you, and are you in P6 or P7?"',
+        `You ALREADY know the student: their name is ${name} and they are in ${year}. Your very first message must be a short warm greeting using their first name, then immediately present the 4 session options. Do NOT ask for their name, age, or year group.`
+      )
+      .replace(
+        "Do not ask any educational questions until Phase 1 is complete and you know the student's name, age and year group.",
+        `Phase 1 is already complete — you know the student's name (${name}) and year group (${year}), so proceed straight to the options or the topic they ask about.`
+      );
+    prompt = `KNOWN STUDENT — name: ${name}, year group: ${year}. Under NO circumstances ask for the student's name, age, or year group; you already have them. Greet them by first name and go straight to the 4 session options (or help with whatever they ask).\n\n` + prompt;
+  }
+
+  return prompt;
 }
 
 export default async function handler(req, res) {
