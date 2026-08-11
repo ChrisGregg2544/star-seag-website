@@ -253,8 +253,13 @@ export default async function handler(req, res) {
 
     if (!response.ok) {
       const err = await response.text();
-      console.error('[star-chat] Anthropic error:', response.status, err.slice(0, 200));
-      return res.status(500).json({ error: 'AI service error' });
+      console.error('[star-chat] Anthropic error:', response.status, err.slice(0, 300));
+      // TEMP DIAGNOSTIC — surface the real Anthropic error to the client so we
+      // can see it without Vercel logs. Revert to a generic message after fixing.
+      return res.status(500).json({
+        error: 'AI service error',
+        _debug: { anthropic_status: response.status, anthropic_body: err.slice(0, 300), model: 'claude-haiku-4-5-20251001' },
+      });
     }
 
     const data = await response.json();
@@ -268,6 +273,6 @@ export default async function handler(req, res) {
 
   } catch (err) {
     console.error('[star-chat] fetch error:', err.message);
-    return res.status(500).json({ error: err.message || 'Failed to reach AI service' });
+    return res.status(500).json({ error: 'Failed to reach AI service', _debug: { thrown: err.message } });
   }
 }
