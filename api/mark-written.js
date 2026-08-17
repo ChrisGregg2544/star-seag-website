@@ -86,10 +86,14 @@ export default async function handler(req, res) {
     if (!row) return res.status(404).json({ error: 'Question not found' });
     const correctAnswer = String(row.correct_answer ?? '');
     const norm = s => String(s ?? '').toLowerCase().replace(/²/g, '2').replace(/\^2/g, '2').replace(/\s+/g, ' ').trim();
+    const isCorrect = norm(answer) === norm(correctAnswer);
+    // TEMP DIAGNOSTIC — surfaces exactly what was compared. Remove after fixing.
+    console.log('[check] qid', qid, 'answer', JSON.stringify(answer), 'correct_answer', JSON.stringify(correctAnswer), '=>', isCorrect);
     return res.status(200).json({
-      correct: norm(answer) === norm(correctAnswer),
+      correct: isCorrect,
       correct_answer: correctAnswer,
       explanation: row.explanation || '',
+      _debug: { received_answer: answer, db_correct_answer: correctAnswer, normalized_match: isCorrect },
     });
   }
 
