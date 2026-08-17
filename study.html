@@ -1422,6 +1422,43 @@ function selectMC(letter, btn) {
 /* ════════════════════════════════
    SUBMIT ANSWER
 ════════════════════════════════ */
+// Server-side answer verification with a refreshed token + one retry.
+// A session can outlive its ~1-hour access token during a long session;
+// once it expires the endpoint 401s. Previously the caller's catch scored
+// that as a wrong answer, so correct answers were marked wrong. This
+// refreshes a stale/expiring token and throws on genuine failure so the
+// caller can re-prompt instead of mis-scoring.
+async function postVerify(url, body) {
+  let lastStatus = 0;
+  for (let attempt = 0; attempt < 2; attempt++) {
+    let { data } = await sb.auth.getSession();
+    let session = data.session;
+    const expiringSoon = session?.expires_at && (session.expires_at * 1000 - Date.now() < 120000);
+    if (!session || expiringSoon || attempt > 0) {
+      const r = await sb.auth.refreshSession();
+      if (!r.error && r.data?.session) session = r.data.session;
+    }
+    const token = session?.access_token;
+    let resp;
+    try {
+      resp = await fetch(url, {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json', ...(token ? { 'Authorization': `Bearer ${token}` } : {}) },
+        body:    JSON.stringify(body),
+        signal:  AbortSignal.timeout(15000),
+      });
+    } catch (netErr) {
+      lastStatus = 0;
+      continue; // transient network / timeout — retry once
+    }
+    if (resp.ok) return await resp.json();
+    lastStatus = resp.status; // 401 → token stale (loop refreshes); 5xx → retry once
+  }
+  throw new Error('verify failed: ' + lastStatus);
+}
+
+const VERIFY_FAIL_MSG = "Couldn't check your answer — please check your connection and tap Submit again.";
+
 async function submitAnswer() {
   if (answered) return;
   answered = true;
@@ -1432,25 +1469,17 @@ async function submitAnswer() {
 
   if (q.options && q.options.length) {
     // ── Multiple choice (verified server-side) ───────────
+    let json;
     try {
-      const token = (await sb.auth.getSession()).data.session?.access_token;
-      const resp = await fetch('/api/mark-written?action=check', {
-        method:  'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify({ question_id: q._id, answer: selectedMC }),
-        signal: AbortSignal.timeout(15000),
-      });
-      if (!resp.ok) throw new Error('HTTP ' + resp.status);
-      const json = await resp.json();
-      isCorrect = !!json.correct;
-      q.answer  = json.correct_answer || '';
-      if (json.explanation) q.explanation = json.explanation;
+      json = await postVerify('/api/mark-written?action=check', { question_id: q._id, answer: selectedMC });
     } catch (e) {
-      isCorrect = false;
+      answered = false;        // don't score; let the student re-submit
+      alert(VERIFY_FAIL_MSG);
+      return;
     }
+    isCorrect = !!json.correct;
+    q.answer  = json.correct_answer || '';
+    if (json.explanation) q.explanation = json.explanation;
     document.querySelectorAll('.mc-btn').forEach(btn => {
       btn.disabled = true;
       if (q.answer && btn.dataset.letter === q.answer)           btn.classList.add('correct-ans');
@@ -1484,47 +1513,36 @@ async function submitAnswer() {
       document.getElementById('btn-next').disabled        = true;
 
       try {
-        const token = (await sb.auth.getSession()).data.session?.access_token;
-        const resp = await fetch('/api/mark-written', {
-          method:  'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
-          },
-          body:    JSON.stringify({ question_id: q._id, studentAnswer: userVal })
-        });
-        if (!resp.ok) throw new Error('HTTP ' + resp.status);
-        const json = await resp.json();
+        const json = await postVerify('/api/mark-written', { question_id: q._id, studentAnswer: userVal });
         isCorrect  = !!json.pass;
         aiFeedback = json.feedback || '';
         if (json.explanation) q.explanation = json.explanation;
       } catch (e) {
-        isCorrect = false;
+        answered = false;        // don't score; let the student re-submit
+        frInput.disabled = false;
+        panel.className = 'feedback-panel';
+        document.getElementById('btn-submit').style.display = 'inline-block';
+        document.getElementById('btn-next').style.display   = 'none';
+        alert(VERIFY_FAIL_MSG);
+        return;
       }
 
       frInput.classList.add(isCorrect ? 'correct-inp' : 'wrong-inp');
       document.getElementById('btn-next').disabled = false;
     } else {
       // Maths / other free response — verified server-side
+      let json;
       try {
-        const token = (await sb.auth.getSession()).data.session?.access_token;
-        const resp = await fetch('/api/mark-written?action=check', {
-          method:  'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
-          },
-          body: JSON.stringify({ question_id: q._id, answer: userVal }),
-          signal: AbortSignal.timeout(15000),
-        });
-        if (!resp.ok) throw new Error('HTTP ' + resp.status);
-        const json = await resp.json();
-        isCorrect = !!json.correct;
-        q.answer  = json.correct_answer || '';
-        if (json.explanation) q.explanation = json.explanation;
+        json = await postVerify('/api/mark-written?action=check', { question_id: q._id, answer: userVal });
       } catch (e) {
-        isCorrect = false;
+        answered = false;        // don't score; let the student re-submit
+        frInput.disabled = false;
+        alert(VERIFY_FAIL_MSG);
+        return;
       }
+      isCorrect = !!json.correct;
+      q.answer  = json.correct_answer || '';
+      if (json.explanation) q.explanation = json.explanation;
       frInput.classList.add(isCorrect ? 'correct-inp' : 'wrong-inp');
       document.getElementById('btn-submit').style.display = 'none';
       document.getElementById('btn-next').style.display   = 'inline-block';

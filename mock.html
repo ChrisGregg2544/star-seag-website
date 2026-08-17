@@ -1176,6 +1176,42 @@ function showFeedbackPanel(isCorrect, explanationText, steps, isFR) {
   }
 }
 
+// Server-side answer verification with a refreshed token + one retry.
+// A mock can outlive its ~1-hour access token; once it expires the
+// endpoint 401s. Previously the caller's catch scored that as wrong, so
+// correct answers were marked wrong. This refreshes a stale/expiring
+// token and throws on genuine failure so the caller can re-prompt.
+async function postVerify(url, body) {
+  let lastStatus = 0;
+  for (let attempt = 0; attempt < 2; attempt++) {
+    let { data } = await sb.auth.getSession();
+    let session = data.session;
+    const expiringSoon = session?.expires_at && (session.expires_at * 1000 - Date.now() < 120000);
+    if (!session || expiringSoon || attempt > 0) {
+      const r = await sb.auth.refreshSession();
+      if (!r.error && r.data?.session) session = r.data.session;
+    }
+    const token = session?.access_token;
+    let resp;
+    try {
+      resp = await fetch(url, {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json', ...(token ? { 'Authorization': `Bearer ${token}` } : {}) },
+        body:    JSON.stringify(body),
+        signal:  AbortSignal.timeout(15000),
+      });
+    } catch (netErr) {
+      lastStatus = 0;
+      continue; // transient network / timeout — retry once
+    }
+    if (resp.ok) return await resp.json();
+    lastStatus = resp.status; // 401 → token stale (loop refreshes); 5xx → retry once
+  }
+  throw new Error('verify failed: ' + lastStatus);
+}
+
+const VERIFY_FAIL_MSG = "Couldn't check your answer — please check your connection and tap Submit again.";
+
 async function submitAnswer() {
   const q = getCurrentQuestion();
   if (!q || answered) return;
@@ -1206,30 +1242,19 @@ async function submitAnswer() {
     document.getElementById('btn-next').disabled        = true;
 
     try {
-      // Guard against a hung/slow marking request leaving Next disabled forever
-      const ctrl = new AbortController();
-      const timeout = setTimeout(() => ctrl.abort(), 15000);
-      const token = (await sb.auth.getSession()).data.session?.access_token;
-      const resp = await fetch('/api/mark-written', {
-        method:  'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
-        },
-        body:    JSON.stringify({
-          question_id:   q._id,
-          studentAnswer: userAnswer
-        }),
-        signal: ctrl.signal
-      }).finally(() => clearTimeout(timeout));
-      if (!resp.ok) throw new Error('HTTP ' + resp.status);
-      const json = await resp.json();
+      const json = await postVerify('/api/mark-written', { question_id: q._id, studentAnswer: userAnswer });
       isCorrect  = !!json.pass;
       aiFeedback = json.feedback || '';
       if (json.explanation) q.explanation = json.explanation;
     } catch (e) {
-      // Network failure — cannot verify without revealing the answer; mark wrong
-      isCorrect = false;
+      // Couldn't verify — don't score; restore the input so the pupil can re-submit
+      answered = false;
+      frInput.disabled = false;
+      fbPanel.className = 'feedback-panel';
+      document.getElementById('btn-submit').style.display = 'block';
+      document.getElementById('btn-next').style.display   = 'none';
+      alert(VERIFY_FAIL_MSG);
+      return;
     }
 
     document.getElementById('btn-next').disabled = false;
@@ -1237,26 +1262,17 @@ async function submitAnswer() {
 
   } else {
     // MC — verified server-side; the answer is not present in the browser
+    let json;
     try {
-      const token = (await sb.auth.getSession()).data.session?.access_token;
-      const resp = await fetch('/api/mark-written?action=check', {
-        method:  'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify({ question_id: q._id, answer: selectedMC }),
-        signal: AbortSignal.timeout(15000),
-      });
-      if (!resp.ok) throw new Error('HTTP ' + resp.status);
-      const json = await resp.json();
-      isCorrect = !!json.correct;
-      q.answer  = json.correct_answer || '';
-      if (json.explanation) q.explanation = json.explanation;
+      json = await postVerify('/api/mark-written?action=check', { question_id: q._id, answer: selectedMC });
     } catch (e) {
-      // Network failure — cannot verify without revealing the answer; mark wrong
-      isCorrect = false;
+      answered = false;        // don't score; let the student re-submit
+      alert(VERIFY_FAIL_MSG);
+      return;
     }
+    isCorrect = !!json.correct;
+    q.answer  = json.correct_answer || '';
+    if (json.explanation) q.explanation = json.explanation;
     document.querySelectorAll('#mc-options .mc-btn').forEach(btn => {
       btn.disabled = true;
       if (q.answer && btn.dataset.letter === q.answer) btn.classList.add('correct-ans');
