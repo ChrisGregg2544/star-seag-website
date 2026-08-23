@@ -16,7 +16,7 @@ Details for each task ID are in the phase sections below.
 | 8 | E1 — rewrite ~700 segment-style grammar | Sonnet | Proven script pattern, adapt + run |
 | 9 | E2 — re-segment overlapping spelling/punctuation | Sonnet | Proven reconstruct+verify pattern |
 | 10 | E3 — fix duplicate/gap options (~100) | Sonnet | Small script, self-verifies via linter |
-| 11 | B1 — trial Haiku for star-chat | Human judges | ~12x cost saving if quality holds |
+| 11 | B1 — trial Haiku for star-chat | ✅ DONE (keep Haiku) | ~12x cost saving, quality confirmed |
 | 12 | B2 — cache written-answer marking | Sonnet | Table + hash lookup |
 | 13 | C1 — results history page | Sonnet | Read-only page from sessions table |
 | 14 | C2 — error/timeout polish on all fetches | Sonnet | Mechanical audit |
@@ -49,11 +49,10 @@ Files: `api/star-chat.js`, `api/mark-written.js`
 
 ## PHASE B — Cost
 
-### B1. star-chat model decision — ⏳ PENDING owner quality judgement
-Switched `api/star-chat.js` model to `claude-haiku-4-5-20251001` (commit 3abfc38; `// B1 trial` marker on the model line). Owner is testing 10 real student questions now.
-- **Keep Haiku** → drop the `// B1 trial` comment, mark done (~12x cheaper).
-- **Revert** → model back to `claude-sonnet-4-6`.
+### B1. star-chat model decision — ✅ DONE — KEEP HAIKU
+`api/star-chat.js` runs on `claude-haiku-4-5-20251001` (~12x cheaper than Sonnet). Owner judged quality across 10 real student questions as excellent. Trial complete — Haiku is now the permanent model.
 Note: an earlier "AI service error" during this trial was NOT the model — it was a stale Vercel `ANTHROPIC_API_KEY` (now updated). Reproduction confirmed Haiku + the full STAR prompt + max_tokens:512 work fine.
+Follow-up (same commit as this sign-off): system prompt now tells STAR its questions are original SEAG-style practice (never official papers), and directs "where are the real papers?" queries to seag.co.uk only — no CCEA / GL Assessment / other orgs.
 
 ### B1a. STAR Chat knows the logged-in student — DONE (commit 37bc309)
 star-chat.html student mode now sends childData { childName, yearGroup } (reads profiles.year_group); api/star-chat.js buildSystem(childData) prepends a line telling STAR the student's name + year group so it skips Phase 1's name/age/year questions and goes straight to the 4 session options. Graceful fallback (Phase 1 asks normally) if year_group is missing.

@@ -181,6 +181,10 @@ APPROVED THEMES: Sports and outdoor activities, nature and animals, science and 
 STRICTLY FORBIDDEN: Violence, theft, bullying, danger, negative behaviour, alcohol, gambling, or any content inappropriate for children aged 9–11.
 
 NEVER copy word-for-word from any published test paper. Generate only ORIGINAL questions based on the SEAG specification.
+
+STAR's questions are original practice questions created in the style of the real SEAG Transfer Test — never claim they are official SEAG papers.
+
+If a student asks where to get real SEAG papers or official practice materials, reply exactly: "The SEAG Transfer Test is set by the Schools' Entrance Assessment Group (SEAG). For official information and practice materials visit seag.co.uk". Do NOT mention CCEA, GL Assessment, or any other organisation.
 STUDENT PROFILE AND PROGRESS TRACKER
 
 Create a hidden Student Profile after Phase 1. Update after every session with: Name, age, year group, sessions completed, Real Life Tests completed and scores, strongest topic, weakest topic, last 3 scores and trend, topics failed twice in a row, whether Parent Guide has been delivered.
@@ -265,7 +269,7 @@ export default async function handler(req, res) {
         'anthropic-version': '2023-06-01',
       },
       body: JSON.stringify({
-        model: 'claude-haiku-4-5-20251001', // B1 trial — revert to claude-sonnet-4-6 if quality is unacceptable
+        model: 'claude-haiku-4-5-20251001', // B1: chosen for cost (~12x cheaper than Sonnet); quality confirmed good
         max_tokens: 512,
         system: systemPrompt,
         messages,
