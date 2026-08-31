@@ -329,9 +329,19 @@
     try {
       if (accessToken) await syncGuestSessions(accessToken)
 
-      const profileResult = await client.from('profiles').select('onboarded').eq('id', userId).maybeSingle()
+      // Guard the profile lookup with a timeout so a stalled query can never
+      // leave the button stuck on "Signing in…". The user is already
+      // authenticated at this point, so on timeout we send them to the
+      // dashboard (its own init re-checks onboarding state).
+      const timeout = new Promise(resolve => setTimeout(() => resolve('__timeout__'), 8000))
+      const query   = client.from('profiles').select('onboarded').eq('id', userId).maybeSingle()
+      const profileResult = await Promise.race([query, timeout])
 
-      if (!profileResult.error && profileResult.data?.onboarded === true) {
+      if (profileResult === '__timeout__') {
+        console.warn('[smartRedirect] profile lookup timed out — proceeding to dashboard')
+        localStorage.setItem('selectedChildId', userId)
+        window.location.href = 'dashboard.html'
+      } else if (!profileResult.error && profileResult.data?.onboarded === true) {
         localStorage.setItem('selectedChildId', userId)
         window.location.href = 'dashboard.html'
       } else {
@@ -371,6 +381,11 @@
     btn.disabled    = true
     btn.textContent = 'Signing in…'
     document.getElementById('message').style.display = 'none'
+
+    // Clear any stale/corrupt session left over from a previous logout before
+    // signing in fresh — otherwise supabase-js can hang trying to refresh it,
+    // leaving the button stuck on "Signing in…". Local-only: no network call.
+    try { await client.auth.signOut({ scope: 'local' }) } catch (_) {}
 
     const { data, error } = await client.auth.signInWithPassword({ email, password })
 
