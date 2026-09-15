@@ -141,6 +141,24 @@ KNOWN EFFECT: comprehension generated the old way (passage embedded in question_
 2. `node find-duplicates.js` after any seeding.
 3. Monthly: `DRY_RUN=1 node scripts/validate-all-ai.js` (semantic check, Haiku).
 
+## PHASE G — SEAG curriculum-scope audit (Sept 2026) — DONE (F1/F2 arithmetic tail pending owner review)
+Purpose: the lint gate checks *format* only — it has no opinion on whether a question is too hard or off-curriculum. This audit checked active MATHS questions against the **SEAG 2026 Specification (NI Key Stage 2)**, anchored by the `reference_questions` real-paper ceiling, using **claude-sonnet-4-6** (Haiku had too high a false-fail rate for this judgement task).
+
+**Scripts (re-runnable):**
+- `scripts/audit-scope-ai.js` — scope audit. `SAMPLE=30 node scripts/audit-scope-ai.js` for a trial; no args = full maths run (~7,400 Qs, ~2h, ~$40). Report-only, resumable checkpoint (`scripts/scope-audit-progress.json`), flags in `scripts/scope-audit-flags.json`. Spec text + reference anchors are embedded in the script.
+- `scripts/geometry-concept-inventory.js` — cataloguing pass (no scope judgement): `SAMPLE=200` inventories concepts in un-flagged geometry to confirm the remaining bank matches the spec. It did.
+
+**What it found & removed (all `validated=false`, reason-tagged so they stay distinguishable):**
+- **15 nth-term / quadratic algebra** (earlier pass) → `validator_reason='out-of-spec-gcse'`.
+- **309 out-of-spec maths** → `validator_reason='out-of-spec-seag'`. Biggest clusters: speed/rate compound measures (46), polygon interior angles + coordinates beyond 1st quadrant (exclusions), median/mode (not in spec — only mean & range are), circle area/circumference, trapezium/kite/rhombus diagonal area, surface area, Pythagoras, map-scale/enlargement, litres↔m³, tonne. Geometry was the hotspot (151 flags).
+- **3 + 49 non-terminating-answer** stats means (÷ doesn't resolve; keyed answer is a rounded infinite decimal or silently rounded to a whole) → `validator_reason='non-terminating-answer'`.
+- **6 non-integer-count** pie-chart/pictogram questions (fractional people/cars/apples/votes/families — impossible) → `validator_reason='non-integer-count'`.
+- **Kept active** after review: pictograms (absent from the spec's list, but present in real SEAG papers — ceiling settles it), straight-line/around-a-point angle facts, parallelogram area, quadrilateral diagonal properties, compound-% change, non-terminating fraction→decimal questions that explicitly say "to 2 dp".
+- **PENDING owner confirmation:** 5 broken arithmetic items (1 false "equal division" + 4 function machines whose reverse-division has no integer solution → keyed answer is arithmetically wrong). Not yet deactivated.
+
+Net effect: bank 13,314 → 12,947 validated, 0 lint violations. Statistics 1,118 → 1,060. Geometry 967 → 828.
+Re-run cadence: after any large maths seed, or before launch, re-run `audit-scope-ai.js` and review new flags. Nothing auto-deactivates — flags are always owner-reviewed.
+
 ## PHASE F — Launch-readiness extras (owner + any model)
 - F1. **Back up the question bank** — DONE. `scripts/backup-question-bank.mjs` exports questions + passages to timestamped JSON under ./backups (gitignored), keeps the 4 most recent of each. Run weekly: `node scripts/backup-question-bank.mjs`. First run: 13,776 question rows + 35 passages.
   - **Supabase keep-alive (temporary):** api/send-weekly-emails.js now does a `SELECT id FROM questions LIMIT 1` at the start of the Sunday cron so the free-tier project isn't paused for inactivity. Remove once Supabase is upgraded to Pro before launch. Failure is swallowed so it never blocks the emails.
