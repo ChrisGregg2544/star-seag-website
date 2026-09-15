@@ -190,6 +190,7 @@ async function handleCreate(req, res) {
     const params = new URLSearchParams();
     params.append('mode',                    'subscription');
     params.append('payment_method_types[]',  'card');
+    params.append('allow_promotion_codes',   'true');
 
     if (productId) {
       params.append('line_items[0][price_data][currency]',            'gbp');
