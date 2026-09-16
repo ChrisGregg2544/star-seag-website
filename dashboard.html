@@ -453,6 +453,14 @@
     }
     .btn-manage-sub:hover { background: var(--orange); color: #fff; }
     .btn-manage-sub.visible { display: inline-block; }
+    .comp-note {
+      display: none;
+      font-family: 'Nunito', sans-serif; font-size: .72rem; font-weight: 800;
+      color: var(--green-dark); background: #F0FBE8;
+      border: 2px solid var(--green); border-radius: 999px;
+      padding: 5px 14px;
+    }
+    .comp-note.visible { display: inline-block; }
     .manage-sub-error {
       display: none; font-size: .7rem; font-weight: 700; color: #ef4444;
       margin-top: 6px; text-align: right;
@@ -718,6 +726,7 @@
       <a href="mailto:staraitutor.support@gmail.com">Support</a>
       <a href="https://www.facebook.com/share/1DGKfvGo9b/" target="_blank" rel="noopener">Facebook</a>
       <button class="btn-manage-sub" id="btn-manage-sub" onclick="openPortal()">Manage Subscription</button>
+      <span class="comp-note" id="comp-note">✓ Complimentary access — no billing</span>
     </div>
   </div>
   <div class="manage-sub-error" id="manage-sub-error">Something went wrong — please contact <a href="mailto:support@staraitutor.co.uk" style="color:#ef4444;">support@staraitutor.co.uk</a></div>
@@ -1289,10 +1298,10 @@ async function init() {
         headers: { 'Authorization': `Bearer ${accessToken}` },
       });
       const j = await r.json();
-      return j.subscribed === true;
+      return { subscribed: j.subscribed === true, hasBilling: j.hasBilling === true };
     } catch (e) {
       console.error('[dashboard] check-subscription failed:', e.message);
-      return false;
+      return { subscribed: false, hasBilling: false };
     }
   }
 
@@ -1327,7 +1336,7 @@ async function init() {
     if (!activated) {
       for (let i = 0; i < 8; i++) {
         await new Promise(r => setTimeout(r, 2000));
-        if (await checkSubscription()) { activated = true; break; }
+        if ((await checkSubscription()).subscribed) { activated = true; break; }
       }
     }
 
@@ -1344,14 +1353,22 @@ async function init() {
   }
 
   // Subscription check + student profile (display fields — profiles table is readable via anon key)
-  const [subscribed, { data: parentProfile }, { data: profile }] = await Promise.all([
+  const [{ subscribed, hasBilling }, { data: parentProfile }, { data: profile }] = await Promise.all([
     checkSubscription(),
     sb.from('profiles').select('free_sprints_used').eq('id', selectedChildId).maybeSingle(),
     sb.from('profiles').select('name,year_group,exam_year,sessions_per_week').eq('id', selectedChildId).maybeSingle(),
   ]);
 
   if (subscribed) {
-    document.getElementById('btn-manage-sub').classList.add('visible');
+    if (hasBilling) {
+      // Paying account — real Stripe portal to open
+      document.getElementById('btn-manage-sub').classList.add('visible');
+    } else {
+      // Complimentary access (comped, no Stripe customer). Show reassurance
+      // rather than a button that would 404 — a free user often clicks here
+      // specifically to confirm no card is attached.
+      document.getElementById('comp-note').classList.add('visible');
+    }
   }
 
   // Sessions this week (since Monday 00:00)

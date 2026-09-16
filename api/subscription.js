@@ -50,7 +50,7 @@ async function handleCheck(req, res) {
   if (!parentId) return res.status(401).json({ error: 'Invalid or expired token' });
 
   const subRes = await fetch(
-    `${SUPABASE_URL}/rest/v1/parent_subscriptions?parent_id=eq.${parentId}&select=subscription_status,trial_end`,
+    `${SUPABASE_URL}/rest/v1/parent_subscriptions?parent_id=eq.${parentId}&select=subscription_status,trial_end,stripe_customer_id,stripe_subscription_id`,
     { headers: { 'apikey': serviceKey, 'Authorization': `Bearer ${serviceKey}` } }
   );
 
@@ -64,9 +64,13 @@ async function handleCheck(req, res) {
   const row      = Array.isArray(rows) && rows.length > 0 ? rows[0] : null;
   const status   = row?.subscription_status || null;
   const subscribed = status === 'active' || status === 'trialing';
+  // hasBilling = a real Stripe customer/subscription is attached. A comped
+  // account is subscribed WITHOUT billing → the portal has nothing to open,
+  // so the UI shows a reassurance line instead of a "Manage subscription" button.
+  const hasBilling = subscribed && !!(row?.stripe_customer_id || row?.stripe_subscription_id);
 
-  console.log(`[subscription/check] parentId:${parentId} status:${status} subscribed:${subscribed}`);
-  return res.status(200).json({ subscribed, status });
+  console.log(`[subscription/check] parentId:${parentId} status:${status} subscribed:${subscribed} hasBilling:${hasBilling}`);
+  return res.status(200).json({ subscribed, status, hasBilling });
 }
 
 // ── action=verify ─────────────────────────────────────────────────────────────
