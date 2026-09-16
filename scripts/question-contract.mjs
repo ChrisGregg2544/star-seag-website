@@ -17,6 +17,59 @@ export const ALL_TOPICS = [...SEGMENT_TOPICS, ...ABCDE_TOPICS, ...WRITTEN_TOPICS
 
 const GAP_MARKER = /_{2,}/;
 
+// ── Semantic helpers (for the non-terminating / non-integer-count checks) ──────
+// These catch faults the structural checks can't see: a keyed answer that is a
+// rounded non-terminating decimal, and a discrete count that resolves to a
+// non-integer. NOTE: they are best-effort and depend on question_text (+
+// explanation when available). They deliberately do NOT fire when the fault is
+// hidden behind a rounded-to-whole answer (e.g. a pie chart keyed "67 people")
+// — that class is structurally invisible and is caught by the periodic AI
+// scope/quality audit (scripts/audit-scope-ai.js) instead.
+function _gcd(a, b) { a = Math.abs(a); b = Math.abs(b); while (b) { [a, b] = [b, a % b]; } return a; }
+function _terminates(a, b) {
+  if (!Number.isInteger(a) || !Number.isInteger(b) || !b) return true;
+  const g = _gcd(a, b); let d = Math.abs(b / g);
+  while (d % 2 === 0) d /= 2; while (d % 5 === 0) d /= 5;
+  return d === 1;
+}
+function _leadNum(s) { const m = String(s ?? '').match(/-?\d+(?:\.\d+)?/); return m ? parseFloat(m[0]) : null; }
+function _hasDecimal(s) { return /\d\.\d/.test(String(s ?? '')); }
+
+const _MEANISH  = /\b(mean|average)\b/i;
+const _ROUND_OK = /to \d+ decimal place|decimal places?\)|rounded to|to the nearest|nearest whole/i; // rounding is the instruction, not a fault
+const _CONT_UNIT = /£|\bp\b|pence|%|percent|\bcm\b|\bmm\b|\bkm\b|\bm\b|metre|\bkg\b|\bg\b|gram|\bml\b|litre|\bl\b|°|degree|minute|hour|second/i;
+const _DISCRETE = /\b(people|persons?|pupils?|children|students?|customers?|visitors?|families|cars?|apples?|oranges?|books?|votes?|goals?|pages?|pets?|marbles?|coins?|sweets?|cakes?|eggs?|symbols?|bags?|buses?|boxes?|bottles?|tickets?|seats?)\b/i;
+
+// A keyed answer that IS a rounded non-terminating value (a mean that doesn't
+// resolve, or a decimal answer equal to a non-terminating quotient).
+function checkNonTerminatingAnswer(q) {
+  const qt = String(q.question_text || '');
+  if (_ROUND_OK.test(qt)) return null; // "…to 2 decimal places" — rounding is intended
+  const src = ((q.explanation || '') + ' ' + qt).replace(/(\d),(?=\d)/g, '$1'); // strip thousands commas
+  const divs = [...src.matchAll(/(\d+(?:\.\d+)?)\s*÷\s*(\d+(?:\.\d+)?)/g)]
+    .map(m => [+m[1], +m[2]]).filter(([a, b]) => b && !Number.isInteger(a / b) && !_terminates(a, b));
+  if (!divs.length) return null;
+  if (_MEANISH.test(qt)) return 'non-terminating-mean';
+  const ans = q.options ? q.options[q.correct_answer] : q.correct_answer;
+  const n = _leadNum(ans);
+  if (n != null && _hasDecimal(ans)) {
+    for (const [a, b] of divs) if (Math.abs(n - a / b) < 0.6) return 'rounded-non-terminating-answer';
+  }
+  return null;
+}
+
+// A discrete count of people/objects that resolves to a non-integer (impossible).
+function checkNonIntegerCount(q) {
+  const qt = String(q.question_text || '');
+  if (!/how many|number of/i.test(qt) || /\b(mean|average|median)\b/i.test(qt)) return null;
+  const ans = q.options ? q.options[q.correct_answer] : q.correct_answer;
+  const n = _leadNum(ans);
+  if (n == null || Number.isInteger(n)) return null;
+  if (_CONT_UNIT.test(String(ans))) return null;   // £/cm/%/… legitimately fractional
+  if (!_DISCRETE.test(qt)) return null;
+  return 'non-integer-discrete-count';
+}
+
 // Two segments overlap if one contains the other, or they share 3+ consecutive words.
 function segmentsOverlap(a, b) {
   if (!a || !b) return false;
@@ -97,6 +150,10 @@ export function lintQuestion(q) {
       if (!q.passage_id)                                 v.push('missing-passage-id');
     }
   }
+
+  // ── Semantic (best-effort): non-terminating answer / non-integer count ───────
+  const ntAns = checkNonTerminatingAnswer(q); if (ntAns) v.push(ntAns);
+  const niCnt = checkNonIntegerCount(q);       if (niCnt) v.push(niCnt);
 
   return v;
 }

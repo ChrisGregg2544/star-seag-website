@@ -31,7 +31,7 @@ async function fetchAllValidated() {
   let all = [], from = 0, size = 1000;
   while (true) {
     const { data, error } = await sb.from('questions')
-      .select('id,subject,topic,year_group,difficulty,question_type,question_text,passage,passage_id,options,correct_answer')
+      .select('id,subject,topic,year_group,difficulty,question_type,question_text,passage,passage_id,options,correct_answer,explanation')
       .eq('validated', true).order('id').range(from, from + size - 1);
     if (error) throw new Error(error.message);
     all = all.concat(data);
