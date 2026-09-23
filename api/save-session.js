@@ -289,6 +289,26 @@ export default async function handler(req, res) {
   if (action === 'get-paper')      return handleGetPaper(req, res, serviceKey);
   if (action === 'submit-results') return handleSubmitResults(req, res, serviceKey);
 
+  // ── Client error logging (no auth; must NEVER throw or block the page) ──────
+  // Writes one row per occurrence to client_errors. Always returns 200, even if
+  // the table is missing or the insert fails — a logging failure is silent.
+  if (action === 'log-error') {
+    try {
+      const b = req.body || {};
+      const clamp = (v, n) => (v == null ? null : String(v).slice(0, n));
+      const uuidRe = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      await sbFetch('client_errors', 'POST', {
+        message:    clamp(b.message, 2000),
+        page:       clamp(b.page, 200),
+        url:        clamp(b.url, 500),
+        user_id:    (typeof b.user_id === 'string' && uuidRe.test(b.user_id)) ? b.user_id : null,
+        user_agent: clamp(b.user_agent, 400),
+        stack:      clamp(b.stack, 2000),
+      }, serviceKey, { Prefer: 'return=minimal' });
+    } catch (_) { /* never surface a logging failure */ }
+    return res.status(200).json({ ok: true });
+  }
+
   // Remaining actions require POST + JWT ────────────────────────
   if (req.method !== 'POST') return res.status(405).json({ ok: false, error: 'Method not allowed' });
 

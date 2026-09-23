@@ -13,6 +13,7 @@ export const config = { maxDuration: 60 };
 
 const SUPABASE_URL = 'https://iutcgogmxhaqgaxkznxu.supabase.co';
 const DASHBOARD_URL = 'https://star-seag-website.vercel.app/parent-dashboard.html';
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'chrisgregg2544@gmail.com';
 
 const PARENT_TIPS = [
   'Try to keep each practice session to 20–30 minutes. Short, regular practice beats long, irregular sessions every time.',
@@ -238,6 +239,42 @@ function buildEmailHtml(parentName, children, tip) {
 </html>`;
 }
 
+function escapeHtml(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+// Admin error digest: groups[] = { page, message, count, last }, already sorted.
+function buildErrorSummaryHtml(groups, total) {
+  const rows = groups.map(g => `
+    <tr>
+      <td style="padding:8px 10px;border-bottom:1px solid #eee;font-weight:800;color:#b91c1c;text-align:center;">${g.count}</td>
+      <td style="padding:8px 10px;border-bottom:1px solid #eee;font-family:ui-monospace,Menlo,monospace;font-size:12px;color:#374151;white-space:nowrap;">${escapeHtml(g.page)}</td>
+      <td style="padding:8px 10px;border-bottom:1px solid #eee;font-size:12px;color:#111;">${escapeHtml(g.message)}</td>
+    </tr>`).join('');
+  const distinct = groups.length;
+  return `<!DOCTYPE html><html><body style="margin:0;padding:24px;background:#f6f7f9;font-family:-apple-system,Segoe UI,Helvetica,Arial,sans-serif;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="max-width:640px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;border:1px solid #e5e7eb;">
+      <tr><td style="background:#b91c1c;padding:18px 22px;">
+        <div style="font-size:18px;font-weight:900;color:#fff;">⚠️ STAR error report</div>
+        <div style="font-size:13px;color:rgba(255,255,255,.85);margin-top:3px;">${total} error${total !== 1 ? 's' : ''} across ${distinct} distinct issue${distinct !== 1 ? 's' : ''} in the past 7 days</div>
+      </td></tr>
+      <tr><td style="padding:6px 22px 18px;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin-top:12px;">
+          <tr style="text-align:left;">
+            <th style="padding:8px 10px;border-bottom:2px solid #eee;font-size:11px;color:#6b7280;text-transform:uppercase;letter-spacing:.05em;">Count</th>
+            <th style="padding:8px 10px;border-bottom:2px solid #eee;font-size:11px;color:#6b7280;text-transform:uppercase;letter-spacing:.05em;">Page</th>
+            <th style="padding:8px 10px;border-bottom:2px solid #eee;font-size:11px;color:#6b7280;text-transform:uppercase;letter-spacing:.05em;">Error</th>
+          </tr>
+          ${rows}
+        </table>
+        <p style="margin:16px 0 0;font-size:12px;color:#9ca3af;line-height:1.6;">
+          Grouped by page + message. Individual occurrences are in the <code>client_errors</code> table if you need per-user detail. This digest is only sent in weeks with errors.
+        </p>
+      </td></tr>
+    </table></body></html>`;
+}
+
 export default async function handler(req, res) {
   // Auth — only Vercel Cron or a manual call with the correct secret
   const auth = req.headers.authorization || '';
@@ -388,6 +425,49 @@ export default async function handler(req, res) {
 
   console.log(`[weekly-email] Complete — sent:${sent} skipped:${skipped}${dry ? ' (DRY RUN)' : ''}`);
 
-  if (dry) return res.status(200).json({ ok: true, dry: true, wouldSend: sent, skipped, emails: dryResults });
-  return res.status(200).json({ ok: true, sent, skipped });
+  // ── 6. Admin error digest — client_errors from the past 7 days ────────────
+  // Grouped by page + message so repeated occurrences collapse to one line with
+  // a count. Only emailed if there were any. Never blocks the parent emails.
+  let errorDigest = { total: 0, groups: [], emailed: false };
+  try {
+    const errRows = await sbGet(
+      `client_errors?created_at=gte.${weekStart}&select=page,message,created_at&order=created_at.desc&limit=2000`,
+      serviceKey
+    );
+    if (Array.isArray(errRows) && errRows.length > 0) {
+      const map = {};
+      for (const e of errRows) {
+        const page = e.page || '(unknown)';
+        const msg  = (e.message || '(no message)').slice(0, 160);
+        const key  = page + '||' + msg;
+        if (!map[key]) map[key] = { page, message: msg, count: 0, last: e.created_at };
+        map[key].count++;
+      }
+      const groups = Object.values(map).sort((a, b) => b.count - a.count).slice(0, 40);
+      errorDigest = { total: errRows.length, groups, emailed: false };
+
+      if (!dry && resendKey) {
+        const digestRes = await fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${resendKey}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            from: 'STAR AI Tutor <no-reply@staraitutor.co.uk>',
+            to: [ADMIN_EMAIL],
+            subject: `⚠️ STAR error report — ${errRows.length} error${errRows.length !== 1 ? 's' : ''} this week`,
+            html: buildErrorSummaryHtml(groups, errRows.length),
+          }),
+        });
+        errorDigest.emailed = digestRes.ok;
+        if (digestRes.ok) console.log(`[weekly-email] error digest sent to ${ADMIN_EMAIL} — ${errRows.length} errors, ${groups.length} distinct`);
+        else console.error('[weekly-email] error digest send failed:', (await digestRes.text()).slice(0, 200));
+      }
+    } else {
+      console.log('[weekly-email] no client errors this week — no digest sent');
+    }
+  } catch (e) {
+    console.error('[weekly-email] error digest step failed (non-fatal):', e.message);
+  }
+
+  if (dry) return res.status(200).json({ ok: true, dry: true, wouldSend: sent, skipped, emails: dryResults, errorDigest });
+  return res.status(200).json({ ok: true, sent, skipped, errorDigest: { total: errorDigest.total, distinct: errorDigest.groups.length, emailed: errorDigest.emailed } });
 }

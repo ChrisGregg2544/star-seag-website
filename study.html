@@ -410,6 +410,56 @@
     }
     @media (max-width: 480px) { .baseline-topic-name { width: 110px; font-size: .76rem; } }
   </style>
+<!-- Client error logging → /api/save-session?action=log-error (best-effort, never blocks) -->
+<script>
+(function () {
+  var SENT = 0, CAP = 8;
+  function currentUid() {
+    try {
+      var raw = localStorage.getItem('sb-iutcgogmxhaqgaxkznxu-auth-token');
+      var tok = raw ? JSON.parse(raw) : null;
+      return (tok && tok.user && tok.user.id) || localStorage.getItem('selectedChildId') || null;
+    } catch (e) { return null; }
+  }
+  function logClientError(message, stack) {
+    try {
+      if (SENT >= CAP) return; SENT++;
+      var body = JSON.stringify({
+        action: 'log-error',
+        message: String(message == null ? '' : message).slice(0, 1000),
+        page: location.pathname,
+        url: location.href.slice(0, 500),
+        user_id: currentUid(),
+        user_agent: (navigator.userAgent || '').slice(0, 300),
+        stack: stack ? String(stack).slice(0, 1500) : null
+      });
+      fetch('/api/save-session', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: body, keepalive: true }).catch(function () {});
+    } catch (e) { /* logging must never throw */ }
+  }
+  window.__logClientError = logClientError;
+  window.addEventListener('error', function (e) {
+    logClientError((e && e.message) || 'Uncaught error', e && e.filename ? (e.filename + ':' + e.lineno + ':' + e.colno) : null);
+  });
+  window.addEventListener('unhandledrejection', function (e) {
+    var r = e && e.reason;
+    logClientError('Unhandled promise rejection: ' + ((r && r.message) || r || ''), r && r.stack ? String(r.stack) : null);
+  });
+  var _fetch = window.fetch;
+  if (_fetch) {
+    window.fetch = function (input, init) {
+      var u = (typeof input === 'string') ? input : (input && input.url) || '';
+      var isApi = u.indexOf('/api/') !== -1, isSelf = u.indexOf('/api/save-session') !== -1;
+      return _fetch.apply(this, arguments).then(function (res) {
+        try { if (isApi && !isSelf && !res.ok) logClientError('API ' + res.status + ' — ' + u.slice(0, 200)); } catch (e) {}
+        return res;
+      }).catch(function (err) {
+        try { if (isApi && !isSelf) logClientError('API fetch failed — ' + u.slice(0, 200) + ': ' + ((err && err.message) || ''), err && err.stack ? String(err.stack) : null); } catch (e) {}
+        throw err;
+      });
+    };
+  }
+})();
+</script>
 </head>
 <body>
 
