@@ -302,6 +302,13 @@ export default async function handler(req, res) {
   if (!userRes.ok) return res.status(401).json({ ok: false, error: 'Invalid or expired session token' });
   const { id: parentId } = await userRes.json();
 
+  // ── Telemetry: a topic sprint found no questions (loud, surfaces in Vercel logs) ──
+  if (action === 'report-empty-pool') {
+    console.error('[EMPTY-POOL] no questions served — parent:', parentId,
+      'child:', req.body?.childId, 'topic:', req.body?.topic, 'year:', req.body?.yearGroup);
+    return res.status(200).json({ ok: true });
+  }
+
   if (action === 'save-paper') {
     try {
       return await handleSavePaper(req, res, serviceKey, parentId);
@@ -315,6 +322,15 @@ export default async function handler(req, res) {
   const { childId, session, questionResults, missedTopics } = req.body || {};
   if (!childId || !session || !Array.isArray(questionResults)) {
     return res.status(400).json({ ok: false, error: 'Missing required fields: childId, session, questionResults' });
+  }
+
+  // Defence-in-depth: never record a session that served no questions. This is
+  // what produced the 0/0 topic_sprint rows. Logged loudly with the topic so an
+  // empty/thin topic is identifiable even if the client guard is bypassed.
+  if (!(Number(session.total_questions) >= 1)) {
+    console.error('[save-session] REFUSED empty session — child:', childId,
+      'type:', session.session_type, 'topic:', session.topic, 'year:', session.track);
+    return res.status(400).json({ ok: false, error: 'Refusing to save a session with no questions' });
   }
 
   // 3. Verify access — direct student (childId === parentId) or parent owns this child
@@ -337,18 +353,29 @@ export default async function handler(req, res) {
     user_id:         childId,
     session_type:    session.session_type,
     track:           session.track,
+    topic:           session.topic ?? null,
     score:           session.score,
     total_questions: session.total_questions,
     english_score:   session.english_score,
     maths_score:     session.maths_score,
   };
-  const sessionInsertRes = await sbFetch('sessions', 'POST', sessionRow, serviceKey, {
+  let sessionInsertRes = await sbFetch('sessions', 'POST', sessionRow, serviceKey, {
     'Prefer': 'return=representation',
   });
   if (!sessionInsertRes.ok) {
     const text = await sessionInsertRes.text();
-    console.error('[save-session] sessions insert error:', text.slice(0, 200));
-    return res.status(500).json({ ok: false, error: 'Failed to insert session row' });
+    // Self-heal: if the optional `topic` column isn't present yet (migration
+    // add_topic_to_sessions.sql not run), retry without it so saving never breaks.
+    if (/topic/i.test(text) && 'topic' in sessionRow) {
+      console.warn('[save-session] `topic` column missing — retrying without it. Run migrations/add_topic_to_sessions.sql to enable topic recording.');
+      const { topic, ...rowNoTopic } = sessionRow;
+      sessionInsertRes = await sbFetch('sessions', 'POST', rowNoTopic, serviceKey, { 'Prefer': 'return=representation' });
+    }
+    if (!sessionInsertRes.ok) {
+      const t2 = await sessionInsertRes.text();
+      console.error('[save-session] sessions insert error:', t2.slice(0, 200));
+      return res.status(500).json({ ok: false, error: 'Failed to insert session row' });
+    }
   }
   const [savedSession] = await sessionInsertRes.json();
   const sessionId = savedSession?.id;

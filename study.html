@@ -1751,6 +1751,22 @@ function _showResultsInternal() {
   // but still run the Supabase save block below.
   const calledFromExhausted = !document.getElementById('missed-list');
   if (calledFromExhausted) {
+    // Empty pool: the topic served no questions. Do NOT persist a session,
+    // score, or progress — that is what created the 0/0 topic_sprint rows.
+    // Report it loudly (surfaces in Vercel logs) so the empty topic is
+    // identifiable, then just wire the action buttons and stop.
+    if (sessionTotal === 0) {
+      reportEmptyPool();
+      const secBtn0 = document.getElementById('results-btn-secondary');
+      if (window._starAccess?.isGuest) {
+        secBtn0.textContent = 'Sign Up Free to Save Your Results';
+        secBtn0.onclick = () => { window.location.href = 'onboarding.html'; };
+      } else {
+        secBtn0.textContent = 'Go to Dashboard →';
+        secBtn0.onclick = goToDashboard;
+      }
+      return;
+    }
     const wrongQuestions = QUESTIONS.filter((q, i) => answers[i] === 'wrong');
 
     const pct = sessionTotal > 0 ? Math.round(sessionCorrect / sessionTotal * 100) : 0;
@@ -1964,13 +1980,37 @@ function _showResultsInternal() {
   }
 }
 
+// Loud, best-effort telemetry when a topic sprint finds no questions. Logs
+// server-side (Vercel) with the topic + year so an empty/thin topic is
+// identifiable — replaces the old behaviour of silently writing a 0/0 row.
+function reportEmptyPool() {
+  console.warn('[study] EMPTY POOL — no questions for topic:', selectedTopic, 'year:', userYear);
+  sb.auth.getSession().then(({ data }) => {
+    const token = data?.session?.access_token;
+    if (!token) return; // guests get mixed sprints (never empty) — nothing to report
+    fetch('/api/save-session', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({
+        action: 'report-empty-pool',
+        childId: localStorage.getItem('selectedChildId') || null,
+        topic: selectedTopic || null,
+        yearGroup: userYear || null,
+      }),
+    }).catch(() => {});
+  }).catch(() => {});
+}
+
 function saveSessionToSupabase(missedQs) {
   missedQs = missedQs || [];
+  // Never persist a session with no questions served (defence-in-depth; the
+  // exhausted path already returns before calling this).
+  if (sessionTotal < 1) { console.warn('[study] skipping save — 0 questions served'); return; }
   sb.auth.getSession().then(async ({ data }) => {
     if (!data?.session?.user) return;
     const childId = localStorage.getItem('selectedChildId');
     if (!childId) return;
-    const track = sessionStorage.getItem('star_year') || 'P6';
+    const track = userYear || sessionStorage.getItem('star_year') || 'P6';
 
     const toReviewForDb = missedQs
       .map(q => ({ topic: q.topic, videoTitle: q.videoTopic || q.topic, videoUrl: q.videoUrl, videoSource: q.videoSource, questionText: q.text }))
@@ -1982,6 +2022,7 @@ function saveSessionToSupabase(missedQs) {
       session: {
         session_type:    new URLSearchParams(window.location.search).get('mode') === 'topic' ? 'topic_sprint' : 'mini_sprint',
         track,
+        topic:           selectedTopic || null,
         score:           sessionCorrect,
         total_questions: sessionTotal,
         english_score:   allSessionQuestions.filter(q => q.question_type === 'english' && q.correct).length,
