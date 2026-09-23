@@ -244,17 +244,20 @@ function escapeHtml(s) {
     .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
-// Admin error digest: groups[] = { page, message, count, last }, already sorted.
+// Admin error digest: groups[] = { page, message, count, users }, already sorted.
+// `count` = total occurrences; `users` = distinct signed-in accounts affected
+// (so "1 user retrying 5×" reads count=5/users=1, vs "5 users" reads 5/5).
 function buildErrorSummaryHtml(groups, total) {
   const rows = groups.map(g => `
     <tr>
       <td style="padding:8px 10px;border-bottom:1px solid #eee;font-weight:800;color:#b91c1c;text-align:center;">${g.count}</td>
+      <td style="padding:8px 10px;border-bottom:1px solid #eee;font-weight:800;color:#1d4ed8;text-align:center;">${g.users || '—'}</td>
       <td style="padding:8px 10px;border-bottom:1px solid #eee;font-family:ui-monospace,Menlo,monospace;font-size:12px;color:#374151;white-space:nowrap;">${escapeHtml(g.page)}</td>
       <td style="padding:8px 10px;border-bottom:1px solid #eee;font-size:12px;color:#111;">${escapeHtml(g.message)}</td>
     </tr>`).join('');
   const distinct = groups.length;
   return `<!DOCTYPE html><html><body style="margin:0;padding:24px;background:#f6f7f9;font-family:-apple-system,Segoe UI,Helvetica,Arial,sans-serif;">
-    <table width="100%" cellpadding="0" cellspacing="0" style="max-width:640px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;border:1px solid #e5e7eb;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="max-width:660px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;border:1px solid #e5e7eb;">
       <tr><td style="background:#b91c1c;padding:18px 22px;">
         <div style="font-size:18px;font-weight:900;color:#fff;">⚠️ STAR error report</div>
         <div style="font-size:13px;color:rgba(255,255,255,.85);margin-top:3px;">${total} error${total !== 1 ? 's' : ''} across ${distinct} distinct issue${distinct !== 1 ? 's' : ''} in the past 7 days</div>
@@ -262,14 +265,15 @@ function buildErrorSummaryHtml(groups, total) {
       <tr><td style="padding:6px 22px 18px;">
         <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin-top:12px;">
           <tr style="text-align:left;">
-            <th style="padding:8px 10px;border-bottom:2px solid #eee;font-size:11px;color:#6b7280;text-transform:uppercase;letter-spacing:.05em;">Count</th>
+            <th style="padding:8px 10px;border-bottom:2px solid #eee;font-size:11px;color:#6b7280;text-transform:uppercase;letter-spacing:.05em;text-align:center;">Count</th>
+            <th style="padding:8px 10px;border-bottom:2px solid #eee;font-size:11px;color:#6b7280;text-transform:uppercase;letter-spacing:.05em;text-align:center;">Users</th>
             <th style="padding:8px 10px;border-bottom:2px solid #eee;font-size:11px;color:#6b7280;text-transform:uppercase;letter-spacing:.05em;">Page</th>
             <th style="padding:8px 10px;border-bottom:2px solid #eee;font-size:11px;color:#6b7280;text-transform:uppercase;letter-spacing:.05em;">Error</th>
           </tr>
           ${rows}
         </table>
         <p style="margin:16px 0 0;font-size:12px;color:#9ca3af;line-height:1.6;">
-          Grouped by page + message. Individual occurrences are in the <code>client_errors</code> table if you need per-user detail. This digest is only sent in weeks with errors.
+          Grouped by page + message. <strong>Count</strong> = total occurrences; <strong>Users</strong> = distinct signed-in accounts affected (&ldquo;&mdash;&rdquo; = only signed-out/anonymous). Individual rows are in <code>client_errors</code> for per-user detail. Only sent in weeks with errors.
         </p>
       </td></tr>
     </table></body></html>`;
@@ -431,7 +435,7 @@ export default async function handler(req, res) {
   let errorDigest = { total: 0, groups: [], emailed: false };
   try {
     const errRows = await sbGet(
-      `client_errors?created_at=gte.${weekStart}&select=page,message,created_at&order=created_at.desc&limit=2000`,
+      `client_errors?created_at=gte.${weekStart}&select=page,message,created_at,user_id&order=created_at.desc&limit=2000`,
       serviceKey
     );
     if (Array.isArray(errRows) && errRows.length > 0) {
@@ -440,10 +444,14 @@ export default async function handler(req, res) {
         const page = e.page || '(unknown)';
         const msg  = (e.message || '(no message)').slice(0, 160);
         const key  = page + '||' + msg;
-        if (!map[key]) map[key] = { page, message: msg, count: 0, last: e.created_at };
+        if (!map[key]) map[key] = { page, message: msg, count: 0, userSet: new Set() };
         map[key].count++;
+        if (e.user_id) map[key].userSet.add(e.user_id);
       }
-      const groups = Object.values(map).sort((a, b) => b.count - a.count).slice(0, 40);
+      const groups = Object.values(map)
+        .map(g => ({ page: g.page, message: g.message, count: g.count, users: g.userSet.size }))
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 40);
       errorDigest = { total: errRows.length, groups, emailed: false };
 
       if (!dry && resendKey) {
